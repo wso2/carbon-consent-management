@@ -19,10 +19,28 @@ package org.wso2.carbon.consent.mgt.core.exception;
 /**
  * Base exception for consent management feature.
  */
-public class ConsentManagementBaseException extends Exception {
+public class ConsentManagementException extends Exception {
 
     private static final long serialVersionUID = 2806215535431246551L;
     private String errorCode;
+
+    public ConsentManagementException() {
+        super();
+    }
+
+    public ConsentManagementException(String message, String errorCode) {
+        super(message);
+        this.errorCode = errorCode;
+    }
+
+    public ConsentManagementException(String message, String errorCode, Throwable cause) {
+        super(message, cause);
+        this.errorCode = errorCode;
+    }
+
+    public ConsentManagementException(Throwable cause) {
+        super(cause);
+    }
 
     protected void setErrorCode(String errorCode) {
         this.errorCode = errorCode;

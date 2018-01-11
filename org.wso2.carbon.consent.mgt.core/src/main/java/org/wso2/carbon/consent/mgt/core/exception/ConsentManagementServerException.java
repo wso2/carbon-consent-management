@@ -16,5 +16,5 @@
 
 package org.wso2.carbon.consent.mgt.core.exception;
 
-public class ConsentManagementServerException extends ConsentManagementBaseException {
+public class ConsentManagementServerException extends ConsentManagementException {
 }

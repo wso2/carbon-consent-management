@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.consent.mgt.core;
 
+import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
+import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeDAOImpl;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 
 /**
@@ -23,8 +25,19 @@ import org.wso2.carbon.consent.mgt.core.model.Purpose;
  */
 public class ConsentManager {
 
+    private static PurposeDAO purposeDAO;
+
+    //TODO: Introduce a config object to hold the DAO data.
+    public ConsentManager() {
+
+        purposeDAO = new PurposeDAOImpl();
+    }
+
     public void addPurpose(Purpose purpose) {
 
+
+
+        purposeDAO.addPurpose(purpose);
 
     }
 }

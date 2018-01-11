@@ -20,7 +20,7 @@ import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 
 /**
- * Default implementaiotion of {@link PurposeDAO}. This handle {@link Purpose} related DB operations.
+ * Default implementation of {@link PurposeDAO}. This handle {@link Purpose} related DB operations.
  */
 public class PurposeDAOImpl implements PurposeDAO {
 
