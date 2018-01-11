@@ -16,26 +16,36 @@
 
 package org.wso2.carbon.consent.mgt.core.exception;
 
+/**
+ * This class is an {@link RuntimeException} which is idint
+ */
 public class ConsentManagementRuntimeException extends RuntimeException {
+
+    private String errorCode;
 
     public ConsentManagementRuntimeException() {
         super();
     }
 
-    public ConsentManagementRuntimeException(String message) {
+    public ConsentManagementRuntimeException(String message, String errorCode) {
         super(message);
+        this.errorCode = errorCode;
     }
 
-    public ConsentManagementRuntimeException(String message, Throwable cause) {
+    public ConsentManagementRuntimeException(String message, String errorCode, Throwable cause) {
         super(message, cause);
+        this.errorCode = errorCode;
     }
 
     public ConsentManagementRuntimeException(Throwable cause) {
         super(cause);
     }
 
-    protected ConsentManagementRuntimeException(String message, Throwable cause, boolean enableSuppression,
-                                                boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
+    protected void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
+    }
+
+    protected String getErrorCode() {
+        return errorCode;
     }
 }
