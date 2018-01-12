@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.consent.mgt.core.exception;
 
+import org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants;
+
 /**
  * This class is an {@link RuntimeException} which is idint
  */

@@ -24,18 +24,18 @@ import org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementRuntimeException;
 import org.wso2.carbon.utils.CarbonUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  *
@@ -44,34 +44,14 @@ public class JDBCPersistenceManager {
 
     private static final Log log = LogFactory.getLog(JDBCPersistenceManager.class);
     private static DataSource dataSource;
-
-    public static JDBCPersistenceManager getInstance() {
-        return instance;
-    }
-
     private static JDBCPersistenceManager instance = new JDBCPersistenceManager();
 
     private JDBCPersistenceManager() {
         iniDataSource();
     }
 
-    /**
-     * Returns an database connection for Identity data source.
-     *
-     * @return Database connection
-     * @throws ConsentManagementRuntimeException Exception occurred when getting the data source.
-     */
-    public Connection getDBConnection() throws ConsentManagementRuntimeException {
-        try {
-            Connection dbConnection = dataSource.getConnection();
-            //TODO: Read from data source.
-            dbConnection.setAutoCommit(false);
-            dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-            return dbConnection;
-        } catch (SQLException e) {
-            String errMsg = "Error when getting a database connection object from the Identity data source.";
-            throw new ConsentManagementRuntimeException(errMsg, e);
-        }
+    public static JDBCPersistenceManager getInstance() {
+        return instance;
     }
 
     private static void iniDataSource() {
@@ -81,8 +61,9 @@ public class JDBCPersistenceManager {
             ctx = new InitialContext();
             dataSource = (DataSource) ctx.lookup(dataSourceName);
         } catch (NamingException e) {
-            throw new ConsentManagementRuntimeException("Error while initializing the consent management data source" +
-                                                        ".", e);
+            throw new ConsentManagementRuntimeException(ConfigurationConstants.ErrorMessages
+                    .ERROR_CODE_DATABASE_INITIALIZATION.getMessage()
+                    , ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_INITIALIZATION.getCode(), e);
         }
     }
 
@@ -90,7 +71,7 @@ public class JDBCPersistenceManager {
 
         String dataSourceName = ConfigurationConstants.DEFAULT_DATA_SOURCE_NAME;
         String configurationFilePath = CarbonUtils.getCarbonConfigDirPath() + File.separator +
-                                       ConfigurationConstants.CONSENT_MANAGEMENT_CONFIG_XML;
+                ConfigurationConstants.CONSENT_MANAGEMENT_CONFIG_XML;
 
         try (FileInputStream fileInputStream = new FileInputStream(new File(configurationFilePath))) {
 
@@ -102,7 +83,7 @@ public class JDBCPersistenceManager {
             if (dataSourceElem == null) {
                 log.info("DataSource Element is not available in " + ConfigurationConstants
                         .CONSENT_MANAGEMENT_CONFIG_XML + ". Using default value: " + ConfigurationConstants
-                                 .DEFAULT_DATA_SOURCE_NAME + " as data source name.");
+                        .DEFAULT_DATA_SOURCE_NAME + " as data source name.");
 
                 return dataSourceName;
             }
@@ -124,5 +105,25 @@ public class JDBCPersistenceManager {
         }
 
         return dataSourceName;
+    }
+
+    /**
+     * Returns an database connection for Identity data source.
+     *
+     * @return Database connection
+     * @throws ConsentManagementRuntimeException Exception occurred when getting the data source.
+     */
+    public Connection getDBConnection() throws ConsentManagementRuntimeException {
+        try {
+            Connection dbConnection = dataSource.getConnection();
+            //TODO: Read from data source.
+            dbConnection.setAutoCommit(false);
+            dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            return dbConnection;
+        } catch (SQLException e) {
+            throw new ConsentManagementRuntimeException(ConfigurationConstants.ErrorMessages
+                    .ERROR_CODE_DATABASE_CONNECTION.getMessage()
+                    , ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_CONNECTION.getCode(), e);
+        }
     }
 }

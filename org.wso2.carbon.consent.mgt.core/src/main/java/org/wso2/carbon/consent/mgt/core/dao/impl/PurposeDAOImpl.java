@@ -32,6 +32,7 @@ public class PurposeDAOImpl implements PurposeDAO {
 
     @Override
     public Purpose getPurpose() {
+
         return null;
     }
 }
