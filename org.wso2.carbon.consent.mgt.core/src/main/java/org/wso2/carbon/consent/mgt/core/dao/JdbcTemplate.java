@@ -84,7 +84,9 @@ public class JdbcTemplate {
                     "There has been an error performing the database query. The query is {}, and the Parameters are {}",
                     e, query, queryFilter);
             throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING
-                    .getMessage() + query, e);
+                    .getMessage() + query, ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING
+                    .getCode(),
+                    e);
         }
         return result;
     }
@@ -113,13 +115,15 @@ public class JdbcTemplate {
                 logDebugInfo("There are more records than one found for query: {} for the parameters {}", query,
                         queryFilter);
                 throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_MORE_RECORDS_IN_QUERY
-                        .getMessage() + query);
+                        .getMessage() + query, ConfigurationConstants.ErrorMessages.ERROR_CODE_MORE_RECORDS_IN_QUERY
+                        .getCode());
             }
         } catch (SQLException e) {
             logDebugInfo(
                     "There has been an error performing the database query. The query is {}, and the parameters are {}",
                     e, query, rowMapper, queryFilter);
-            throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING + query, e);
+            throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING +
+                    query, ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode(), e);
         }
         return result;
     }
@@ -133,7 +137,8 @@ public class JdbcTemplate {
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             logDebugInfo("Error in performing database update: {} with parameters {}", query, queryFilter);
-            throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING + query, e);
+            throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING +
+                    query, ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode(), e);
         }
     }
 
@@ -149,7 +154,9 @@ public class JdbcTemplate {
             doInternalUpdate(null, preparedStatement);
         } catch (SQLException e) {
             logDebugInfo("Error in performing database update: {}", query);
-            throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING + query, e);
+            throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING
+                    .getMessage() + query, ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING
+                    .getCode(), e);
         }
     }
 
@@ -186,7 +193,8 @@ public class JdbcTemplate {
             }
         } catch (SQLException e) {
             logDebugInfo("Error in performing database insert: {} with parameters {}", query, queryFilter);
-            throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING + query, e);
+            throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getMessage()
+                    + query, ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode(), e);
         }
         return 0;
     }

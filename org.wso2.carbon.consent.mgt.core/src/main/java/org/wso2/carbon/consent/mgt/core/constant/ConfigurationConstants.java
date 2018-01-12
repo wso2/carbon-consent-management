@@ -53,7 +53,7 @@ public class ConfigurationConstants {
 
         @Override
         public String toString() {
-            return code + " - " + message;
+            return code + " : " + message;
         }
     }
 }

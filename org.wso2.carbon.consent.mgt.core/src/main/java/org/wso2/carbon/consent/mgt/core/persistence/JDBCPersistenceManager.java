@@ -18,9 +18,10 @@ package org.wso2.carbon.consent.mgt.core.persistence;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants;
+import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementRuntimeException;
 import org.wso2.carbon.utils.CarbonUtils;
 
@@ -42,7 +43,7 @@ import java.sql.SQLException;
  */
 public class JDBCPersistenceManager {
 
-    private static final Log log = LogFactory.getLog(JDBCPersistenceManager.class);
+    private static final Logger log = LoggerFactory.getLogger(JDBCPersistenceManager.class);
     private static DataSource dataSource;
     private static JDBCPersistenceManager instance = new JDBCPersistenceManager();
 
@@ -125,5 +126,10 @@ public class JDBCPersistenceManager {
                     .ERROR_CODE_DATABASE_CONNECTION.getMessage()
                     , ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_CONNECTION.getCode(), e);
         }
+    }
+
+    public JdbcTemplate getJDBCTemplate() {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        return jdbcTemplate;
     }
 }

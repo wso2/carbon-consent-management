@@ -32,10 +32,10 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
-                <version>1.7.2</version>
+                <version>1.22.0</version>
                 <executions>
                     <execution>
-                        <id>generate-scr-scr-descriptor</id>
+                        <id>generate-scr-scrdescriptor</id>
                         <goals>
                             <goal>scr</goal>
                         </goals>
@@ -54,12 +54,13 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>org.wso2.carbon.consent.mgt.core.internal</Private-Package>
                         <Import-Package>
+                            org.wso2.carbon.consent.mgt.core.*,
                             org.osgi.framework,
                             org.osgi.service.component,
                         </Import-Package>
                         <Export-Package>
-                            <!--!org.wso2.carbon.consent.mgt.core.internal,-->
-                            org.wso2.carbon.consent.mgt.core.*.*;version="1.0.0-SNAPSHOT",
+                            !org.wso2.carbon.consent.mgt.core.internal,
+                            org.wso2.carbon.consent.mgt.core.*;version="1.0.0-SNAPSHOT",
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>
@@ -84,7 +85,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
+            <version>1.2.4</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
