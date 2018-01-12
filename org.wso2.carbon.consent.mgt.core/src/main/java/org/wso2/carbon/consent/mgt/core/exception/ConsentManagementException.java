@@ -38,15 +38,20 @@ public class ConsentManagementException extends Exception {
         this.errorCode = errorCode;
     }
 
+    public ConsentManagementException(String message, Throwable cause, boolean enableSuppression, boolean
+            writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
+
     public ConsentManagementException(Throwable cause) {
         super(cause);
     }
 
-    protected void setErrorCode(String errorCode) {
-        this.errorCode = errorCode;
-    }
-
     protected String getErrorCode() {
         return errorCode;
+    }
+
+    protected void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
     }
 }

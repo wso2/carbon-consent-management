@@ -26,4 +26,34 @@ public class ConfigurationConstants {
     public static String CONSENT_MANAGEMENT_DEFAULT_NAMESPACE = "http://wso2.org/carbon/consent/management";
     public static String DATA_SOURCE_NAME_ELEMENT = "Name";
     public static String DATA_SOURCE_ELEMENT = "DataSource";
+
+    public enum ErrorMessages {
+        ERROR_CODE_DATABASE_CONNECTION("55000", "Error when getting a database connection object from the Identity " +
+                "data source."),
+        ERROR_CODE_DATABASE_INITIALIZATION("55001", "Error while initializing the consent management data source."),
+        ERROR_CODE_DATABASE_QUERY_PERFORMING("55002", "Error in performing Database query: '%s.'"),
+        ERROR_CODE_MORE_RECORDS_IN_QUERY("55003", "There are more records than one found for query: '%s.'"),
+        ERROR_CODE_AUTO_GENERATED_ID_FAILURE("55004", "Creating the record failed with Auto-Generated ID, no ID obtained.");
+
+        private final String code;
+        private final String message;
+
+        ErrorMessages(String code, String message) {
+            this.code = code;
+            this.message = message;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        @Override
+        public String toString() {
+            return code + " : " + message;
+        }
+    }
 }

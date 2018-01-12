@@ -41,11 +41,16 @@ public class ConsentManagementRuntimeException extends RuntimeException {
         super(cause);
     }
 
-    protected void setErrorCode(String errorCode) {
-        this.errorCode = errorCode;
+    public ConsentManagementRuntimeException(String message, Throwable cause, boolean enableSuppression, boolean
+            writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 
     protected String getErrorCode() {
         return errorCode;
+    }
+
+    protected void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
     }
 }

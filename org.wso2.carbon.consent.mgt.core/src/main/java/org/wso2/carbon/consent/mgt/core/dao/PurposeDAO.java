@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.consent.mgt.core.dao;
 
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 
 /**
@@ -24,11 +25,10 @@ import org.wso2.carbon.consent.mgt.core.model.Purpose;
 public interface PurposeDAO {
 
     /**
-     *
      * @param purpose
      * @return
      */
-    Purpose addPurpose(Purpose purpose);
+    Purpose addPurpose(Purpose purpose) throws ConsentManagementServerException;
 
     Purpose getPurpose();
 }
