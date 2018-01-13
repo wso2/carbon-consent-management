@@ -28,7 +28,7 @@ public class ReceiptInput {
     private String language;
     private String piiPrincipalId;
     private Date consentTimestamp;
-    private List<PIIController> piiControllers;
+    private List<PiiController> piiControllers;
     private List<ReceiptServiceInput> services;
     private String policyUrl;
     private boolean sensitive;

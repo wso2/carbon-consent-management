@@ -1,5 +1,6 @@
 package org.wso2.carbon.consent.mgt.endpoint.impl;
 
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.endpoint.ApiResponseMessage;
@@ -89,7 +90,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
         Purpose purpose2 = null;
         try {
             purpose2 = ConsentEndpointUtils.getConsentManager().addPurpose(purpose1);
-        } catch (ConsentManagementServerException e) {
+        } catch (ConsentManagementException e) {
             e.printStackTrace();
         }
 

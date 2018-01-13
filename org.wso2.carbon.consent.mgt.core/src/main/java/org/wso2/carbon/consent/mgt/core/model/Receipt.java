@@ -31,7 +31,7 @@ public class Receipt {
     private String language;
     private String piiPrincipalId;
     private long consentTimestamp;
-    private List<PIIController> piiControllers;
+    private List<PiiController> piiControllers;
 
     public String getConsentReceiptId() {
         return consentReceiptId;
@@ -97,11 +97,11 @@ public class Receipt {
         this.consentTimestamp = consentTimestamp;
     }
 
-    public List<PIIController> getPiiControllers() {
+    public List<PiiController> getPiiControllers() {
         return piiControllers;
     }
 
-    public void setPiiControllers(List<PIIController> piiControllers) {
+    public void setPiiControllers(List<PiiController> piiControllers) {
         this.piiControllers = piiControllers;
     }
 
