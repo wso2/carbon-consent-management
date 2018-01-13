@@ -16,27 +16,22 @@
 
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
-import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
+import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.core.model.PIICategory;
+import org.wso2.carbon.consent.mgt.core.model.Receipt;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 
 /**
- * Default implementation of {@link PIICategoryDAO}. This handles {@link PIICategory} related DB operations.
+ * Default implementation of {@link ReceiptDAO}. This handles {@link Receipt} related DB operations.
  */
-public class PIICategoryDAOImpl implements PIICategoryDAO {
-
+public class ReceiptDAOImpl implements ReceiptDAO {
     @Override
-    public PIICategory addPIICategory(PIICategory piiCategory) throws ConsentManagementException {
+    public Receipt addReceipt(ReceiptInput receiptInput) throws ConsentManagementException {
         return null;
     }
 
     @Override
-    public PIICategory getPIICategoryById(String id) throws ConsentManagementException {
-        return null;
-    }
-
-    @Override
-    public PIICategory getPIICategoryByName(String name) throws ConsentManagementException {
+    public Receipt getReceipt(String receiptId) throws ConsentManagementException {
         return null;
     }
 }

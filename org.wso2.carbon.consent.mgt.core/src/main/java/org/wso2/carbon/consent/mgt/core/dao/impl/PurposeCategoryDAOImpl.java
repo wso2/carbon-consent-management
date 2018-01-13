@@ -21,7 +21,7 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 
 /**
- * Default implementation of {@link PurposeCategoryDAO}. This handle {@link PurposeCategory} related DB operations.
+ * Default implementation of {@link PurposeCategoryDAO}. This handles {@link PurposeCategory} related DB operations.
  */
 public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
 
