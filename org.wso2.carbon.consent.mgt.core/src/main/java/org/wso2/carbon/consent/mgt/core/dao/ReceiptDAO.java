@@ -17,13 +17,12 @@
 package org.wso2.carbon.consent.mgt.core.dao;
 
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.consent.mgt.core.model.Receipt;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 
-public interface PurposeDAO {
+public interface ReceiptDAO {
 
-    Purpose addPurpose(Purpose purpose) throws ConsentManagementException;
+    Receipt addReceipt(ReceiptInput receiptInput) throws ConsentManagementException;
 
-    Purpose getPurposeById(String id) throws ConsentManagementException;
-
-    Purpose getPurposeName(String name) throws ConsentManagementException;
+    Receipt getReceipt(String receiptId) throws ConsentManagementException;
 }

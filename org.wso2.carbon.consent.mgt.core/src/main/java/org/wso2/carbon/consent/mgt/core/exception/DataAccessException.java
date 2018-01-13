@@ -22,7 +22,7 @@ package org.wso2.carbon.consent.mgt.core.exception;
  * The exception thrown when an error happens at the Data Access Layer.
  * Carries the necessary information to the caller to handle the error effectively.
  */
-public class DataAccessException extends ConsentManagementException {
+public class DataAccessException extends ConsentManagementServerException {
 
     public DataAccessException() {
     }

@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.consent.mgt.core.dao;
+package org.wso2.carbon.consent.mgt.core.model;
 
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import java.util.Date;
+import java.util.List;
 
-public interface PurposeDAO {
+public class ReceiptInput {
 
-    Purpose addPurpose(Purpose purpose) throws ConsentManagementException;
-
-    Purpose getPurposeById(String id) throws ConsentManagementException;
-
-    Purpose getPurposeName(String name) throws ConsentManagementException;
+    private String consentReceiptId;
+    private String version;
+    private String jurisdiction;
+    private String collectionMethod;
+    private String language;
+    private String piiPrincipalId;
+    private Date consentTimestamp;
+    private List<PIIController> piiControllers;
+    private List<ReceiptServiceInput> services;
+    private String policyUrl;
+    private boolean sensitive;
+    private List<Integer> spiCat;
+    private String state;
 }

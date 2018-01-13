@@ -23,7 +23,11 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
+import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
+import org.wso2.carbon.consent.mgt.core.dao.impl.PIICategoryDAOImpl;
+import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeCategoryDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeDAOImpl;
 /**
  * OSGi declarative services component which handles registration and un-registration of consent management service.
@@ -49,7 +53,15 @@ public class ConsentManagerComponent {
 
             BundleContext bundleContext = componentContext.getBundleContext();
             PurposeDAO purposeDAO = new PurposeDAOImpl();
-            bundleContext.registerService(ConsentManager.class.getName(), new ConsentManager(purposeDAO), null);
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
+
+            ConsentManagerConfiguration configurations = new ConsentManagerConfiguration();
+            configurations.setPurposeDAO(purposeDAO);
+            configurations.setPurposeCategoryDAO(purposeCategoryDAO);
+            configurations.setPiiCategoryDAO(piiCategoryDAO);
+
+            bundleContext.registerService(ConsentManager.class.getName(), new ConsentManager(configurations), null);
             log.info("ConsentManagerComponent is activated.");
         } catch (Throwable e) {
             log.error("Error while activating ConsentManagerComponent.", e);

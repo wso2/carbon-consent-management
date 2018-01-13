@@ -17,13 +17,13 @@
 package org.wso2.carbon.consent.mgt.core.dao;
 
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 
-public interface PurposeDAO {
+public interface PIICategoryDAO {
 
-    Purpose addPurpose(Purpose purpose) throws ConsentManagementException;
+    PIICategory addPIICategory(PIICategory piiCategory) throws ConsentManagementException;
 
-    Purpose getPurposeById(String id) throws ConsentManagementException;
+    PIICategory getPIICategoryById(String id) throws ConsentManagementException;
 
-    Purpose getPurposeName(String name) throws ConsentManagementException;
+    PIICategory getPIICategoryByName(String name) throws ConsentManagementException;
 }
