@@ -16,93 +16,69 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
-/**
- * This model represents the PII controller model
- */
 public class PiiController {
 
-  private String piiController;
-  private String contact = null;
-  private Address address;
-  private String email;
-  private String phone;
-  private String onBehalf = null;
-  private String piiControllerUrl = null;
+    private String piiController;
+    private boolean onBehalf;
+    private String contact;
+    private String email;
+    private String phone;
+    private String piiControllerUrl;
+    private Address address;
 
-  public PiiController(String piiController, String contact, Address address, String email, String phone,
-                       String onBehalf, String piiControllerUrl) {
-    this.piiController = piiController;
-    this.contact = contact;
-    this.address = address;
-    this.email = email;
-    this.phone = phone;
-    this.onBehalf = onBehalf;
-    this.piiControllerUrl = piiControllerUrl;
-  }
+    public String getPiiController() {
+        return piiController;
+    }
 
-  public PiiController(String piiController, Address address, String email, String phone) {
-    this.piiController = piiController;
-    this.address = address;
-    this.email = email;
-    this.phone = phone;
-  }
+    public void setPiiController(String piiController) {
+        this.piiController = piiController;
+    }
 
-  public PiiController() {
-  }
+    public boolean isOnBehalf() {
+        return onBehalf;
+    }
 
-  public String getPiiController() {
-    return piiController;
-  }
+    public void setOnBehalf(boolean onBehalf) {
+        this.onBehalf = onBehalf;
+    }
 
-  public void setPiiController(String piiController) {
-    this.piiController = piiController;
-  }
+    public String getContact() {
+        return contact;
+    }
 
-  public String getContact() {
-    return contact;
-  }
+    public void setContact(String contact) {
+        this.contact = contact;
+    }
 
-  public void setContact(String contact) {
-    this.contact = contact;
-  }
+    public String getEmail() {
+        return email;
+    }
 
-  public Address getAddress() {
-    return address;
-  }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-  public void setAddress(Address address) {
-    this.address = address;
-  }
+    public String getPhone() {
+        return phone;
+    }
 
-  public String getEmail() {
-    return email;
-  }
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
-  public void setEmail(String email) {
-    this.email = email;
-  }
+    public String getPiiControllerUrl() {
+        return piiControllerUrl;
+    }
 
-  public String getPhone() {
-    return phone;
-  }
+    public void setPiiControllerUrl(String piiControllerUrl) {
+        this.piiControllerUrl = piiControllerUrl;
+    }
 
-  public void setPhone(String phone) {
-    this.phone = phone;
-  }
+    public Address getAddress() {
+        return address;
+    }
 
-  public String getOnBehalf() {
-    return onBehalf;
-  }
-
-  public void setOnBehalf(String onBehalf) {
-    this.onBehalf = onBehalf;
-  }
-
-  public String getPiiControllerUrl() {
-    return piiControllerUrl;
-  }
-
-  public void setPiiControllerUrl(String piiControllerUrl) {
-    this.piiControllerUrl = piiControllerUrl;
-  }
+    public void setAddress(Address address) {
+        this.address = address;
+    }
 }
