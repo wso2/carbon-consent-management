@@ -18,6 +18,7 @@ package org.wso2.carbon.consent.mgt.core.dao.impl;
 
 import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
@@ -47,8 +48,12 @@ public class PurposeDAOImpl implements PurposeDAO {
     }
 
     @Override
-    public Purpose getPurpose() {
+    public Purpose getPurposeById(String id) throws ConsentManagementException {
+        return null;
+    }
 
+    @Override
+    public Purpose getPurposeName(String name) throws ConsentManagementException {
         return null;
     }
 }

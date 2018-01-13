@@ -17,4 +17,24 @@
 package org.wso2.carbon.consent.mgt.core.exception;
 
 public class ConsentManagementServerException extends ConsentManagementException {
+    public ConsentManagementServerException() {
+        super();
+    }
+
+    public ConsentManagementServerException(String message, String errorCode) {
+        super(message, errorCode);
+    }
+
+    public ConsentManagementServerException(String message, String errorCode, Throwable cause) {
+        super(message, errorCode, cause);
+    }
+
+    public ConsentManagementServerException(String message, Throwable cause, boolean enableSuppression,
+                                            boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
+
+    public ConsentManagementServerException(Throwable cause) {
+        super(cause);
+    }
 }
