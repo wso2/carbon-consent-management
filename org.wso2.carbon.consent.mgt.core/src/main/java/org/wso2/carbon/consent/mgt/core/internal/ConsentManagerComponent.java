@@ -16,12 +16,19 @@
 
 package org.wso2.carbon.consent.mgt.core.internal;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
-
+import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
+import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
+import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
+import org.wso2.carbon.consent.mgt.core.dao.impl.PIICategoryDAOImpl;
+import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeCategoryDAOImpl;
+import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeDAOImpl;
 /**
  * OSGi declarative services component which handles registration and un-registration of consent management service.
  */
@@ -32,6 +39,7 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 )
 public class ConsentManagerComponent {
 
+    private static final Log log = LogFactory.getLog(ConsentManagerComponent.class);
     /**
      *
      * Register ConsentManager as an OSGi service.
@@ -41,7 +49,23 @@ public class ConsentManagerComponent {
     @Activate
     protected void activate(ComponentContext componentContext) {
 
-        BundleContext bundleContext = componentContext.getBundleContext();
-        bundleContext.registerService(ConsentManager.class.getName(), new ConsentManager(), null);
+        try {
+
+            BundleContext bundleContext = componentContext.getBundleContext();
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
+
+            ConsentManagerConfiguration configurations = new ConsentManagerConfiguration();
+            configurations.setPurposeDAO(purposeDAO);
+            configurations.setPurposeCategoryDAO(purposeCategoryDAO);
+            configurations.setPiiCategoryDAO(piiCategoryDAO);
+
+            bundleContext.registerService(ConsentManager.class.getName(), new ConsentManager(configurations), null);
+            log.info("ConsentManagerComponent is activated.");
+        } catch (Throwable e) {
+            log.error("Error while activating ConsentManagerComponent.", e);
+        }
+
     }
 }

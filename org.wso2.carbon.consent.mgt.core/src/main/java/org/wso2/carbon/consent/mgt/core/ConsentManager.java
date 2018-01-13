@@ -16,28 +16,39 @@
 
 package org.wso2.carbon.consent.mgt.core;
 
+import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
+import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
-import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeDAOImpl;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerConfiguration;
+import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 
 /**
  * Consent manager service implementation.
  */
 public class ConsentManager {
 
-    private static PurposeDAO purposeDAO;
+    private PurposeDAO purposeDAO;
+    private PurposeCategoryDAO purposeCategoryDAO;
+    private PIICategoryDAO piiCategoryDAO;
 
-    //TODO: Introduce a config object to hold the DAO data.
-    public ConsentManager() {
-
-        purposeDAO = new PurposeDAOImpl();
+    public ConsentManager(ConsentManagerConfiguration configuration) {
+        this.purposeDAO = configuration.getPurposeDAO();
+        purposeCategoryDAO = configuration.getPurposeCategoryDAO();
+        piiCategoryDAO = configuration.getPiiCategoryDAO();
     }
 
-    public void addPurpose(Purpose purpose) {
+    public Purpose addPurpose(Purpose purpose) throws ConsentManagementException {
+        return purposeDAO.addPurpose(purpose);
+    }
 
+    public PurposeCategory addPurposeCategory(PurposeCategory purposeCategory) throws ConsentManagementException {
+        return purposeCategoryDAO.addPurposeCategory(purposeCategory);
+    }
 
-
-        purposeDAO.addPurpose(purpose);
-
+    public PIICategory addPIICategory(PIICategory piiCategory) throws ConsentManagementException {
+        return piiCategoryDAO.addPIICategory(piiCategory);
     }
 }

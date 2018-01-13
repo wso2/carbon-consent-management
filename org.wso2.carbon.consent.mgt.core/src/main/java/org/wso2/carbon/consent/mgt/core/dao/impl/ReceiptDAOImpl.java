@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.consent.mgt.core.dao;
+package org.wso2.carbon.consent.mgt.core.dao.impl;
 
+import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.consent.mgt.core.model.Receipt;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 
-public interface PurposeDAO {
+/**
+ * Default implementation of {@link ReceiptDAO}. This handles {@link Receipt} related DB operations.
+ */
+public class ReceiptDAOImpl implements ReceiptDAO {
+    @Override
+    public Receipt addReceipt(ReceiptInput receiptInput) throws ConsentManagementException {
+        return null;
+    }
 
-    Purpose addPurpose(Purpose purpose) throws ConsentManagementException;
-
-    Purpose getPurposeById(String id) throws ConsentManagementException;
-
-    Purpose getPurposeName(String name) throws ConsentManagementException;
+    @Override
+    public Receipt getReceipt(String receiptId) throws ConsentManagementException {
+        return null;
+    }
 }

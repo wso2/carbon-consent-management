@@ -16,32 +16,27 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
-/**
- * The model representing a purpose of a given consent.
- */
-public class Purpose {
+public class PIICategory {
 
     private int id;
     private String name;
     private String description;
 
-    public Purpose(int id, String name, String description) {
+    public PIICategory(int id, String name, String description) {
         this.id = id;
         this.name = name;
         this.description = description;
     }
 
-    public Purpose(int id, String name) {
+    public PIICategory(int id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    public Purpose(String name, String description) {
+    public PIICategory(String name, String description) {
         this.name = name;
         this.description = description;
     }
-
-
 
     public int getId() {
         return id;
