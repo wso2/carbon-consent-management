@@ -16,27 +16,18 @@
 
 package org.wso2.carbon.consent.mgt.core.persistence;
 
-import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementRuntimeException;
-import org.wso2.carbon.utils.CarbonUtils;
-
+import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
+import java.sql.Connection;
+import java.sql.SQLException;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  *
@@ -56,7 +47,7 @@ public class JDBCPersistenceManager {
     }
 
     private static void iniDataSource() {
-        String dataSourceName = readConfiguration();
+        String dataSourceName = ConsentConfigParser.getInstance().getConsentDataSource();
         Context ctx;
         try {
             ctx = new InitialContext();
@@ -66,46 +57,6 @@ public class JDBCPersistenceManager {
                     .ERROR_CODE_DATABASE_INITIALIZATION.getMessage()
                     , ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_INITIALIZATION.getCode(), e);
         }
-    }
-
-    private static String readConfiguration() {
-
-        String dataSourceName = ConfigurationConstants.DEFAULT_DATA_SOURCE_NAME;
-        String configurationFilePath = CarbonUtils.getCarbonConfigDirPath() + File.separator +
-                ConfigurationConstants.CONSENT_MANAGEMENT_CONFIG_XML;
-
-        try (FileInputStream fileInputStream = new FileInputStream(new File(configurationFilePath))) {
-
-            OMElement documentElement = new StAXOMBuilder(fileInputStream).getDocumentElement();
-
-            OMElement dataSourceElem = documentElement.getFirstChildWithName(
-                    new QName(ConfigurationConstants.CONSENT_MANAGEMENT_DEFAULT_NAMESPACE, "DataSource"));
-
-            if (dataSourceElem == null) {
-                log.info("DataSource Element is not available in " + ConfigurationConstants
-                        .CONSENT_MANAGEMENT_CONFIG_XML + ". Using default value: " + ConfigurationConstants
-                        .DEFAULT_DATA_SOURCE_NAME + " as data source name.");
-
-                return dataSourceName;
-            }
-
-            OMElement dataSourceNameElem = dataSourceElem.getFirstChildWithName(
-                    new QName(ConfigurationConstants.CONSENT_MANAGEMENT_DEFAULT_NAMESPACE, ConfigurationConstants
-                            .DATA_SOURCE_ELEMENT));
-
-            if (dataSourceNameElem != null) {
-                dataSourceName = dataSourceNameElem.getText();
-            }
-
-        } catch (FileNotFoundException e) {
-            log.error("Cannot find the config file. Default values will be assumed.", e);
-        } catch (IOException e) {
-            log.error("Error reading the config file. Default values will be assumed.", e);
-        } catch (XMLStreamException e) {
-            log.error("Error parsing the config file. Default values will be assumed.", e);
-        }
-
-        return dataSourceName;
     }
 
     /**

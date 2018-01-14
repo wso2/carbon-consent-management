@@ -26,6 +26,17 @@ public class PiiController {
     private String piiControllerUrl;
     private Address address;
 
+    public PiiController(String piiController, boolean onBehalf, String contact, String email, String phone,
+                         String piiControllerUrl, Address address) {
+        this.piiController = piiController;
+        this.onBehalf = onBehalf;
+        this.contact = contact;
+        this.email = email;
+        this.phone = phone;
+        this.piiControllerUrl = piiControllerUrl;
+        this.address = address;
+    }
+
     public String getPiiController() {
         return piiController;
     }

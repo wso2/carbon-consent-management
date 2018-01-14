@@ -21,11 +21,9 @@ package org.wso2.carbon.consent.mgt.core.constant;
  */
 public class ConfigurationConstants {
 
-    public static String CONSENT_MANAGEMENT_CONFIG_XML = "consent-mgt-config.xml";
-    public static String DEFAULT_DATA_SOURCE_NAME = "jdbc/WSO2ConsentDB";
-    public static String CONSENT_MANAGEMENT_DEFAULT_NAMESPACE = "http://wso2.org/carbon/consent/management";
-    public static String DATA_SOURCE_NAME_ELEMENT = "Name";
-    public static String DATA_SOURCE_ELEMENT = "DataSource";
+    public static final String CONSENT_MANAGEMENT_CONFIG_XML = "consent-mgt-config.xml";
+    public static final String DEFAULT_DATA_SOURCE_NAME = "jdbc/WSO2ConsentDB";
+    public static final String CONSENT_MANAGEMENT_DEFAULT_NAMESPACE = "http://wso2.org/carbon/consent/management";
 
     public enum ErrorMessages {
         ERROR_CODE_DATABASE_CONNECTION("55000", "Error when getting a database connection object from the Identity " +
@@ -33,7 +31,9 @@ public class ConfigurationConstants {
         ERROR_CODE_DATABASE_INITIALIZATION("55001", "Error while initializing the consent management data source."),
         ERROR_CODE_DATABASE_QUERY_PERFORMING("55002", "Error in performing Database query: '%s.'"),
         ERROR_CODE_MORE_RECORDS_IN_QUERY("55003", "There are more records than one found for query: '%s.'"),
-        ERROR_CODE_AUTO_GENERATED_ID_FAILURE("55004", "Creating the record failed with Auto-Generated ID, no ID obtained.");
+        ERROR_CODE_AUTO_GENERATED_ID_FAILURE("55004", "Creating the record failed with Auto-Generated ID, no ID " +
+                "obtained."),
+        ERROR_CODE_BUILDING_CONFIG("55005", "Error occurred while building configuration from consent-mgt-config.xml");
 
         private final String code;
         private final String message;
@@ -55,5 +55,20 @@ public class ConfigurationConstants {
         public String toString() {
             return code + " : " + message;
         }
+    }
+
+    public class PIIControllerElements{
+        public static final String countryElement = "PIIController.Address.Country";
+        public static final String localityElement = "PIIController.Address.Locality";
+        public static final String regionElement = "PIIController.Address.Region";
+        public static final String postOfficeBoxNumberElement = "PIIController.Address.PostOfficeBoxNumber";
+        public static final String postCodeElement = "PIIController.Address.PostalCode";
+        public static final String streetAddressElement = "PIIController.Address.StreetAddress";
+        public static final String piiControllerNameElement = "PIIController.PiiController";
+        public static final String piiControllerContactElement = "PIIController.Contact";
+        public static final String piiControllerPhoneElement = "PIIController.Phone";
+        public static final String piiControllerEmailElement = "PIIController.Email";
+        public static final String piiControllerOnBehalfElement = "PIIController.OnBehalf";
+        public static final String piiControllerUrlElement = "PIIController.PiiControllerUrl";
     }
 }

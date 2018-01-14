@@ -14,13 +14,16 @@
   ~ limitations under the License.
   -->
 
-<DataSource xmlns="http://wso2.org/carbon/consent/management">
-    <!-- Include a data source name (jndiConfigName) from the set of data
-     sources defined in master-datasources.xml -->
-    <Name>jdbc/WSO2ConsentDB</Name>
+<ConsentManager xmlns="http://wso2.org/carbon/consent/management">
+    <DataSource>
+        <!-- Include a data source name (jndiConfigName) from the set of data sources defined in master-datasources
+        .xml -->
+        <Name>jdbc/WSO2ConsentDB</Name>
+    </DataSource>
     <PIIController>
         <PiiController>sample</PiiController>
         <Contact>sample</Contact>
+        <Email>sample@abc.com</Email>
         <Phone>+01433444333</Phone>
         <OnBehalf>false</OnBehalf>
         <PiiControllerUrl>https://sample.piicontroller.url</PiiControllerUrl>
@@ -33,4 +36,4 @@
             <StreetAddress>1600 Amphitheatre Pkwy</StreetAddress>
         </Address>
     </PIIController>
-</DataSource>
+</ConsentManager>
