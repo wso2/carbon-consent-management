@@ -43,38 +43,33 @@ public class DefaultPIIController implements PIIController {
     public PiiController getControllerInfo(String tenantDomain) {
 
         //TODO need to verify inputs
-        Map<String, Object> configuration = ConsentConfigParser.getInstance().getConfiguration();
 
-        String addressCountry = configuration.get(countryElement) == null ? null :
-                configuration.get(countryElement).toString();
-        String addressLocality = configuration.get(localityElement) == null ? null : configuration.get(localityElement)
-                .toString();
-        String addressRegion = configuration.get(regionElement) == null ? null :
-                configuration.get(regionElement).toString();
-        String addressPostOfficeBoxNumber = configuration.get(postOfficeBoxNumberElement) == null ? null :
-                configuration.get(postOfficeBoxNumberElement).toString();
-        String addressPostCode = configuration.get(postCodeElement) == null ? null : configuration.get(postCodeElement)
-                .toString();
-        String addressStreetAddress = configuration.get(streetAddressElement) == null ? null : configuration.get
-                (streetAddressElement).toString();
+        String addressCountry = getConfiguration(countryElement);
+        String addressLocality = getConfiguration(localityElement);
+        String addressRegion = getConfiguration(regionElement);
+        String addressPostOfficeBoxNumber = getConfiguration(postOfficeBoxNumberElement);
+        String addressPostCode = getConfiguration(postCodeElement);
+        String addressStreetAddress = getConfiguration(streetAddressElement);
 
-        String piiControllerName = configuration.get(piiControllerNameElement) == null ? null : configuration.get
-                (piiControllerNameElement).toString();
-        String piiControllerContact = configuration.get(piiControllerContactElement) == null ? null : configuration.get
-                (piiControllerContactElement).toString();
-        String piiControllerPhone = configuration.get(piiControllerPhoneElement) == null ? null : configuration.get
-                (piiControllerPhoneElement).toString();
-        String piiControllerEmail = configuration.get(piiControllerEmailElement) == null ? null : configuration.get
-                (piiControllerEmailElement).toString();
-        boolean piiControllerOnBehalf = configuration.get(piiControllerOnBehalfElement) == null ? null :
-                Boolean.parseBoolean(configuration.get(piiControllerOnBehalfElement).toString());
-        String piiControllerURL = configuration.get(piiControllerUrlElement) == null ? null : configuration.get
-                (piiControllerUrlElement).toString();
+        String piiControllerName = getConfiguration(piiControllerNameElement);
+        String piiControllerContact = getConfiguration(piiControllerContactElement);
+        String piiControllerPhone = getConfiguration(piiControllerPhoneElement);
+        String piiControllerEmail = getConfiguration(piiControllerEmailElement);
+        boolean piiControllerOnBehalf = Boolean.parseBoolean(getConfiguration(piiControllerOnBehalfElement));
+        String piiControllerURL = getConfiguration(piiControllerUrlElement);
 
         Address address = new Address(addressCountry, addressLocality, addressRegion, addressPostOfficeBoxNumber,
                 addressPostCode, addressStreetAddress);
 
         return new PiiController(piiControllerName, piiControllerOnBehalf, piiControllerContact, piiControllerEmail,
                 piiControllerPhone, piiControllerURL, address);
+    }
+
+    private String getConfiguration(String configElement) {
+        Map<String, Object> configuration = ConsentConfigParser.getInstance().getConfiguration();
+        if (configuration.get(configElement) != null) {
+            return configuration.get(configElement).toString();
+        }
+        return null;
     }
 }
