@@ -29,11 +29,6 @@ public class ConsentManagementServerException extends ConsentManagementException
         super(message, errorCode, cause);
     }
 
-    public ConsentManagementServerException(String message, Throwable cause, boolean enableSuppression,
-                                            boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-
     public ConsentManagementServerException(Throwable cause) {
         super(cause);
     }
