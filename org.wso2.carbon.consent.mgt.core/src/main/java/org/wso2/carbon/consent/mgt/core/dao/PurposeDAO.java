@@ -19,11 +19,15 @@ package org.wso2.carbon.consent.mgt.core.dao;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 
+import java.util.List;
+
 public interface PurposeDAO {
 
     Purpose addPurpose(Purpose purpose) throws ConsentManagementException;
 
-    Purpose getPurposeById(String id) throws ConsentManagementException;
+    Purpose getPurposeById(int id) throws ConsentManagementException;
 
-    Purpose getPurposeName(String name) throws ConsentManagementException;
+    List<Purpose> listPurposes(int limit, int offset) throws ConsentManagementException;
+
+    int deletePurpose(int id) throws ConsentManagementException;
 }

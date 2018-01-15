@@ -33,7 +33,10 @@ public class ConfigurationConstants {
         ERROR_CODE_MORE_RECORDS_IN_QUERY("55003", "There are more records than one found for query: '%s.'"),
         ERROR_CODE_AUTO_GENERATED_ID_FAILURE("55004", "Creating the record failed with Auto-Generated ID, no ID " +
                 "obtained."),
-        ERROR_CODE_BUILDING_CONFIG("55005", "Error occurred while building configuration from consent-mgt-config.xml");
+        ERROR_CODE_BUILDING_CONFIG("55005", "Error occurred while building configuration from consent-mgt-config.xml."),
+        ERROR_CODE_SELECT_PURPOSE_BY_ID("55006", "Error occurred while retrieving purpose from DB for the ID: %s."),
+        ERROR_CODE_DELETE_PURPOSE("55007", "Error occurred while deleting purpose from DB for the ID: %s."),
+        ERROR_CODE_LIST_PURPOSE("55008", "Error occurred while listing purpose from DB for limit: %s and offset: %s.");
 
         private final String code;
         private final String message;
