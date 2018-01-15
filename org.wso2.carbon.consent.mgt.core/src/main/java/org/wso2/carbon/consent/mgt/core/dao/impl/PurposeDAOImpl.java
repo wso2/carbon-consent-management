@@ -36,7 +36,7 @@ public class PurposeDAOImpl implements PurposeDAO {
     @Override
     public Purpose addPurpose(Purpose purpose) throws ConsentManagementServerException {
         JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
-        final String INSERT_PURPOSE_SQL = "INSERT INTO PURPOSE(NAME,DESCRIPTION) VALUES(?,?)";
+        final String INSERT_PURPOSE_SQL = "INSERT INTO PURPOSE(NAME, DESCRIPTION) VALUES(?,?)";
         Purpose purposeResult;
         int insertedId;
         try {
@@ -45,8 +45,9 @@ public class PurposeDAOImpl implements PurposeDAO {
                 preparedStatement.setString(2, purpose.getDescription());
             }), purpose, true);
         } catch (DataAccessException e) {
-            // TODO: Add an error message.
-            throw new ConsentManagementServerException();
+            throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_ADD_PURPOSE.getMessage(),
+                                                                     purpose.getName(), purpose.getDescription()),
+                                                       ErrorMessages.ERROR_CODE_ADD_PURPOSE.getCode(), e);
         }
         purposeResult = new Purpose(insertedId, purpose.getName(), purpose.getDescription());
         return purposeResult;
