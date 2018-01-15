@@ -34,9 +34,17 @@ public class ConfigurationConstants {
         ERROR_CODE_AUTO_GENERATED_ID_FAILURE("55004", "Creating the record failed with Auto-Generated ID, no ID " +
                 "obtained."),
         ERROR_CODE_BUILDING_CONFIG("55005", "Error occurred while building configuration from consent-mgt-config.xml."),
-        ERROR_CODE_SELECT_PURPOSE_BY_ID("55006", "Error occurred while retrieving purpose from DB for the ID: %s."),
-        ERROR_CODE_DELETE_PURPOSE("55007", "Error occurred while deleting purpose from DB for the ID: %s."),
-        ERROR_CODE_LIST_PURPOSE("55008", "Error occurred while listing purpose from DB for limit: %s and offset: %s.");
+        ERROR_CODE_ADD_PURPOSE("55006", "Error occurred while adding the purpose: %s with the description: %s to DB."),
+        ERROR_CODE_SELECT_PURPOSE_BY_ID("55007", "Error occurred while retrieving purpose from DB for the ID: %s."),
+        ERROR_CODE_DELETE_PURPOSE("55008", "Error occurred while deleting purpose from DB for the ID: %s."),
+        ERROR_CODE_LIST_PURPOSE("55009", "Error occurred while listing purpose from DB for limit: %s and offset: %s."),
+        ERROR_CODE_ADD_PII_CATEGORY("55010", "Error occurred while adding the purpose: %s with the description: %s to" +
+                                             " DB."),
+        ERROR_CODE_SELECT_PII_CATEGORY_BY_ID("55011", "Error occurred while retrieving purpose from DB for the ID: %s" +
+                                                      "."),
+        ERROR_CODE_DELETE_PII_CATEGORY("55012", "Error occurred while deleting purpose from DB for the ID: %s."),
+        ERROR_CODE_LIST_PII_CATEGORY("55013", "Error occurred while listing purpose from DB for limit: %s and offset:" +
+                                              " %s.");
 
         private final String code;
         private final String message;
