@@ -19,7 +19,7 @@ import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants;
+import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementRuntimeException;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ServerConstants;
@@ -38,7 +38,7 @@ import java.util.Stack;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
-import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_BUILDING_CONFIG;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_BUILDING_CONFIG;
 
 public class ConsentConfigParser {
 
@@ -93,7 +93,7 @@ public class ConsentConfigParser {
                 }
             } else {
                 String configurationFilePath = CarbonUtils.getCarbonConfigDirPath() + File.separator +
-                        ConfigurationConstants.CONSENT_MANAGEMENT_CONFIG_XML;
+                        ConsentConstants.CONSENT_MANAGEMENT_CONFIG_XML;
                 File consentConfigXml = new File(configurationFilePath);
                 if (consentConfigXml.exists()) {
                     inStream = new FileInputStream(consentConfigXml);
@@ -211,7 +211,7 @@ public class ConsentConfigParser {
      * @return Corresponding OMElement
      */
     public OMElement getConfigElement(String localPart) {
-        return rootElement.getFirstChildWithName(new QName(ConfigurationConstants.CONSENT_MANAGEMENT_DEFAULT_NAMESPACE,
+        return rootElement.getFirstChildWithName(new QName(ConsentConstants.CONSENT_MANAGEMENT_DEFAULT_NAMESPACE,
                 localPart));
     }
 
@@ -222,7 +222,7 @@ public class ConsentConfigParser {
      * @return relevant QName
      */
     public QName getQNameWithConsentNS(String localPart) {
-        return new QName(ConfigurationConstants.CONSENT_MANAGEMENT_DEFAULT_NAMESPACE, localPart);
+        return new QName(ConsentConstants.CONSENT_MANAGEMENT_DEFAULT_NAMESPACE, localPart);
     }
 
 }

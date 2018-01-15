@@ -18,7 +18,7 @@ package org.wso2.carbon.consent.mgt.core.persistence;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants;
+import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementRuntimeException;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
@@ -53,9 +53,9 @@ public class JDBCPersistenceManager {
             ctx = new InitialContext();
             dataSource = (DataSource) ctx.lookup(dataSourceName);
         } catch (NamingException e) {
-            throw new ConsentManagementRuntimeException(ConfigurationConstants.ErrorMessages
+            throw new ConsentManagementRuntimeException(ConsentConstants.ErrorMessages
                     .ERROR_CODE_DATABASE_INITIALIZATION.getMessage()
-                    , ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_INITIALIZATION.getCode(), e);
+                    , ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_INITIALIZATION.getCode(), e);
         }
     }
 
@@ -73,9 +73,9 @@ public class JDBCPersistenceManager {
             dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             return dbConnection;
         } catch (SQLException e) {
-            throw new ConsentManagementRuntimeException(ConfigurationConstants.ErrorMessages
+            throw new ConsentManagementRuntimeException(ConsentConstants.ErrorMessages
                     .ERROR_CODE_DATABASE_CONNECTION.getMessage()
-                    , ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_CONNECTION.getCode(), e);
+                    , ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_CONNECTION.getCode(), e);
         }
     }
 

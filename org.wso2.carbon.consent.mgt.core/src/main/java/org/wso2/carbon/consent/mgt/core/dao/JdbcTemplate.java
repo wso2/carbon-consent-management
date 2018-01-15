@@ -21,7 +21,7 @@ package org.wso2.carbon.consent.mgt.core.dao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
-import org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants;
+import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
 
 import javax.sql.DataSource;
@@ -29,6 +29,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,12 +80,15 @@ public class JdbcTemplate {
                 result.add(row);
                 i++;
             }
+            if (!connection.getAutoCommit()) {
+                connection.commit();
+            }
         } catch (SQLException e) {
             logDebugInfo(
                     "There has been an error performing the database query. The query is {}, and the Parameters are {}",
                     e, query, queryFilter);
-            throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING
-                    .getMessage() + query, ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING
+            throw new DataAccessException(ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING
+                    .getMessage() + query, ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING
                     .getCode(),
                     e);
         }
@@ -114,16 +118,16 @@ public class JdbcTemplate {
             if (resultSet.next()) {
                 logDebugInfo("There are more records than one found for query: {} for the parameters {}", query,
                         queryFilter);
-                throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_MORE_RECORDS_IN_QUERY
-                        .getMessage() + query, ConfigurationConstants.ErrorMessages.ERROR_CODE_MORE_RECORDS_IN_QUERY
+                throw new DataAccessException(ConsentConstants.ErrorMessages.ERROR_CODE_MORE_RECORDS_IN_QUERY
+                        .getMessage() + query, ConsentConstants.ErrorMessages.ERROR_CODE_MORE_RECORDS_IN_QUERY
                         .getCode());
             }
         } catch (SQLException e) {
             logDebugInfo(
                     "There has been an error performing the database query. The query is {}, and the parameters are {}",
                     e, query, rowMapper, queryFilter);
-            throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING +
-                    query, ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode(), e);
+            throw new DataAccessException(ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING +
+                    query, ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode(), e);
         }
         return result;
     }
@@ -135,10 +139,13 @@ public class JdbcTemplate {
                 queryFilter.filter(preparedStatement);
             }
             preparedStatement.executeUpdate();
+            if (!connection.getAutoCommit()) {
+                connection.commit();
+            }
         } catch (SQLException e) {
             logDebugInfo("Error in performing database update: {} with parameters {}", query, queryFilter);
-            throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING +
-                    query, ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode(), e);
+            throw new DataAccessException(ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING +
+                    query, ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode(), e);
         }
     }
 
@@ -152,10 +159,13 @@ public class JdbcTemplate {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             doInternalUpdate(null, preparedStatement);
+            if (!connection.getAutoCommit()) {
+                connection.commit();
+            }
         } catch (SQLException e) {
             logDebugInfo("Error in performing database update: {}", query);
-            throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING
-                    .getMessage() + query, ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING
+            throw new DataAccessException(ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING
+                    .getMessage() + query, ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING
                     .getCode(), e);
         }
     }
@@ -170,31 +180,44 @@ public class JdbcTemplate {
      */
     public <T extends Object> int executeInsert(String query, QueryFilter queryFilter, T bean, boolean fetchInsertedId)
             throws DataAccessException {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            doInternalUpdate(queryFilter, preparedStatement);
+        try (Connection connection = dataSource.getConnection()) {
+            int resultId;
             if (fetchInsertedId) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Mapping generated key (Auto Increment ID) to the object");
-                }
-                try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        int resultId = generatedKeys.getInt(1);
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Newly inserted ID (Auto Increment ID) is {} for the bean {} ",
-                                    resultId, bean);
-                        }
-                        return resultId;
-                    } else {
-                        throw new SQLException(ConfigurationConstants.ErrorMessages
-                                .ERROR_CODE_AUTO_GENERATED_ID_FAILURE.getMessage());
+                try (PreparedStatement preparedStatement = connection.prepareStatement(query,
+                        Statement.RETURN_GENERATED_KEYS)) {
+                    doInternalUpdate(queryFilter, preparedStatement);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Mapping generated key (Auto Increment ID) to the object");
                     }
+                    try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            resultId = generatedKeys.getInt(1);
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("Newly inserted ID (Auto Increment ID) is {} for the bean {} ",
+                                        resultId, bean);
+                            }
+                        } else {
+                            throw new SQLException(ConsentConstants.ErrorMessages
+                                    .ERROR_CODE_AUTO_GENERATED_ID_FAILURE.getMessage());
+                        }
+                    }
+                }
+                if (!connection.getAutoCommit()) {
+                    connection.commit();
+                }
+                return resultId;
+            } else {
+                try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                    doInternalUpdate(queryFilter, preparedStatement);
+                }
+                if (!connection.getAutoCommit()) {
+                    connection.commit();
                 }
             }
         } catch (SQLException e) {
             logDebugInfo("Error in performing database insert: {} with parameters {}", query, queryFilter);
-            throw new DataAccessException(ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getMessage()
-                    + query, ConfigurationConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode(), e);
+            throw new DataAccessException(ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getMessage()
+                    + query, ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode(), e);
         }
         return 0;
     }

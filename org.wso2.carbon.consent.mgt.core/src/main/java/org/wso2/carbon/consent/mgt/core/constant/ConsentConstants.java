@@ -19,7 +19,7 @@ package org.wso2.carbon.consent.mgt.core.constant;
 /**
  * Constants related to consent management configurations.
  */
-public class ConfigurationConstants {
+public class ConsentConstants {
 
     public static final String CONSENT_MANAGEMENT_CONFIG_XML = "consent-mgt-config.xml";
     public static final String DEFAULT_DATA_SOURCE_NAME = "jdbc/WSO2ConsentDB";
@@ -44,7 +44,9 @@ public class ConfigurationConstants {
                                                       "."),
         ERROR_CODE_DELETE_PII_CATEGORY("55012", "Error occurred while deleting purpose from DB for the ID: %s."),
         ERROR_CODE_LIST_PII_CATEGORY("55013", "Error occurred while listing purpose from DB for limit: %s and offset:" +
-                                              " %s.");
+                                              " %s."),
+
+        ERROR_CODE_PURPOSE_NAME_REQUIRED("55018", "Purpose name is required.");
 
         private final String code;
         private final String message;
