@@ -26,7 +26,7 @@ import org.wso2.carbon.consent.mgt.core.persistence.JDBCPersistenceManager;
 
 import java.util.List;
 
-import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.ErrorMessages;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
 
 /**
  * Default implementation of {@link PIICategoryDAO}. This handles {@link PIICategory} related DB operations.

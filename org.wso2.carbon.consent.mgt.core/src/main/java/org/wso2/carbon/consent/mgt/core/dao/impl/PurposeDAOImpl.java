@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
@@ -23,10 +25,11 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerExcepti
 import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.persistence.JDBCPersistenceManager;
+import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 
 import java.util.List;
 
-import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.ErrorMessages;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
 
 /**
  * Default implementation of {@link PurposeDAO}. This handles {@link Purpose} related DB operations.
@@ -34,7 +37,12 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.E
 public class PurposeDAOImpl implements PurposeDAO {
 
     @Override
-    public Purpose addPurpose(Purpose purpose) throws ConsentManagementServerException {
+    public Purpose addPurpose(Purpose purpose) throws ConsentManagementException {
+
+        if (StringUtils.isBlank(purpose.getName())) {
+            throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_PURPOSE_NAME_REQUIRED, null);
+        }
+
         JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
         final String INSERT_PURPOSE_SQL = "INSERT INTO PURPOSE(NAME, DESCRIPTION) VALUES(?,?)";
         Purpose purposeResult;

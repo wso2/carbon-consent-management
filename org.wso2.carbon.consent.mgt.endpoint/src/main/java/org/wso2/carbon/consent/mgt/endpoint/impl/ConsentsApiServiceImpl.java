@@ -1,13 +1,14 @@
 package org.wso2.carbon.consent.mgt.endpoint.impl;
 
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.endpoint.ApiResponseMessage;
 import org.wso2.carbon.consent.mgt.endpoint.ConsentsApiService;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PIIcategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.impl.util.ConsentEndpointUtils;
 
@@ -82,20 +83,19 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsPurposesPost(PurposeRequestDTO purpose) {
-        // do some magic!
 
-        Purpose purpose1 = new Purpose(purpose.getPurpose(), purpose.getDescription());
-
-
-        Purpose purpose2 = null;
+        Purpose purposeRequest;
+        PurposeListResponseDTO purposeListResponseDTO = null;
         try {
-            purpose2 = ConsentEndpointUtils.getConsentManager().addPurpose(purpose1);
-        } catch (ConsentManagementException e) {
-            e.printStackTrace();
-        }
+            purposeRequest = ConsentEndpointUtils.getPurposeRequest(purpose);
+            Purpose purposeResponse = ConsentEndpointUtils.getConsentManager().addPurpose(purposeRequest);
+            purposeListResponseDTO = ConsentEndpointUtils.getPurposeListResponse(purposeResponse);
+        } catch (ConsentManagementClientException e) {
 
-        return Response.ok().entity(purpose2).build();
-        //return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+        } catch (ConsentManagementException e) {
+
+        }
+        return Response.ok().entity(purposeListResponseDTO).build();
     }
 
     @Override

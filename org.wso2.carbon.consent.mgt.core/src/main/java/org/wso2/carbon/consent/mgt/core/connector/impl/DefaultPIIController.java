@@ -22,18 +22,18 @@ import org.wso2.carbon.consent.mgt.core.model.PiiController;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import java.util.Map;
 
-import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.PIIControllerElements.countryElement;
-import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.PIIControllerElements.localityElement;
-import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.PIIControllerElements.piiControllerContactElement;
-import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.PIIControllerElements.piiControllerEmailElement;
-import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.PIIControllerElements.piiControllerNameElement;
-import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.PIIControllerElements.piiControllerPhoneElement;
-import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.PIIControllerElements.postCodeElement;
-import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.PIIControllerElements.postOfficeBoxNumberElement;
-import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.PIIControllerElements.regionElement;
-import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.PIIControllerElements.streetAddressElement;
-import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.PIIControllerElements.piiControllerOnBehalfElement;
-import static org.wso2.carbon.consent.mgt.core.constant.ConfigurationConstants.PIIControllerElements.piiControllerUrlElement;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.countryElement;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.localityElement;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.piiControllerContactElement;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.piiControllerEmailElement;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.piiControllerNameElement;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.piiControllerPhoneElement;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.postCodeElement;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.postOfficeBoxNumberElement;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.regionElement;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.streetAddressElement;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.piiControllerOnBehalfElement;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.piiControllerUrlElement;
 
 /**
  * This is the default implementation of PII controller
