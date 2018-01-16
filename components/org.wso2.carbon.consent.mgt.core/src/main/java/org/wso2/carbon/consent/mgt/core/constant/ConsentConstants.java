@@ -30,6 +30,7 @@ public class ConsentConstants {
     public static final String STATUS_INTERNAL_SERVER_ERROR_DESCRIPTION_DEFAULT = "The server encountered "
             + "an internal error. Please contact administrator.";
     public static final String STATUS_BAD_REQUEST_MESSAGE_DEFAULT = "Bad Request";
+    public static final String PURPOSE_SEARCH_LIMIT_PATH = "SearchLimits.Purpose";
 
     public enum ErrorMessages {
         ERROR_CODE_DATABASE_CONNECTION("CM_00001", "Error when getting a database connection object from the Identity" +
@@ -64,7 +65,10 @@ public class ConsentConstants {
         ERROR_CODE_PURPOSE_NAME_REQUIRED("CM_00019", "Purpose name is required."),
         ERROR_CODE_PURPOSE_ID_REQUIRED("CM_00020", "Purpose ID is required."),
         ERROR_CODE_SELECT_PURPOSE_BY_NAME("CM_00021", "Error occurred while retrieving purpose from DB for the Name:%s."),
-        ERROR_CODE_PURPOSE_ALREADY_EXIST("CM_00022", "Purpose with the name: %s already exists.");
+        ERROR_CODE_PURPOSE_ALREADY_EXIST("CM_00022", "Purpose with the name: %s already exists."),
+        ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET("CM_00023", "Limit or offset values cannot be negative."),
+        ERROR_CODE_PURPOSE_ID_INVALID("CM_00024", "Invaid purpose Id: %s");
+
 
 
         private final String code;

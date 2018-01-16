@@ -26,17 +26,17 @@ import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import javax.ws.rs.core.Response;
 
 public abstract class ConsentsApiService {
-    public abstract Response consentsGet(String limit,String offset,String piiPrincipalId,String spTenantDomain,String service,String state,String collectionMethod,String piiCategoryId);
-    public abstract Response consentsPiiCategoriesGet();
+    public abstract Response consentsGet(Integer limit,Integer offset,String piiPrincipalId,String spTenantDomain,String service,String state,String collectionMethod,String piiCategoryId);
+    public abstract Response consentsPiiCategoriesGet(Integer limit,Integer offset);
     public abstract Response consentsPiiCategoriesPost(PIIcategoryRequestDTO piiCategory);
     public abstract Response consentsPiiCategoryPiiCategoryIdDelete(String piiCategoryId);
     public abstract Response consentsPiiCategoryPiiCategoryIdGet(String piiCategoryId);
     public abstract Response consentsPost(ConsentRequestDTO consent);
-    public abstract Response consentsPurposeCategoriesGet();
+    public abstract Response consentsPurposeCategoriesGet(Integer limit,Integer offset);
     public abstract Response consentsPurposeCategoriesPost(PurposeCategoryRequestDTO purposeCategory);
     public abstract Response consentsPurposeCategoriesPurposeCategoryIdDelete(String purposeCategoryId);
     public abstract Response consentsPurposeCategoriesPurposeCategoryIdGet(String purposeCategoryId);
-    public abstract Response consentsPurposesGet();
+    public abstract Response consentsPurposesGet(Integer limit,Integer offset);
     public abstract Response consentsPurposesPost(PurposeRequestDTO purpose);
     public abstract Response consentsPurposesPurposeIdDelete(String purposeId);
     public abstract Response consentsPurposesPurposeIdGet(String purposeId);

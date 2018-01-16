@@ -28,6 +28,8 @@ import org.wso2.carbon.consent.mgt.endpoint.exception.BadRequestException;
 import org.wso2.carbon.consent.mgt.endpoint.exception.ConflictRequestException;
 import org.wso2.carbon.consent.mgt.endpoint.exception.InternalServerErrorException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This class is used to define the utilities require for Consent Management Web App.
@@ -48,7 +50,7 @@ public class ConsentEndpointUtils {
     public static InternalServerErrorException buildInternalServerErrorException(String code,
                                                                                  Log log, Throwable e) {
         ErrorDTO errorDTO = getErrorDTO(ConsentConstants.STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT,
-                ConsentConstants.STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT, code, log);
+                ConsentConstants.STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT, code);
         logError(log, e);
         return new InternalServerErrorException(errorDTO);
     }
@@ -62,7 +64,7 @@ public class ConsentEndpointUtils {
      */
     public static BadRequestException buildBadRequestException(String description, String code,
                                                                Log log, Throwable e) {
-        ErrorDTO errorDTO = getErrorDTO(ConsentConstants.STATUS_BAD_REQUEST_MESSAGE_DEFAULT, description, code, log);
+        ErrorDTO errorDTO = getErrorDTO(ConsentConstants.STATUS_BAD_REQUEST_MESSAGE_DEFAULT, description, code);
         logDebug(log, e);
         return new BadRequestException(errorDTO);
     }
@@ -76,7 +78,7 @@ public class ConsentEndpointUtils {
      */
     public static ConflictRequestException buildConflictRequestException(String description, String code,
                                                                          Log log, Throwable e) {
-        ErrorDTO errorDTO = getErrorDTO(ConsentConstants.STATUS_BAD_REQUEST_MESSAGE_DEFAULT, description, code, log);
+        ErrorDTO errorDTO = getErrorDTO(ConsentConstants.STATUS_BAD_REQUEST_MESSAGE_DEFAULT, description, code);
         logDebug(log, e);
         return new ConflictRequestException(errorDTO);
     }
@@ -89,7 +91,7 @@ public class ConsentEndpointUtils {
         PurposeListResponseDTO purposeListResponseDTO = new PurposeListResponseDTO();
         purposeListResponseDTO.setPurposeId(String.valueOf(purposeResponse.getId()));
         purposeListResponseDTO.setPurpose(purposeResponse.getName());
-        purposeListResponseDTO.setDiscripiton(purposeResponse.getDescription());
+        purposeListResponseDTO.setDescription(purposeResponse.getDescription());
         return purposeListResponseDTO;
     }
 
@@ -103,7 +105,7 @@ public class ConsentEndpointUtils {
         }
     }
 
-    private static ErrorDTO getErrorDTO(String message, String description, String code, Log log) {
+    private static ErrorDTO getErrorDTO(String message, String description, String code) {
         ErrorDTO errorDTO = new ErrorDTO();
         errorDTO.setCode(code);
         errorDTO.setMessage(message);
@@ -111,4 +113,15 @@ public class ConsentEndpointUtils {
         return errorDTO;
     }
 
+    public static List<PurposeListResponseDTO> getPurposeResponseDTOList(List<Purpose> purposes) {
+        return purposes.stream()
+                .map(purpose -> {
+                    PurposeListResponseDTO purposeListResponseDTO = new PurposeListResponseDTO();
+                    purposeListResponseDTO.setPurpose(purpose.getName());
+                    purposeListResponseDTO.setDescription(purpose.getDescription());
+                    purposeListResponseDTO.setPurposeId(String.valueOf(purpose.getId()));
+                    return purposeListResponseDTO;
+                })
+                .collect(Collectors.toList());
+    }
 }

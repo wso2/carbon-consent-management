@@ -21,7 +21,7 @@ public class PurposeListResponseDTO  {
   private String purpose = null;
   
   
-  private String discripiton = null;
+  private String description = null;
 
   
   /**
@@ -51,12 +51,12 @@ public class PurposeListResponseDTO  {
   /**
    **/
   @ApiModelProperty(value = "")
-  @JsonProperty("discripiton")
-  public String getDiscripiton() {
-    return discripiton;
+  @JsonProperty("description")
+  public String getDescription() {
+    return description;
   }
-  public void setDiscripiton(String discripiton) {
-    this.discripiton = discripiton;
+  public void setDescription(String description) {
+    this.description = description;
   }
 
   
@@ -68,7 +68,7 @@ public class PurposeListResponseDTO  {
     
     sb.append("  purposeId: ").append(purposeId).append("\n");
     sb.append("  purpose: ").append(purpose).append("\n");
-    sb.append("  discripiton: ").append(discripiton).append("\n");
+    sb.append("  description: ").append(description).append("\n");
     sb.append("}\n");
     return sb.toString();
   }

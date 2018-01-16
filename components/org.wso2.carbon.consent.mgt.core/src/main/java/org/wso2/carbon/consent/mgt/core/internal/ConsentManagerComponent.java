@@ -29,6 +29,8 @@ import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
 import org.wso2.carbon.consent.mgt.core.dao.impl.PIICategoryDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeCategoryDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeDAOImpl;
+import org.wso2.carbon.consent.mgt.core.persistence.JDBCPersistenceManager;
+
 /**
  * OSGi declarative services component which handles registration and un-registration of consent management service.
  */

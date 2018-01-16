@@ -278,6 +278,9 @@ paths:
         "HTTP/1.1 200 Ok"
       summary: |
         Retrieve all purposes
+      parameters:
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
       responses:
         200:
           description: OK
@@ -438,6 +441,9 @@ paths:
         "HTTP/1.1 200 Ok"
       summary: |
         Retrieve all purposes categories
+      parameters:
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
       responses:
         200:
           description: OK
@@ -598,6 +604,9 @@ paths:
         "HTTP/1.1 200 Ok"
       summary: |
         Retrieve all PII categories
+      parameters:
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
       responses:
         200:
           description: OK
@@ -1187,14 +1196,14 @@ parameters:
     in: query
     description: Number of search results.
     required: false
-    type: string
+    type: integer
 
   offset:
     name: offset
     in: query
     description: Start index of the search.
     required: false
-    type: string
+    type: integer
 
   state:
     name: state
