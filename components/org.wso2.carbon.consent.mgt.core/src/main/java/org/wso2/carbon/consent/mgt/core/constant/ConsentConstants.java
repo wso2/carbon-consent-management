@@ -44,14 +44,21 @@ public class ConsentConstants {
         ERROR_CODE_SELECT_PURPOSE_BY_ID("55007", "Error occurred while retrieving purpose from DB for the ID: %s."),
         ERROR_CODE_DELETE_PURPOSE("55008", "Error occurred while deleting purpose from DB for the ID: %s."),
         ERROR_CODE_LIST_PURPOSE("55009", "Error occurred while listing purpose from DB for limit: %s and offset: %s."),
-        ERROR_CODE_ADD_PII_CATEGORY("55010", "Error occurred while adding the purpose: %s with the description: %s to" +
-                                             " DB."),
-        ERROR_CODE_SELECT_PII_CATEGORY_BY_ID("55011", "Error occurred while retrieving purpose from DB for the ID: %s" +
-                                                      "."),
-        ERROR_CODE_DELETE_PII_CATEGORY("55012", "Error occurred while deleting purpose from DB for the ID: %s."),
-        ERROR_CODE_LIST_PII_CATEGORY("55013", "Error occurred while listing purpose from DB for limit: %s and offset:" +
-                                              " %s."),
-
+        ERROR_CODE_ADD_PII_CATEGORY("55010", "Error occurred while adding the PII category: %s with the description: " +
+                                             "%s to DB."),
+        ERROR_CODE_SELECT_PII_CATEGORY_BY_ID("55011", "Error occurred while retrieving PII category from DB for the " +
+                                                      "ID: %s."),
+        ERROR_CODE_DELETE_PII_CATEGORY("55012", "Error occurred while deleting PII category from DB for the ID: %s."),
+        ERROR_CODE_LIST_PII_CATEGORY("55013", "Error occurred while listing PII category from DB for limit: %s and " +
+                                              "offset: %s."),
+        ERROR_CODE_ADD_PURPOSE_CATEGORY("55014", "Error occurred while adding the purpose category: %s with the " +
+                                                 "description: %s to DB."),
+        ERROR_CODE_SELECT_PURPOSE_CATEGORY_BY_ID("55015", "Error occurred while retrieving purpose category from DB " +
+                                                          "for the ID: %s."),
+        ERROR_CODE_DELETE_PURPOSE_CATEGORY("55016", "Error occurred while deleting purpose category from DB for the " +
+                                                    "ID: %s."),
+        ERROR_CODE_LIST_PURPOSE_CATEGORY("55017", "Error occurred while listing purpose category from DB for limit: " +
+                                                  "%s and offset: %s."),
         ERROR_CODE_PURPOSE_NAME_REQUIRED("55018", "Purpose name is required.");
 
         private final String code;

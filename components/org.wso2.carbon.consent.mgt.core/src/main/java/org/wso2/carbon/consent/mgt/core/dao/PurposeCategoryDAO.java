@@ -19,11 +19,15 @@ package org.wso2.carbon.consent.mgt.core.dao;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 
+import java.util.List;
+
 public interface PurposeCategoryDAO {
 
     PurposeCategory addPurposeCategory(PurposeCategory purposeCategory) throws ConsentManagementException;
 
-    PurposeCategory getPurposeCategoryByName(String name) throws ConsentManagementException;
-
     PurposeCategory getPurposeCategoryById(int id) throws ConsentManagementException;
+
+    List<PurposeCategory> listPurposeCategories(int limit, int offset) throws ConsentManagementException;
+
+    int deletePurposeCategory(int id) throws ConsentManagementException;
 }
