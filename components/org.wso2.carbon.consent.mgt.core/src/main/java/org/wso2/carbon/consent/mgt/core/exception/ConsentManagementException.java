@@ -42,7 +42,7 @@ public class ConsentManagementException extends Exception {
         super(cause);
     }
 
-    protected String getErrorCode() {
+    public String getErrorCode() {
         return errorCode;
     }
 

@@ -27,6 +27,8 @@ public interface PurposeDAO {
 
     Purpose getPurposeById(int id) throws ConsentManagementException;
 
+    Purpose getPurposeByName(String name) throws ConsentManagementException;
+
     List<Purpose> listPurposes(int limit, int offset) throws ConsentManagementException;
 
     int deletePurpose(int id) throws ConsentManagementException;

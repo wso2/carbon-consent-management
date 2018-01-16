@@ -36,7 +36,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     @Override
     public PIICategory addPIICategory(PIICategory piiCategory) throws ConsentManagementException {
         JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
-        final String INSERT_PII_CATEGORY_SQL = "INSERT INTO PII_CATEGORY (NAME, DESCRIPTION) VALUES (?,?)";
+        final String INSERT_PII_CATEGORY_SQL = "INSERT INTO CM_PII_CATEGORY (NAME, DESCRIPTION) VALUES (?,?)";
         PIICategory purposeResult;
         int insertedId;
         try {
@@ -58,7 +58,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     @Override
     public PIICategory getPIICategoryById(int id) throws ConsentManagementException {
         JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
-        final String SELECT_PII_CATEGORY_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION FROM PII_CATEGORY WHERE ID = ?";
+        final String SELECT_PII_CATEGORY_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION FROM CM_PII_CATEGORY WHERE ID = ?";
         PIICategory piiCategory;
 
         try {
@@ -78,8 +78,8 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     @Override
     public List<PIICategory> listPIICategories(int limit, int offset) throws ConsentManagementException {
         JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
-        final String LIST_PAGINATED_PII_CATEGORY_MYSQL = "SELECT ID, NAME, DESCRIPTION FROM PII_CATEGORY ORDER BY ID " +
-                                                         "ASC LIMIT ? OFFSET ?";
+        final String LIST_PAGINATED_PII_CATEGORY_MYSQL = "SELECT ID, NAME, DESCRIPTION FROM CM_PII_CATEGORY ORDER BY " +
+                "ID ASC LIMIT ? OFFSET ?";
 
         List<PIICategory> piiCategories;
         try {
@@ -102,7 +102,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     @Override
     public int deletePIICategory(int id) throws ConsentManagementException {
         JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
-        final String DELETE_PII_CATEGORY_SQL = "DELETE FROM PII_CATEGORY WHERE ID = ?";
+        final String DELETE_PII_CATEGORY_SQL = "DELETE FROM CM_PII_CATEGORY WHERE ID = ?";
 
         try {
             jdbcTemplate.executeUpdate(DELETE_PII_CATEGORY_SQL, preparedStatement -> preparedStatement.setInt(1, id));

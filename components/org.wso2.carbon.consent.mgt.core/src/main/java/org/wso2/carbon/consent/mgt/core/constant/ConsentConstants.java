@@ -32,34 +32,40 @@ public class ConsentConstants {
     public static final String STATUS_BAD_REQUEST_MESSAGE_DEFAULT = "Bad Request";
 
     public enum ErrorMessages {
-        ERROR_CODE_DATABASE_CONNECTION("55000", "Error when getting a database connection object from the Identity " +
-                "data source."),
-        ERROR_CODE_DATABASE_INITIALIZATION("55001", "Error while initializing the consent management data source."),
-        ERROR_CODE_DATABASE_QUERY_PERFORMING("55002", "Error in performing Database query: '%s.'"),
-        ERROR_CODE_MORE_RECORDS_IN_QUERY("55003", "There are more records than one found for query: '%s.'"),
-        ERROR_CODE_AUTO_GENERATED_ID_FAILURE("55004", "Creating the record failed with Auto-Generated ID, no ID " +
+        ERROR_CODE_DATABASE_CONNECTION("CM_00001", "Error when getting a database connection object from the Identity" +
+                " data source."),
+        ERROR_CODE_DATABASE_INITIALIZATION("CM_00002", "Error while initializing the consent management data source."),
+        ERROR_CODE_DATABASE_QUERY_PERFORMING("CM_00003", "Error in performing Database query: '%s.'"),
+        ERROR_CODE_MORE_RECORDS_IN_QUERY("CM_00004", "There are more records than one found for query: '%s.'"),
+        ERROR_CODE_AUTO_GENERATED_ID_FAILURE("CM_00005", "Creating the record failed with Auto-Generated ID, no ID " +
                 "obtained."),
-        ERROR_CODE_BUILDING_CONFIG("55005", "Error occurred while building configuration from consent-mgt-config.xml."),
-        ERROR_CODE_ADD_PURPOSE("55006", "Error occurred while adding the purpose: %s with the description: %s to DB."),
-        ERROR_CODE_SELECT_PURPOSE_BY_ID("55007", "Error occurred while retrieving purpose from DB for the ID: %s."),
-        ERROR_CODE_DELETE_PURPOSE("55008", "Error occurred while deleting purpose from DB for the ID: %s."),
-        ERROR_CODE_LIST_PURPOSE("55009", "Error occurred while listing purpose from DB for limit: %s and offset: %s."),
-        ERROR_CODE_ADD_PII_CATEGORY("55010", "Error occurred while adding the PII category: %s with the description: " +
-                                             "%s to DB."),
-        ERROR_CODE_SELECT_PII_CATEGORY_BY_ID("55011", "Error occurred while retrieving PII category from DB for the " +
-                                                      "ID: %s."),
-        ERROR_CODE_DELETE_PII_CATEGORY("55012", "Error occurred while deleting PII category from DB for the ID: %s."),
-        ERROR_CODE_LIST_PII_CATEGORY("55013", "Error occurred while listing PII category from DB for limit: %s and " +
-                                              "offset: %s."),
-        ERROR_CODE_ADD_PURPOSE_CATEGORY("55014", "Error occurred while adding the purpose category: %s with the " +
-                                                 "description: %s to DB."),
-        ERROR_CODE_SELECT_PURPOSE_CATEGORY_BY_ID("55015", "Error occurred while retrieving purpose category from DB " +
-                                                          "for the ID: %s."),
-        ERROR_CODE_DELETE_PURPOSE_CATEGORY("55016", "Error occurred while deleting purpose category from DB for the " +
-                                                    "ID: %s."),
-        ERROR_CODE_LIST_PURPOSE_CATEGORY("55017", "Error occurred while listing purpose category from DB for limit: " +
-                                                  "%s and offset: %s."),
-        ERROR_CODE_PURPOSE_NAME_REQUIRED("55018", "Purpose name is required.");
+        ERROR_CODE_BUILDING_CONFIG("CM_00006", "Error occurred while building configuration from consent-mgt-config" +
+                ".xml."),
+        ERROR_CODE_ADD_PURPOSE("CM_00007", "Error occurred while adding the purpose: %s"),
+        ERROR_CODE_SELECT_PURPOSE_BY_ID("CM_00008", "Error occurred while retrieving purpose from DB for the ID: %s."),
+        ERROR_CODE_DELETE_PURPOSE("CM_00009", "Error occurred while deleting purpose from DB for the ID: %s."),
+        ERROR_CODE_LIST_PURPOSE("CM_00010", "Error occurred while listing purpose from DB for limit: %s and offset: " +
+                "%s."),
+        ERROR_CODE_ADD_PII_CATEGORY("CM_00011", "Error occurred while adding the PII category: %s with the " +
+                "description: %s to DB."),
+        ERROR_CODE_SELECT_PII_CATEGORY_BY_ID("CM_00012", "Error occurred while retrieving PII category from DB for " +
+                "the ID: %s."),
+        ERROR_CODE_DELETE_PII_CATEGORY("CM_00013", "Error occurred while deleting PII category from DB for the ID: %s."),
+        ERROR_CODE_LIST_PII_CATEGORY("CM_00014", "Error occurred while listing PII category from DB for limit: %s and" +
+                " offset: %s."),
+        ERROR_CODE_ADD_PURPOSE_CATEGORY("CM_00015", "Error occurred while adding the purpose category: %s with the " +
+                "description: %s to DB."),
+        ERROR_CODE_SELECT_PURPOSE_CATEGORY_BY_ID("CM_00016", "Error occurred while retrieving purpose category from " +
+                "DB for the ID: %s."),
+        ERROR_CODE_DELETE_PURPOSE_CATEGORY("CM_00017", "Error occurred while deleting purpose category from DB for " +
+                "the ID: %s."),
+        ERROR_CODE_LIST_PURPOSE_CATEGORY("CM_00018", "Error occurred while listing purpose category from DB for " +
+                "limit: %s and offset: %s."),
+        ERROR_CODE_PURPOSE_NAME_REQUIRED("CM_00019", "Purpose name is required."),
+        ERROR_CODE_PURPOSE_ID_REQUIRED("CM_00020", "Purpose ID is required."),
+        ERROR_CODE_SELECT_PURPOSE_BY_NAME("CM_00021", "Error occurred while retrieving purpose from DB for the Name:%s."),
+        ERROR_CODE_PURPOSE_ALREADY_EXIST("CM_00022", "Purpose with the name: %s already exists.");
+
 
         private final String code;
         private final String message;
@@ -83,7 +89,7 @@ public class ConsentConstants {
         }
     }
 
-    public class PIIControllerElements{
+    public class PIIControllerElements {
         public static final String countryElement = "PIIController.Address.Country";
         public static final String localityElement = "PIIController.Address.Locality";
         public static final String regionElement = "PIIController.Address.Region";

@@ -17,6 +17,9 @@
 
 package org.wso2.carbon.consent.mgt.endpoint.impl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
@@ -31,7 +34,14 @@ import org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils;
 
 import javax.ws.rs.core.Response;
 
+import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getConsentManager;
+import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getPurposeListResponse;
+import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getPurposeRequest;
+
 public class ConsentsApiServiceImpl extends ConsentsApiService {
+
+    private static final Log LOG = LogFactory.getLog(ConsentsApiServiceImpl.class);
+
     @Override
     public Response consentsGet(String limit, String offset, String piiPrincipalId, String spTenantDomain, String service, String state, String collectionMethod, String piiCategoryId) {
         // do some magic!
@@ -100,19 +110,14 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsPurposesPost(PurposeRequestDTO purpose) {
-
-        Purpose purposeRequest;
-        PurposeListResponseDTO purposeListResponseDTO = null;
         try {
-            purposeRequest = ConsentEndpointUtils.getPurposeRequest(purpose);
-            Purpose purposeResponse = ConsentEndpointUtils.getConsentManager().addPurpose(purposeRequest);
-            purposeListResponseDTO = ConsentEndpointUtils.getPurposeListResponse(purposeResponse);
+            PurposeListResponseDTO response = addPurpose(purpose);
+            return Response.ok().entity(response).build();
         } catch (ConsentManagementClientException e) {
-
+            return handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
-
+            return handleServerErrorResponse(e);
         }
-        return Response.ok().entity(purposeListResponseDTO).build();
     }
 
     @Override
@@ -137,5 +142,23 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
     public Response consentsReceiptsReceiptIdGet(String receiptId) {
         // do some magic!
         return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+    }
+
+    private Response handleBadRequestResponse(ConsentManagementClientException e) {
+        if (ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ALREADY_EXIST.getCode().equals(e.getErrorCode())) {
+            throw ConsentEndpointUtils.buildConflictRequestException(e.getMessage(), e.getErrorCode(), LOG, e);
+        }
+        throw ConsentEndpointUtils.buildBadRequestException(e.getMessage(), e.getErrorCode(), LOG, e);
+    }
+
+    private Response handleServerErrorResponse(ConsentManagementException e) {
+        throw ConsentEndpointUtils.buildInternalServerErrorException(e.getErrorCode(), LOG, e);
+    }
+
+
+    private PurposeListResponseDTO addPurpose(PurposeRequestDTO purpose) throws ConsentManagementException {
+        Purpose purposeRequest = getPurposeRequest(purpose);
+        Purpose purposeResponse = getConsentManager().addPurpose(purposeRequest);
+        return getPurposeListResponse(purposeResponse);
     }
 }

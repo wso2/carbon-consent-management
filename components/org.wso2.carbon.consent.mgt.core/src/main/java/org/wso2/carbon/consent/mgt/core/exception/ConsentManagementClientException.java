@@ -35,4 +35,5 @@ public class ConsentManagementClientException extends ConsentManagementException
     public ConsentManagementClientException(Throwable cause) {
         super(cause);
     }
+
 }

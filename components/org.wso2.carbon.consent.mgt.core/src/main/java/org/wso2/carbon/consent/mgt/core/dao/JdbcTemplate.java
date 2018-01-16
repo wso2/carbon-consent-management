@@ -73,12 +73,13 @@ public class JdbcTemplate {
             if (queryFilter != null) {
                 queryFilter.filter(preparedStatement);
             }
-            ResultSet resultSet = preparedStatement.executeQuery();
-            int i = 0;
-            while (resultSet.next()) {
-                T row = rowMapper.mapRow(resultSet, i);
-                result.add(row);
-                i++;
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                int i = 0;
+                while (resultSet.next()) {
+                    T row = rowMapper.mapRow(resultSet, i);
+                    result.add(row);
+                    i++;
+                }
             }
             if (!connection.getAutoCommit()) {
                 connection.commit();
@@ -111,16 +112,17 @@ public class JdbcTemplate {
             if (queryFilter != null) {
                 queryFilter.filter(preparedStatement);
             }
-            ResultSet resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                result = rowMapper.mapRow(resultSet, 0);
-            }
-            if (resultSet.next()) {
-                logDebugInfo("There are more records than one found for query: {} for the parameters {}", query,
-                        queryFilter);
-                throw new DataAccessException(ConsentConstants.ErrorMessages.ERROR_CODE_MORE_RECORDS_IN_QUERY
-                        .getMessage() + query, ConsentConstants.ErrorMessages.ERROR_CODE_MORE_RECORDS_IN_QUERY
-                        .getCode());
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    result = rowMapper.mapRow(resultSet, 0);
+                }
+                if (resultSet.next()) {
+                    logDebugInfo("There are more records than one found for query: {} for the parameters {}", query,
+                            queryFilter);
+                    throw new DataAccessException(ConsentConstants.ErrorMessages.ERROR_CODE_MORE_RECORDS_IN_QUERY
+                            .getMessage() + query, ConsentConstants.ErrorMessages.ERROR_CODE_MORE_RECORDS_IN_QUERY
+                            .getCode());
+                }
             }
         } catch (SQLException e) {
             logDebugInfo(

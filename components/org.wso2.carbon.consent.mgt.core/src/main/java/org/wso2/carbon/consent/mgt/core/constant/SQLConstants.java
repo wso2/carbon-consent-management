@@ -21,6 +21,11 @@ package org.wso2.carbon.consent.mgt.core.constant;
  */
 public class SQLConstants {
 
-    public static final String INSERT_PURPOSE_SQL = "INSERT INTO PURPOSE (NAME. DESCRIPTION) values (?, ?)";
-    public static final String LIST_PURPOSE_BY_ID_SQL = "SELECT ID, NAME, VALUE FROM PURPOSE WHERE ID = ?";
+    public static final String INSERT_PURPOSE_SQL = "INSERT INTO CM_PURPOSE (NAME, DESCRIPTION) values (?, ?)";
+    public static final String GET_PURPOSE_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION FROM CM_PURPOSE WHERE ID = ?";
+    public static final String GET_PURPOSE_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION FROM CM_PURPOSE WHERE NAME = ?";
+    public static final String LIST_PAGINATED_PURPOSE_MYSQL = "SELECT ID, NAME, DESCRIPTION FROM CM_PURPOSE ORDER BY " +
+            "ID  ASC LIMIT ? OFFSET ?";
+    public static final String DELETE_PURPOSE_SQL = "DELETE FROM CM_PURPOSE WHERE ID = ?";
+
 }

@@ -17,6 +17,7 @@
 
 package org.wso2.carbon.consent.mgt.endpoint.util;
 
+import org.apache.commons.logging.Log;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
@@ -24,6 +25,7 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.ErrorDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.exception.BadRequestException;
+import org.wso2.carbon.consent.mgt.endpoint.exception.ConflictRequestException;
 import org.wso2.carbon.consent.mgt.endpoint.exception.InternalServerErrorException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 
@@ -39,29 +41,44 @@ public class ConsentEndpointUtils {
 
     /**
      * This method is used to create an InternalServerErrorException with the known errorCode.
+     *
      * @param code Error Code.
      * @return a new InternalServerErrorException with default details.
      */
-    public static InternalServerErrorException buildInternalServerErrorException(String code) {
-        ErrorDTO errorDTO = new ErrorDTO();
-        errorDTO.setCode(code);
-        errorDTO.setMessage(ConsentConstants.STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT);
-        errorDTO.setDescription(ConsentConstants.STATUS_INTERNAL_SERVER_ERROR_DESCRIPTION_DEFAULT);
+    public static InternalServerErrorException buildInternalServerErrorException(String code,
+                                                                                 Log log, Throwable e) {
+        ErrorDTO errorDTO = getErrorDTO(ConsentConstants.STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT,
+                ConsentConstants.STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT, code, log);
+        logError(log, e);
         return new InternalServerErrorException(errorDTO);
     }
 
     /**
      * This method is used to create a BadRequestException with the known errorCode and message.
+     *
      * @param description Error Message Desription.
-     * @param code Error Code.
+     * @param code        Error Code.
      * @return BadRequestException with the given errorCode and description.
      */
-    public static BadRequestException buildBadRequestException(String description, String code) {
-        ErrorDTO errorDTO = new ErrorDTO();
-        errorDTO.setCode(code);
-        errorDTO.setMessage(ConsentConstants.STATUS_BAD_REQUEST_MESSAGE_DEFAULT);
-        errorDTO.setDescription(description);
+    public static BadRequestException buildBadRequestException(String description, String code,
+                                                               Log log, Throwable e) {
+        ErrorDTO errorDTO = getErrorDTO(ConsentConstants.STATUS_BAD_REQUEST_MESSAGE_DEFAULT, description, code, log);
+        logDebug(log, e);
         return new BadRequestException(errorDTO);
+    }
+
+    /**
+     * This method is used to create a ConflictRequestException with the known errorCode and message.
+     *
+     * @param description Error Message Desription.
+     * @param code        Error Code.
+     * @return ConflictRequestException with the given errorCode and description.
+     */
+    public static ConflictRequestException buildConflictRequestException(String description, String code,
+                                                                         Log log, Throwable e) {
+        ErrorDTO errorDTO = getErrorDTO(ConsentConstants.STATUS_BAD_REQUEST_MESSAGE_DEFAULT, description, code, log);
+        logDebug(log, e);
+        return new ConflictRequestException(errorDTO);
     }
 
     public static Purpose getPurposeRequest(PurposeRequestDTO purposeRequestDTO) {
@@ -75,4 +92,23 @@ public class ConsentEndpointUtils {
         purposeListResponseDTO.setDiscripiton(purposeResponse.getDescription());
         return purposeListResponseDTO;
     }
+
+    private static void logError(Log log, Throwable throwable) {
+        log.error(throwable.getMessage(), throwable);
+    }
+
+    private static void logDebug(Log log, Throwable throwable) {
+        if (log.isDebugEnabled()) {
+            log.debug(ConsentConstants.STATUS_BAD_REQUEST_MESSAGE_DEFAULT, throwable);
+        }
+    }
+
+    private static ErrorDTO getErrorDTO(String message, String description, String code, Log log) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        errorDTO.setCode(code);
+        errorDTO.setMessage(message);
+        errorDTO.setDescription(description);
+        return errorDTO;
+    }
+
 }
