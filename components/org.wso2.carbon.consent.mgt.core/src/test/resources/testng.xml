@@ -18,7 +18,7 @@
 
 <suite name="ConsentManagementCoreTestSuite" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
 
-    <test name="ConsentManagementCoreTestTests" preserve-order="true" parallel="false">
+    <test name="ConsentManagementCoreTests" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.consent.mgt.core.model.AddressTest"/>
         </classes>
