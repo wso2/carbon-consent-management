@@ -16,8 +16,8 @@
     </parent>
 
     <modules>
-        <module>org.wso2.carbon.consent.mgt.core</module>
-        <module>org.wso2.carbon.consent.mgt.endpoint</module>
+        <module>components/org.wso2.carbon.consent.mgt.core</module>
+        <module>components/org.wso2.carbon.consent.mgt.endpoint</module>
     </modules>
 
     <repositories>
