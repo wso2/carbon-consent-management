@@ -20,13 +20,20 @@ package org.wso2.carbon.consent.mgt.endpoint.util;
 import org.apache.commons.logging.Log;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
+import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ErrorDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PIIcategoryRequestDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryListResponseDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.exception.BadRequestException;
 import org.wso2.carbon.consent.mgt.endpoint.exception.ConflictRequestException;
 import org.wso2.carbon.consent.mgt.endpoint.exception.InternalServerErrorException;
+import org.wso2.carbon.consent.mgt.endpoint.exception.NotFoundException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -72,7 +79,7 @@ public class ConsentEndpointUtils {
     /**
      * This method is used to create a ConflictRequestException with the known errorCode and message.
      *
-     * @param description Error Message Desription.
+     * @param description Error Message Description.
      * @param code        Error Code.
      * @return ConflictRequestException with the given errorCode and description.
      */
@@ -83,9 +90,35 @@ public class ConsentEndpointUtils {
         return new ConflictRequestException(errorDTO);
     }
 
+
+    /**
+     * This method is used to create a NotFoundException with the known errorCode and message.
+     *
+     * @param description Error Message Description.
+     * @param code        Error Code.
+     * @return NotFoundException with the given errorCode and description.
+     */
+    public static NotFoundException buildNotFoundRequestException(String description, String code,
+                                                                         Log log, Throwable e) {
+        ErrorDTO errorDTO = getErrorDTO(ConsentConstants.STATUS_BAD_REQUEST_MESSAGE_DEFAULT, description, code);
+        logDebug(log, e);
+        return new NotFoundException(errorDTO);
+    }
+
     public static Purpose getPurposeRequest(PurposeRequestDTO purposeRequestDTO) {
         return new Purpose(purposeRequestDTO.getPurpose(), purposeRequestDTO.getDescription());
     }
+
+    public static PurposeCategory getPurposeCategoryRequest(PurposeCategoryRequestDTO purposeCategoryRequestDTO) {
+        return new PurposeCategory(purposeCategoryRequestDTO.getPurposeCategory(),
+                purposeCategoryRequestDTO.getDescription());
+    }
+
+    public static PIICategory getPIICategoryRequest(PIIcategoryRequestDTO piIcategoryRequestDTO) {
+        return new PIICategory(piIcategoryRequestDTO.getPiiCategory(),
+                piIcategoryRequestDTO.getDescription());
+    }
+
 
     public static PurposeListResponseDTO getPurposeListResponse(Purpose purposeResponse) {
         PurposeListResponseDTO purposeListResponseDTO = new PurposeListResponseDTO();
@@ -94,6 +127,23 @@ public class ConsentEndpointUtils {
         purposeListResponseDTO.setDescription(purposeResponse.getDescription());
         return purposeListResponseDTO;
     }
+
+    public static PurposeCategoryListResponseDTO getPurposeCategoryListResponse(PurposeCategory purposeCategory) {
+        PurposeCategoryListResponseDTO purposeCategoryListResponseDTO = new PurposeCategoryListResponseDTO();
+        purposeCategoryListResponseDTO.setPurposeCategoryId(String.valueOf(purposeCategory.getId()));
+        purposeCategoryListResponseDTO.setPurposeCategory(purposeCategory.getName());
+        purposeCategoryListResponseDTO.setDescription(purposeCategory.getDescription());
+        return purposeCategoryListResponseDTO;
+    }
+
+    public static PiiCategoryListResponseDTO getPiiCategoryListResponse(PIICategory piiCategory) {
+        PiiCategoryListResponseDTO piiCategoryListResponseDTO = new PiiCategoryListResponseDTO();
+        piiCategoryListResponseDTO.setPiiCategoryId(String.valueOf(piiCategory.getId()));
+        piiCategoryListResponseDTO.setPiiCategory(piiCategory.getName());
+        piiCategoryListResponseDTO.setDescription(piiCategory.getDescription());
+        return piiCategoryListResponseDTO;
+    }
+
 
     private static void logError(Log log, Throwable throwable) {
         log.error(throwable.getMessage(), throwable);
@@ -121,6 +171,31 @@ public class ConsentEndpointUtils {
                     purposeListResponseDTO.setDescription(purpose.getDescription());
                     purposeListResponseDTO.setPurposeId(String.valueOf(purpose.getId()));
                     return purposeListResponseDTO;
+                })
+                .collect(Collectors.toList());
+    }
+
+    public static List<PurposeCategoryListResponseDTO> getPurposeCategoryResponseDTOList(List<PurposeCategory>
+                                                                                                 purposeCategories) {
+        return purposeCategories.stream()
+                .map(purposeCategory -> {
+                    PurposeCategoryListResponseDTO purposeCategoryListResponseDTO = new PurposeCategoryListResponseDTO();
+                    purposeCategoryListResponseDTO.setPurposeCategory(purposeCategory.getName());
+                    purposeCategoryListResponseDTO.setDescription(purposeCategory.getDescription());
+                    purposeCategoryListResponseDTO.setPurposeCategoryId(String.valueOf(purposeCategory.getId()));
+                    return purposeCategoryListResponseDTO;
+                })
+                .collect(Collectors.toList());
+    }
+
+    public static List<PiiCategoryListResponseDTO> getPiiCategoryResponseDTOList(List<PIICategory> piiCategories) {
+        return piiCategories.stream()
+                .map(purposeCategory -> {
+                    PiiCategoryListResponseDTO piiCategoryListResponseDTO = new PiiCategoryListResponseDTO();
+                    piiCategoryListResponseDTO.setPiiCategory(purposeCategory.getName());
+                    piiCategoryListResponseDTO.setDescription(purposeCategory.getDescription());
+                    piiCategoryListResponseDTO.setPiiCategoryId(String.valueOf(purposeCategory.getId()));
+                    return piiCategoryListResponseDTO;
                 })
                 .collect(Collectors.toList());
     }

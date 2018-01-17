@@ -33,7 +33,15 @@ import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import java.util.List;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ALREADY_EXIST;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ALREADY_EXIST;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ALREADY_EXIST;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_REQUIRED;
@@ -56,20 +64,49 @@ public class ConsentManager {
         piiCategoryDAO = configuration.getPiiCategoryDAO();
     }
 
+    /**
+     * This API is used to add a new Purpose.
+     *
+     * @param purpose Purpose element with name and description.
+     * @return 201 Created. Return purpose element with purpose Id.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
     public Purpose addPurpose(Purpose purpose) throws ConsentManagementException {
 
         validateInputParameters(purpose);
         return purposeDAO.addPurpose(purpose);
     }
 
+    /**
+     * This API is used to get the purpose by purpose Id.
+     *
+     * @param purposeId ID of the purpose.
+     * @return 200 OK with purpose element.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
     public Purpose getPurpose(int purposeId) throws ConsentManagementException {
         return purposeDAO.getPurposeById(purposeId);
     }
 
+    /**
+     * This API is used to get the purpose by purpose name.
+     *
+     * @param name Name of the purpose.
+     * @return 200 Ok with purpose element.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
     public Purpose getPurposeByName(String name) throws ConsentManagementException {
         return purposeDAO.getPurposeByName(name);
     }
 
+    /**
+     * This API is used to get all or filtered existing purposes.
+     *
+     * @param limit  Number of search results.
+     * @param offset Start index of the search.
+     * @return 200 OK with Filtered list of Purpose elements
+     * @throws ConsentManagementException Consent Management Exception.
+     */
     public List<Purpose> listPurposes(int limit, int offset) throws ConsentManagementException {
 
         validatePaginationParameters(limit, offset);
@@ -83,6 +120,12 @@ public class ConsentManager {
         return purposeDAO.listPurposes(limit, offset);
     }
 
+    /**
+     * This api is used to delete existing purpose by purpose Id.
+     *
+     * @param purposeId ID of the purpose.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
     public void deletePurpose(int purposeId) throws ConsentManagementException {
 
         if (purposeId == 0 || purposeId < 0) {
@@ -101,16 +144,230 @@ public class ConsentManager {
         }
     }
 
+    /**
+     * This API is used to check whether a purpose exists with given name.
+     *
+     * @param name Name of the purpose.
+     * @return true, if an element is found.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
     public boolean isPurposeExists(String name) throws ConsentManagementException {
         return getPurposeByName(name) != null;
     }
 
+
+    /**
+     * This API is used to add a new purpose category.
+     *
+     * @param purposeCategory purpose category element with name and description.
+     * @return 201 created. Return PurposeCategory element with the category ID.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
     public PurposeCategory addPurposeCategory(PurposeCategory purposeCategory) throws ConsentManagementException {
+        validateInputParameters(purposeCategory);
         return purposeCategoryDAO.addPurposeCategory(purposeCategory);
     }
 
+    /**
+     * This API is used to get purpose category by ID.
+     *
+     * @param purposeCategoryId Purpose category ID.
+     * @return 200 Ok with purpose category element.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    public PurposeCategory getPurposeCategory(int purposeCategoryId) throws ConsentManagementException {
+        return purposeCategoryDAO.getPurposeCategoryById(purposeCategoryId);
+    }
+
+    /**
+     * This API is used to get purpose category by name.
+     *
+     * @param name Name of the purpose category.
+     * @return 200 Ok with purpose category element.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    public PurposeCategory getPurposeCategoryByName(String name) throws ConsentManagementException {
+        return purposeCategoryDAO.getPurposeCategoryByName(name);
+    }
+
+    /**
+     * This API is used to list all or filtered list of purpose categories.
+     *
+     * @param limit  Number of search results.
+     * @param offset Start index of the search.
+     * @return Filtered list of purpose categories.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    public List<PurposeCategory> listPurposeCategories(int limit, int offset) throws ConsentManagementException {
+
+        validatePaginationParameters(limit, offset);
+
+        if (limit == 0) {
+            limit = getDefaultLimitFromConfig();
+            if (log.isDebugEnabled()) {
+                log.debug("Limit is not defied the request, default to :" + limit);
+            }
+        }
+        return purposeCategoryDAO.listPurposeCategories(limit, offset);
+    }
+
+    /**
+     * This API is used to delete purpose category by ID.
+     *
+     * @param purposeCategoryId ID of the purpose category to be deleted.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    public void deletePurposeCategory(int purposeCategoryId) throws ConsentManagementException {
+
+        if (purposeCategoryId == 0 || purposeCategoryId < 0) {
+            if (log.isDebugEnabled()) {
+                log.debug("Purpose Category Id is not found in the request or invalid Id");
+            }
+            throw ConsentUtils.handleClientException(ERROR_CODE_PURPOSE_CATEGORY_ID_REQUIRED, null);
+        }
+
+        if (getPurposeCategory(purposeCategoryId) == null) {
+            throw ConsentUtils.handleClientException(ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID, String.valueOf(purposeCategoryId));
+        }
+        int id = purposeCategoryDAO.deletePurposeCategory(purposeCategoryId);
+        if (log.isDebugEnabled()) {
+            log.debug("Purpose category deleted successfully. ID: " + id);
+        }
+    }
+
+    /**
+     * This API is used to check whether a purpose category exists for a given name.
+     *
+     * @param name Name of the purpose.
+     * @return true if a category found.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    public boolean isPurposeCategoryExists(String name) throws ConsentManagementException {
+        return getPurposeCategoryByName(name) != null;
+    }
+
+    /**
+     * This API is used to add a new PII category.
+     *
+     * @param piiCategory PIICategory element with name and description.
+     * @return 201 Created. Returns PII Category element with ID.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
     public PIICategory addPIICategory(PIICategory piiCategory) throws ConsentManagementException {
+        validateInputParameters(piiCategory);
         return piiCategoryDAO.addPIICategory(piiCategory);
+    }
+
+    /**
+     * This API is used ot get PII category by name.
+     *
+     * @param name Name of the PII category.
+     * @return 200 OK. Returns PII category with ID.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    public PIICategory getPIICategoryByName(String name) throws ConsentManagementException {
+        return piiCategoryDAO.getPIICategoryByName(name);
+    }
+
+    /**
+     * This API is sued to get PII category by ID.
+     *
+     * @param piiCategoryId ID of the PII category.
+     * @return 200 OK. Returns PII category
+     * @throws ConsentManagementException
+     */
+    public PIICategory getPIICategory(int piiCategoryId) throws ConsentManagementException {
+        return piiCategoryDAO.getPIICategoryById(piiCategoryId);
+    }
+
+    /**
+     * This API is used to list all or filtered set of PII categories.
+     *
+     * @param limit  Number of search results.
+     * @param offset Start index of the search.
+     * @return 200 Ok. Returns filtered list of PII category elements.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    public List<PIICategory> listPIICategories(int limit, int offset) throws ConsentManagementException {
+
+        validatePaginationParameters(limit, offset);
+
+        if (limit == 0) {
+            limit = getDefaultLimitFromConfig();
+            if (log.isDebugEnabled()) {
+                log.debug("Limit is not defied the request, default to :" + limit);
+            }
+        }
+        return piiCategoryDAO.listPIICategories(limit, offset);
+    }
+
+    /**
+     * This API is used to delete PII category by ID.
+     *
+     * @param piiCategoryId ID of the PII category.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    public void deletePIICategory(int piiCategoryId) throws ConsentManagementException {
+
+        if (piiCategoryId == 0 || piiCategoryId < 0) {
+            if (log.isDebugEnabled()) {
+                log.debug("PII Category Id is not found in the request or invalid PII category Id");
+            }
+            throw ConsentUtils.handleClientException(ERROR_CODE_PII_CATEGORY_ID_REQUIRED, null);
+        }
+
+        if (getPIICategory(piiCategoryId) == null) {
+            throw ConsentUtils.handleClientException(ERROR_CODE_PII_CATEGORY_ID_INVALID, String.valueOf(piiCategoryId));
+        }
+        int id = piiCategoryDAO.deletePIICategory(piiCategoryId);
+        if (log.isDebugEnabled()) {
+            log.debug("PII Category deleted successfully. ID: " + id);
+        }
+    }
+
+    /**
+     * This API is sued to check whether a PII category exists for a given name.
+     *
+     * @param name Name of the PII category.
+     * @return true if a category exists.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    public boolean isPIICategoryExists(String name) throws ConsentManagementException {
+        return getPIICategoryByName(name) != null;
+    }
+
+
+    private int getDefaultLimitFromConfig() {
+        int limit = DEFALT_SEARCH_LIMIT;
+
+        if (ConsentConfigParser.getInstance().getConfiguration().get(PURPOSE_SEARCH_LIMIT_PATH) != null) {
+            limit = Integer.parseInt(ConsentConfigParser.getInstance().getConfiguration()
+                    .get(PURPOSE_SEARCH_LIMIT_PATH).toString());
+        }
+        return limit;
+    }
+
+    private void validatePaginationParameters(int limit, int offset) throws ConsentManagementClientException {
+        if (limit < 0 || offset < 0) {
+            throw ConsentUtils.handleClientException(ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET, null);
+        }
+    }
+
+    private void validateInputParameters(PurposeCategory purposeCategory) throws ConsentManagementException {
+
+        if (StringUtils.isBlank(purposeCategory.getName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Purpose Category name cannot be empty");
+            }
+            throw ConsentUtils.handleClientException(ERROR_CODE_PURPOSE_CATEGORY_NAME_REQUIRED, null);
+        }
+
+        if (isPurposeCategoryExists(purposeCategory.getName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("A purpose category already exists with name: " + purposeCategory.getName());
+            }
+            throw ConsentUtils.handleClientException(ERROR_CODE_PURPOSE_CATEGORY_ALREADY_EXIST, purposeCategory.getName());
+        }
     }
 
     private void validateInputParameters(Purpose purpose) throws ConsentManagementException {
@@ -130,19 +387,20 @@ public class ConsentManager {
         }
     }
 
-    private int getDefaultLimitFromConfig() {
-        int limit = DEFALT_SEARCH_LIMIT;
+    private void validateInputParameters(PIICategory piiCategory) throws ConsentManagementException {
 
-        if (ConsentConfigParser.getInstance().getConfiguration().get(PURPOSE_SEARCH_LIMIT_PATH) != null) {
-            limit = Integer.parseInt(ConsentConfigParser.getInstance().getConfiguration()
-                    .get(PURPOSE_SEARCH_LIMIT_PATH).toString());
+        if (StringUtils.isBlank(piiCategory.getName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("PII Category name cannot be empty");
+            }
+            throw ConsentUtils.handleClientException(ERROR_CODE_PII_CATEGORY_NAME_REQUIRED, null);
         }
-        return limit;
-    }
 
-    private void validatePaginationParameters(int limit, int offset) throws ConsentManagementClientException {
-        if (limit < 0 || offset < 0) {
-            throw ConsentUtils.handleClientException(ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET, null);
+        if (isPIICategoryExists(piiCategory.getName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("A PII Category already exists with name: " + piiCategory.getName());
+            }
+            throw ConsentUtils.handleClientException(ERROR_CODE_PII_CATEGORY_ALREADY_EXIST, piiCategory.getName());
         }
     }
 

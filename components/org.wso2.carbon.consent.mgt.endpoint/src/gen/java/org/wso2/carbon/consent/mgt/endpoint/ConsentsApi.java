@@ -84,6 +84,46 @@ public class ConsentsApi  {
     {
     return delegate.consentsPiiCategoriesGet(limit,offset);
     }
+    @DELETE
+    @Path("/pii-categories/{piiCategoryId}")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Delete PII category\n", notes = "This API is used to delete a PII  category.\n", response = void.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
+        
+        @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
+        
+        @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Not Found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
+
+    public Response consentsPiiCategoriesPiiCategoryIdDelete(@ApiParam(value = "Id of the pii category",required=true ) @PathParam("piiCategoryId")  String piiCategoryId)
+    {
+    return delegate.consentsPiiCategoriesPiiCategoryIdDelete(piiCategoryId);
+    }
+    @GET
+    @Path("/pii-categories/{piiCategoryId}")
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    @io.swagger.annotations.ApiOperation(value = "Retrieve a pii category\n", notes = "This API is used to get PII category from the pii category Id.\n", response = PiiCategoryListResponseDTO.class)
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
+        
+        @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
+        
+        @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
+        
+        @io.swagger.annotations.ApiResponse(code = 404, message = "Not Found"),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
+
+    public Response consentsPiiCategoriesPiiCategoryIdGet(@ApiParam(value = "Id of the pii category",required=true ) @PathParam("piiCategoryId")  String piiCategoryId)
+    {
+    return delegate.consentsPiiCategoriesPiiCategoryIdGet(piiCategoryId);
+    }
     @POST
     @Path("/pii-categories")
     @Consumes({ "application/json" })
@@ -103,46 +143,6 @@ public class ConsentsApi  {
     public Response consentsPiiCategoriesPost(@ApiParam(value = "This represents the PII catogory element need to be stored" ,required=true ) PIIcategoryRequestDTO piiCategory)
     {
     return delegate.consentsPiiCategoriesPost(piiCategory);
-    }
-    @DELETE
-    @Path("/pii-category/{piiCategoryId}")
-    @Consumes({ "application/json" })
-    @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Delete PII category\n", notes = "This API is used to delete a PII  category.\n", response = void.class)
-    @io.swagger.annotations.ApiResponses(value = { 
-        @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
-        
-        @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
-        
-        @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
-        
-        @io.swagger.annotations.ApiResponse(code = 404, message = "Not Found"),
-        
-        @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
-
-    public Response consentsPiiCategoryPiiCategoryIdDelete(@ApiParam(value = "Id of the pii category",required=true ) @PathParam("piiCategoryId")  String piiCategoryId)
-    {
-    return delegate.consentsPiiCategoryPiiCategoryIdDelete(piiCategoryId);
-    }
-    @GET
-    @Path("/pii-category/{piiCategoryId}")
-    @Consumes({ "application/json" })
-    @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieve a pii category\n", notes = "This API is used to get PII category from the pii category Id.\n", response = PiiCategoryListResponseDTO.class)
-    @io.swagger.annotations.ApiResponses(value = { 
-        @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
-        
-        @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
-        
-        @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
-        
-        @io.swagger.annotations.ApiResponse(code = 404, message = "Not Found"),
-        
-        @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
-
-    public Response consentsPiiCategoryPiiCategoryIdGet(@ApiParam(value = "Id of the pii category",required=true ) @PathParam("piiCategoryId")  String piiCategoryId)
-    {
-    return delegate.consentsPiiCategoryPiiCategoryIdGet(piiCategoryId);
     }
     @POST
     

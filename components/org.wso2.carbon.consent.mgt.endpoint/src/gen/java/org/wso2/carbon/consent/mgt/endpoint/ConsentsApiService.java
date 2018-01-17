@@ -28,9 +28,9 @@ import javax.ws.rs.core.Response;
 public abstract class ConsentsApiService {
     public abstract Response consentsGet(Integer limit,Integer offset,String piiPrincipalId,String spTenantDomain,String service,String state,String collectionMethod,String piiCategoryId);
     public abstract Response consentsPiiCategoriesGet(Integer limit,Integer offset);
+    public abstract Response consentsPiiCategoriesPiiCategoryIdDelete(String piiCategoryId);
+    public abstract Response consentsPiiCategoriesPiiCategoryIdGet(String piiCategoryId);
     public abstract Response consentsPiiCategoriesPost(PIIcategoryRequestDTO piiCategory);
-    public abstract Response consentsPiiCategoryPiiCategoryIdDelete(String piiCategoryId);
-    public abstract Response consentsPiiCategoryPiiCategoryIdGet(String piiCategoryId);
     public abstract Response consentsPost(ConsentRequestDTO consent);
     public abstract Response consentsPurposeCategoriesGet(Integer limit,Integer offset);
     public abstract Response consentsPurposeCategoriesPost(PurposeCategoryRequestDTO purposeCategory);

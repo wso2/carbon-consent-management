@@ -23,10 +23,17 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerExcepti
 import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.persistence.JDBCPersistenceManager;
+import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 
 import java.util.List;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PII_CATEGORY_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PII_CATEGORY_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_MYSQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PII_CATEGORY_BY_ID_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PII_CATEGORY_BY_NAME_SQL;
 
 /**
  * Default implementation of {@link PIICategoryDAO}. This handles {@link PIICategory} related DB operations.
@@ -36,7 +43,6 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     @Override
     public PIICategory addPIICategory(PIICategory piiCategory) throws ConsentManagementException {
         JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
-        final String INSERT_PII_CATEGORY_SQL = "INSERT INTO CM_PII_CATEGORY (NAME, DESCRIPTION) VALUES (?,?)";
         PIICategory purposeResult;
         int insertedId;
         try {
@@ -45,11 +51,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
                 preparedStatement.setString(2, piiCategory.getDescription());
             }), piiCategory, true);
         } catch (DataAccessException e) {
-            throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_ADD_PII_CATEGORY
-                                                                             .getMessage(),
-                                                                     piiCategory.getName(),
-                                                                     piiCategory.getDescription()),
-                                                       ErrorMessages.ERROR_CODE_ADD_PII_CATEGORY.getCode(), e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PII_CATEGORY, piiCategory.getName(), e);
         }
         purposeResult = new PIICategory(insertedId, piiCategory.getName(), piiCategory.getDescription());
         return purposeResult;
@@ -58,19 +60,21 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     @Override
     public PIICategory getPIICategoryById(int id) throws ConsentManagementException {
         JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
-        final String SELECT_PII_CATEGORY_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION FROM CM_PII_CATEGORY WHERE ID = ?";
         PIICategory piiCategory;
 
         try {
             piiCategory = jdbcTemplate.fetchSingleRecord(SELECT_PII_CATEGORY_BY_ID_SQL, (resultSet, rowNumber) ->
-                                                             new PIICategory(resultSet.getInt(1),
-                                                                             resultSet.getString(2),
-                                                                             resultSet.getString(3)),
-                                                         preparedStatement -> preparedStatement.setInt(1, id));
+                            new PIICategory(resultSet.getInt(1),
+                                    resultSet.getString(2),
+                                    resultSet.getString(3)),
+                    preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
-            throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_SELECT_PII_CATEGORY_BY_ID
-                                                                             .getMessage(), id),
-                                                       ErrorMessages.ERROR_CODE_SELECT_PII_CATEGORY_BY_ID.getCode(), e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PII_CATEGORY_BY_ID, String
+                    .valueOf(id), e);
+        }
+
+        if (piiCategory == null) {
+            throw ConsentUtils.handleClientException(ERROR_CODE_PII_CATEGORY_ID_INVALID, String.valueOf(id));
         }
         return piiCategory;
     }
@@ -78,23 +82,21 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     @Override
     public List<PIICategory> listPIICategories(int limit, int offset) throws ConsentManagementException {
         JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
-        final String LIST_PAGINATED_PII_CATEGORY_MYSQL = "SELECT ID, NAME, DESCRIPTION FROM CM_PII_CATEGORY ORDER BY " +
-                "ID ASC LIMIT ? OFFSET ?";
 
         List<PIICategory> piiCategories;
         try {
             piiCategories = jdbcTemplate.executeQuery(LIST_PAGINATED_PII_CATEGORY_MYSQL,
-                                                 (resultSet, rowNumber) -> new PIICategory(resultSet.getInt(1),
-                                                                                       resultSet.getString(2),
-                                                                                       resultSet.getString(3)),
-                                                 preparedStatement -> {
-                                                     preparedStatement.setInt(1, limit);
-                                                     preparedStatement.setInt(2, offset);
-                                                 });
+                    (resultSet, rowNumber) -> new PIICategory(resultSet.getInt(1),
+                            resultSet.getString(2),
+                            resultSet.getString(3)),
+                    preparedStatement -> {
+                        preparedStatement.setInt(1, limit);
+                        preparedStatement.setInt(2, offset);
+                    });
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_PII_CATEGORY
-                                                                             .getMessage(), limit, offset),
-                                                       ErrorMessages.ERROR_CODE_LIST_PII_CATEGORY.getCode(), e);
+                    .getMessage(), limit, offset),
+                    ErrorMessages.ERROR_CODE_LIST_PII_CATEGORY.getCode(), e);
         }
         return piiCategories;
     }
@@ -102,16 +104,31 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     @Override
     public int deletePIICategory(int id) throws ConsentManagementException {
         JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
-        final String DELETE_PII_CATEGORY_SQL = "DELETE FROM CM_PII_CATEGORY WHERE ID = ?";
 
         try {
             jdbcTemplate.executeUpdate(DELETE_PII_CATEGORY_SQL, preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
-            throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_DELETE_PII_CATEGORY
-                                                                             .getMessage(), id),
-                                                       ErrorMessages.ERROR_CODE_DELETE_PII_CATEGORY.getCode(), e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_PII_CATEGORY, String
+                    .valueOf(id), e);
         }
-
         return id;
+    }
+
+    @Override
+    public PIICategory getPIICategoryByName(String name) throws ConsentManagementServerException {
+        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
+        PIICategory piiCategory;
+
+        try {
+            piiCategory = jdbcTemplate.fetchSingleRecord(SELECT_PII_CATEGORY_BY_NAME_SQL, (resultSet, rowNumber) ->
+                            new PIICategory(resultSet.getInt(1),
+                                    resultSet.getString(2),
+                                    resultSet.getString(3)),
+                    preparedStatement -> preparedStatement.setString(1, name));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PII_CATEGORY_BY_NAME, name, e);
+        }
+        return piiCategory;
+
     }
 }

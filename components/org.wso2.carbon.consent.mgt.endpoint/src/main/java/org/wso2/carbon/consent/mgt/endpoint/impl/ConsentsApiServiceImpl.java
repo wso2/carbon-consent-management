@@ -21,21 +21,42 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.consent.mgt.endpoint.ApiResponseMessage;
 import org.wso2.carbon.consent.mgt.endpoint.ConsentsApiService;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PIIcategoryRequestDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryListResponseDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import javax.ws.rs.core.Response;
 
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ALREADY_EXIST;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ALREADY_EXIST;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ALREADY_EXIST;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY_RESOURCE_PATH;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_CATEGORY_RESOURCE_PATH;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_RESOURCE_PATH;
 import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getConsentManager;
+import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getPIICategoryRequest;
+import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getPiiCategoryListResponse;
+import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getPiiCategoryResponseDTOList;
+import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getPurposeCategoryListResponse;
+import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getPurposeCategoryRequest;
+import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getPurposeCategoryResponseDTOList;
 import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getPurposeListResponse;
 import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getPurposeRequest;
 import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getPurposeResponseDTOList;
@@ -45,30 +66,70 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
     private static final Log LOG = LogFactory.getLog(ConsentsApiServiceImpl.class);
 
     @Override
-    public Response consentsGet(Integer limit, Integer offset, String piiPrincipalId, String spTenantDomain, String service, String state, String collectionMethod, String piiCategoryId) {
+    public Response consentsGet(Integer limit, Integer offset, String piiPrincipalId, String spTenantDomain,
+                                String service, String state, String collectionMethod, String piiCategoryId) {
         return null;
     }
 
     @Override
     public Response consentsPiiCategoriesGet(Integer limit, Integer offset) {
-        return null;
+        try {
+            List<PiiCategoryListResponseDTO> purposeCategoryListResponseDTO = getPiiCategoryListResponseDTO(
+                    limit, offset);
+            return Response.ok().entity(purposeCategoryListResponseDTO).build();
+        } catch (ConsentManagementClientException e) {
+            return handleBadRequestResponse(e);
+        } catch (ConsentManagementException e) {
+            return handleServerErrorResponse(e);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable);
+        }
+    }
+
+    @Override
+    public Response consentsPiiCategoriesPiiCategoryIdDelete(String piiCategoryId) {
+        try {
+            getConsentManager().deletePIICategory(Integer.parseInt(piiCategoryId));
+            return Response.ok().build();
+        } catch (ConsentManagementClientException e) {
+            return handleBadRequestResponse(e);
+        } catch (ConsentManagementException e) {
+            return handleServerErrorResponse(e);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable);
+        }
+    }
+
+    @Override
+    public Response consentsPiiCategoriesPiiCategoryIdGet(String piiCategoryId) {
+        try {
+            PIICategory piiCategory = getConsentManager().getPIICategory(Integer.parseInt(piiCategoryId));
+            PiiCategoryListResponseDTO purposeCategoryList = getPiiCategoryListResponse(piiCategory);
+            return Response.ok().entity(purposeCategoryList).build();
+        } catch (ConsentManagementClientException e) {
+            return handleBadRequestResponse(e);
+        } catch (ConsentManagementException e) {
+            return handleServerErrorResponse(e);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable);
+        }
     }
 
     @Override
     public Response consentsPiiCategoriesPost(PIIcategoryRequestDTO piiCategory) {
-        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
-    }
-
-    @Override
-    public Response consentsPiiCategoryPiiCategoryIdDelete(String piiCategoryId) {
-        // do some magic!
-        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
-    }
-
-    @Override
-    public Response consentsPiiCategoryPiiCategoryIdGet(String piiCategoryId) {
-        // do some magic!
-        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+        try {
+            PiiCategoryListResponseDTO response = addPIICategory(piiCategory);
+            return Response.ok()
+                    .entity(response)
+                    .location(getPiiCategoryLocationURI(response))
+                    .build();
+        } catch (ConsentManagementClientException e) {
+            return handleBadRequestResponse(e);
+        } catch (ConsentManagementException e) {
+            return handleServerErrorResponse(e);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable);
+        }
     }
 
     @Override
@@ -79,25 +140,63 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsPurposeCategoriesGet(Integer limit, Integer offset) {
-        return null;
+        try {
+            List<PurposeCategoryListResponseDTO> purposeCategoryListResponseDTOS = getPurposeCategoryListResponseDTO(
+                    limit, offset);
+            return Response.ok().entity(purposeCategoryListResponseDTOS).build();
+        } catch (ConsentManagementClientException e) {
+            return handleBadRequestResponse(e);
+        } catch (ConsentManagementException e) {
+            return handleServerErrorResponse(e);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable);
+        }
     }
 
     @Override
     public Response consentsPurposeCategoriesPost(PurposeCategoryRequestDTO purposeCategory) {
-        // do some magic!
-        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+        try {
+            PurposeCategoryListResponseDTO response = addPurposeCategory(purposeCategory);
+            return Response.ok()
+                    .entity(response)
+                    .location(getPurposeCategoryLocationURI(response))
+                    .build();
+        } catch (ConsentManagementClientException e) {
+            return handleBadRequestResponse(e);
+        } catch (ConsentManagementException e) {
+            return handleServerErrorResponse(e);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable);
+        }
     }
 
     @Override
     public Response consentsPurposeCategoriesPurposeCategoryIdDelete(String purposeCategoryId) {
-        // do some magic!
-        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+        try {
+            getConsentManager().deletePurposeCategory(Integer.parseInt(purposeCategoryId));
+            return Response.ok().build();
+        } catch (ConsentManagementClientException e) {
+            return handleBadRequestResponse(e);
+        } catch (ConsentManagementException e) {
+            return handleServerErrorResponse(e);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable);
+        }
     }
 
     @Override
     public Response consentsPurposeCategoriesPurposeCategoryIdGet(String purposeCategoryId) {
-        // do some magic!
-        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+        try {
+            PurposeCategory purposeCategory = getConsentManager().getPurposeCategory(Integer.parseInt(purposeCategoryId));
+            PurposeCategoryListResponseDTO purposeCategoryList = getPurposeCategoryListResponse(purposeCategory);
+            return Response.ok().entity(purposeCategoryList).build();
+        } catch (ConsentManagementClientException e) {
+            return handleBadRequestResponse(e);
+        } catch (ConsentManagementException e) {
+            return handleServerErrorResponse(e);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable);
+        }
     }
 
     @Override
@@ -109,6 +208,8 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
             return handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
             return handleServerErrorResponse(e);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable);
         }
     }
 
@@ -116,13 +217,17 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
     public Response consentsPurposesPost(PurposeRequestDTO purpose) {
         try {
             PurposeListResponseDTO response = addPurpose(purpose);
-            return Response.ok().entity(response).build();
+            return Response.ok()
+                    .entity(response)
+                    .location(getPurposeLocationURI(response))
+                    .build();
         } catch (ConsentManagementClientException e) {
             return handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
             return handleServerErrorResponse(e);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable);
         }
-        //TODO need to set the location header
     }
 
     @Override
@@ -134,6 +239,8 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
             return handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
             return handleServerErrorResponse(e);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable);
         }
     }
 
@@ -143,12 +250,12 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
             Purpose purpose = getConsentManager().getPurpose(Integer.parseInt(purposeId));
             PurposeListResponseDTO purposeListResponse = getPurposeListResponse(purpose);
             return Response.ok().entity(purposeListResponse).build();
-        }
-        catch (ConsentManagementClientException e) {
+        } catch (ConsentManagementClientException e) {
             return handleBadRequestResponse(e);
-        }
-        catch (ConsentManagementException e) {
+        } catch (ConsentManagementException e) {
             return handleServerErrorResponse(e);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable);
         }
     }
 
@@ -166,25 +273,111 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     private Response handleBadRequestResponse(ConsentManagementClientException e) {
 
-        if (ERROR_CODE_PURPOSE_ALREADY_EXIST.getCode().equals(e.getErrorCode())) {
+        if (isConflictError(e)) {
             throw ConsentEndpointUtils.buildConflictRequestException(e.getMessage(), e.getErrorCode(), LOG, e);
+        }
+
+        if (isNotFoundError(e)) {
+            throw ConsentEndpointUtils.buildNotFoundRequestException(e.getMessage(), e.getErrorCode(), LOG, e);
         }
         throw ConsentEndpointUtils.buildBadRequestException(e.getMessage(), e.getErrorCode(), LOG, e);
     }
 
+    private boolean isNotFoundError(ConsentManagementClientException e) {
+        return ERROR_CODE_PURPOSE_ID_INVALID.getCode().equals(e.getErrorCode())
+                || ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID.getCode().equals(e.getErrorCode())
+                || ERROR_CODE_PII_CATEGORY_ID_INVALID.getCode().equals(e.getErrorCode());
+    }
+
+    private boolean isConflictError(ConsentManagementClientException e) {
+        return ERROR_CODE_PURPOSE_ALREADY_EXIST.getCode().equals(e.getErrorCode()) ||
+                ERROR_CODE_PURPOSE_CATEGORY_ALREADY_EXIST.getCode().equals(e.getErrorCode()) ||
+                ERROR_CODE_PII_CATEGORY_ALREADY_EXIST.getCode().equals(e.getErrorCode());
+    }
+
     private List<PurposeListResponseDTO> getPurposeListResponseDTO(Integer limit, Integer offset)
             throws ConsentManagementException {
+
+        if (limit == null) {
+            limit = 0;
+        }
+
+        if (offset == null) {
+            offset = 0;
+        }
         List<Purpose> purposes = getConsentManager().listPurposes(limit, offset);
         return getPurposeResponseDTOList(purposes);
     }
+
+    private List<PurposeCategoryListResponseDTO> getPurposeCategoryListResponseDTO(Integer limit, Integer offset)
+            throws ConsentManagementException {
+
+        if (limit == null) {
+            limit = 0;
+        }
+
+        if (offset == null) {
+            offset = 0;
+        }
+
+        List<PurposeCategory> purposeCategories = getConsentManager().listPurposeCategories(limit, offset);
+        return getPurposeCategoryResponseDTOList(purposeCategories);
+    }
+
+    private List<PiiCategoryListResponseDTO> getPiiCategoryListResponseDTO(Integer limit, Integer offset)
+            throws ConsentManagementException {
+
+        if (limit == null) {
+            limit = 0;
+        }
+
+        if (offset == null) {
+            offset = 0;
+        }
+
+        List<PIICategory> purposeCategories = getConsentManager().listPIICategories(limit, offset);
+        return getPiiCategoryResponseDTOList(purposeCategories);
+    }
+
 
     private Response handleServerErrorResponse(ConsentManagementException e) {
         throw ConsentEndpointUtils.buildInternalServerErrorException(e.getErrorCode(), LOG, e);
     }
 
+    private Response handleUnexpectedServerError(Throwable e) {
+        throw ConsentEndpointUtils.buildInternalServerErrorException(ERROR_CODE_UNEXPECTED.getCode(), LOG, e);
+    }
+
+
     private PurposeListResponseDTO addPurpose(PurposeRequestDTO purpose) throws ConsentManagementException {
         Purpose purposeRequest = getPurposeRequest(purpose);
         Purpose purposeResponse = getConsentManager().addPurpose(purposeRequest);
         return getPurposeListResponse(purposeResponse);
+    }
+
+    private PurposeCategoryListResponseDTO addPurposeCategory(PurposeCategoryRequestDTO purposeCategoryRequestDTO)
+            throws ConsentManagementException {
+        PurposeCategory purposeRequest = getPurposeCategoryRequest(purposeCategoryRequestDTO);
+        PurposeCategory purposeResponse = getConsentManager().addPurposeCategory(purposeRequest);
+        return getPurposeCategoryListResponse(purposeResponse);
+    }
+
+    private PiiCategoryListResponseDTO addPIICategory(PIIcategoryRequestDTO purposeCategoryRequestDTO)
+            throws ConsentManagementException {
+        PIICategory piiCategory = getPIICategoryRequest(purposeCategoryRequestDTO);
+        PIICategory purposeResponse = getConsentManager().addPIICategory(piiCategory);
+        return getPiiCategoryListResponse(purposeResponse);
+    }
+
+    private URI getPurposeLocationURI(PurposeListResponseDTO response) throws URISyntaxException {
+        return new URI(PURPOSE_RESOURCE_PATH + "/" + response.getPurposeId());
+    }
+
+    private URI getPurposeCategoryLocationURI(PurposeCategoryListResponseDTO response) throws URISyntaxException {
+        return new URI(PURPOSE_CATEGORY_RESOURCE_PATH + "/" + response.getPurposeCategoryId());
+    }
+
+    private URI getPiiCategoryLocationURI(PiiCategoryListResponseDTO response) throws URISyntaxException {
+        return new URI(PII_CATEGORY_RESOURCE_PATH + "/" + response.getPiiCategoryId());
     }
 }

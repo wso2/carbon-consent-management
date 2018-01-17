@@ -631,7 +631,7 @@ paths:
       tags:
         - PII Category
 
-  "/consents/pii-category/{piiCategoryId}":
+  "/consents/pii-categories/{piiCategoryId}":
     get:
       description: |
        This API is used to get PII category from the pii category Id.
@@ -1090,7 +1090,7 @@ definitions:
         type: 'string'
       purpose:
         type: 'string'
-      discripiton:
+      description:
         type: 'string'
 
 #-----------------------------------------------------

@@ -28,6 +28,8 @@ import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import java.util.List;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_NAME_SQL;
@@ -69,10 +71,14 @@ public class PurposeDAOImpl implements PurposeDAO {
 
         try {
             purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_ID_SQL, (resultSet, rowNumber) ->
-                    new Purpose(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3)),
-                                                     preparedStatement -> preparedStatement.setInt(1, id));
+                            new Purpose(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3)),
+                    preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_ID, String.valueOf(id), e);
+        }
+
+        if (purpose == null) {
+            throw ConsentUtils.handleClientException(ERROR_CODE_PURPOSE_ID_INVALID, String.valueOf(id));
         }
         return purpose;
     }
@@ -104,13 +110,13 @@ public class PurposeDAOImpl implements PurposeDAO {
         List<Purpose> purposes;
         try {
             purposes = jdbcTemplate.executeQuery(LIST_PAGINATED_PURPOSE_MYSQL,
-                                                 (resultSet, rowNumber) -> new Purpose(resultSet.getInt(1),
-                                                                                       resultSet.getString(2),
-                                                                                       resultSet.getString(3)),
-                                                 preparedStatement -> {
-                                                     preparedStatement.setInt(1, limit);
-                                                     preparedStatement.setInt(2, offset);
-                                                 });
+                    (resultSet, rowNumber) -> new Purpose(resultSet.getInt(1),
+                            resultSet.getString(2),
+                            resultSet.getString(3)),
+                    preparedStatement -> {
+                        preparedStatement.setInt(1, limit);
+                        preparedStatement.setInt(2, offset);
+                    });
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_PURPOSE.getMessage(),
                     limit, offset), ErrorMessages.ERROR_CODE_LIST_PURPOSE.getCode(), e);

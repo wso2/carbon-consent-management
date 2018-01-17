@@ -30,4 +30,6 @@ public interface PurposeCategoryDAO {
     List<PurposeCategory> listPurposeCategories(int limit, int offset) throws ConsentManagementException;
 
     int deletePurposeCategory(int id) throws ConsentManagementException;
+
+    PurposeCategory getPurposeCategoryByName(String name) throws ConsentManagementException;
 }

@@ -17,6 +17,7 @@
 package org.wso2.carbon.consent.mgt.core.dao;
 
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 
 import java.util.List;
@@ -30,4 +31,6 @@ public interface PIICategoryDAO {
     List<PIICategory> listPIICategories(int limit, int offset) throws ConsentManagementException;
 
     int deletePIICategory(int id) throws ConsentManagementException;
+
+    PIICategory getPIICategoryByName(String name) throws ConsentManagementServerException;
 }
