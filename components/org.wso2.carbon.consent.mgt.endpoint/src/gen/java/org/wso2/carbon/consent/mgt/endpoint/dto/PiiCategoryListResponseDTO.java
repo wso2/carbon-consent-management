@@ -15,23 +15,26 @@ public class PiiCategoryListResponseDTO  {
   
   
   
-  private String piiCategoryId = null;
+  private Integer piiCategoryId = null;
   
   
   private String piiCategory = null;
   
   
   private String description = null;
+  
+  
+  private Boolean sensitive = null;
 
   
   /**
    **/
   @ApiModelProperty(value = "")
   @JsonProperty("piiCategoryId")
-  public String getPiiCategoryId() {
+  public Integer getPiiCategoryId() {
     return piiCategoryId;
   }
-  public void setPiiCategoryId(String piiCategoryId) {
+  public void setPiiCategoryId(Integer piiCategoryId) {
     this.piiCategoryId = piiCategoryId;
   }
 
@@ -60,6 +63,18 @@ public class PiiCategoryListResponseDTO  {
   }
 
   
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("sensitive")
+  public Boolean getSensitive() {
+    return sensitive;
+  }
+  public void setSensitive(Boolean sensitive) {
+    this.sensitive = sensitive;
+  }
+
+  
 
   @Override
   public String toString()  {
@@ -69,6 +84,7 @@ public class PiiCategoryListResponseDTO  {
     sb.append("  piiCategoryId: ").append(piiCategoryId).append("\n");
     sb.append("  piiCategory: ").append(piiCategory).append("\n");
     sb.append("  description: ").append(description).append("\n");
+    sb.append("  sensitive: ").append(sensitive).append("\n");
     sb.append("}\n");
     return sb.toString();
   }

@@ -21,17 +21,17 @@ package org.wso2.carbon.consent.mgt.core.model;
  */
 public class PurposeCategory {
 
-    private int id;
+    private Integer id;
     private String name;
     private String description;
 
-    public PurposeCategory(int id, String name, String description) {
+    public PurposeCategory(Integer id, String name, String description) {
         this.id = id;
         this.name = name;
         this.description = description;
     }
 
-    public PurposeCategory(int id, String name) {
+    public PurposeCategory(Integer id, String name) {
         this.id = id;
         this.name = name;
     }
@@ -41,7 +41,7 @@ public class PurposeCategory {
         this.description = description;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

@@ -23,6 +23,10 @@ import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
+import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ErrorDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PIIcategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryListResponseDTO;
@@ -35,7 +39,10 @@ import org.wso2.carbon.consent.mgt.endpoint.exception.ConflictRequestException;
 import org.wso2.carbon.consent.mgt.endpoint.exception.InternalServerErrorException;
 import org.wso2.carbon.consent.mgt.endpoint.exception.NotFoundException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -99,7 +106,7 @@ public class ConsentEndpointUtils {
      * @return NotFoundException with the given errorCode and description.
      */
     public static NotFoundException buildNotFoundRequestException(String description, String code,
-                                                                         Log log, Throwable e) {
+                                                                  Log log, Throwable e) {
         ErrorDTO errorDTO = getErrorDTO(ConsentConstants.STATUS_BAD_REQUEST_MESSAGE_DEFAULT, description, code);
         logDebug(log, e);
         return new NotFoundException(errorDTO);
@@ -116,13 +123,12 @@ public class ConsentEndpointUtils {
 
     public static PIICategory getPIICategoryRequest(PIIcategoryRequestDTO piIcategoryRequestDTO) {
         return new PIICategory(piIcategoryRequestDTO.getPiiCategory(),
-                piIcategoryRequestDTO.getDescription());
+                piIcategoryRequestDTO.getDescription(), piIcategoryRequestDTO.getSensitive());
     }
-
 
     public static PurposeListResponseDTO getPurposeListResponse(Purpose purposeResponse) {
         PurposeListResponseDTO purposeListResponseDTO = new PurposeListResponseDTO();
-        purposeListResponseDTO.setPurposeId(String.valueOf(purposeResponse.getId()));
+        purposeListResponseDTO.setPurposeId(purposeResponse.getId());
         purposeListResponseDTO.setPurpose(purposeResponse.getName());
         purposeListResponseDTO.setDescription(purposeResponse.getDescription());
         return purposeListResponseDTO;
@@ -130,7 +136,7 @@ public class ConsentEndpointUtils {
 
     public static PurposeCategoryListResponseDTO getPurposeCategoryListResponse(PurposeCategory purposeCategory) {
         PurposeCategoryListResponseDTO purposeCategoryListResponseDTO = new PurposeCategoryListResponseDTO();
-        purposeCategoryListResponseDTO.setPurposeCategoryId(String.valueOf(purposeCategory.getId()));
+        purposeCategoryListResponseDTO.setPurposeCategoryId(purposeCategory.getId());
         purposeCategoryListResponseDTO.setPurposeCategory(purposeCategory.getName());
         purposeCategoryListResponseDTO.setDescription(purposeCategory.getDescription());
         return purposeCategoryListResponseDTO;
@@ -138,9 +144,10 @@ public class ConsentEndpointUtils {
 
     public static PiiCategoryListResponseDTO getPiiCategoryListResponse(PIICategory piiCategory) {
         PiiCategoryListResponseDTO piiCategoryListResponseDTO = new PiiCategoryListResponseDTO();
-        piiCategoryListResponseDTO.setPiiCategoryId(String.valueOf(piiCategory.getId()));
+        piiCategoryListResponseDTO.setPiiCategoryId(piiCategory.getId());
         piiCategoryListResponseDTO.setPiiCategory(piiCategory.getName());
         piiCategoryListResponseDTO.setDescription(piiCategory.getDescription());
+        piiCategoryListResponseDTO.setSensitive(piiCategory.getSensitive());
         return piiCategoryListResponseDTO;
     }
 
@@ -169,7 +176,7 @@ public class ConsentEndpointUtils {
                     PurposeListResponseDTO purposeListResponseDTO = new PurposeListResponseDTO();
                     purposeListResponseDTO.setPurpose(purpose.getName());
                     purposeListResponseDTO.setDescription(purpose.getDescription());
-                    purposeListResponseDTO.setPurposeId(String.valueOf(purpose.getId()));
+                    purposeListResponseDTO.setPurposeId(purpose.getId());
                     return purposeListResponseDTO;
                 })
                 .collect(Collectors.toList());
@@ -182,7 +189,7 @@ public class ConsentEndpointUtils {
                     PurposeCategoryListResponseDTO purposeCategoryListResponseDTO = new PurposeCategoryListResponseDTO();
                     purposeCategoryListResponseDTO.setPurposeCategory(purposeCategory.getName());
                     purposeCategoryListResponseDTO.setDescription(purposeCategory.getDescription());
-                    purposeCategoryListResponseDTO.setPurposeCategoryId(String.valueOf(purposeCategory.getId()));
+                    purposeCategoryListResponseDTO.setPurposeCategoryId(purposeCategory.getId());
                     return purposeCategoryListResponseDTO;
                 })
                 .collect(Collectors.toList());
@@ -190,13 +197,55 @@ public class ConsentEndpointUtils {
 
     public static List<PiiCategoryListResponseDTO> getPiiCategoryResponseDTOList(List<PIICategory> piiCategories) {
         return piiCategories.stream()
-                .map(purposeCategory -> {
+                .map(piiCategory -> {
                     PiiCategoryListResponseDTO piiCategoryListResponseDTO = new PiiCategoryListResponseDTO();
-                    piiCategoryListResponseDTO.setPiiCategory(purposeCategory.getName());
-                    piiCategoryListResponseDTO.setDescription(purposeCategory.getDescription());
-                    piiCategoryListResponseDTO.setPiiCategoryId(String.valueOf(purposeCategory.getId()));
+                    piiCategoryListResponseDTO.setPiiCategory(piiCategory.getName());
+                    piiCategoryListResponseDTO.setDescription(piiCategory.getDescription());
+                    piiCategoryListResponseDTO.setPiiCategoryId(piiCategory.getId());
+                    piiCategoryListResponseDTO.setSensitive(piiCategory.getSensitive());
                     return piiCategoryListResponseDTO;
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * This Util is used to Get ReceiptInput instance from ConsentRequestDTO instance.
+     *
+     * @param consent ConsentRequestDTO instance.
+     * @return ReceiptInput instance.
+     */
+    public static ReceiptInput getReceiptInput(ConsentRequestDTO consent) {
+
+        ReceiptInput receiptInput = new ReceiptInput();
+        receiptInput.setCollectionMethod(consent.getCollectionMethod());
+        receiptInput.setJurisdiction(consent.getJurisdiction());
+        receiptInput.setPiiPrincipalId(consent.getPiiPrincipalId());
+        receiptInput.setLanguage(consent.getLanguage());
+
+        Map<String, String> properties = new HashMap<>();
+        consent.getProperties().forEach(propertyDTO -> {
+            properties.put(propertyDTO.getKey(), propertyDTO.getValue());
+        });
+        receiptInput.setProperties(properties);
+
+        receiptInput.setServices(consent.getServices().stream().map(serviceDTO -> {
+            ReceiptServiceInput receiptServiceInput = new ReceiptServiceInput();
+            receiptServiceInput.setService(serviceDTO.getService());
+            receiptServiceInput.setTenantDomain(serviceDTO.getTenantDomain());
+            receiptServiceInput.setPurposes(serviceDTO.getPurposes().stream().map(purposeDTO -> {
+                ReceiptPurposeInput receiptPurposeInput = new ReceiptPurposeInput();
+                receiptPurposeInput.setConsentType(purposeDTO.getConsentType());
+                receiptPurposeInput.setPrimaryPurpose(purposeDTO.getPrimaryPurpose());
+                receiptPurposeInput.setPurposeId(purposeDTO.getPurposeId());
+                receiptPurposeInput.setTermination(purposeDTO.getTermination());
+                receiptPurposeInput.setThirdPartyDisclosure(purposeDTO.getThirdPartyDisclosure());
+                receiptPurposeInput.setThirdPartyName(purposeDTO.getThirdPartyName());
+                receiptPurposeInput.setPiiCategoryId(purposeDTO.getPiiCategoryId());
+                receiptPurposeInput.setPurposeCategoryId(purposeDTO.getPurposeCategoryId());
+                return receiptPurposeInput;
+            }).collect(Collectors.toList()));
+            return receiptServiceInput;
+        }).collect(Collectors.toList()));
+        return receiptInput;
     }
 }

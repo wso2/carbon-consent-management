@@ -82,7 +82,23 @@ public class ConsentConstants {
         ERROR_CODE_SELECT_PII_CATEGORY_BY_NAME("CM_00033", "Error occurred while retrieving PII category from DB for " +
                 "the Name: %s."),
         ERROR_CODE_PII_CATEGORY_ID_REQUIRED("CM_00034", "PII Category ID is required."),
-        ERROR_CODE_PII_CATEGORY_ID_INVALID("CM_00035", "Invalid PII category Id: %s");
+        ERROR_CODE_PII_CATEGORY_ID_INVALID("CM_00035", "Invalid PII category Id: %s"),
+        ERROR_CODE_PII_PRINCIPAL_ID_REQUIRED("CM_00036", "PII Principal ID is required."),
+        ERROR_CODE_PII_COLLECTION_METHOD_REQUIRED("CM_00037", "Collection method is required."),
+        ERROR_CODE_AT_LEAST_ONE_SERVICE_REQUIRED("CM_00038", "At least one service is required."),
+        ERROR_CODE_SERVICE_NAME_REQUIRED("CM_00039", "Service name is required."),
+        ERROR_CODE_AT_LEAST_ONE_PURPOSE_REQUIRED("CM_00040", "At least one purpose is required."),
+        ERROR_CODE_PURPOSE_ID_MANDATORY("CM_00041", "Purpose Id is required in the service: %s."),
+        ERROR_CODE_CONSENT_TYPE_MANDATORY("CM_00042", "Consent Type is required in the service: %s."),
+        ERROR_CODE_AT_LEAST_ONE_CATEGORY_ID_REQUIRED("CM_00043", "At least one purpose category is required for " +
+                "the service: %s."),
+        ERROR_CODE_AT_LEAST_ONE_PII_CATEGORY_ID_REQUIRED("CM_00044", "At least one PII category is required for the " +
+                "service: %s."),
+        ERROR_CODE_IS_PRIMARY_PURPOSE_IS_REQUIRED("CM_00045", "primaryPurpose parameter is required in service: %s"),
+        ERROR_CODE_TERMINATION_IS_REQUIRED("CM_00046", "Termination parameter is required in service: %s"),
+        ERROR_CODE_THIRD_PARTY_DISCLOSURE_IS_REQUIRED("CM_00047", "thirdPartyDisclosure parameter is required in " +
+                "service %s");
+
         private final String code;
         private final String message;
 

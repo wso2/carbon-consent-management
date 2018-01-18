@@ -26,9 +26,11 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
+import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.dao.impl.PIICategoryDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeCategoryDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeDAOImpl;
+import org.wso2.carbon.consent.mgt.core.dao.impl.ReceiptDAOImpl;
 import org.wso2.carbon.consent.mgt.core.persistence.JDBCPersistenceManager;
 
 /**
@@ -52,16 +54,16 @@ public class ConsentManagerComponent {
     protected void activate(ComponentContext componentContext) {
 
         try {
-
             BundleContext bundleContext = componentContext.getBundleContext();
             PurposeDAO purposeDAO = new PurposeDAOImpl();
             PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
             PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
-
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             ConsentManagerConfiguration configurations = new ConsentManagerConfiguration();
             configurations.setPurposeDAO(purposeDAO);
             configurations.setPurposeCategoryDAO(purposeCategoryDAO);
             configurations.setPiiCategoryDAO(piiCategoryDAO);
+            configurations.setReceiptDAO(receiptDAO);
 
             bundleContext.registerService(ConsentManager.class.getName(), new ConsentManager(configurations), null);
             log.info("ConsentManagerComponent is activated.");

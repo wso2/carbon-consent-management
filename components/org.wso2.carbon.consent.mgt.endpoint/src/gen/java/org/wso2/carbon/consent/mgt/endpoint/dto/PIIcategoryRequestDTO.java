@@ -19,6 +19,9 @@ public class PIIcategoryRequestDTO  {
   
   
   private String description = null;
+  
+  
+  private Boolean sensitive = null;
 
   
   /**
@@ -45,6 +48,18 @@ public class PIIcategoryRequestDTO  {
   }
 
   
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("sensitive")
+  public Boolean getSensitive() {
+    return sensitive;
+  }
+  public void setSensitive(Boolean sensitive) {
+    this.sensitive = sensitive;
+  }
+
+  
 
   @Override
   public String toString()  {
@@ -53,6 +68,7 @@ public class PIIcategoryRequestDTO  {
     
     sb.append("  piiCategory: ").append(piiCategory).append("\n");
     sb.append("  description: ").append(description).append("\n");
+    sb.append("  sensitive: ").append(sensitive).append("\n");
     sb.append("}\n");
     return sb.toString();
   }

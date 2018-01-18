@@ -15,7 +15,7 @@ public class PurposeListResponseDTO  {
   
   
   
-  private String purposeId = null;
+  private Integer purposeId = null;
   
   
   private String purpose = null;
@@ -28,10 +28,10 @@ public class PurposeListResponseDTO  {
    **/
   @ApiModelProperty(value = "")
   @JsonProperty("purposeId")
-  public String getPurposeId() {
+  public Integer getPurposeId() {
     return purposeId;
   }
-  public void setPurposeId(String purposeId) {
+  public void setPurposeId(Integer purposeId) {
     this.purposeId = purposeId;
   }
 

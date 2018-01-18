@@ -19,12 +19,14 @@ package org.wso2.carbon.consent.mgt.core.internal;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
+import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 
 public class ConsentManagerConfiguration {
 
     private PurposeDAO purposeDAO;
     private PurposeCategoryDAO purposeCategoryDAO;
     private PIICategoryDAO piiCategoryDAO;
+    private ReceiptDAO receiptDAO;
 
     public PurposeDAO getPurposeDAO() {
         return purposeDAO;
@@ -48,5 +50,13 @@ public class ConsentManagerConfiguration {
 
     public void setPiiCategoryDAO(PIICategoryDAO piiCategoryDAO) {
         this.piiCategoryDAO = piiCategoryDAO;
+    }
+
+    public ReceiptDAO getReceiptDAO() {
+        return receiptDAO;
+    }
+
+    public void setReceiptDAO(ReceiptDAO receiptDAO) {
+        this.receiptDAO = receiptDAO;
     }
 }

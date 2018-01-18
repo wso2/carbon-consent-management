@@ -20,19 +20,19 @@ import java.util.List;
 
 public class ReceiptPurposeInput {
 
-    private int purposeId;
+    private Integer purposeId;
     private List<Integer> purposeCategoryId;
     private String consentType;
     private List<Integer> piiCategoryId;
-    private boolean primaryPurpose;
+    private Boolean primaryPurpose;
     private String termination;
-    private boolean thirdPartyDisclosure;
+    private Boolean thirdPartyDisclosure;
 
-    public int getPurposeId() {
+    public Integer getPurposeId() {
         return purposeId;
     }
 
-    public void setPurposeId(int purposeId) {
+    public void setPurposeId(Integer purposeId) {
         this.purposeId = purposeId;
     }
 
@@ -60,11 +60,11 @@ public class ReceiptPurposeInput {
         this.piiCategoryId = piiCategoryId;
     }
 
-    public boolean isPrimaryPurpose() {
+    public Boolean isPrimaryPurpose() {
         return primaryPurpose;
     }
 
-    public void setPrimaryPurpose(boolean primaryPurpose) {
+    public void setPrimaryPurpose(Boolean primaryPurpose) {
         this.primaryPurpose = primaryPurpose;
     }
 
@@ -76,11 +76,11 @@ public class ReceiptPurposeInput {
         this.termination = termination;
     }
 
-    public boolean isThirdPartyDisclosure() {
+    public Boolean isThirdPartyDisclosure() {
         return thirdPartyDisclosure;
     }
 
-    public void setThirdPartyDisclosure(boolean thirdPartyDisclosure) {
+    public void setThirdPartyDisclosure(Boolean thirdPartyDisclosure) {
         this.thirdPartyDisclosure = thirdPartyDisclosure;
     }
 

@@ -2,8 +2,6 @@ package org.wso2.carbon.consent.mgt.endpoint.dto;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryIdDTO;
-import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCatergoryIdDTO;
 
 import io.swagger.annotations.*;
 import com.fasterxml.jackson.annotation.*;
@@ -19,16 +17,16 @@ public class PurposeDTO  {
   
   
   
-  private String purposeId = null;
+  private Integer purposeId = null;
   
   @NotNull
-  private List<PurposeCatergoryIdDTO> purposeCategoryId = new ArrayList<PurposeCatergoryIdDTO>();
+  private List<Integer> purposeCategoryId = new ArrayList<Integer>();
   
   
   private String consentType = null;
   
   @NotNull
-  private List<PiiCategoryIdDTO> piiCategoryId = new ArrayList<PiiCategoryIdDTO>();
+  private List<Integer> piiCategoryId = new ArrayList<Integer>();
   
   
   private Boolean primaryPurpose = null;
@@ -51,10 +49,10 @@ public class PurposeDTO  {
    **/
   @ApiModelProperty(value = "A unique Id of purpose")
   @JsonProperty("purposeId")
-  public String getPurposeId() {
+  public Integer getPurposeId() {
     return purposeId;
   }
-  public void setPurposeId(String purposeId) {
+  public void setPurposeId(Integer purposeId) {
     this.purposeId = purposeId;
   }
 
@@ -64,10 +62,10 @@ public class PurposeDTO  {
    **/
   @ApiModelProperty(required = true, value = "The reason the PII Controller is collecting the PII.")
   @JsonProperty("purposeCategoryId")
-  public List<PurposeCatergoryIdDTO> getPurposeCategoryId() {
+  public List<Integer> getPurposeCategoryId() {
     return purposeCategoryId;
   }
-  public void setPurposeCategoryId(List<PurposeCatergoryIdDTO> purposeCategoryId) {
+  public void setPurposeCategoryId(List<Integer> purposeCategoryId) {
     this.purposeCategoryId = purposeCategoryId;
   }
 
@@ -90,10 +88,10 @@ public class PurposeDTO  {
    **/
   @ApiModelProperty(required = true, value = "A list of defined PII categories Ids.")
   @JsonProperty("piiCategoryId")
-  public List<PiiCategoryIdDTO> getPiiCategoryId() {
+  public List<Integer> getPiiCategoryId() {
     return piiCategoryId;
   }
-  public void setPiiCategoryId(List<PiiCategoryIdDTO> piiCategoryId) {
+  public void setPiiCategoryId(List<Integer> piiCategoryId) {
     this.piiCategoryId = piiCategoryId;
   }
 

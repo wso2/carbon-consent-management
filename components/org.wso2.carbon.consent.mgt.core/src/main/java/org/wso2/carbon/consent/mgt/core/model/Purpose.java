@@ -21,17 +21,17 @@ package org.wso2.carbon.consent.mgt.core.model;
  */
 public class Purpose {
 
-    private int id;
+    private Integer id;
     private String name;
     private String description;
 
-    public Purpose(int id, String name, String description) {
+    public Purpose(Integer id, String name, String description) {
         this.id = id;
         this.name = name;
         this.description = description;
     }
 
-    public Purpose(int id, String name) {
+    public Purpose(Integer id, String name) {
         this.id = id;
         this.name = name;
     }
@@ -43,7 +43,7 @@ public class Purpose {
 
 
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

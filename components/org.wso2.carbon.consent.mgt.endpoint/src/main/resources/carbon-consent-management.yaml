@@ -739,6 +739,8 @@ definitions:
           $ref: '#/definitions/service'
       collectionMethod:
         type: 'string'
+      jurisdiction:
+        type: 'string'
       language:
         type: 'string'
       properties:
@@ -772,6 +774,8 @@ definitions:
         type: 'string'
       description:
         type: 'string'
+      sensitive:
+        type: 'boolean'
 
 #-----------------------------------------------------
 # Purpose Category request object
@@ -978,13 +982,13 @@ definitions:
       - purposeCategoryId
     properties:
       purposeId:
-        type: 'string'
+        type: 'integer'
         description: 'A unique Id of purpose'
       purposeCategoryId:
         type: array
         description: 'The reason the PII Controller is collecting the PII.'
         items:
-          $ref: '#/definitions/purposeCatergoryId'
+          type: 'integer'
       consentType:
         type: 'string'
         description: 'The type of the consent used by the PII Controller as their authority to collect, use or disclose PII.'
@@ -992,7 +996,7 @@ definitions:
         type: array
         description: 'A list of defined PII categories Ids.'
         items:
-          $ref: '#/definitions/piiCategoryId'
+          type: 'integer'
       primaryPurpose:
         type: 'boolean'
         description: 'Indicates if a purpose is part of the core service of the PII Controller. Possible values are TRUE or FALSE.'
@@ -1061,7 +1065,7 @@ definitions:
     description: 'The reason the PII Controller is collecting the PII.'
 
   purposeCatergoryId:
-    type: string
+    type: Integer
     description: 'unique Id for purpose Category'
 
 
@@ -1087,7 +1091,7 @@ definitions:
     type: object
     properties:
       purposeId:
-        type: 'string'
+        type: 'integer'
       purpose:
         type: 'string'
       description:
@@ -1101,7 +1105,7 @@ definitions:
     type: object
     properties:
       purposeCategoryId:
-        type: 'string'
+        type: 'integer'
       purposeCategory:
         type: 'string'
       description:
@@ -1115,11 +1119,13 @@ definitions:
     type: object
     properties:
       piiCategoryId:
-        type: 'string'
+        type: 'integer'
       piiCategory:
         type: 'string'
       description:
         type: 'string'
+      sensitive:
+        type: 'boolean'
 #-----------------------------------------------------
 # The address  object
 #-----------------------------------------------------

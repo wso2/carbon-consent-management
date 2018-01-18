@@ -18,27 +18,30 @@ package org.wso2.carbon.consent.mgt.core.model;
 
 public class PIICategory {
 
-    private int id;
+    private Integer id;
     private String name;
     private String description;
+    private Boolean sensitive;
 
-    public PIICategory(int id, String name, String description) {
+    public PIICategory(Integer id, String name, String description, Boolean sensitive) {
         this.id = id;
         this.name = name;
         this.description = description;
+        this.sensitive = sensitive;
     }
 
-    public PIICategory(int id, String name) {
+    public PIICategory(Integer id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    public PIICategory(String name, String description) {
+    public PIICategory(String name, String description, Boolean sensitive) {
         this.name = name;
         this.description = description;
+        this.sensitive = sensitive;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -56,5 +59,13 @@ public class PIICategory {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Boolean getSensitive() {
+        return sensitive;
+    }
+
+    public void setSensitive(Boolean sensitive) {
+        this.sensitive = sensitive;
     }
 }

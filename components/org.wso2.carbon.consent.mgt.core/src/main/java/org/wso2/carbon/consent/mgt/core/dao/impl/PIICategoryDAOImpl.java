@@ -49,11 +49,13 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
             insertedId = jdbcTemplate.executeInsert(INSERT_PII_CATEGORY_SQL, (preparedStatement -> {
                 preparedStatement.setString(1, piiCategory.getName());
                 preparedStatement.setString(2, piiCategory.getDescription());
+                preparedStatement.setInt(3, piiCategory.getSensitive() ? 1 : 0);
             }), piiCategory, true);
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PII_CATEGORY, piiCategory.getName(), e);
         }
-        purposeResult = new PIICategory(insertedId, piiCategory.getName(), piiCategory.getDescription());
+        purposeResult = new PIICategory(insertedId, piiCategory.getName(), piiCategory.getDescription(),
+                piiCategory.getSensitive());
         return purposeResult;
     }
 
@@ -66,7 +68,8 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
             piiCategory = jdbcTemplate.fetchSingleRecord(SELECT_PII_CATEGORY_BY_ID_SQL, (resultSet, rowNumber) ->
                             new PIICategory(resultSet.getInt(1),
                                     resultSet.getString(2),
-                                    resultSet.getString(3)),
+                                    resultSet.getString(3),
+                                    resultSet.getInt(4) == 1),
                     preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PII_CATEGORY_BY_ID, String
@@ -88,7 +91,8 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
             piiCategories = jdbcTemplate.executeQuery(LIST_PAGINATED_PII_CATEGORY_MYSQL,
                     (resultSet, rowNumber) -> new PIICategory(resultSet.getInt(1),
                             resultSet.getString(2),
-                            resultSet.getString(3)),
+                            resultSet.getString(3),
+                            resultSet.getInt(4) == 1),
                     preparedStatement -> {
                         preparedStatement.setInt(1, limit);
                         preparedStatement.setInt(2, offset);
@@ -123,7 +127,8 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
             piiCategory = jdbcTemplate.fetchSingleRecord(SELECT_PII_CATEGORY_BY_NAME_SQL, (resultSet, rowNumber) ->
                             new PIICategory(resultSet.getInt(1),
                                     resultSet.getString(2),
-                                    resultSet.getString(3)),
+                                    resultSet.getString(3),
+                                    resultSet.getInt(4) == 1),
                     preparedStatement -> preparedStatement.setString(1, name));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PII_CATEGORY_BY_NAME, name, e);

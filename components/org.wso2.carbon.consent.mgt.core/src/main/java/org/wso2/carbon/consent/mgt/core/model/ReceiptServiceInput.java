@@ -22,6 +22,7 @@ public class ReceiptServiceInput {
 
     private String service;
     private String tenantDomain;
+    private List<ReceiptPurposeInput> purposes;
 
     public String getService() {
         return service;
@@ -46,6 +47,4 @@ public class ReceiptServiceInput {
     public void setPurposes(List<ReceiptPurposeInput> purposes) {
         this.purposes = purposes;
     }
-
-    List<ReceiptPurposeInput> purposes;
 }
