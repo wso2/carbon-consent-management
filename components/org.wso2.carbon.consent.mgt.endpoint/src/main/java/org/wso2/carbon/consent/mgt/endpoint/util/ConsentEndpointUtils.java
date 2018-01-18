@@ -221,6 +221,7 @@ public class ConsentEndpointUtils {
         receiptInput.setJurisdiction(consent.getJurisdiction());
         receiptInput.setPiiPrincipalId(consent.getPiiPrincipalId());
         receiptInput.setLanguage(consent.getLanguage());
+        receiptInput.setPolicyUrl(consent.getPolicyURL());
 
         Map<String, String> properties = new HashMap<>();
         consent.getProperties().forEach(propertyDTO -> {

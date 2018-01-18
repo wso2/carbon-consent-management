@@ -35,6 +35,7 @@ public class ConsentConstants {
     public static final String PURPOSE_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "purposes";
     public static final String PURPOSE_CATEGORY_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "purpose-categories";
     public static final String PII_CATEGORY_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "pii-categories";
+    public static final String API_VERSION = "KI-CR-v1.1.0";
 
     public enum ErrorMessages {
         ERROR_CODE_DATABASE_CONNECTION("CM_00001", "Error when getting a database connection object from the Identity" +
@@ -97,7 +98,17 @@ public class ConsentConstants {
         ERROR_CODE_IS_PRIMARY_PURPOSE_IS_REQUIRED("CM_00045", "primaryPurpose parameter is required in service: %s"),
         ERROR_CODE_TERMINATION_IS_REQUIRED("CM_00046", "Termination parameter is required in service: %s"),
         ERROR_CODE_THIRD_PARTY_DISCLOSURE_IS_REQUIRED("CM_00047", "thirdPartyDisclosure parameter is required in " +
-                "service %s");
+                "service %s"),
+        ERROR_CODE_ADD_RECEIPT("CM_00048", "Error occurred while adding the receipt for principal: %s"),
+        ERROR_CODE_ADD_RECEIPT_SP_ASSOC("CM_00049", "Error occurred while adding the receipt to SP association for " +
+                "service: %s"),
+        ERROR_CODE_ADD_SP_TO_PURPOSE_ASSOC("CM_00050", "Error occurred while adding the SP to Purpose association for" +
+                "purpose Id: %s"),
+        ERROR_CODE_ADD_SP_PURPOSE_TO_PURPOSE_CAT_ASSOC("CM_00051", "Error occurred while adding the SP_Purpose to " +
+                "Purpose category association"),
+        ERROR_CODE_ADD_SP_PURPOSE_TO_PII_CAT_ASSOC("CM_00052", "Error occurred while adding the SP_Purpose to " +
+                "PII category association"),
+        ERROR_CODE_ADD_RECEIPT_PROPERTIES("CM_00053", "Error occurred while adding Receipt properties");
 
         private final String code;
         private final String message;

@@ -35,6 +35,7 @@ public class ReceiptInput {
     private boolean sensitive;
     private List<Integer> spiCat;
     private String state;
+    private String tenantDomain;
     private Map<String,String> properties;
 
     public String getConsentReceiptId() {
@@ -147,5 +148,13 @@ public class ReceiptInput {
 
     public void setProperties(Map<String, String> properties) {
         this.properties = properties;
+    }
+
+    public String getTenantDomain() {
+        return tenantDomain;
+    }
+
+    public void setTenantDomain(String tenantDomain) {
+        this.tenantDomain = tenantDomain;
     }
 }

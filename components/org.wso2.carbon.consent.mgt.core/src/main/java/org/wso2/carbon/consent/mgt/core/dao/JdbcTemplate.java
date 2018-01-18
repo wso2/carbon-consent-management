@@ -224,12 +224,45 @@ public class JdbcTemplate {
         return 0;
     }
 
+
+    /**
+     * Executes the jdbc insert/update query.
+     *
+     * @param query       The SQL for insert/update.
+     * @param queryFilter Query filter to prepared statement parameter binding.
+     * @param bean        the Domain object to be inserted/updated.
+     */
+    public <T extends Object> int executeBatchInsert(String query, QueryFilter queryFilter, T bean)
+            throws DataAccessException {
+        try (Connection connection = dataSource.getConnection()) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                doInternalBatchUpdate(queryFilter, preparedStatement);
+            }
+            if (!connection.getAutoCommit()) {
+                connection.commit();
+            }
+        } catch (SQLException e) {
+            logDebugInfo("Error in performing database insert: {} with parameters {}", query, queryFilter);
+            throw new DataAccessException(ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getMessage()
+                    + query, ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode(), e);
+        }
+        return 0;
+    }
+
     private <T extends Object> void doInternalUpdate(QueryFilter queryFilter, PreparedStatement preparedStatement)
             throws SQLException, DataAccessException {
         if (queryFilter != null) {
             queryFilter.filter(preparedStatement);
         }
         preparedStatement.executeUpdate();
+    }
+
+    private <T extends Object> void doInternalBatchUpdate(QueryFilter queryFilter, PreparedStatement preparedStatement)
+            throws SQLException, DataAccessException {
+        if (queryFilter != null) {
+            queryFilter.filter(preparedStatement);
+        }
+        preparedStatement.executeBatch();
     }
 
     private void logDebugInfo(String s, Object... params) {

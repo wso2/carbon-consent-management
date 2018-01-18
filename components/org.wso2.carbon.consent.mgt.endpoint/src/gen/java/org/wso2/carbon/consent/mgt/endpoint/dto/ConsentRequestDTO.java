@@ -34,6 +34,9 @@ public class ConsentRequestDTO  {
   private String language = null;
   
   
+  private String policyURL = null;
+  
+  
   private List<PropertyDTO> properties = new ArrayList<PropertyDTO>();
 
   
@@ -100,6 +103,18 @@ public class ConsentRequestDTO  {
   /**
    **/
   @ApiModelProperty(value = "")
+  @JsonProperty("policyURL")
+  public String getPolicyURL() {
+    return policyURL;
+  }
+  public void setPolicyURL(String policyURL) {
+    this.policyURL = policyURL;
+  }
+
+  
+  /**
+   **/
+  @ApiModelProperty(value = "")
   @JsonProperty("properties")
   public List<PropertyDTO> getProperties() {
     return properties;
@@ -120,6 +135,7 @@ public class ConsentRequestDTO  {
     sb.append("  collectionMethod: ").append(collectionMethod).append("\n");
     sb.append("  jurisdiction: ").append(jurisdiction).append("\n");
     sb.append("  language: ").append(language).append("\n");
+    sb.append("  policyURL: ").append(policyURL).append("\n");
     sb.append("  properties: ").append(properties).append("\n");
     sb.append("}\n");
     return sb.toString();

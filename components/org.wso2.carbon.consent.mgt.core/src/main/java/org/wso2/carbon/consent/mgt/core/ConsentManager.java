@@ -16,9 +16,10 @@
 
 package org.wso2.carbon.consent.mgt.core;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.consent.mgt.core.connector.PIIController;
+import org.wso2.carbon.consent.mgt.core.connector.impl.DefaultPIIController;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
@@ -27,16 +28,21 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientExcepti
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerConfiguration;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
+import org.wso2.carbon.consent.mgt.core.model.PiiController;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.API_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.*;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_SEARCH_LIMIT_PATH;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleClientException;
@@ -337,7 +343,27 @@ public class ConsentManager {
     public void addConsent(ReceiptInput receiptInput) throws ConsentManagementException {
         //TODO checkIsReceiptExists
         validateInputParameters(receiptInput);
+        receiptInput.setConsentReceiptId(generateConsentReceiptId(receiptInput));
+        setPIIControllerInfo(receiptInput);
+        setAPIVersion(receiptInput);
         receiptDAO.addReceipt(receiptInput);
+    }
+
+    protected void setAPIVersion(ReceiptInput receiptInput) {
+        receiptInput.setVersion(API_VERSION);
+    }
+
+    protected String generateConsentReceiptId(ReceiptInput receiptInput) {
+        return UUID.randomUUID().toString();
+    }
+
+    private void setPIIControllerInfo(ReceiptInput receiptInput) {
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        PIIController piiController = new DefaultPIIController();
+        PiiController controllerInfo = piiController.getControllerInfo(tenantDomain);
+        List<PiiController> piiControllers = Arrays.asList(controllerInfo);
+        receiptInput.setPiiControllers(piiControllers);
+        receiptInput.setTenantDomain(tenantDomain);
     }
 
     private void validateInputParameters(ReceiptInput receiptInput) throws ConsentManagementClientException {
