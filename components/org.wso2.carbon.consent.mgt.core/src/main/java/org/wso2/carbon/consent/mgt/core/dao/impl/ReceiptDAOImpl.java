@@ -22,20 +22,28 @@ import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
+import org.wso2.carbon.consent.mgt.core.model.ConsentPurpose;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptContext;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptService;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-import java.sql.Time;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
 import static java.time.ZoneOffset.UTC;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CAT_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_CAT_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_SP_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_SP_PURPOSE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_PROPERTIES_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_SP_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_SQL;
@@ -49,7 +57,8 @@ import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrow
  */
 public class ReceiptDAOImpl implements ReceiptDAO {
     @Override
-    public Receipt addReceipt(ReceiptInput receiptInput) throws ConsentManagementException {
+    public void addReceipt(ReceiptInput receiptInput) throws ConsentManagementException {
+
         addReceiptInfo(receiptInput);
 
         receiptInput.getServices().forEach(rethrowConsumer(receiptServiceInput -> {
@@ -66,14 +75,44 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         }));
 
         addReceiptProperties(receiptInput.getConsentReceiptId(), receiptInput.getProperties());
-        return new Receipt();
     }
 
     @Override
     public Receipt getReceipt(String receiptId) throws ConsentManagementException {
-        return null;
+        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
+        ReceiptContext receiptContext = new ReceiptContext();
+        Receipt receipt;
+        //TODO need to improve performance.
+        try {
+            receipt = jdbcTemplate.fetchSingleRecord(GET_RECEIPT_SQL, (resultSet, rowNumber) -> {
+                Receipt receiptInfo = new Receipt();
+                receiptInfo.setConsentReceiptId(receiptId);
+                receiptInfo.setVersion(resultSet.getString(1));
+                receiptInfo.setJurisdiction(resultSet.getString(2));
+                receiptInfo.setConsentTimestamp(resultSet.getTimestamp(3).getTime());
+                receiptInfo.setCollectionMethod(resultSet.getString(4));
+                receiptInfo.setLanguage(resultSet.getString(5));
+                receiptInfo.setPiiPrincipalId(resultSet.getString(6));
+                receiptInfo.setTenantDomain(resultSet.getString(7));
+                receiptInfo.setPolicyUrl(resultSet.getString(8));
+                return receiptInfo;
+            }, preparedStatement -> preparedStatement.setString(1, receiptId));
+
+            receipt.setServices(getServiceInfoOfReceipt(receiptId, receiptContext));
+            setReceiptSensitivity(receiptContext, receipt);
+            return receipt;
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
+                    String.valueOf(receiptId), e);
+        }
     }
 
+    protected void setReceiptSensitivity(ReceiptContext receiptContext, Receipt receipt) {
+        if (receiptContext.getSecretPIICategory().getSecretPIICategories().size() > 0) {
+            receipt.setSensitive(true);
+            receipt.setSpiCat(receiptContext.getSecretPIICategory().getSecretPIICategories());
+        }
+    }
 
     protected void addReceiptInfo(ReceiptInput receiptInput) throws ConsentManagementServerException {
         JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
@@ -178,6 +217,100 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages
                     .ERROR_CODE_ADD_RECEIPT_PROPERTIES, null, e);
+        }
+    }
+
+    protected List<ReceiptService> getServiceInfoOfReceipt(String consentReceiptId, ReceiptContext receiptContext) throws
+            ConsentManagementServerException {
+        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
+        List<ReceiptService> receiptServices;
+
+        try {
+            receiptServices = jdbcTemplate.executeQuery(GET_RECEIPT_SP_SQL, (resultSet, rowNumber) -> {
+                ReceiptService receiptService = new ReceiptService();
+                receiptService.setReceiptToServiceId(resultSet.getInt(1));
+                receiptService.setService(resultSet.getString(2));
+                receiptService.setTenantDomain(resultSet.getString(3));
+                return receiptService;
+            }, preparedStatement -> preparedStatement.setString(1, consentReceiptId));
+
+            if (receiptServices != null) {
+                receiptServices.forEach(rethrowConsumer(receiptService -> receiptService.setPurposes
+                        (getPurposeInfoOfService(receiptService.getReceiptToServiceId(), consentReceiptId, receiptContext))));
+            }
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
+                    consentReceiptId, e);
+        }
+        return receiptServices;
+    }
+
+    private List<ConsentPurpose> getPurposeInfoOfService(int receiptToServiceId, String consentReceiptId,
+                                                         ReceiptContext receiptContext)
+            throws ConsentManagementException {
+
+        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
+        List<ConsentPurpose> consentPurposes;
+        try {
+            consentPurposes = jdbcTemplate.executeQuery(GET_SP_PURPOSE_SQL, (resultSet, rowNumber) -> {
+                ConsentPurpose consentPurpose = new ConsentPurpose();
+                consentPurpose.setServiceToPurposeId(resultSet.getInt(1));
+                consentPurpose.setConsentType(resultSet.getString(2));
+                consentPurpose.setPrimaryPurpose(resultSet.getInt(3) == 1);
+                consentPurpose.setTermination(resultSet.getString(4));
+                consentPurpose.setThirdPartyDisclosure(resultSet.getInt(5) == 1);
+                consentPurpose.setThirdPartyName(resultSet.getString(6));
+                consentPurpose.setPurpose(resultSet.getString(7));
+                return consentPurpose;
+            }, preparedStatement -> preparedStatement.setInt(1, receiptToServiceId));
+
+            if (consentPurposes != null) {
+                consentPurposes.forEach(rethrowConsumer(consentPurpose -> {
+                    consentPurpose.setPiiCategory(getPIICategoryInfoOfPurpose(consentPurpose.getServiceToPurposeId(),
+                            consentReceiptId, receiptContext));
+                    consentPurpose.setPurposeCategory(getPurposeCategoryInfoOfPurpose(consentPurpose.getServiceToPurposeId(),
+                            consentReceiptId));
+                }));
+            }
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_PURPOSE_INFO,
+                    consentReceiptId, e);
+        }
+        return consentPurposes;
+    }
+
+    private List<String> getPIICategoryInfoOfPurpose(int serviceToPurposeId, String consentReceiptId,
+                                                     ReceiptContext receiptContext) throws
+            ConsentManagementServerException {
+
+        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
+        try {
+            return jdbcTemplate.executeQuery(GET_PII_CAT_SQL, (resultSet, rowNumber) -> {
+                String name = resultSet.getString(1);
+                boolean isSensitive = resultSet.getInt(2) == 1;
+                if (isSensitive) {
+                    receiptContext.getSecretPIICategory().addSecretCategory(name);
+                }
+                return name;
+            }, preparedStatement -> preparedStatement.setInt
+                    (1, serviceToPurposeId));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
+                    consentReceiptId, e);
+        }
+    }
+
+    private List<String> getPurposeCategoryInfoOfPurpose(int serviceToPurposeId, String consentReceiptId) throws
+            ConsentManagementServerException {
+
+        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
+        try {
+            return jdbcTemplate.executeQuery(GET_PURPOSE_CAT_SQL, (resultSet, rowNumber) -> resultSet
+                    .getString(1), preparedStatement -> preparedStatement.setInt(1, serviceToPurposeId)
+            );
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
+                    consentReceiptId, e);
         }
     }
 }

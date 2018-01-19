@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.consent.mgt.core.dao;
+package org.wso2.carbon.consent.mgt.core.model;
 
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.core.model.Receipt;
-import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
+/**
+ * The model representing a Receipt Context.
+ */
+public class ReceiptContext {
 
-public interface ReceiptDAO {
+    private SecretPIICategory secretPIICategory;
 
-    void addReceipt(ReceiptInput receiptInput) throws ConsentManagementException;
+    public ReceiptContext() {
+        this.secretPIICategory = new SecretPIICategory();
+    }
 
-    Receipt getReceipt(String receiptId) throws ConsentManagementException;
+    public SecretPIICategory getSecretPIICategory() {
+        return secretPIICategory;
+    }
+
+    public void setSecretPIICategory(SecretPIICategory secretPIICategory) {
+        this.secretPIICategory = secretPIICategory;
+    }
 }

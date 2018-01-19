@@ -63,4 +63,20 @@ public class SQLConstants {
 
     public static final String INSERT_RECEIPT_PROPERTIES_SQL = "INSERT INTO CM_CONSENT_RECEIPT_PROPERTY " +
             "(CONSENT_RECEIPT_ID,NAME,VALUE) VALUES (?,?,?)";
+
+    public static final String GET_RECEIPT_SQL = "SELECT version,jurisdiction,consent_timestamp,collection_method," +
+            "language,pii_principal_id,principal_tenant_domain,policy_url FROM cm_receipt WHERE consent_receipt_id =?";
+
+    public static final String GET_RECEIPT_SP_SQL = "SELECT ID,SP_NAME,SP_TENANT_DOMAIN  FROM CM_RECEIPT_SP_ASSOC " +
+            "WHERE CONSENT_RECEIPT_ID =?";
+
+    public static final String GET_SP_PURPOSE_SQL = "SELECT SP.ID,SP.CONSENT_TYPE,SP.IS_PRIMARY_PURPOSE," +
+            "SP.TERMINATION,SP.THIRD_PARTY_DISCLOSURE,SP.THIRD_PARTY_NAME,P.NAME,P.DESCRIPTION FROM CM_SP_PURPOSE_ASSOC SP " +
+            "INNER JOIN  CM_PURPOSE P ON SP.PURPOSE_ID = P.ID WHERE RECEIPT_SP_ASSOC =?";
+
+    public static final String GET_PURPOSE_CAT_SQL = "SELECT NAME FROM CM_SP_PURPOSE_PURPOSE_CAT_ASSOC SPC " +
+            "INNER JOIN  CM_PURPOSE_CATEGORY PC ON SPC.PURPOSE_CATEGORY_ID = PC.ID WHERE SPC.SP_PURPOSE_ASSOC_ID =?";
+
+    public static final String GET_PII_CAT_SQL = "SELECT NAME,IS_SENSITIVE FROM CM_SP_PURPOSE_PII_CATEGORY_ASSOC SPC " +
+            "INNER JOIN  CM_PII_CATEGORY PC ON SPC.PII_CATEGORY_ID = PC.ID WHERE SPC.SP_PURPOSE_ASSOC_ID =?";
 }

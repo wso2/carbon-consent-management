@@ -14,15 +14,31 @@
  * limitations under the License.
  */
 
-package org.wso2.carbon.consent.mgt.core.dao;
+package org.wso2.carbon.consent.mgt.core.model;
 
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.core.model.Receipt;
-import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
+import java.util.ArrayList;
+import java.util.List;
 
-public interface ReceiptDAO {
+/**
+ * The model representing a Secret PII category information.
+ */
+public class SecretPIICategory {
 
-    void addReceipt(ReceiptInput receiptInput) throws ConsentManagementException;
+    private List<String> secretPIICategories;
 
-    Receipt getReceipt(String receiptId) throws ConsentManagementException;
+    public SecretPIICategory() {
+        secretPIICategories = new ArrayList<>();
+    }
+
+    public List<String> getSecretPIICategories() {
+        return secretPIICategories;
+    }
+
+    public void addSecretCategory(String category) {
+        secretPIICategories.add(category);
+    }
+
+    public void removeSecretCategory(String category) {
+        secretPIICategories.remove(category);
+    }
 }

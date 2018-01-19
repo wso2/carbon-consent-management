@@ -108,7 +108,11 @@ public class ConsentConstants {
                 "Purpose category association"),
         ERROR_CODE_ADD_SP_PURPOSE_TO_PII_CAT_ASSOC("CM_00052", "Error occurred while adding the SP_Purpose to " +
                 "PII category association"),
-        ERROR_CODE_ADD_RECEIPT_PROPERTIES("CM_00053", "Error occurred while adding Receipt properties");
+        ERROR_CODE_ADD_RECEIPT_PROPERTIES("CM_00053", "Error occurred while adding Receipt properties"),
+        ERROR_CODE_RETRIEVE_RECEIPT_INFO("CM_000054", "Error occurred while retrieving receipt info from DB for the " +
+                "ID: %s."),
+        ERROR_CODE_RETRIEVE_PURPOSE_INFO("CM_000055", "Error occurred while retrieving receipt purpose info from DB " +
+                "for the  receipt ID: %s.");
 
         private final String code;
         private final String message;

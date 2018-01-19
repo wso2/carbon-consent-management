@@ -21,9 +21,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
+import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.endpoint.ApiResponseMessage;
 import org.wso2.carbon.consent.mgt.endpoint.ConsentsApiService;
@@ -70,11 +72,13 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
     @Override
     public Response consentsGet(Integer limit, Integer offset, String piiPrincipalId, String spTenantDomain,
                                 String service, String state, String collectionMethod, String piiCategoryId) {
+
         return null;
     }
 
     @Override
     public Response consentsPiiCategoriesGet(Integer limit, Integer offset) {
+
         try {
             List<PiiCategoryListResponseDTO> purposeCategoryListResponseDTO = getPiiCategoryListResponseDTO(
                     limit, offset);
@@ -90,6 +94,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsPiiCategoriesPiiCategoryIdDelete(String piiCategoryId) {
+
         try {
             getConsentManager().deletePIICategory(Integer.parseInt(piiCategoryId));
             return Response.ok().build();
@@ -104,6 +109,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsPiiCategoriesPiiCategoryIdGet(String piiCategoryId) {
+
         try {
             PIICategory piiCategory = getConsentManager().getPIICategory(Integer.parseInt(piiCategoryId));
             PiiCategoryListResponseDTO purposeCategoryList = getPiiCategoryListResponse(piiCategory);
@@ -119,6 +125,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsPiiCategoriesPost(PIIcategoryRequestDTO piiCategory) {
+
         try {
             PiiCategoryListResponseDTO response = addPIICategory(piiCategory);
             return Response.ok()
@@ -136,9 +143,11 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsPost(ConsentRequestDTO consent) {
+
         ReceiptInput receiptInput = getReceiptInput(consent);
         try {
-            getConsentManager().addConsent(receiptInput);
+            AddReceiptResponse addReceiptResponse = getConsentManager().addConsent(receiptInput);
+            return Response.ok().entity(addReceiptResponse).build();
         } catch (ConsentManagementClientException e) {
             return handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
@@ -146,12 +155,11 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
         } catch (Throwable throwable) {
             return handleUnexpectedServerError(throwable);
         }
-        // do some magic!
-        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
     }
 
     @Override
     public Response consentsPurposeCategoriesGet(Integer limit, Integer offset) {
+
         try {
             List<PurposeCategoryListResponseDTO> purposeCategoryListResponseDTOS = getPurposeCategoryListResponseDTO(
                     limit, offset);
@@ -167,6 +175,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsPurposeCategoriesPost(PurposeCategoryRequestDTO purposeCategory) {
+
         try {
             PurposeCategoryListResponseDTO response = addPurposeCategory(purposeCategory);
             return Response.ok()
@@ -184,6 +193,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsPurposeCategoriesPurposeCategoryIdDelete(String purposeCategoryId) {
+
         try {
             getConsentManager().deletePurposeCategory(Integer.parseInt(purposeCategoryId));
             return Response.ok().build();
@@ -198,6 +208,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsPurposeCategoriesPurposeCategoryIdGet(String purposeCategoryId) {
+
         try {
             PurposeCategory purposeCategory = getConsentManager().getPurposeCategory(Integer.parseInt(purposeCategoryId));
             PurposeCategoryListResponseDTO purposeCategoryList = getPurposeCategoryListResponse(purposeCategory);
@@ -213,6 +224,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsPurposesGet(Integer limit, Integer offset) {
+
         try {
             List<PurposeListResponseDTO> purposeListResponseDTOS = getPurposeListResponseDTO(limit, offset);
             return Response.ok().entity(purposeListResponseDTOS).build();
@@ -227,6 +239,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsPurposesPost(PurposeRequestDTO purpose) {
+
         try {
             PurposeListResponseDTO response = addPurpose(purpose);
             return Response.ok()
@@ -244,6 +257,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsPurposesPurposeIdDelete(String purposeId) {
+
         try {
             getConsentManager().deletePurpose(Integer.parseInt(purposeId));
             return Response.ok().build();
@@ -258,6 +272,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsPurposesPurposeIdGet(String purposeId) {
+
         try {
             Purpose purpose = getConsentManager().getPurpose(Integer.parseInt(purposeId));
             PurposeListResponseDTO purposeListResponse = getPurposeListResponse(purpose);
@@ -279,8 +294,18 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsReceiptsReceiptIdGet(String receiptId) {
-        // do some magic!
-        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+
+        try {
+            Receipt receipt = getConsentManager().getReceipt(receiptId);
+//            PurposeListResponseDTO purposeListResponse = getPurposeListResponse(purpose);
+            return Response.ok().entity(receipt).build();
+        } catch (ConsentManagementClientException e) {
+            return handleBadRequestResponse(e);
+        } catch (ConsentManagementException e) {
+            return handleServerErrorResponse(e);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable);
+        }
     }
 
     private Response handleBadRequestResponse(ConsentManagementClientException e) {
@@ -296,12 +321,14 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
     }
 
     private boolean isNotFoundError(ConsentManagementClientException e) {
+
         return ERROR_CODE_PURPOSE_ID_INVALID.getCode().equals(e.getErrorCode())
                 || ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID.getCode().equals(e.getErrorCode())
                 || ERROR_CODE_PII_CATEGORY_ID_INVALID.getCode().equals(e.getErrorCode());
     }
 
     private boolean isConflictError(ConsentManagementClientException e) {
+
         return ERROR_CODE_PURPOSE_ALREADY_EXIST.getCode().equals(e.getErrorCode()) ||
                 ERROR_CODE_PURPOSE_CATEGORY_ALREADY_EXIST.getCode().equals(e.getErrorCode()) ||
                 ERROR_CODE_PII_CATEGORY_ALREADY_EXIST.getCode().equals(e.getErrorCode());
@@ -351,17 +378,18 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
         return getPiiCategoryResponseDTOList(purposeCategories);
     }
 
-
     private Response handleServerErrorResponse(ConsentManagementException e) {
+
         throw ConsentEndpointUtils.buildInternalServerErrorException(e.getErrorCode(), LOG, e);
     }
 
     private Response handleUnexpectedServerError(Throwable e) {
+
         throw ConsentEndpointUtils.buildInternalServerErrorException(ERROR_CODE_UNEXPECTED.getCode(), LOG, e);
     }
 
-
     private PurposeListResponseDTO addPurpose(PurposeRequestDTO purpose) throws ConsentManagementException {
+
         Purpose purposeRequest = getPurposeRequest(purpose);
         Purpose purposeResponse = getConsentManager().addPurpose(purposeRequest);
         return getPurposeListResponse(purposeResponse);
@@ -369,6 +397,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     private PurposeCategoryListResponseDTO addPurposeCategory(PurposeCategoryRequestDTO purposeCategoryRequestDTO)
             throws ConsentManagementException {
+
         PurposeCategory purposeRequest = getPurposeCategoryRequest(purposeCategoryRequestDTO);
         PurposeCategory purposeResponse = getConsentManager().addPurposeCategory(purposeRequest);
         return getPurposeCategoryListResponse(purposeResponse);
@@ -376,20 +405,24 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     private PiiCategoryListResponseDTO addPIICategory(PIIcategoryRequestDTO purposeCategoryRequestDTO)
             throws ConsentManagementException {
+
         PIICategory piiCategory = getPIICategoryRequest(purposeCategoryRequestDTO);
         PIICategory purposeResponse = getConsentManager().addPIICategory(piiCategory);
         return getPiiCategoryListResponse(purposeResponse);
     }
 
     private URI getPurposeLocationURI(PurposeListResponseDTO response) throws URISyntaxException {
+
         return new URI(PURPOSE_RESOURCE_PATH + "/" + response.getPurposeId());
     }
 
     private URI getPurposeCategoryLocationURI(PurposeCategoryListResponseDTO response) throws URISyntaxException {
+
         return new URI(PURPOSE_CATEGORY_RESOURCE_PATH + "/" + response.getPurposeCategoryId());
     }
 
     private URI getPiiCategoryLocationURI(PiiCategoryListResponseDTO response) throws URISyntaxException {
+
         return new URI(PII_CATEGORY_RESOURCE_PATH + "/" + response.getPiiCategoryId());
     }
 }
