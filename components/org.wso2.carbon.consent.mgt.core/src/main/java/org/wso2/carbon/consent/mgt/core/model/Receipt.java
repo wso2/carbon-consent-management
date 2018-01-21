@@ -32,6 +32,12 @@ public class Receipt {
     private String piiPrincipalId;
     private long consentTimestamp;
     private List<PiiController> piiControllers;
+    private List<ReceiptService> services;
+    private String policyUrl;
+    private boolean sensitive;
+    private List<String> spiCat;
+    private String state;
+    private String tenantDomain;
 
     public String getConsentReceiptId() {
         return consentReceiptId;
@@ -145,9 +151,11 @@ public class Receipt {
         this.state = state;
     }
 
-    private List<ReceiptService> services;
-    private String policyUrl;
-    private boolean sensitive;
-    private List<String> spiCat;
-    private String state;
+    public String getTenantDomain() {
+        return tenantDomain;
+    }
+
+    public void setTenantDomain(String tenantDomain) {
+        this.tenantDomain = tenantDomain;
+    }
 }

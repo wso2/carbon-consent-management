@@ -67,21 +67,21 @@ public class ConsentManagerComponent {
 
         try {
             BundleContext bundleContext = componentContext.getBundleContext();
-
             ConsentConfigParser configParser = new ConsentConfigParser();
-
             DataSource dataSource = iniDataSource(configParser);
             JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
             PurposeDAO purposeDAO = new PurposeDAOImpl(jdbcTemplate);
             PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
             PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
             ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
+
             ConsentManagerConfiguration configurations = new ConsentManagerConfiguration();
             configurations.setPurposeDAO(purposeDAO);
             configurations.setPurposeCategoryDAO(purposeCategoryDAO);
             configurations.setPiiCategoryDAO(piiCategoryDAO);
             configurations.setReceiptDAO(receiptDAO);
             configurations.setConfigParser(configParser);
+
             bundleContext.registerService(ConsentManager.class.getName(), new ConsentManager(configurations), null);
             log.info("ConsentManagerComponent is activated.");
         } catch (Throwable e) {
@@ -124,8 +124,9 @@ public class ConsentManagerComponent {
             return dataSource;
         } catch (NamingException e) {
             throw new ConsentManagementRuntimeException(ConsentConstants.ErrorMessages
-                                                                .ERROR_CODE_DATABASE_INITIALIZATION.getMessage()
-                    , ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_INITIALIZATION.getCode(), e);
+                                                                .ERROR_CODE_DATABASE_INITIALIZATION.getMessage(),
+                                                        ConsentConstants.ErrorMessages
+                                                                .ERROR_CODE_DATABASE_INITIALIZATION.getCode(), e);
         }
     }
 }

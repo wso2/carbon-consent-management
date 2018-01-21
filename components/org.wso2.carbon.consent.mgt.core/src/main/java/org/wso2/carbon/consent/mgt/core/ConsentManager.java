@@ -27,10 +27,12 @@ import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerConfiguration;
+import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PiiController;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
+import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
@@ -341,14 +343,27 @@ public class ConsentManager {
         return getPIICategoryByName(name) != null;
     }
 
-
-    public void addConsent(ReceiptInput receiptInput) throws ConsentManagementException {
+    /**
+     * This API is used to verify and store consent input.
+     * @param receiptInput consent input.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    public AddReceiptResponse addConsent(ReceiptInput receiptInput) throws ConsentManagementException {
         //TODO checkIsReceiptExists
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        receiptInput.setTenantDomain(tenantDomain);
         validateInputParameters(receiptInput);
         receiptInput.setConsentReceiptId(generateConsentReceiptId(receiptInput));
-        setPIIControllerInfo(receiptInput);
         setAPIVersion(receiptInput);
         receiptDAO.addReceipt(receiptInput);
+        return new AddReceiptResponse(receiptInput.getConsentReceiptId(), receiptInput.getCollectionMethod(),
+                receiptInput.getLanguage(), receiptInput.getPiiPrincipalId(), receiptInput.getTenantDomain());
+    }
+
+    public Receipt getReceipt(String receiptId) throws ConsentManagementException {
+        Receipt receipt = receiptDAO.getReceipt(receiptId);
+        setPIIControllerInfo(receipt);
+        return receipt;
     }
 
     protected void setAPIVersion(ReceiptInput receiptInput) {
@@ -359,13 +374,11 @@ public class ConsentManager {
         return UUID.randomUUID().toString();
     }
 
-    private void setPIIControllerInfo(ReceiptInput receiptInput) {
-        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+    private void setPIIControllerInfo(Receipt receipt) {
         PIIController piiController = new DefaultPIIController(configParser);
-        PiiController controllerInfo = piiController.getControllerInfo(tenantDomain);
+        PiiController controllerInfo = piiController.getControllerInfo(receipt.getTenantDomain());
         List<PiiController> piiControllers = Arrays.asList(controllerInfo);
-        receiptInput.setPiiControllers(piiControllers);
-        receiptInput.setTenantDomain(tenantDomain);
+        receipt.setPiiControllers(piiControllers);
     }
 
     private void validateInputParameters(ReceiptInput receiptInput) throws ConsentManagementClientException {

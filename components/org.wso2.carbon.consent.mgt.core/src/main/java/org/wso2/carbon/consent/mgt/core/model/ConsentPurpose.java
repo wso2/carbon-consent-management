@@ -28,6 +28,7 @@ public class ConsentPurpose {
     private String termination;
     private boolean thirdPartyDisclosure;
     private String thirdPartyName;
+    private int serviceToPurposeId;
 
     public String getPurpose() {
         return purpose;
@@ -91,5 +92,13 @@ public class ConsentPurpose {
 
     public void setThirdPartyName(String thirdPartyName) {
         this.thirdPartyName = thirdPartyName;
+    }
+
+    public int getServiceToPurposeId() {
+        return serviceToPurposeId;
+    }
+
+    public void setServiceToPurposeId(int serviceToPurposeId) {
+        this.serviceToPurposeId = serviceToPurposeId;
     }
 }
