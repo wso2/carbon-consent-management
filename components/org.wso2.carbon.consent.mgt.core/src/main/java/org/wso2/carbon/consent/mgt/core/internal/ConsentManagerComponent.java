@@ -22,7 +22,12 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
+import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
@@ -31,7 +36,14 @@ import org.wso2.carbon.consent.mgt.core.dao.impl.PIICategoryDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeCategoryDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.ReceiptDAOImpl;
-import org.wso2.carbon.consent.mgt.core.persistence.JDBCPersistenceManager;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementRuntimeException;
+import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
+import org.wso2.carbon.registry.core.service.RegistryService;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 
 /**
  * OSGi declarative services component which handles registration and un-registration of consent management service.
@@ -55,21 +67,65 @@ public class ConsentManagerComponent {
 
         try {
             BundleContext bundleContext = componentContext.getBundleContext();
-            PurposeDAO purposeDAO = new PurposeDAOImpl();
-            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
-            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+
+            ConsentConfigParser configParser = new ConsentConfigParser();
+
+            DataSource dataSource = iniDataSource(configParser);
+            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+            PurposeDAO purposeDAO = new PurposeDAOImpl(jdbcTemplate);
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
             ConsentManagerConfiguration configurations = new ConsentManagerConfiguration();
             configurations.setPurposeDAO(purposeDAO);
             configurations.setPurposeCategoryDAO(purposeCategoryDAO);
             configurations.setPiiCategoryDAO(piiCategoryDAO);
             configurations.setReceiptDAO(receiptDAO);
-
+            configurations.setConfigParser(configParser);
             bundleContext.registerService(ConsentManager.class.getName(), new ConsentManager(configurations), null);
             log.info("ConsentManagerComponent is activated.");
         } catch (Throwable e) {
             log.error("Error while activating ConsentManagerComponent.", e);
         }
 
+    }
+
+    @Reference(
+            name = "registry.service",
+            service = org.wso2.carbon.registry.core.service.RegistryService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC
+    )
+    protected void setRegistryService(RegistryService registryService) {
+        if (registryService != null && log.isDebugEnabled()) {
+            log.debug("RegistryService is registered in ConsentManager service.");
+        }
+
+    }
+
+    protected void unsetRegistryService(RegistryService registryService) {
+        if (log.isDebugEnabled()) {
+            log.debug("RegistryService is unregistered in ConsentManager service.");
+        }
+    }
+
+    private DataSource iniDataSource(ConsentConfigParser configParser) {
+        String dataSourceName = configParser.getConsentDataSource();
+        DataSource dataSource;
+        Context ctx;
+        try {
+            ctx = new InitialContext();
+            dataSource = (DataSource) ctx.lookup(dataSourceName);
+
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Data source: %s found in context.", dataSourceName));
+            }
+
+            return dataSource;
+        } catch (NamingException e) {
+            throw new ConsentManagementRuntimeException(ConsentConstants.ErrorMessages
+                                                                .ERROR_CODE_DATABASE_INITIALIZATION.getMessage()
+                    , ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_INITIALIZATION.getCode(), e);
+        }
     }
 }

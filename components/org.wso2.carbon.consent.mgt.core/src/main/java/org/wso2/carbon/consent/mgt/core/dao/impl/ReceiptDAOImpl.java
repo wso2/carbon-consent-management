@@ -26,10 +26,8 @@ import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
-import org.wso2.carbon.consent.mgt.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-import java.sql.Time;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
@@ -48,6 +46,12 @@ import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrow
  * Default implementation of {@link ReceiptDAO}. This handles {@link Receipt} related DB operations.
  */
 public class ReceiptDAOImpl implements ReceiptDAO {
+    private final JdbcTemplate jdbcTemplate;
+
+    public ReceiptDAOImpl(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
     @Override
     public Receipt addReceipt(ReceiptInput receiptInput) throws ConsentManagementException {
         addReceiptInfo(receiptInput);
@@ -76,7 +80,6 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
 
     protected void addReceiptInfo(ReceiptInput receiptInput) throws ConsentManagementServerException {
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
         try {
             jdbcTemplate.executeInsert(INSERT_RECEIPT_SQL, (preparedStatement -> {
                 preparedStatement.setString(1, receiptInput.getConsentReceiptId());
@@ -100,7 +103,6 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
     protected int addReceiptSPAssociation(String receiptId, ReceiptServiceInput receiptServiceInput) throws
             ConsentManagementServerException {
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
         try {
             return jdbcTemplate.executeInsert(INSERT_RECEIPT_SP_ASSOC_SQL, (preparedStatement -> {
                 preparedStatement.setString(1, receiptId);
@@ -115,7 +117,6 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
     protected int addSpToPurposeAssociation(int receiptToSPAssocId, ReceiptPurposeInput receiptPurposeInput) throws
             ConsentManagementServerException {
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
         try {
             return jdbcTemplate.executeInsert(INSERT_SP_TO_PURPOSE_ASSOC_SQL, (preparedStatement -> {
                 preparedStatement.setInt(1, receiptToSPAssocId);
@@ -136,7 +137,6 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
     protected void addSpPurposeToPurposeCategoryAssociation(int spToPurposeAssocId, int id) throws
             ConsentManagementServerException {
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
         try {
             jdbcTemplate.executeInsert(INSERT_SP_PURPOSE_TO_PURPOSE_CAT_ASSOC_SQL, (preparedStatement -> {
                 preparedStatement.setInt(1, spToPurposeAssocId);
@@ -150,7 +150,6 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
     protected void addSpPurposeToPiiCategoryAssociation(int spToPurposeAssocId, Integer id) throws
             ConsentManagementServerException {
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
         try {
             jdbcTemplate.executeInsert(INSERT_SP_PURPOSE_TO_PII_CAT_ASSOC_SQL, (preparedStatement -> {
                 preparedStatement.setInt(1, spToPurposeAssocId);
@@ -164,7 +163,6 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
     protected void addReceiptProperties(String consentReceiptId, Map<String, String> properties) throws
             ConsentManagementServerException {
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
         try {
             jdbcTemplate.executeBatchInsert(INSERT_RECEIPT_PROPERTIES_SQL, (preparedStatement -> {
 

@@ -22,13 +22,13 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
-import org.wso2.carbon.consent.mgt.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 
 import java.util.List;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages
+        .ERROR_CODE_PII_CATEGORY_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PII_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PII_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_MYSQL;
@@ -40,11 +40,17 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PII_
  */
 public class PIICategoryDAOImpl implements PIICategoryDAO {
 
+    private final JdbcTemplate jdbcTemplate;
+
+    public PIICategoryDAOImpl(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
     @Override
     public PIICategory addPIICategory(PIICategory piiCategory) throws ConsentManagementException {
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
         PIICategory purposeResult;
         int insertedId;
+
         try {
             insertedId = jdbcTemplate.executeInsert(INSERT_PII_CATEGORY_SQL, (preparedStatement -> {
                 preparedStatement.setString(1, piiCategory.getName());
@@ -61,7 +67,6 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
 
     @Override
     public PIICategory getPIICategoryById(int id) throws ConsentManagementException {
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
         PIICategory piiCategory;
 
         try {
@@ -84,9 +89,8 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
 
     @Override
     public List<PIICategory> listPIICategories(int limit, int offset) throws ConsentManagementException {
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
-
         List<PIICategory> piiCategories;
+
         try {
             piiCategories = jdbcTemplate.executeQuery(LIST_PAGINATED_PII_CATEGORY_MYSQL,
                     (resultSet, rowNumber) -> new PIICategory(resultSet.getInt(1),
@@ -107,7 +111,6 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
 
     @Override
     public int deletePIICategory(int id) throws ConsentManagementException {
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
 
         try {
             jdbcTemplate.executeUpdate(DELETE_PII_CATEGORY_SQL, preparedStatement -> preparedStatement.setInt(1, id));
@@ -120,7 +123,6 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
 
     @Override
     public PIICategory getPIICategoryByName(String name) throws ConsentManagementServerException {
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
         PIICategory piiCategory;
 
         try {

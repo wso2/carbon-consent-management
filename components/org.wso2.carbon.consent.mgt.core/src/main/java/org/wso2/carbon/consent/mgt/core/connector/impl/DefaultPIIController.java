@@ -39,6 +39,13 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIICont
  * This is the default implementation of PII controller
  */
 public class DefaultPIIController implements PIIController {
+
+    private final ConsentConfigParser configParser;
+
+    public DefaultPIIController(ConsentConfigParser configParser) {
+        this.configParser =  configParser;
+    }
+
     @Override
     public PiiController getControllerInfo(String tenantDomain) {
 
@@ -66,7 +73,7 @@ public class DefaultPIIController implements PIIController {
     }
 
     private String getConfiguration(String configElement) {
-        Map<String, Object> configuration = ConsentConfigParser.getInstance().getConfiguration();
+        Map<String, Object> configuration = configParser.getConfiguration();
         if (configuration.get(configElement) != null) {
             return configuration.get(configElement).toString();
         }
