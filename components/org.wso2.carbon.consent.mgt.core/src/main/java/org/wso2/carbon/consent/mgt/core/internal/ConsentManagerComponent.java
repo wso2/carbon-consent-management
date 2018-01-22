@@ -26,6 +26,8 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.consent.mgt.core.connector.PIIController;
+import org.wso2.carbon.consent.mgt.core.connector.impl.DefaultPIIController;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
@@ -40,6 +42,9 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementRuntimeExcept
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -56,6 +61,7 @@ import javax.sql.DataSource;
 public class ConsentManagerComponent {
 
     private static final Log log = LogFactory.getLog(ConsentManagerComponent.class);
+    private List<PIIController> piiControllers;
 
     /**
      * Register ConsentManager as an OSGi service.
@@ -75,13 +81,17 @@ public class ConsentManagerComponent {
             PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
             ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
 
+            bundleContext.registerService(PIIController.class.getName(), new DefaultPIIController(configParser), null);
             ConsentManagerConfiguration configurations = new ConsentManagerConfiguration();
             configurations.setPurposeDAO(purposeDAO);
             configurations.setPurposeCategoryDAO(purposeCategoryDAO);
             configurations.setPiiCategoryDAO(piiCategoryDAO);
             configurations.setReceiptDAO(receiptDAO);
             configurations.setConfigParser(configParser);
-
+            if (piiControllers != null) {
+                piiControllers.sort(Comparator.comparingInt(PIIController::getPriority));
+                configurations.setPiiController(piiControllers.get(piiControllers.size() - 1));
+            }
             bundleContext.registerService(ConsentManager.class.getName(), new ConsentManager(configurations), null);
             log.info("ConsentManagerComponent is activated.");
         } catch (Throwable e) {
@@ -108,6 +118,34 @@ public class ConsentManagerComponent {
         if (log.isDebugEnabled()) {
             log.debug("RealmService is unregistered in ConsentManager service.");
         }
+    }
+
+    @Reference(
+            name = "pii.controller",
+            service = org.wso2.carbon.consent.mgt.core.connector.PIIController.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC
+    )
+    protected void setPIIController(PIIController piiController) {
+
+        if (piiController != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("PII Controller is registered in ConsentManager service.");
+            }
+
+            if (piiControllers == null) {
+                piiControllers = new ArrayList<>();
+            }
+            piiControllers.add(piiController);
+        }
+    }
+
+    protected void unsetPIIController(PIIController piiController) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("PII Controller is unregistered in ConsentManager service.");
+        }
+        piiControllers.remove(piiController.getPriority());
     }
 
     private DataSource initDataSource(ConsentConfigParser configParser) {

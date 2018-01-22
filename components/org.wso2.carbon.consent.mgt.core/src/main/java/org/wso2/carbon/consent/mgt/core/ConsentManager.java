@@ -19,7 +19,6 @@ package org.wso2.carbon.consent.mgt.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.connector.PIIController;
-import org.wso2.carbon.consent.mgt.core.connector.impl.DefaultPIIController;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
@@ -87,6 +86,7 @@ public class ConsentManager {
     private PIICategoryDAO piiCategoryDAO;
     private ReceiptDAO receiptDAO;
     private ConsentConfigParser configParser;
+    private PIIController piiController;
 
     public ConsentManager(ConsentManagerConfiguration configuration) {
 
@@ -95,6 +95,7 @@ public class ConsentManager {
         piiCategoryDAO = configuration.getPiiCategoryDAO();
         receiptDAO = configuration.getReceiptDAO();
         configParser = configuration.getConfigParser();
+        piiController = configuration.getPiiController();
     }
 
     /**
@@ -416,7 +417,6 @@ public class ConsentManager {
 
     private void setPIIControllerInfo(Receipt receipt) {
 
-        PIIController piiController = new DefaultPIIController(configParser);
         PiiController controllerInfo = piiController.getControllerInfo(receipt.getTenantDomain());
         List<PiiController> piiControllers = Arrays.asList(controllerInfo);
         receipt.setPiiControllers(piiControllers);
