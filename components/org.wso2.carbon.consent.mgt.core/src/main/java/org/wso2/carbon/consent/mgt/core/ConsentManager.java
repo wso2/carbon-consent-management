@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.consent.mgt.core;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.connector.PIIController;
@@ -406,45 +407,48 @@ public class ConsentManager {
     }
 
     /**
-     * This API is used to select the PIIController from List of registered PIIController. By default set the height
+     * This API is used to select the PIIController from List of registered PIIController. By default set the highest
      * priority one.
+     *
      * @param piiControllers list of PIIControllers.
      * @return selected PIIController.
      */
     protected PIIController getPIIController(List<PIIController> piiControllers) {
 
         PIIController piiController = null;
-        if (piiControllers != null && piiControllers.size() > 0) {
+        if (CollectionUtils.isNotEmpty(piiControllers)) {
             piiController = piiControllers.get(piiControllers.size() - 1);
         }
         return piiController;
     }
 
     /**
-     * This API is used to select the ReceiptDAO from List of registered ReceiptDAO. By default set the height
+     * This API is used to select the ReceiptDAO from List of registered ReceiptDAO. By default set the highest
      * priority one.
+     *
      * @param receiptDAOs list of ReceiptDAOs.
      * @return selected ReceiptDAO.
      */
     protected ReceiptDAO getReceiptsDAO(List<ReceiptDAO> receiptDAOs) {
 
         ReceiptDAO receiptDAO = null;
-        if (receiptDAOs != null && receiptDAOs.size() > 0) {
+        if (CollectionUtils.isNotEmpty(receiptDAOs)) {
             receiptDAO = receiptDAOs.get(receiptDAOs.size() - 1);
         }
         return receiptDAO;
     }
 
     /**
-     * This API is used to select the PIICategoryDAO from List of registered PIICategoryDAOs. By default set the height
+     * This API is used to select the PIICategoryDAO from List of registered PIICategoryDAOs. By default set the highest
      * priority one.
+     *
      * @param piiCategoryDAOs list of PIICategoryDAOs.
      * @return selected PIICategoryDAO.
      */
     protected PIICategoryDAO getPiiCategoryDAO(List<PIICategoryDAO> piiCategoryDAOs) {
 
         PIICategoryDAO piiCategoryDAO = null;
-        if (piiCategoryDAOs != null && piiCategoryDAOs.size() > 0) {
+        if (CollectionUtils.isNotEmpty(piiCategoryDAOs)) {
             piiCategoryDAO = piiCategoryDAOs.get(piiCategoryDAOs.size() - 1);
         }
         return piiCategoryDAO;
@@ -452,14 +456,15 @@ public class ConsentManager {
 
     /**
      * This API is used to select the PurposeCategoryDAO from List of registered PurposeCategoryDAOs. By default set the
-     * height priority one.
+     * highest priority one.
+     *
      * @param purposeCategoryDAOs list of PurposeCategoryDAOs.
      * @return selected PurposeCategoryDAO.
      */
     protected PurposeCategoryDAO getPurposeCategoryDAO(List<PurposeCategoryDAO> purposeCategoryDAOs) {
 
         PurposeCategoryDAO purposeCategoryDAO = null;
-        if (purposeCategoryDAOs != null && purposeCategoryDAOs.size() > 0) {
+        if (CollectionUtils.isNotEmpty(purposeCategoryDAOs)) {
             purposeCategoryDAO = purposeCategoryDAOs.get(purposeCategoryDAOs.size() - 1);
         }
         return purposeCategoryDAO;
@@ -467,14 +472,15 @@ public class ConsentManager {
 
     /**
      * This API is used to select the PurposeDAO from List of registered PurposeDAOs. By default set the
-     * height priority one.
+     * highest priority one.
+     *
      * @param purposeDAOs list of PurposeDAOs.
      * @return selected PurposeDAO.
      */
     protected PurposeDAO getPurposeDAO(List<PurposeDAO> purposeDAOs) {
 
         PurposeDAO purposeDAO = null;
-        if (purposeDAOs != null && purposeDAOs.size() > 0) {
+        if (CollectionUtils.isNotEmpty(purposeDAOs)) {
             purposeDAO = purposeDAOs.get(purposeDAOs.size() - 1);
         }
         return purposeDAO;
@@ -482,6 +488,7 @@ public class ConsentManager {
 
     /**
      * This API is used to set the API version is being used.
+     *
      * @param receiptInput ReceiptInput.
      */
     protected void setAPIVersion(ReceiptInput receiptInput) {
@@ -491,6 +498,7 @@ public class ConsentManager {
 
     /**
      * This API is used to generate a unique consent receipt Id.
+     *
      * @param receiptInput ReceiptInput
      * @return A unique ID.
      */

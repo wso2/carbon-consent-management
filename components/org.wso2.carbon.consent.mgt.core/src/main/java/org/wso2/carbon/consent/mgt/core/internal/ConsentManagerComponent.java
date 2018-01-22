@@ -173,7 +173,7 @@ public class ConsentManagerComponent {
     protected void unsetPurpose(PurposeDAO purposeDAO) {
 
         if (log.isDebugEnabled()) {
-            log.debug(" Purpose DAO is unregistered in ConsentManager service.");
+            log.debug("Purpose DAO is unregistered in ConsentManager service.");
         }
         purposeDAOs.remove(purposeDAO);
     }
