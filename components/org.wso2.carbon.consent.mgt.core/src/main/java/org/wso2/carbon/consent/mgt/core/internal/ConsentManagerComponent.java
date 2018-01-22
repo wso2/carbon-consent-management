@@ -38,7 +38,7 @@ import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.ReceiptDAOImpl;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementRuntimeException;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
-import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -68,7 +68,7 @@ public class ConsentManagerComponent {
         try {
             BundleContext bundleContext = componentContext.getBundleContext();
             ConsentConfigParser configParser = new ConsentConfigParser();
-            DataSource dataSource = iniDataSource(configParser);
+            DataSource dataSource = initDataSource(configParser);
             JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
             PurposeDAO purposeDAO = new PurposeDAOImpl(jdbcTemplate);
             PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
@@ -91,25 +91,24 @@ public class ConsentManagerComponent {
     }
 
     @Reference(
-            name = "registry.service",
-            service = org.wso2.carbon.registry.core.service.RegistryService.class,
+            name = "realm.service",
+            service = org.wso2.carbon.user.core.service.RealmService.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC
     )
-    protected void setRegistryService(RegistryService registryService) {
-        if (registryService != null && log.isDebugEnabled()) {
-            log.debug("RegistryService is registered in ConsentManager service.");
+    protected void setRealmService(RealmService realmService) {
+        if (realmService != null && log.isDebugEnabled()) {
+            log.debug("RealmService is registered in ConsentManager service.");
         }
-
     }
 
-    protected void unsetRegistryService(RegistryService registryService) {
+    protected void unsetRealmService(RealmService realmService) {
         if (log.isDebugEnabled()) {
-            log.debug("RegistryService is unregistered in ConsentManager service.");
+            log.debug("RealmService is unregistered in ConsentManager service.");
         }
     }
 
-    private DataSource iniDataSource(ConsentConfigParser configParser) {
+    private DataSource initDataSource(ConsentConfigParser configParser) {
         String dataSourceName = configParser.getConsentDataSource();
         DataSource dataSource;
         Context ctx;
