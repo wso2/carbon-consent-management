@@ -23,5 +23,16 @@ import org.wso2.carbon.consent.mgt.core.model.PiiController;
  */
 public interface PIIController {
 
+    /**
+     * The priority of the controller. Max priority one will be used as the PIIController.
+     * @return priory.
+     */
+    int getPriority();
+
+    /**
+     * This method is used get the connector information.
+     * @param tenantDomain Tenant Domain.
+     * @return PIIController.
+     */
     PiiController getControllerInfo(String tenantDomain);
 }

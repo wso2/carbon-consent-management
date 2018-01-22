@@ -49,9 +49,13 @@ public class DefaultPIIController implements PIIController {
     }
 
     @Override
-    public PiiController getControllerInfo(String tenantDomain) {
+    public int getPriority() {
 
-        //TODO need to verify inputs
+        return 1;
+    }
+
+    @Override
+    public PiiController getControllerInfo(String tenantDomain) {
 
         String addressCountry = getConfiguration(countryElement);
         String addressLocality = getConfiguration(localityElement);
