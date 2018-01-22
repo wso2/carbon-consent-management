@@ -61,7 +61,7 @@ import javax.sql.DataSource;
 public class ConsentManagerComponent {
 
     private static final Log log = LogFactory.getLog(ConsentManagerComponent.class);
-    private List<PIIController> piiControllers;
+    private List<PIIController> piiControllers = new ArrayList<>();
 
     /**
      * Register ConsentManager as an OSGi service.
@@ -88,10 +88,8 @@ public class ConsentManagerComponent {
             configurations.setPiiCategoryDAO(piiCategoryDAO);
             configurations.setReceiptDAO(receiptDAO);
             configurations.setConfigParser(configParser);
-            if (piiControllers != null) {
-                piiControllers.sort(Comparator.comparingInt(PIIController::getPriority));
-                configurations.setPiiController(piiControllers.get(piiControllers.size() - 1));
-            }
+            configurations.setPiiControllers(piiControllers);
+
             bundleContext.registerService(ConsentManager.class.getName(), new ConsentManager(configurations), null);
             log.info("ConsentManagerComponent is activated.");
         } catch (Throwable e) {
@@ -133,10 +131,8 @@ public class ConsentManagerComponent {
                 log.debug("PII Controller is registered in ConsentManager service.");
             }
 
-            if (piiControllers == null) {
-                piiControllers = new ArrayList<>();
-            }
             piiControllers.add(piiController);
+            piiControllers.sort(Comparator.comparingInt(PIIController::getPriority));
         }
     }
 
@@ -145,7 +141,7 @@ public class ConsentManagerComponent {
         if (log.isDebugEnabled()) {
             log.debug("PII Controller is unregistered in ConsentManager service.");
         }
-        piiControllers.remove(piiController.getPriority());
+        piiControllers.remove(piiController);
     }
 
     private DataSource initDataSource(ConsentConfigParser configParser) {

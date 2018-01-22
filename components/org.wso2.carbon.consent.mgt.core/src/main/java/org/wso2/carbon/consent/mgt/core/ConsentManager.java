@@ -86,7 +86,7 @@ public class ConsentManager {
     private PIICategoryDAO piiCategoryDAO;
     private ReceiptDAO receiptDAO;
     private ConsentConfigParser configParser;
-    private PIIController piiController;
+    private List<PIIController> piiController;
 
     public ConsentManager(ConsentManagerConfiguration configuration) {
 
@@ -95,7 +95,7 @@ public class ConsentManager {
         piiCategoryDAO = configuration.getPiiCategoryDAO();
         receiptDAO = configuration.getReceiptDAO();
         configParser = configuration.getConfigParser();
-        piiController = configuration.getPiiController();
+        piiController = configuration.getPiiControllers();
     }
 
     /**
@@ -417,9 +417,12 @@ public class ConsentManager {
 
     private void setPIIControllerInfo(Receipt receipt) {
 
-        PiiController controllerInfo = piiController.getControllerInfo(receipt.getTenantDomain());
-        List<PiiController> piiControllers = Arrays.asList(controllerInfo);
-        receipt.setPiiControllers(piiControllers);
+        if (piiController != null && piiController.size() > 0) {
+            PiiController controllerInfo = piiController.get(piiController.size() - 1)
+                    .getControllerInfo(receipt.getTenantDomain());
+            List<PiiController> piiControllers = Arrays.asList(controllerInfo);
+            receipt.setPiiControllers(piiControllers);
+        }
     }
 
     private void validateInputParameters(ReceiptInput receiptInput) throws ConsentManagementClientException {
