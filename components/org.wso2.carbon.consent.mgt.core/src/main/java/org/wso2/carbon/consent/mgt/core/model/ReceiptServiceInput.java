@@ -25,26 +25,32 @@ public class ReceiptServiceInput {
     private List<ReceiptPurposeInput> purposes;
 
     public String getService() {
+
         return service;
     }
 
     public void setService(String service) {
+
         this.service = service;
     }
 
     public String getTenantDomain() {
+
         return tenantDomain;
     }
 
     public void setTenantDomain(String tenantDomain) {
+
         this.tenantDomain = tenantDomain;
     }
 
     public List<ReceiptPurposeInput> getPurposes() {
+
         return purposes;
     }
 
     public void setPurposes(List<ReceiptPurposeInput> purposes) {
+
         this.purposes = purposes;
     }
 }

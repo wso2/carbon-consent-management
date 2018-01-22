@@ -25,28 +25,34 @@ public class ConsentManagementException extends Exception {
     private String errorCode;
 
     public ConsentManagementException() {
+
         super();
     }
 
     public ConsentManagementException(String message, String errorCode) {
+
         super(message);
         this.errorCode = errorCode;
     }
 
     public ConsentManagementException(String message, String errorCode, Throwable cause) {
+
         super(message, cause);
         this.errorCode = errorCode;
     }
 
     public ConsentManagementException(Throwable cause) {
+
         super(cause);
     }
 
     public String getErrorCode() {
+
         return errorCode;
     }
 
     protected void setErrorCode(String errorCode) {
+
         this.errorCode = errorCode;
     }
 }

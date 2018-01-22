@@ -31,74 +31,92 @@ public class ConsentPurpose {
     private int serviceToPurposeId;
 
     public String getPurpose() {
+
         return purpose;
     }
 
     public void setPurpose(String purpose) {
+
         this.purpose = purpose;
     }
 
     public List<String> getPurposeCategory() {
+
         return purposeCategory;
     }
 
     public void setPurposeCategory(List<String> purposeCategory) {
+
         this.purposeCategory = purposeCategory;
     }
 
     public String getConsentType() {
+
         return consentType;
     }
 
     public void setConsentType(String consentType) {
+
         this.consentType = consentType;
     }
 
     public List<String> getPiiCategory() {
+
         return piiCategory;
     }
 
     public void setPiiCategory(List<String> piiCategory) {
+
         this.piiCategory = piiCategory;
     }
 
     public boolean isPrimaryPurpose() {
+
         return primaryPurpose;
     }
 
     public void setPrimaryPurpose(boolean primaryPurpose) {
+
         this.primaryPurpose = primaryPurpose;
     }
 
     public String getTermination() {
+
         return termination;
     }
 
     public void setTermination(String termination) {
+
         this.termination = termination;
     }
 
     public boolean isThirdPartyDisclosure() {
+
         return thirdPartyDisclosure;
     }
 
     public void setThirdPartyDisclosure(boolean thirdPartyDisclosure) {
+
         this.thirdPartyDisclosure = thirdPartyDisclosure;
     }
 
     public String getThirdPartyName() {
+
         return thirdPartyName;
     }
 
     public void setThirdPartyName(String thirdPartyName) {
+
         this.thirdPartyName = thirdPartyName;
     }
 
     public int getServiceToPurposeId() {
+
         return serviceToPurposeId;
     }
 
     public void setServiceToPurposeId(int serviceToPurposeId) {
+
         this.serviceToPurposeId = serviceToPurposeId;
     }
 }

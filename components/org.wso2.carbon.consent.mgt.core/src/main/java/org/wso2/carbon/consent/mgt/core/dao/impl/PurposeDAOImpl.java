@@ -43,11 +43,13 @@ public class PurposeDAOImpl implements PurposeDAO {
     private final JdbcTemplate jdbcTemplate;
 
     public PurposeDAOImpl(JdbcTemplate jdbcTemplate) {
+
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public Purpose addPurpose(Purpose purpose) throws ConsentManagementException {
+
         Purpose purposeResult;
         int insertedId;
 
@@ -88,6 +90,7 @@ public class PurposeDAOImpl implements PurposeDAO {
 
     @Override
     public Purpose getPurposeByName(String name) throws ConsentManagementException {
+
         if (StringUtils.isBlank(name)) {
             throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_PURPOSE_NAME_REQUIRED, null);
         }

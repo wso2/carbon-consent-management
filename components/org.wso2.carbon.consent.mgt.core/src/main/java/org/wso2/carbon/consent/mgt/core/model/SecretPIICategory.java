@@ -27,18 +27,22 @@ public class SecretPIICategory {
     private List<String> secretPIICategories;
 
     public SecretPIICategory() {
+
         secretPIICategories = new ArrayList<>();
     }
 
     public List<String> getSecretPIICategories() {
+
         return secretPIICategories;
     }
 
     public void addSecretCategory(String category) {
+
         secretPIICategories.add(category);
     }
 
     public void removeSecretCategory(String category) {
+
         secretPIICategories.remove(category);
     }
 }

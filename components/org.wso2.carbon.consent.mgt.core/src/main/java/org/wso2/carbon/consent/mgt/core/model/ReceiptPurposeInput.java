@@ -29,66 +29,82 @@ public class ReceiptPurposeInput {
     private Boolean thirdPartyDisclosure;
 
     public Integer getPurposeId() {
+
         return purposeId;
     }
 
     public void setPurposeId(Integer purposeId) {
+
         this.purposeId = purposeId;
     }
 
     public List<Integer> getPurposeCategoryId() {
+
         return purposeCategoryId;
     }
 
     public void setPurposeCategoryId(List<Integer> purposeCategoryId) {
+
         this.purposeCategoryId = purposeCategoryId;
     }
 
     public String getConsentType() {
+
         return consentType;
     }
 
     public void setConsentType(String consentType) {
+
         this.consentType = consentType;
     }
 
     public List<Integer> getPiiCategoryId() {
+
         return piiCategoryId;
     }
 
     public void setPiiCategoryId(List<Integer> piiCategoryId) {
+
         this.piiCategoryId = piiCategoryId;
     }
 
     public Boolean isPrimaryPurpose() {
+
         return primaryPurpose;
     }
 
     public void setPrimaryPurpose(Boolean primaryPurpose) {
+
         this.primaryPurpose = primaryPurpose;
     }
 
     public String getTermination() {
+
         return termination;
     }
 
     public void setTermination(String termination) {
+
         this.termination = termination;
     }
 
     public Boolean isThirdPartyDisclosure() {
+
         return thirdPartyDisclosure;
     }
 
     public void setThirdPartyDisclosure(Boolean thirdPartyDisclosure) {
+
         this.thirdPartyDisclosure = thirdPartyDisclosure;
     }
 
     public String getThirdPartyName() {
+
         return thirdPartyName;
     }
 
     public void setThirdPartyName(String thirdPartyName) {
+
         this.thirdPartyName = thirdPartyName;
     }
 

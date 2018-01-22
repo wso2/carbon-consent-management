@@ -118,25 +118,30 @@ public class ConsentConstants {
         private final String message;
 
         ErrorMessages(String code, String message) {
+
             this.code = code;
             this.message = message;
         }
 
         public String getCode() {
+
             return code;
         }
 
         public String getMessage() {
+
             return message;
         }
 
         @Override
         public String toString() {
+
             return code + " : " + message;
         }
     }
 
     public class PIIControllerElements {
+
         public static final String countryElement = "PIIController.Address.Country";
         public static final String localityElement = "PIIController.Address.Locality";
         public static final String regionElement = "PIIController.Address.Region";

@@ -38,6 +38,7 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -45,7 +46,31 @@ import java.util.UUID;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.API_VERSION;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.*;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_CATEGORY_ID_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_PII_CATEGORY_ID_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_PURPOSE_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_SERVICE_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_TYPE_MANDATORY;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_IS_PRIMARY_PURPOSE_IS_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ALREADY_EXIST;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_NAME_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_COLLECTION_METHOD_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_PRINCIPAL_ID_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ALREADY_EXIST;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ALREADY_EXIST;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_NAME_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_MANDATORY;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_SERVICE_NAME_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_TERMINATION_IS_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_THIRD_PARTY_DISCLOSURE_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_SEARCH_LIMIT_PATH;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleClientException;
 import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrowConsumer;
@@ -64,6 +89,7 @@ public class ConsentManager {
     private ConsentConfigParser configParser;
 
     public ConsentManager(ConsentManagerConfiguration configuration) {
+
         purposeDAO = configuration.getPurposeDAO();
         purposeCategoryDAO = configuration.getPurposeCategoryDAO();
         piiCategoryDAO = configuration.getPiiCategoryDAO();
@@ -92,6 +118,7 @@ public class ConsentManager {
      * @throws ConsentManagementException Consent Management Exception.
      */
     public Purpose getPurpose(int purposeId) throws ConsentManagementException {
+
         return purposeDAO.getPurposeById(purposeId);
     }
 
@@ -103,6 +130,7 @@ public class ConsentManager {
      * @throws ConsentManagementException Consent Management Exception.
      */
     public Purpose getPurposeByName(String name) throws ConsentManagementException {
+
         return purposeDAO.getPurposeByName(name);
     }
 
@@ -159,9 +187,9 @@ public class ConsentManager {
      * @throws ConsentManagementException Consent Management Exception.
      */
     public boolean isPurposeExists(String name) throws ConsentManagementException {
+
         return getPurposeByName(name) != null;
     }
-
 
     /**
      * This API is used to add a new purpose category.
@@ -171,6 +199,7 @@ public class ConsentManager {
      * @throws ConsentManagementException Consent Management Exception.
      */
     public PurposeCategory addPurposeCategory(PurposeCategory purposeCategory) throws ConsentManagementException {
+
         validateInputParameters(purposeCategory);
         return purposeCategoryDAO.addPurposeCategory(purposeCategory);
     }
@@ -183,6 +212,7 @@ public class ConsentManager {
      * @throws ConsentManagementException Consent Management Exception.
      */
     public PurposeCategory getPurposeCategory(int purposeCategoryId) throws ConsentManagementException {
+
         return purposeCategoryDAO.getPurposeCategoryById(purposeCategoryId);
     }
 
@@ -194,6 +224,7 @@ public class ConsentManager {
      * @throws ConsentManagementException Consent Management Exception.
      */
     public PurposeCategory getPurposeCategoryByName(String name) throws ConsentManagementException {
+
         return purposeCategoryDAO.getPurposeCategoryByName(name);
     }
 
@@ -250,6 +281,7 @@ public class ConsentManager {
      * @throws ConsentManagementException Consent Management Exception.
      */
     public boolean isPurposeCategoryExists(String name) throws ConsentManagementException {
+
         return getPurposeCategoryByName(name) != null;
     }
 
@@ -261,6 +293,7 @@ public class ConsentManager {
      * @throws ConsentManagementException Consent Management Exception.
      */
     public PIICategory addPIICategory(PIICategory piiCategory) throws ConsentManagementException {
+
         validateInputParameters(piiCategory);
         return piiCategoryDAO.addPIICategory(piiCategory);
     }
@@ -273,6 +306,7 @@ public class ConsentManager {
      * @throws ConsentManagementException Consent Management Exception.
      */
     public PIICategory getPIICategoryByName(String name) throws ConsentManagementException {
+
         return piiCategoryDAO.getPIICategoryByName(name);
     }
 
@@ -284,6 +318,7 @@ public class ConsentManager {
      * @throws ConsentManagementException
      */
     public PIICategory getPIICategory(int piiCategoryId) throws ConsentManagementException {
+
         return piiCategoryDAO.getPIICategoryById(piiCategoryId);
     }
 
@@ -340,11 +375,13 @@ public class ConsentManager {
      * @throws ConsentManagementException Consent Management Exception.
      */
     public boolean isPIICategoryExists(String name) throws ConsentManagementException {
+
         return getPIICategoryByName(name) != null;
     }
 
     /**
      * This API is used to verify and store consent input.
+     *
      * @param receiptInput consent input.
      * @throws ConsentManagementException Consent Management Exception.
      */
@@ -361,20 +398,24 @@ public class ConsentManager {
     }
 
     public Receipt getReceipt(String receiptId) throws ConsentManagementException {
+
         Receipt receipt = receiptDAO.getReceipt(receiptId);
         setPIIControllerInfo(receipt);
         return receipt;
     }
 
     protected void setAPIVersion(ReceiptInput receiptInput) {
+
         receiptInput.setVersion(API_VERSION);
     }
 
     protected String generateConsentReceiptId(ReceiptInput receiptInput) {
+
         return UUID.randomUUID().toString();
     }
 
     private void setPIIControllerInfo(Receipt receipt) {
+
         PIIController piiController = new DefaultPIIController(configParser);
         PiiController controllerInfo = piiController.getControllerInfo(receipt.getTenantDomain());
         List<PiiController> piiControllers = Arrays.asList(controllerInfo);
@@ -465,6 +506,7 @@ public class ConsentManager {
     }
 
     private int getDefaultLimitFromConfig() {
+
         int limit = DEFAULT_SEARCH_LIMIT;
 
         if (configParser.getConfiguration().get(PURPOSE_SEARCH_LIMIT_PATH) != null) {
@@ -475,6 +517,7 @@ public class ConsentManager {
     }
 
     private void validatePaginationParameters(int limit, int offset) throws ConsentManagementClientException {
+
         if (limit < 0 || offset < 0) {
             throw handleClientException(ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET, null);
         }

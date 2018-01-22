@@ -24,7 +24,6 @@ import org.slf4j.helpers.MessageFormatter;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,6 +31,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import javax.sql.DataSource;
 
 /**
  * A utility class to call JDBC with lambda expressions.
@@ -42,6 +42,7 @@ public class JdbcTemplate {
     private DataSource dataSource;
 
     public JdbcTemplate(DataSource dataSource) {
+
         this.dataSource = dataSource;
     }
 
@@ -54,6 +55,7 @@ public class JdbcTemplate {
      * @see #executeQuery(String, RowMapper, QueryFilter)
      */
     public <T extends Object> List<T> executeQuery(String query, RowMapper<T> rowMapper) throws DataAccessException {
+
         return executeQuery(query, rowMapper, null);
     }
 
@@ -67,6 +69,7 @@ public class JdbcTemplate {
      */
     public <T extends Object> List<T> executeQuery(String query, RowMapper<T> rowMapper, QueryFilter queryFilter)
             throws DataAccessException {
+
         List<T> result = new ArrayList();
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
@@ -106,6 +109,7 @@ public class JdbcTemplate {
      */
     public <T extends Object> T fetchSingleRecord(String query, RowMapper<T> rowMapper, QueryFilter queryFilter)
             throws DataAccessException {
+
         T result = null;
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
@@ -135,6 +139,7 @@ public class JdbcTemplate {
     }
 
     public void executeUpdate(String query, QueryFilter queryFilter) throws DataAccessException {
+
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             if (queryFilter != null) {
@@ -158,6 +163,7 @@ public class JdbcTemplate {
      * @param <T>
      */
     public <T extends Object> void executeUpdate(String query) throws DataAccessException {
+
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             doInternalUpdate(null, preparedStatement);
@@ -182,6 +188,7 @@ public class JdbcTemplate {
      */
     public <T extends Object> int executeInsert(String query, QueryFilter queryFilter, T bean, boolean fetchInsertedId)
             throws DataAccessException {
+
         try (Connection connection = dataSource.getConnection()) {
             int resultId;
             if (fetchInsertedId) {
@@ -224,7 +231,6 @@ public class JdbcTemplate {
         return 0;
     }
 
-
     /**
      * Executes the jdbc insert/update query.
      *
@@ -234,6 +240,7 @@ public class JdbcTemplate {
      */
     public <T extends Object> int executeBatchInsert(String query, QueryFilter queryFilter, T bean)
             throws DataAccessException {
+
         try (Connection connection = dataSource.getConnection()) {
             try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                 doInternalBatchUpdate(queryFilter, preparedStatement);
@@ -251,6 +258,7 @@ public class JdbcTemplate {
 
     private <T extends Object> void doInternalUpdate(QueryFilter queryFilter, PreparedStatement preparedStatement)
             throws SQLException, DataAccessException {
+
         if (queryFilter != null) {
             queryFilter.filter(preparedStatement);
         }
@@ -259,6 +267,7 @@ public class JdbcTemplate {
 
     private <T extends Object> void doInternalBatchUpdate(QueryFilter queryFilter, PreparedStatement preparedStatement)
             throws SQLException, DataAccessException {
+
         if (queryFilter != null) {
             queryFilter.filter(preparedStatement);
         }
@@ -266,10 +275,12 @@ public class JdbcTemplate {
     }
 
     private void logDebugInfo(String s, Object... params) {
+
         logDebugInfo(s, null, params);
     }
 
     private void logDebugInfo(String s, Exception e, Object... params) {
+
         if (logger.isDebugEnabled()) {
             logger.debug(MessageFormatter.arrayFormat(s, params).getMessage(), e);
         }

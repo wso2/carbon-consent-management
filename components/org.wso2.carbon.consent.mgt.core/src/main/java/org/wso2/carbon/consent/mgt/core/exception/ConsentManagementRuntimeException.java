@@ -24,28 +24,34 @@ public class ConsentManagementRuntimeException extends RuntimeException {
     private String errorCode;
 
     public ConsentManagementRuntimeException() {
+
         super();
     }
 
     public ConsentManagementRuntimeException(String message, String errorCode) {
+
         super(message);
         this.errorCode = errorCode;
     }
 
     public ConsentManagementRuntimeException(String message, String errorCode, Throwable cause) {
+
         super(message, cause);
         this.errorCode = errorCode;
     }
 
     public ConsentManagementRuntimeException(Throwable cause) {
+
         super(cause);
     }
 
     protected String getErrorCode() {
+
         return errorCode;
     }
 
     protected void setErrorCode(String errorCode) {
+
         this.errorCode = errorCode;
     }
 }

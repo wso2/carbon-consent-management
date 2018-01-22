@@ -56,8 +56,8 @@ import javax.sql.DataSource;
 public class ConsentManagerComponent {
 
     private static final Log log = LogFactory.getLog(ConsentManagerComponent.class);
+
     /**
-     *
      * Register ConsentManager as an OSGi service.
      *
      * @param componentContext OSGi service component context.
@@ -97,18 +97,21 @@ public class ConsentManagerComponent {
             policy = ReferencePolicy.DYNAMIC
     )
     protected void setRealmService(RealmService realmService) {
+
         if (realmService != null && log.isDebugEnabled()) {
             log.debug("RealmService is registered in ConsentManager service.");
         }
     }
 
     protected void unsetRealmService(RealmService realmService) {
+
         if (log.isDebugEnabled()) {
             log.debug("RealmService is unregistered in ConsentManager service.");
         }
     }
 
     private DataSource initDataSource(ConsentConfigParser configParser) {
+
         String dataSourceName = configParser.getConsentDataSource();
         DataSource dataSource;
         Context ctx;
@@ -123,9 +126,9 @@ public class ConsentManagerComponent {
             return dataSource;
         } catch (NamingException e) {
             throw new ConsentManagementRuntimeException(ConsentConstants.ErrorMessages
-                                                                .ERROR_CODE_DATABASE_INITIALIZATION.getMessage(),
-                                                        ConsentConstants.ErrorMessages
-                                                                .ERROR_CODE_DATABASE_INITIALIZATION.getCode(), e);
+                    .ERROR_CODE_DATABASE_INITIALIZATION.getMessage(),
+                    ConsentConstants.ErrorMessages
+                            .ERROR_CODE_DATABASE_INITIALIZATION.getCode(), e);
         }
     }
 }

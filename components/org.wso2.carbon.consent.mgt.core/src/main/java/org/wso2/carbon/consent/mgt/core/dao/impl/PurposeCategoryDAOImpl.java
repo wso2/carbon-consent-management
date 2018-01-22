@@ -27,8 +27,7 @@ import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import java.util.List;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages
-        .ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_CATEGORY_MYSQL;
@@ -43,11 +42,13 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
     private JdbcTemplate jdbcTemplate;
 
     public PurposeCategoryDAOImpl(JdbcTemplate jdbcTemplate) {
+
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public PurposeCategory addPurposeCategory(PurposeCategory purposeCategory) throws ConsentManagementException {
+
         PurposeCategory purposeCategoryResult;
         int insertedId;
 
@@ -66,6 +67,7 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
 
     @Override
     public PurposeCategory getPurposeCategoryById(int id) throws ConsentManagementException {
+
         PurposeCategory purposeCategory;
 
         try {
@@ -87,6 +89,7 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
 
     @Override
     public List<PurposeCategory> listPurposeCategories(int limit, int offset) throws ConsentManagementException {
+
         List<PurposeCategory> purposesCategories;
 
         try {
@@ -108,6 +111,7 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
 
     @Override
     public int deletePurposeCategory(int id) throws ConsentManagementException {
+
         try {
             jdbcTemplate.executeUpdate(DELETE_PURPOSE_CATEGORY_SQL,
                     preparedStatement -> preparedStatement.setInt(1, id));
@@ -120,6 +124,7 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
 
     @Override
     public PurposeCategory getPurposeCategoryByName(String name) throws ConsentManagementException {
+
         PurposeCategory purposeCategory;
 
         try {

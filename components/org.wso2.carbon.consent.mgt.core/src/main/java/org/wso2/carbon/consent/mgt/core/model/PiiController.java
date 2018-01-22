@@ -28,6 +28,7 @@ public class PiiController {
 
     public PiiController(String piiController, boolean onBehalf, String contact, String email, String phone,
                          String piiControllerUrl, Address address) {
+
         this.piiController = piiController;
         this.onBehalf = onBehalf;
         this.contact = contact;
@@ -38,58 +39,72 @@ public class PiiController {
     }
 
     public String getPiiController() {
+
         return piiController;
     }
 
     public void setPiiController(String piiController) {
+
         this.piiController = piiController;
     }
 
     public boolean isOnBehalf() {
+
         return onBehalf;
     }
 
     public void setOnBehalf(boolean onBehalf) {
+
         this.onBehalf = onBehalf;
     }
 
     public String getContact() {
+
         return contact;
     }
 
     public void setContact(String contact) {
+
         this.contact = contact;
     }
 
     public String getEmail() {
+
         return email;
     }
 
     public void setEmail(String email) {
+
         this.email = email;
     }
 
     public String getPhone() {
+
         return phone;
     }
 
     public void setPhone(String phone) {
+
         this.phone = phone;
     }
 
     public String getPiiControllerUrl() {
+
         return piiControllerUrl;
     }
 
     public void setPiiControllerUrl(String piiControllerUrl) {
+
         this.piiControllerUrl = piiControllerUrl;
     }
 
     public Address getAddress() {
+
         return address;
     }
 
     public void setAddress(Address address) {
+
         this.address = address;
     }
 }

@@ -17,9 +17,9 @@
 
 package org.wso2.carbon.consent.mgt.endpoint.exception;
 
-
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ErrorDTO;
+
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
@@ -27,7 +27,8 @@ public class NotFoundException extends WebApplicationException {
 
     private String message;
 
-    public NotFoundException(ErrorDTO errorDTO){
+    public NotFoundException(ErrorDTO errorDTO) {
+
         super(Response.status(Response.Status.NOT_FOUND)
                 .entity(errorDTO)
                 .header(ConsentConstants.HEADER_CONTENT_TYPE, ConsentConstants.DEFAULT_RESPONSE_CONTENT_TYPE)
@@ -35,12 +36,14 @@ public class NotFoundException extends WebApplicationException {
         message = errorDTO.getDescription();
     }
 
-    public NotFoundException(){
+    public NotFoundException() {
+
         super(Response.Status.NOT_FOUND);
     }
 
     @Override
     public String getMessage() {
+
         return message;
     }
 }

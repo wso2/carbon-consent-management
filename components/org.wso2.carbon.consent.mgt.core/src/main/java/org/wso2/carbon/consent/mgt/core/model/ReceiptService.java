@@ -26,34 +26,42 @@ public class ReceiptService {
     private int receiptToServiceId;
 
     public String getService() {
+
         return service;
     }
 
     public void setService(String service) {
+
         this.service = service;
     }
 
     public String getTenantDomain() {
+
         return tenantDomain;
     }
 
     public void setTenantDomain(String tenantDomain) {
+
         this.tenantDomain = tenantDomain;
     }
 
     public List<ConsentPurpose> getPurposes() {
+
         return purposes;
     }
 
     public void setPurposes(List<ConsentPurpose> purposes) {
+
         this.purposes = purposes;
     }
 
     public int getReceiptToServiceId() {
+
         return receiptToServiceId;
     }
 
     public void setReceiptToServiceId(int receiptToServiceId) {
+
         this.receiptToServiceId = receiptToServiceId;
     }
 }

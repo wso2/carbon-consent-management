@@ -27,8 +27,7 @@ import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import java.util.List;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages
-        .ERROR_CODE_PII_CATEGORY_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PII_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PII_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_MYSQL;
@@ -43,11 +42,13 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     private final JdbcTemplate jdbcTemplate;
 
     public PIICategoryDAOImpl(JdbcTemplate jdbcTemplate) {
+
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public PIICategory addPIICategory(PIICategory piiCategory) throws ConsentManagementException {
+
         PIICategory purposeResult;
         int insertedId;
 
@@ -67,6 +68,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
 
     @Override
     public PIICategory getPIICategoryById(int id) throws ConsentManagementException {
+
         PIICategory piiCategory;
 
         try {
@@ -89,6 +91,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
 
     @Override
     public List<PIICategory> listPIICategories(int limit, int offset) throws ConsentManagementException {
+
         List<PIICategory> piiCategories;
 
         try {
@@ -123,6 +126,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
 
     @Override
     public PIICategory getPIICategoryByName(String name) throws ConsentManagementServerException {
+
         PIICategory piiCategory;
 
         try {

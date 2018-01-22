@@ -29,6 +29,7 @@ public class AddReceiptResponse {
 
     public AddReceiptResponse(String consentReceiptId, String collectionMethod, String language,
                               String piiPrincipalId, String tenantDomain) {
+
         this.consentReceiptId = consentReceiptId;
         this.collectionMethod = collectionMethod;
         this.language = language;
@@ -37,42 +38,52 @@ public class AddReceiptResponse {
     }
 
     public String getConsentReceiptId() {
+
         return consentReceiptId;
     }
 
     public void setConsentReceiptId(String consentReceiptId) {
+
         this.consentReceiptId = consentReceiptId;
     }
 
     public String getCollectionMethod() {
+
         return collectionMethod;
     }
 
     public void setCollectionMethod(String collectionMethod) {
+
         this.collectionMethod = collectionMethod;
     }
 
     public String getLanguage() {
+
         return language;
     }
 
     public void setLanguage(String language) {
+
         this.language = language;
     }
 
     public String getPiiPrincipalId() {
+
         return piiPrincipalId;
     }
 
     public void setPiiPrincipalId(String piiPrincipalId) {
+
         this.piiPrincipalId = piiPrincipalId;
     }
 
     public String getTenantDomain() {
+
         return tenantDomain;
     }
 
     public void setTenantDomain(String tenantDomain) {
+
         this.tenantDomain = tenantDomain;
     }
 }

@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.consent.mgt.core.dao;
 
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 

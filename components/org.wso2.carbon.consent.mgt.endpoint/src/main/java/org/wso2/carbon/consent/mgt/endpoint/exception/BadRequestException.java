@@ -17,9 +17,9 @@
 
 package org.wso2.carbon.consent.mgt.endpoint.exception;
 
-
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ErrorDTO;
+
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
@@ -27,7 +27,8 @@ public class BadRequestException extends WebApplicationException {
 
     private String message;
 
-    public BadRequestException(ErrorDTO errorDTO){
+    public BadRequestException(ErrorDTO errorDTO) {
+
         super(Response.status(Response.Status.BAD_REQUEST)
                 .entity(errorDTO)
                 .header(ConsentConstants.HEADER_CONTENT_TYPE, ConsentConstants.DEFAULT_RESPONSE_CONTENT_TYPE)
@@ -35,12 +36,14 @@ public class BadRequestException extends WebApplicationException {
         message = errorDTO.getDescription();
     }
 
-    public BadRequestException(){
+    public BadRequestException() {
+
         super(Response.Status.BAD_REQUEST);
     }
 
     @Override
     public String getMessage() {
+
         return message;
     }
 }

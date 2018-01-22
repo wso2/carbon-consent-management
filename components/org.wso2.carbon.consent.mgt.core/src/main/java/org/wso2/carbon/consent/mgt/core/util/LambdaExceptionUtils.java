@@ -1,20 +1,20 @@
 /*
-*  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-*  WSO2 Inc. licenses this file to you under the Apache License,
-*  Version 2.0 (the "License"); you may not use this file except
-*  in compliance with the License.
-*  You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-*  Unless required by applicable law or agreed to in writing,
-*  software distributed under the License is distributed on an
-*  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-*  KIND, either express or implied.  See the License for the
-*  specific language governing permissions and limitations
-*  under the License.
-*/
+ *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
 package org.wso2.carbon.consent.mgt.core.util;
 
 import java.util.function.BiConsumer;
@@ -35,6 +35,7 @@ public final class LambdaExceptionUtils {
      */
     @FunctionalInterface
     public interface ConsumerWithExceptions<T, E extends Exception> {
+
         void accept(T t) throws E;
     }
 
@@ -47,6 +48,7 @@ public final class LambdaExceptionUtils {
      */
     @FunctionalInterface
     public interface BiConsumerWithExceptions<T, U, E extends Exception> {
+
         void accept(T t, U u) throws E;
     }
 
@@ -59,6 +61,7 @@ public final class LambdaExceptionUtils {
      */
     @FunctionalInterface
     public interface FunctionWithExceptions<T, R, E extends Exception> {
+
         R apply(T t) throws E;
     }
 
@@ -70,6 +73,7 @@ public final class LambdaExceptionUtils {
      */
     @FunctionalInterface
     public interface SupplierWithExceptions<T, E extends Exception> {
+
         T get() throws E;
     }
 
@@ -80,6 +84,7 @@ public final class LambdaExceptionUtils {
      */
     @FunctionalInterface
     public interface RunnableWithExceptions<E extends Exception> {
+
         void run() throws E;
     }
 
@@ -92,6 +97,7 @@ public final class LambdaExceptionUtils {
      * @return an instance of the {@code Consumer}
      */
     public static <T, E extends Exception> Consumer<T> rethrowConsumer(ConsumerWithExceptions<T, E> consumer) {
+
         return t -> {
             try {
                 consumer.accept(t);
@@ -112,6 +118,7 @@ public final class LambdaExceptionUtils {
      */
     public static <T, U, E extends Exception> BiConsumer<T, U> rethrowBiConsumer(
             BiConsumerWithExceptions<T, U, E> biConsumer) {
+
         return (t, u) -> {
             try {
                 biConsumer.accept(t, u);
@@ -132,6 +139,7 @@ public final class LambdaExceptionUtils {
      */
     public static <T, R, E extends Exception> Function<T, R> rethrowFunction(
             FunctionWithExceptions<T, R, E> function) {
+
         return t -> {
             try {
                 return function.apply(t);
@@ -151,6 +159,7 @@ public final class LambdaExceptionUtils {
      * @return Supplier of the results.
      */
     public static <T, E extends Exception> Supplier<T> rethrowSupplier(SupplierWithExceptions<T, E> function) {
+
         return () -> {
             try {
                 return function.get();
@@ -163,6 +172,7 @@ public final class LambdaExceptionUtils {
 
     @SuppressWarnings("unchecked")
     private static <E extends Throwable> void throwAsUnchecked(Exception exception) throws E {
+
         throw (E) exception;
     }
 

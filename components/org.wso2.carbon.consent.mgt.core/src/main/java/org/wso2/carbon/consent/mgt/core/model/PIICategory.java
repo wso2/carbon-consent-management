@@ -24,6 +24,7 @@ public class PIICategory {
     private Boolean sensitive;
 
     public PIICategory(Integer id, String name, String description, Boolean sensitive) {
+
         this.id = id;
         this.name = name;
         this.description = description;
@@ -31,41 +32,50 @@ public class PIICategory {
     }
 
     public PIICategory(Integer id, String name) {
+
         this.id = id;
         this.name = name;
     }
 
     public PIICategory(String name, String description, Boolean sensitive) {
+
         this.name = name;
         this.description = description;
         this.sensitive = sensitive;
     }
 
     public Integer getId() {
+
         return id;
     }
 
     public String getName() {
+
         return name;
     }
 
     public void setName(String name) {
+
         this.name = name;
     }
 
     public String getDescription() {
+
         return description;
     }
 
     public void setDescription(String description) {
+
         this.description = description;
     }
 
     public Boolean getSensitive() {
+
         return sensitive;
     }
 
     public void setSensitive(Boolean sensitive) {
+
         this.sensitive = sensitive;
     }
 }

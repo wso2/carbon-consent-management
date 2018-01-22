@@ -31,42 +31,52 @@ public class ConsentManagerConfiguration {
     private ConsentConfigParser configParser;
 
     public PurposeDAO getPurposeDAO() {
+
         return purposeDAO;
     }
 
     public void setPurposeDAO(PurposeDAO purposeDAO) {
+
         this.purposeDAO = purposeDAO;
     }
 
     public PurposeCategoryDAO getPurposeCategoryDAO() {
+
         return purposeCategoryDAO;
     }
 
     public void setPurposeCategoryDAO(PurposeCategoryDAO purposeCategoryDAO) {
+
         this.purposeCategoryDAO = purposeCategoryDAO;
     }
 
     public PIICategoryDAO getPiiCategoryDAO() {
+
         return piiCategoryDAO;
     }
 
     public void setPiiCategoryDAO(PIICategoryDAO piiCategoryDAO) {
+
         this.piiCategoryDAO = piiCategoryDAO;
     }
 
     public ReceiptDAO getReceiptDAO() {
+
         return receiptDAO;
     }
 
     public void setReceiptDAO(ReceiptDAO receiptDAO) {
+
         this.receiptDAO = receiptDAO;
     }
 
     public ConsentConfigParser getConfigParser() {
+
         return configParser;
     }
 
     public void setConfigParser(ConsentConfigParser configParser) {
+
         this.configParser = configParser;
     }
 }

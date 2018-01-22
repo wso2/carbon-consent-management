@@ -13,12 +13,14 @@ public class ConsentUtils {
     /**
      * This method can be used to generate a ConsentManagementServerException from ConsentConstants.ErrorMessages
      * object when no exception is thrown.
+     *
      * @param error ConsentConstants.ErrorMessages.
-     * @param data data to replace if message needs to be replaced.
+     * @param data  data to replace if message needs to be replaced.
      * @return ConsentManagementServerException.
      */
     public static ConsentManagementServerException handleServerException(ConsentConstants.ErrorMessages error,
                                                                          String data) {
+
         String message;
         if (StringUtils.isNotBlank(data)) {
             message = String.format(error.getMessage(), data);
@@ -31,13 +33,15 @@ public class ConsentUtils {
     /**
      * This method can be used to generate a ConsentManagementServerException from ConsentConstants.ErrorMessages
      * object when an exception is thrown.
+     *
      * @param error ConsentConstants.ErrorMessages.
-     * @param data data to replace if message needs to be replaced.
-     * @param e Parent exception.
+     * @param data  data to replace if message needs to be replaced.
+     * @param e     Parent exception.
      * @return ConsentManagementServerException
      */
     public static ConsentManagementServerException handleServerException(ConsentConstants.ErrorMessages error,
                                                                          String data, Throwable e) {
+
         String message;
         if (StringUtils.isNotBlank(data)) {
             message = String.format(error.getMessage(), data);
@@ -50,12 +54,14 @@ public class ConsentUtils {
     /**
      * This method can be used to generate a ConsentManagementClientException from ConsentConstants.ErrorMessages
      * object when no exception is thrown.
+     *
      * @param error ConsentConstants.ErrorMessages.
-     * @param data data to replace if message needs to be replaced.
+     * @param data  data to replace if message needs to be replaced.
      * @return ConsentManagementClientException.
      */
     public static ConsentManagementClientException handleClientException(ConsentConstants.ErrorMessages error,
                                                                          String data) {
+
         String message;
         if (StringUtils.isNotBlank(data)) {
             message = String.format(error.getMessage(), data);
@@ -66,17 +72,18 @@ public class ConsentUtils {
         return new ConsentManagementClientException(message, error.getCode());
     }
 
-
     /**
      * This method can be used to generate a ConsentManagementClientException from ConsentConstants.ErrorMessages
      * object when an exception is thrown.
+     *
      * @param error ConsentConstants.ErrorMessages.
-     * @param data data to replace if message needs to be replaced.
-     * @param e Parent exception.
+     * @param data  data to replace if message needs to be replaced.
+     * @param e     Parent exception.
      * @return ConsentManagementClientException
      */
     public static ConsentManagementClientException handleClientException(ConsentConstants.ErrorMessages error,
                                                                          String data, Throwable e) {
+
         String message;
         if (StringUtils.isNotBlank(data)) {
             message = String.format(error.getMessage(), data);

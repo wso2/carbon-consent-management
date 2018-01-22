@@ -24,14 +24,17 @@ public class ReceiptContext {
     private SecretPIICategory secretPIICategory;
 
     public ReceiptContext() {
+
         this.secretPIICategory = new SecretPIICategory();
     }
 
     public SecretPIICategory getSecretPIICategory() {
+
         return secretPIICategory;
     }
 
     public void setSecretPIICategory(SecretPIICategory secretPIICategory) {
+
         this.secretPIICategory = secretPIICategory;
     }
 }

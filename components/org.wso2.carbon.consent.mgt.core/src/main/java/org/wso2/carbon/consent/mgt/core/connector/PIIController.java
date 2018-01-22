@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-/**
- * This in
- */
 package org.wso2.carbon.consent.mgt.core.connector;
+
 import org.wso2.carbon.consent.mgt.core.model.PiiController;
 
+/**
+ * This interface is used to define the PIIController information.
+ */
 public interface PIIController {
+
     PiiController getControllerInfo(String tenantDomain);
 }

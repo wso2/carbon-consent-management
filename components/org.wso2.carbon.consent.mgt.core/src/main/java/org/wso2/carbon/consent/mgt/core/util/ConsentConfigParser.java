@@ -25,6 +25,7 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -53,14 +54,17 @@ public class ConsentConfigParser {
     private OMElement rootElement;
 
     public ConsentConfigParser() {
+
         buildConfiguration();
     }
 
     public Map<String, Object> getConfiguration() {
+
         return configuration;
     }
 
     public String getConsentDataSource() {
+
         return configuration.get(DATA_SOURCE_NAME) == null ? null : configuration.get(DATA_SOURCE_NAME).toString();
     }
 
@@ -112,6 +116,7 @@ public class ConsentConfigParser {
     }
 
     private void readChildElements(OMElement serverConfig, Stack<String> nameStack) {
+
         for (Iterator childElements = serverConfig.getChildElements(); childElements.hasNext(); ) {
             OMElement element = (OMElement) childElements.next();
             nameStack.push(element.getLocalName());
@@ -146,6 +151,7 @@ public class ConsentConfigParser {
     }
 
     private String getKey(Stack<String> nameStack) {
+
         StringBuilder key = new StringBuilder();
         for (int i = 0; i < nameStack.size(); i++) {
             String name = nameStack.elementAt(i);
@@ -157,11 +163,13 @@ public class ConsentConfigParser {
     }
 
     private boolean elementHasText(OMElement element) {
+
         String text = element.getText();
         return text != null && text.trim().length() != 0;
     }
 
     private String replaceSystemProperty(String text) {
+
         int indexOfStartingChars = -1;
         int indexOfClosingBrace;
 
@@ -195,6 +203,7 @@ public class ConsentConfigParser {
      * @return Corresponding OMElement
      */
     public OMElement getConfigElement(String localPart) {
+
         return rootElement.getFirstChildWithName(new QName(ConsentConstants.CONSENT_MANAGEMENT_DEFAULT_NAMESPACE,
                 localPart));
     }
@@ -206,6 +215,7 @@ public class ConsentConfigParser {
      * @return relevant QName
      */
     public QName getQNameWithConsentNS(String localPart) {
+
         return new QName(ConsentConstants.CONSENT_MANAGEMENT_DEFAULT_NAMESPACE, localPart);
     }
 

@@ -17,9 +17,9 @@
 
 package org.wso2.carbon.consent.mgt.endpoint.exception;
 
-
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ErrorDTO;
+
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
@@ -27,7 +27,8 @@ public class ConflictRequestException extends WebApplicationException {
 
     private String message;
 
-    public ConflictRequestException(ErrorDTO errorDTO){
+    public ConflictRequestException(ErrorDTO errorDTO) {
+
         super(Response.status(Response.Status.CONFLICT)
                 .entity(errorDTO)
                 .header(ConsentConstants.HEADER_CONTENT_TYPE, ConsentConstants.DEFAULT_RESPONSE_CONTENT_TYPE)
@@ -35,12 +36,14 @@ public class ConflictRequestException extends WebApplicationException {
         message = errorDTO.getDescription();
     }
 
-    public ConflictRequestException(){
+    public ConflictRequestException() {
+
         super(Response.Status.CONFLICT);
     }
 
     @Override
     public String getMessage() {
+
         return message;
     }
 }

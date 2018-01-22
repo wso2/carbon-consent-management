@@ -18,6 +18,7 @@
 package org.wso2.carbon.consent.mgt.endpoint.exception;
 
 import org.apache.cxf.jaxrs.impl.WebApplicationExceptionMapper;
+
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 

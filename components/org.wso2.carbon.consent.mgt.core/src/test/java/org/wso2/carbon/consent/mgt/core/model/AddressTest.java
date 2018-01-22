@@ -32,7 +32,7 @@ public class AddressTest {
         String streetAddress = "Baker St, Marylebone";
 
         Address address = new Address(addressCountry, addressLocality, addressRegion, postOfficeBoxNumber,
-                                      postalCode, streetAddress);
+                postalCode, streetAddress);
 
         Assert.assertEquals(address.getAddressCountry(), addressCountry);
         Assert.assertEquals(address.getAddressLocality(), addressLocality);
@@ -40,7 +40,6 @@ public class AddressTest {
         Assert.assertEquals(address.getPostOfficeBoxNumber(), postOfficeBoxNumber);
         Assert.assertEquals(address.getPostalCode(), postalCode);
         Assert.assertEquals(address.getStreetAddress(), streetAddress);
-
 
         address = new Address();
         address.setAddressCountry(addressCountry);

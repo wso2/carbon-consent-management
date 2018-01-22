@@ -19,6 +19,7 @@ package org.wso2.carbon.consent.mgt.endpoint.exception;
 
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ErrorDTO;
+
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
@@ -27,14 +28,17 @@ public class InternalServerErrorException extends WebApplicationException {
     private String message;
 
     public InternalServerErrorException(Throwable e) {
+
         super(e, Response.Status.INTERNAL_SERVER_ERROR);
     }
 
     public InternalServerErrorException() {
+
         super(Response.Status.INTERNAL_SERVER_ERROR);
     }
 
     public InternalServerErrorException(ErrorDTO errorDTO) {
+
         super(Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                 .entity(errorDTO)
                 .header(ConsentConstants.HEADER_CONTENT_TYPE, ConsentConstants.DEFAULT_RESPONSE_CONTENT_TYPE)

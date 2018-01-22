@@ -31,6 +31,7 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptService;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -55,9 +56,11 @@ import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrow
  * Default implementation of {@link ReceiptDAO}. This handles {@link Receipt} related DB operations.
  */
 public class ReceiptDAOImpl implements ReceiptDAO {
+
     private final JdbcTemplate jdbcTemplate;
 
     public ReceiptDAOImpl(JdbcTemplate jdbcTemplate) {
+
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -84,6 +87,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
     @Override
     public Receipt getReceipt(String receiptId) throws ConsentManagementException {
+
         ReceiptContext receiptContext = new ReceiptContext();
         Receipt receipt;
         //TODO need to improve performance.
@@ -112,6 +116,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     }
 
     protected void setReceiptSensitivity(ReceiptContext receiptContext, Receipt receipt) {
+
         if (receiptContext.getSecretPIICategory().getSecretPIICategories().size() > 0) {
             receipt.setSensitive(true);
             receipt.setSpiCat(receiptContext.getSecretPIICategory().getSecretPIICategories());
@@ -119,6 +124,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     }
 
     protected void addReceiptInfo(ReceiptInput receiptInput) throws ConsentManagementServerException {
+
         try {
             jdbcTemplate.executeInsert(INSERT_RECEIPT_SQL, (preparedStatement -> {
                 preparedStatement.setString(1, receiptInput.getConsentReceiptId());
@@ -142,6 +148,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
     protected int addReceiptSPAssociation(String receiptId, ReceiptServiceInput receiptServiceInput) throws
             ConsentManagementServerException {
+
         try {
             return jdbcTemplate.executeInsert(INSERT_RECEIPT_SP_ASSOC_SQL, (preparedStatement -> {
                 preparedStatement.setString(1, receiptId);
@@ -156,6 +163,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
     protected int addSpToPurposeAssociation(int receiptToSPAssocId, ReceiptPurposeInput receiptPurposeInput) throws
             ConsentManagementServerException {
+
         try {
             return jdbcTemplate.executeInsert(INSERT_SP_TO_PURPOSE_ASSOC_SQL, (preparedStatement -> {
                 preparedStatement.setInt(1, receiptToSPAssocId);
@@ -173,9 +181,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         }
     }
 
-
     protected void addSpPurposeToPurposeCategoryAssociation(int spToPurposeAssocId, int id) throws
             ConsentManagementServerException {
+
         try {
             jdbcTemplate.executeInsert(INSERT_SP_PURPOSE_TO_PURPOSE_CAT_ASSOC_SQL, (preparedStatement -> {
                 preparedStatement.setInt(1, spToPurposeAssocId);
@@ -189,6 +197,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
     protected void addSpPurposeToPiiCategoryAssociation(int spToPurposeAssocId, Integer id) throws
             ConsentManagementServerException {
+
         try {
             jdbcTemplate.executeInsert(INSERT_SP_PURPOSE_TO_PII_CAT_ASSOC_SQL, (preparedStatement -> {
                 preparedStatement.setInt(1, spToPurposeAssocId);
@@ -202,6 +211,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
     protected void addReceiptProperties(String consentReceiptId, Map<String, String> properties) throws
             ConsentManagementServerException {
+
         try {
             jdbcTemplate.executeBatchInsert(INSERT_RECEIPT_PROPERTIES_SQL, (preparedStatement -> {
 
@@ -220,6 +230,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
     protected List<ReceiptService> getServiceInfoOfReceipt(String consentReceiptId, ReceiptContext receiptContext) throws
             ConsentManagementServerException {
+
         List<ReceiptService> receiptServices;
 
         try {
