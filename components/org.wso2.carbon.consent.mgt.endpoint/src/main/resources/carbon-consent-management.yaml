@@ -1,0 +1,1277 @@
+swagger: '2.0'
+######################################################
+# Prolog
+######################################################
+info:
+  version: "1.0.0"
+  title: "WSO2 Identity Server Consent Management Rest API "
+  description: |
+    This document specifies a **Consent Management RESTfulAPI** for WSO2 **Identity Server** .
+
+    It is written with [swagger 2](http://swagger.io/).
+
+  contact:
+    name: "WSO2"
+    url: "http://wso2.com/products/identity-server/"
+    email: "architecture@wso2.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+
+######################################################
+# The fixed parts of the URLs of the API
+######################################################
+
+# The schemes supported by the API
+schemes:
+  - https
+
+# The domain of the API.
+# This is configured by the customer during deployment.
+# The given host is just an example.
+# host: apis.is.com
+
+# The base path of the API.
+# Will be prefixed to all paths.
+# if the tenant domain is carbon.super basepath can be /api/identity/approval/v1.0 like this too.
+
+basePath: /t/{tenant-domain}/api/identity/approval/v1.0
+
+# The following media types can be passed as input in message bodies of the API.
+# The actual media type must be specified in the Content-Type header field of the request.
+# The default is json, i.e. the Content-Type header is not needed to
+# be set, but supporting it serves extensibility.
+consumes:
+  - application/json
+
+# The following media types may be passed as output in message bodies of the API.
+# The media type(s) consumable by the requestor is specified in the Accept header field
+# of the corresponding request.
+# The actual media type returned will be specfied in the Content-Type header field
+# of the of the response.
+# The default of the Accept header is json, i.e. there is not needed to
+# set the value, but supporting it serves extensibility.
+produces:
+  - application/json
+paths:
+  # Endpoint uses to add user consents
+  "/consents":
+    post:
+      description: |
+         This API is used to storing consent information given by the users.
+
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 201 Created"
+      summary: |
+        Add Consents
+
+      # post parameters:
+      parameters:
+        -
+          name: consent
+          in: body
+          description:  This represents the consent element need to be stored
+          required: true
+          schema:
+            $ref: '#/definitions/ConsentRequest'
+      responses:
+        201:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/ConsentAddResponse'
+          headers:
+            Location:
+              type: 'string'
+              description: 'Location to the newly created consent'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        409:
+          description: Conflict
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - Consent
+
+    get:
+      description: |
+       This API is used to list consents elements based on the filetered attributes.
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 200 Ok"
+      summary: |
+        List Consents
+      parameters:
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/piiPrincipalId'
+        - $ref: '#/parameters/spTenantDomain'
+        - $ref: '#/parameters/service'
+        - $ref: '#/parameters/state'
+        - $ref: '#/parameters/collectionMethod'
+        - $ref: '#/parameters/piiCategoryId'
+
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/ConsentResponse'
+          headers:
+            Location:
+              type: 'string'
+              description: 'Location to retireve the consent element'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - Consent
+
+  "/consents/receipts/{receiptId}":
+    delete:
+      description: |
+       This API is used to revoke consent.
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 200 Ok"
+      summary: |
+        Revoke Consents
+      parameters:
+        -
+          name: receiptId
+          in: path
+          description:  This represents the Revoke Receipt Id.
+          required: true
+          type: 'string'
+      responses:
+        200:
+          description: OK
+        404:
+          description: Not Found
+          schema:
+             $ref: '#/definitions/Error'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - Consent
+    get:
+      description: |
+       This API is used to get consent from the conset receipt Id.
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 200 Ok"
+      summary: |
+        Retrieve a consent Receipt
+      parameters:
+        - $ref: '#/parameters/receiptId'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/ConsentReceipt'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        404:
+          description: Not Found
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - Consent
+
+  "/consents/purposes":
+    post:
+      description: |
+         This API is used to add new purposes for the consent management.
+
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 201 Created"
+      summary: |
+        Add Purpose
+
+      # post parameters:
+      parameters:
+        -
+          name: purpose
+          in: body
+          description:  This represents the purpose element need to be stored
+          required: true
+          schema:
+            $ref: '#/definitions/PurposeRequest'
+      responses:
+        201:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/purposeListResponse'
+          headers:
+            Location:
+              type: 'string'
+              description: 'Location to the newly created purpose'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        409:
+          description: Conflict
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - Purpose
+
+    get:
+      description: |
+       This API is used to get  all Purposes.
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 200 Ok"
+      summary: |
+        Retrieve all purposes
+      parameters:
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/purpses'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        404:
+          description: Not Found
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - Purpose
+
+  "/consents/purposes/{purposeId}":
+    get:
+      description: |
+       This API is used to get Purpose from the purpose Id.
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 200 Ok"
+      summary: |
+        Retrieve a purpose
+      parameters:
+        -
+          name: purposeId
+          type: 'string'
+          in: path
+          description:  Id of the purpose
+          required: true
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/purposeListResponse'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        404:
+          description: Not Found
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - Purpose
+
+    delete:
+      description: |
+       This API is used to delete a purpose.
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 200 Ok"
+      summary: |
+        Delete Purpose
+      parameters:
+        -
+          name: purposeId
+          type: 'string'
+          in: path
+          description:  Id of the purpose
+          required: true
+      responses:
+        200:
+          description: OK
+        404:
+          description: Not Found
+          schema:
+             $ref: '#/definitions/Error'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - Purpose
+  "/consents/purpose-categories":
+    post:
+      description: |
+         This API is used to add new purpose category for the consent management.
+
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 201 Created"
+      summary: |
+        Add Purpose category
+
+      # post parameters:
+      parameters:
+        -
+          name: purposeCategory
+          in: body
+          description:  This represents the purpose catogory element need to be stored
+          required: true
+          schema:
+            $ref: '#/definitions/PurposeCategoryRequest'
+      responses:
+        201:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/purposeCategoryListResponse'
+          headers:
+            Location:
+              type: 'string'
+              description: 'Location to the newly created purpose category'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        409:
+          description: Conflict
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - Purpose Category
+
+    get:
+      description: |
+       This API is used to get  all purposes categories.
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 200 Ok"
+      summary: |
+        Retrieve all purposes categories
+      parameters:
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/purpseCategories'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        404:
+          description: Not Found
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - Purpose Category
+
+  "/consents/purpose-categories/{purposeCategoryId}":
+    get:
+      description: |
+       This API is used to get Purpose category from the purpose category Id.
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 200 Ok"
+      summary: |
+        Retrieve a purpose category
+      parameters:
+        -
+          name: purposeCategoryId
+          type: 'string'
+          in: path
+          description:  Id of the purpose category
+          required: true
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/purposeCategoryListResponse'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        404:
+          description: Not Found
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - Purpose Category
+    delete:
+      description: |
+       This API is used to delete a purpose category.
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 200 Ok"
+      summary: |
+        Delete purpose category
+      parameters:
+        -
+          name: purposeCategoryId
+          type: 'string'
+          in: path
+          description:  Id of the purpose category
+          required: true
+      responses:
+        200:
+          description: OK
+        404:
+          description: Not Found
+          schema:
+             $ref: '#/definitions/Error'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - Purpose Category
+
+  "/consents/pii-categories":
+    post:
+      description: |
+         This API is used to add new PII category for the consent management.
+
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 201 Created"
+      summary: |
+        Add PII category
+
+      # post parameters:
+      parameters:
+        -
+          name: piiCategory
+          in: body
+          description:  This represents the PII catogory element need to be stored
+          required: true
+          schema:
+            $ref: '#/definitions/PIIcategoryRequest'
+      responses:
+        201:
+          description: Successful response
+          schema:
+            $ref: '#/definitions/piiCategoryListResponse'
+          headers:
+            Location:
+              type: 'string'
+              description: 'Location to the newly created pii category'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        409:
+          description: Conflict
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - PII Category
+
+    get:
+      description: |
+       This API is used to get  all PII categories.
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 200 Ok"
+      summary: |
+        Retrieve all PII categories
+      parameters:
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/piiCategories'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        404:
+          description: Not Found
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - PII Category
+
+  "/consents/pii-categories/{piiCategoryId}":
+    get:
+      description: |
+       This API is used to get PII category from the pii category Id.
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 200 Ok"
+      summary: |
+        Retrieve a pii category
+      parameters:
+        -
+          name: piiCategoryId
+          type: 'string'
+          in: path
+          description:  Id of the pii category
+          required: true
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/piiCategoryListResponse'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        404:
+          description: Not Found
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - PII Category
+
+    delete:
+      description: |
+       This API is used to delete a PII  category.
+      x-wso2-request: |
+
+      x-wso2-response: |
+        "HTTP/1.1 200 Ok"
+      summary: |
+        Delete PII category
+      parameters:
+        -
+          name: piiCategoryId
+          type: 'string'
+          in: path
+          description:  Id of the pii category
+          required: true
+      responses:
+        200:
+          description: OK
+        404:
+          description: Not Found
+          schema:
+             $ref: '#/definitions/Error'
+        400:
+          description: Bad Request
+          schema:
+             $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+             $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+             $ref: '#/definitions/Error'
+      tags:
+        - PII Category
+
+definitions:
+#-----------------------------------------------------
+# The Error Response  object
+#-----------------------------------------------------
+  Error:
+    type: object
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      description:
+        type: string
+#-----------------------------------------------------
+
+#-----------------------------------------------------
+# Consent request object
+#-----------------------------------------------------
+  ConsentRequest:
+    type: object
+    properties:
+      piiPrincipalId:
+        type: 'string'
+      services:
+        type: array
+        items:
+          $ref: '#/definitions/service'
+      collectionMethod:
+        type: 'string'
+      jurisdiction:
+        type: 'string'
+      language:
+        type: 'string'
+      policyURL:
+        type: 'string'
+      properties:
+        type: array
+        items:
+          $ref: '#/definitions/Property'
+
+#-----------------------------------------------------
+# Purpose request object
+#-----------------------------------------------------
+  PurposeRequest:
+    type: object
+    required:
+      - purpose
+    properties:
+      purpose:
+        type: 'string'
+      description:
+        type: 'string'
+
+
+#-----------------------------------------------------
+# PII category request object
+#-----------------------------------------------------
+  PIIcategoryRequest:
+    type: object
+    required:
+      - piiCategory
+    properties:
+      piiCategory:
+        type: 'string'
+      description:
+        type: 'string'
+      sensitive:
+        type: 'boolean'
+
+#-----------------------------------------------------
+# Purpose Category request object
+#-----------------------------------------------------
+  PurposeCategoryRequest:
+    type: object
+    required:
+      - purposeCategory
+    properties:
+      purposeCategory:
+        type: 'string'
+      description:
+        type: 'string'
+
+#-----------------------------------------------------
+# The Purpose response object
+#-----------------------------------------------------
+  purpses:
+    type: array
+    items:
+      $ref: '#/definitions/purposeListResponse'
+
+#-----------------------------------------------------
+# The Purpose category response object
+#-----------------------------------------------------
+  purpseCategories:
+    type: array
+    items:
+      $ref: '#/definitions/purposeCategoryListResponse'
+
+
+#-----------------------------------------------------
+# The PII category response object
+#-----------------------------------------------------
+  piiCategories:
+    type: array
+    items:
+      $ref: '#/definitions/piiCategoryListResponse'
+
+#-----------------------------------------------------
+# The Property  object
+#-----------------------------------------------------
+  Property:
+    type: object
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+
+#-----------------------------------------------------
+# Consent Add response object
+#-----------------------------------------------------
+  ConsentAddResponse:
+    type: object
+    required:
+      - consentReceiptID
+      - piiPrincipalId
+      - tenantDomain
+    properties:
+      consentReceiptID:
+        type: 'string'
+      language:
+        type: 'string'
+      piiPrincipalId:
+        type: 'string'
+      tenantDomain:
+        type: 'string'
+#-----------------------------------------------------
+# Consent response object
+#-----------------------------------------------------
+  ConsentResponse:
+    type: object
+    required:
+      - consentReceiptID
+      - piiPrincipalId
+      - tenantDomain
+    properties:
+      consentReceiptID:
+        type: 'string'
+      language:
+        type: 'string'
+      piiPrincipalId:
+        type: 'string'
+      tenantDomain:
+        type: 'string'
+      next:
+        type: 'string'
+      previous:
+        type: 'string'
+#-----------------------------------------------------
+# Consent response object
+#-----------------------------------------------------
+  ConsentReceipt:
+    type: object
+    required:
+      - version
+      - jurisdiction
+      - consentTimestamp
+      - collectionMethod
+      - consentReceiptID
+      - piiPrincipalId
+      - piiControllers
+      - policyUrl
+      - services
+      - sensitive
+      - spiCat
+
+    properties:
+      version:
+        type: 'string'
+        description: 'The version of this specification to which a receipt conforms. The value MUST be “KI-CR-v1.1.0” for this version of the specification.'
+      jurisdiction:
+        type: 'string'
+        description: 'The jurisdiction(s) applicable to this transaction.'
+      consentTimestamp:
+        type: 'integer'
+        description: 'Date and time of the consent transaction. The JSON value is expressed as the number of seconds since 1970-01-01 00:00:00 GMT'
+      collectionMethod:
+        type: 'string'
+        description: 'A description of the method by which consent was obtained.'
+      consentReceiptID:
+        type: 'string'
+        description: 'A unique number for each Consent Receipt.'
+      publicKey:
+        type: 'string'
+        description: 'The PII Controller’s public key.'
+      language:
+        type: 'string'
+        description: 'Language in which the consent was obtained as for ISO 639-1:2002 [ISO 639].'
+      piiPrincipalId:
+        type: 'string'
+        description: 'PII Principal-provided identifier. E.g., email address.'
+      tenantDomain:
+        type: 'string'
+        description: 'Tenant domain of the service (SP).'
+      piiControllers:
+        type: array
+        description: 'An array that contains one or more items where each item represents one PII Controller.'
+        items:
+          $ref: '#/definitions/piiController'
+      policyUrl:
+        type: 'string'
+        description: 'A link to the PII Controller’s privacy statement/policy and applicable terms of use in effect when the consent was obtained, and the receipt was issued.'
+      services:
+        type: array
+        description: 'An array that contains one or more items where each item represents one Service.'
+        items:
+          $ref: '#/definitions/serviceResponse'
+      sensitive:
+        type: 'boolean'
+        description: 'Indicates whether the consent interaction contains PII that is designated sensitive or not sensitive.'
+      spiCat:
+        type: array
+        description: 'A listing of categories where PII data collected is sensitive.'
+        items:
+          $ref: '#/definitions/spiCat'
+
+
+#-----------------------------------------------------
+# The Service  object
+#-----------------------------------------------------
+  service:
+    type: 'object'
+    properties:
+      service:
+        type: 'string'
+        description: 'The service or group of services being provided for which PII is collected. The name of the service for which consent for the collection, use, and disclosure of PII is being provided.'
+      tenantDomain:
+        type: 'string'
+        description: 'Tenant domain of the SP'
+      purposes:
+        type: array
+        items:
+          $ref: '#/definitions/purpose'
+
+#-----------------------------------------------------
+# The Service  Response object
+#-----------------------------------------------------
+  serviceResponse:
+    type: 'object'
+    properties:
+      service:
+        type: 'string'
+        description: 'The service or group of services being provided for which PII is collected. The name of the service for which consent for the collection, use, and disclosure of PII is being provided.'
+      tenantDomain:
+        type: 'string'
+        description: 'Tenant domain of the SP'
+      purposes:
+        type: array
+        items:
+          $ref: '#/definitions/purposeResponse'
+
+#-----------------------------------------------------
+# The purpose  object
+#-----------------------------------------------------
+  purpose:
+    type: 'object'
+    required:
+      - thirdPartyDisclosure
+      - thirdPartyName
+      - termination
+      - piiCategoryId
+      - purposeCategoryId
+    properties:
+      purposeId:
+        type: 'integer'
+        description: 'A unique Id of purpose'
+      purposeCategoryId:
+        type: array
+        description: 'The reason the PII Controller is collecting the PII.'
+        items:
+          type: 'integer'
+      consentType:
+        type: 'string'
+        description: 'The type of the consent used by the PII Controller as their authority to collect, use or disclose PII.'
+      piiCategoryId:
+        type: array
+        description: 'A list of defined PII categories Ids.'
+        items:
+          type: 'integer'
+      primaryPurpose:
+        type: 'boolean'
+        description: 'Indicates if a purpose is part of the core service of the PII Controller. Possible values are TRUE or FALSE.'
+      termination:
+        type: 'string'
+        description: 'Conditions for the termination of consent. Link to policy defining how consent or purpose is terminated.'
+      thirdPartyDisclosure:
+        type: 'boolean'
+        description: 'Indicates if the PII Controller is disclosing PII to a third party.  Possible values are TRUE or FALSE.'
+      thirdPartyName:
+        type: 'string'
+        description: 'The name or names of the third party to which the PII Processor may disclose the PII.'
+      state:
+        type: 'string'
+        description: 'State of the consent. This represents whether the consent is ACTIVE or REVOKED.'
+
+
+#-----------------------------------------------------
+# The purpose response object
+#-----------------------------------------------------
+  purposeResponse:
+    type: 'object'
+    required:
+      - thirdPartyDisclosure
+      - thirdPartyName
+      - termination
+      - piiCategory
+      - purposeCategory
+    properties:
+      purpose:
+        type: 'string'
+        description: 'A short, clear explanation of why the PII item is required.'
+      purposeCategory:
+        type: array
+        description: 'The reason the PII Controller is collecting the PII.'
+        items:
+          $ref: '#/definitions/purposeCategory'
+      consentType:
+        type: 'string'
+        description: 'The type of the consent used by the PII Controller as their authority to collect, use or disclose PII.'
+      piiCategory:
+        type: array
+        description: 'A list of defined PII categories Ids.  PII Category should reflect the category that will be shared as understood by the PII Principal.'
+        items:
+          $ref: '#/definitions/piiCategory'
+      primaryPurpose:
+        type: 'boolean'
+        description: 'Indicates if a purpose is part of the core service of the PII Controller. Possible values are TRUE or FALSE.'
+      termination:
+        type: 'string'
+        description: 'Conditions for the termination of consent. Link to policy defining how consent or purpose is terminated.'
+      thirdPartyDisclosure:
+        type: 'boolean'
+        description: 'Indicates if the PII Controller is disclosing PII to a third party.  Possible values are TRUE or FALSE.'
+      thirdPartyName:
+        type: 'string'
+        description: 'The name or names of the third party to which the PII Processor may disclose the PII.'
+      state:
+        type: 'string'
+        description: 'State of the consent. This represents whether the consent is ACTIVE or REVOKED.'
+#-----------------------------------------------------
+# The purposeCategory  object
+#-----------------------------------------------------
+  purposeCategory:
+    type: string
+    description: 'The reason the PII Controller is collecting the PII.'
+
+  purposeCatergoryId:
+    type: Integer
+    description: 'unique Id for purpose Category'
+
+
+#-----------------------------------------------------
+# The piiCategory object
+#-----------------------------------------------------
+  piiCategory:
+    type: string
+    description: 'PII Category'
+
+#-----------------------------------------------------
+# The piiCategory object
+#-----------------------------------------------------
+  piiCategoryId:
+    type: string
+    description: 'PII Category Id'
+
+#-----------------------------------------------------
+# The Purpose List response object
+#-----------------------------------------------------
+
+  purposeListResponse:
+    type: object
+    properties:
+      purposeId:
+        type: 'integer'
+      purpose:
+        type: 'string'
+      description:
+        type: 'string'
+
+#-----------------------------------------------------
+# The Purpose category List response object
+#-----------------------------------------------------
+
+  purposeCategoryListResponse:
+    type: object
+    properties:
+      purposeCategoryId:
+        type: 'integer'
+      purposeCategory:
+        type: 'string'
+      description:
+        type: 'string'
+
+#-----------------------------------------------------
+# The Purpose category List response object
+#-----------------------------------------------------
+
+  piiCategoryListResponse:
+    type: object
+    properties:
+      piiCategoryId:
+        type: 'integer'
+      piiCategory:
+        type: 'string'
+      description:
+        type: 'string'
+      sensitive:
+        type: 'boolean'
+#-----------------------------------------------------
+# The address  object
+#-----------------------------------------------------
+  address:
+    type: 'object'
+    description: 'The physical address of PII controller. Postal address for contacting the PII Controller. This is complient with the schema https://schema.org/PostalAddress.'
+    properties:
+      addressCountry:
+        type: 'string'
+      addressLocality:
+        type: 'string'
+      addressRegion:
+        type: 'string'
+      postOfficeBoxNumber:
+        type: 'string'
+      postalCode:
+        type: 'string'
+      streetAddress:
+        type: 'string'
+
+#-----------------------------------------------------
+# The piiController  object
+#-----------------------------------------------------
+  piiController:
+    type: 'object'
+    required:
+      - address
+      - piiController
+      - contact
+      - email
+      - phone
+    properties:
+      piiController:
+        type: 'string'
+        description: 'Name of the first PII Controller who collects the data. This entity is accountable for compliance with the management of PII. The PII Controller determines the purpose(s) and type(s) of PII processing.'
+      contact:
+        type: 'string'
+        description: 'Contact name of the PII Controller. This field MUST contain a non-empty string.'
+      address:
+        $ref: '#/definitions/address'
+      email:
+        type: 'string'
+        description: 'Contact email address of the PII Controller. The direct email to contact the PII Controller regarding the consent or privacy contract.'
+      phone:
+        type: 'string'
+        description: 'Contact phone number of the PII Controller. The business phone number to contact the PII Controller regarding the consent.'
+      onBehalf:
+        type: 'string'
+        description: 'A PII Processor acting on behalf of a PII Controller or PII Processor. For example, a third-party analytics service would be a PII Processor on behalf of the PII Controller, or a site operator acting on behalf of the PII Controller.'
+      piiControllerUrl:
+        type: 'string'
+        description: 'A URL for contacting the PII Controller.'
+
+#-----------------------------------------------------
+# The spiCat  object
+#-----------------------------------------------------
+  spiCat:
+    type: 'string'
+
+
+#-----------------------------------------------------
+# Parameters
+#-----------------------------------------------------
+parameters:
+  receiptId:
+    name: receiptId
+    in: path
+    description: The unique identifier of an receipt.
+    type: string
+    required: true
+
+  limit:
+    name: limit
+    in: query
+    description: Number of search results.
+    required: false
+    type: integer
+
+  offset:
+    name: offset
+    in: query
+    description: Start index of the search.
+    required: false
+    type: integer
+
+  state:
+    name: state
+    in: query
+    description: State of the consent. This represents whether the consent is ACTIVE or REVOKED.
+    required: false
+    type: string
+
+  service:
+    name: service
+    in: query
+    description: Service name
+    required: false
+    type: string
+
+  spTenantDomain:
+    name: spTenantDomain
+    in: query
+    description: Service provider tenant domain
+    required: false
+    type: string
+
+  piiPrincipalId:
+    name: piiPrincipalId
+    in: query
+    description: Subject identifier
+    required: false
+    type: string
+
+  consentIdQuery:
+    name: consent-id
+    in: query
+    description: The unique identifier of a consent id.
+    type: string
+    required: false
+
+  collectionMethod:
+    name: collectionMethod
+    in: query
+    description: Collection method of the consent.
+    type: string
+    required: false
+
+  piiCategoryId:
+    name: piiCategoryId
+    in: query
+    description: ID of PII Category that will be shared as understood by the PII Principal.
+    type: string
+    required: false
+
+  next:
+    name: next
+    in: query
+    description: next result set
+    type: string
+    required: false
+
+  previous:
+    name: previous
+    in: query
+    description: previous result set
+    type: string
+    required: false
