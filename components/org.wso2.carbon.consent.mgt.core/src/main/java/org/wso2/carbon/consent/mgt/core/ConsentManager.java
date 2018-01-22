@@ -56,17 +56,19 @@ import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrow
 public class ConsentManager {
 
     private static final Log log = LogFactory.getLog(ConsentManager.class);
-    private static final int DEFALT_SEARCH_LIMIT = 100;
+    private static final int DEFAULT_SEARCH_LIMIT = 100;
     private PurposeDAO purposeDAO;
     private PurposeCategoryDAO purposeCategoryDAO;
     private PIICategoryDAO piiCategoryDAO;
     private ReceiptDAO receiptDAO;
+    private ConsentConfigParser configParser;
 
     public ConsentManager(ConsentManagerConfiguration configuration) {
-        this.purposeDAO = configuration.getPurposeDAO();
+        purposeDAO = configuration.getPurposeDAO();
         purposeCategoryDAO = configuration.getPurposeCategoryDAO();
         piiCategoryDAO = configuration.getPiiCategoryDAO();
         receiptDAO = configuration.getReceiptDAO();
+        configParser = configuration.getConfigParser();
     }
 
     /**
@@ -373,7 +375,7 @@ public class ConsentManager {
     }
 
     private void setPIIControllerInfo(Receipt receipt) {
-        PIIController piiController = new DefaultPIIController();
+        PIIController piiController = new DefaultPIIController(configParser);
         PiiController controllerInfo = piiController.getControllerInfo(receipt.getTenantDomain());
         List<PiiController> piiControllers = Arrays.asList(controllerInfo);
         receipt.setPiiControllers(piiControllers);
@@ -463,10 +465,10 @@ public class ConsentManager {
     }
 
     private int getDefaultLimitFromConfig() {
-        int limit = DEFALT_SEARCH_LIMIT;
+        int limit = DEFAULT_SEARCH_LIMIT;
 
-        if (ConsentConfigParser.getInstance().getConfiguration().get(PURPOSE_SEARCH_LIMIT_PATH) != null) {
-            limit = Integer.parseInt(ConsentConfigParser.getInstance().getConfiguration()
+        if (configParser.getConfiguration().get(PURPOSE_SEARCH_LIMIT_PATH) != null) {
+            limit = Integer.parseInt(configParser.getConfiguration()
                     .get(PURPOSE_SEARCH_LIMIT_PATH).toString());
         }
         return limit;

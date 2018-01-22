@@ -22,14 +22,13 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
-import org.wso2.carbon.consent.mgt.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 
 import java.util.List;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_INVALID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages
+        .ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_CATEGORY_MYSQL;
@@ -41,11 +40,17 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PURP
  */
 public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
 
+    private JdbcTemplate jdbcTemplate;
+
+    public PurposeCategoryDAOImpl(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
     @Override
     public PurposeCategory addPurposeCategory(PurposeCategory purposeCategory) throws ConsentManagementException {
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
         PurposeCategory purposeCategoryResult;
         int insertedId;
+
         try {
             insertedId = jdbcTemplate.executeInsert(INSERT_PURPOSE_CATEGORY_SQL, (preparedStatement -> {
                 preparedStatement.setString(1, purposeCategory.getName());
@@ -61,8 +66,6 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
 
     @Override
     public PurposeCategory getPurposeCategoryById(int id) throws ConsentManagementException {
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
-
         PurposeCategory purposeCategory;
 
         try {
@@ -84,9 +87,8 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
 
     @Override
     public List<PurposeCategory> listPurposeCategories(int limit, int offset) throws ConsentManagementException {
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
-
         List<PurposeCategory> purposesCategories;
+
         try {
             purposesCategories = jdbcTemplate.executeQuery(LIST_PAGINATED_PURPOSE_CATEGORY_MYSQL,
                     (resultSet, rowNumber) -> new PurposeCategory(resultSet.getInt(1),
@@ -106,9 +108,6 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
 
     @Override
     public int deletePurposeCategory(int id) throws ConsentManagementException {
-
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
-
         try {
             jdbcTemplate.executeUpdate(DELETE_PURPOSE_CATEGORY_SQL,
                     preparedStatement -> preparedStatement.setInt(1, id));
@@ -121,7 +120,6 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
 
     @Override
     public PurposeCategory getPurposeCategoryByName(String name) throws ConsentManagementException {
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
         PurposeCategory purposeCategory;
 
         try {

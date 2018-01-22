@@ -23,12 +23,11 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
-import org.wso2.carbon.consent.mgt.core.persistence.JDBCPersistenceManager;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
+
 import java.util.List;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_ID_SQL;
@@ -41,12 +40,17 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINA
  */
 public class PurposeDAOImpl implements PurposeDAO {
 
+    private final JdbcTemplate jdbcTemplate;
+
+    public PurposeDAOImpl(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
     @Override
     public Purpose addPurpose(Purpose purpose) throws ConsentManagementException {
-
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
         Purpose purposeResult;
         int insertedId;
+
         try {
             insertedId = jdbcTemplate.executeInsert(INSERT_PURPOSE_SQL, (preparedStatement -> {
                 preparedStatement.setString(1, purpose.getName());
@@ -66,7 +70,6 @@ public class PurposeDAOImpl implements PurposeDAO {
             throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_PURPOSE_ID_REQUIRED, null);
         }
 
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
         Purpose purpose;
 
         try {
@@ -89,7 +92,6 @@ public class PurposeDAOImpl implements PurposeDAO {
             throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_PURPOSE_NAME_REQUIRED, null);
         }
 
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
         Purpose purpose;
 
         try {
@@ -104,8 +106,6 @@ public class PurposeDAOImpl implements PurposeDAO {
 
     @Override
     public List<Purpose> listPurposes(int limit, int offset) throws ConsentManagementException {
-
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
 
         List<Purpose> purposes;
         try {
@@ -126,8 +126,6 @@ public class PurposeDAOImpl implements PurposeDAO {
 
     @Override
     public int deletePurpose(int id) throws ConsentManagementException {
-
-        JdbcTemplate jdbcTemplate = JDBCPersistenceManager.getInstance().getJDBCTemplate();
 
         try {
             jdbcTemplate.executeUpdate(DELETE_PURPOSE_SQL, preparedStatement -> preparedStatement.setInt(1, id));

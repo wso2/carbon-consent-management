@@ -52,24 +52,8 @@ public class ConsentConfigParser {
     private static String configFilePath;
     private OMElement rootElement;
 
-    private ConsentConfigParser() {
+    public ConsentConfigParser() {
         buildConfiguration();
-    }
-
-    public static ConsentConfigParser getInstance() {
-        if (parser == null) {
-            synchronized (lock) {
-                if (parser == null) {
-                    parser = new ConsentConfigParser();
-                }
-            }
-        }
-        return parser;
-    }
-
-    public static ConsentConfigParser getInstance(String filePath) {
-        configFilePath = filePath;
-        return getInstance();
     }
 
     public Map<String, Object> getConfiguration() {
