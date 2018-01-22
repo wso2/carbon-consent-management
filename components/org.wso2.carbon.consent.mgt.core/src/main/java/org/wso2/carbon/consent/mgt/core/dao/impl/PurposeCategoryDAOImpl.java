@@ -47,6 +47,12 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
     }
 
     @Override
+    public int getPriority() {
+
+        return 1;
+    }
+
+    @Override
     public PurposeCategory addPurposeCategory(PurposeCategory purposeCategory) throws ConsentManagementException {
 
         PurposeCategory purposeCategoryResult;

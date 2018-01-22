@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.consent.mgt.core;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.connector.PIIController;
@@ -86,16 +87,16 @@ public class ConsentManager {
     private PIICategoryDAO piiCategoryDAO;
     private ReceiptDAO receiptDAO;
     private ConsentConfigParser configParser;
-    private List<PIIController> piiController;
+    private PIIController piiController;
 
     public ConsentManager(ConsentManagerConfiguration configuration) {
 
-        purposeDAO = configuration.getPurposeDAO();
-        purposeCategoryDAO = configuration.getPurposeCategoryDAO();
-        piiCategoryDAO = configuration.getPiiCategoryDAO();
-        receiptDAO = configuration.getReceiptDAO();
+        purposeDAO = getPurposeDAO(configuration.getPurposeDAOs());
+        purposeCategoryDAO = getPurposeCategoryDAO(configuration.getPurposeCategoryDAOs());
+        piiCategoryDAO = getPiiCategoryDAO(configuration.getPiiCategoryDAOs());
+        receiptDAO = getReceiptsDAO(configuration.getReceiptDAOs());
+        piiController = getPIIController(configuration.getPiiControllers());
         configParser = configuration.getConfigParser();
-        piiController = configuration.getPiiControllers();
     }
 
     /**
@@ -405,11 +406,102 @@ public class ConsentManager {
         return receipt;
     }
 
+    /**
+     * This API is used to select the PIIController from List of registered PIIController. By default set the highest
+     * priority one.
+     *
+     * @param piiControllers list of PIIControllers.
+     * @return selected PIIController.
+     */
+    protected PIIController getPIIController(List<PIIController> piiControllers) {
+
+        PIIController piiController = null;
+        if (CollectionUtils.isNotEmpty(piiControllers)) {
+            piiController = piiControllers.get(piiControllers.size() - 1);
+        }
+        return piiController;
+    }
+
+    /**
+     * This API is used to select the ReceiptDAO from List of registered ReceiptDAO. By default set the highest
+     * priority one.
+     *
+     * @param receiptDAOs list of ReceiptDAOs.
+     * @return selected ReceiptDAO.
+     */
+    protected ReceiptDAO getReceiptsDAO(List<ReceiptDAO> receiptDAOs) {
+
+        ReceiptDAO receiptDAO = null;
+        if (CollectionUtils.isNotEmpty(receiptDAOs)) {
+            receiptDAO = receiptDAOs.get(receiptDAOs.size() - 1);
+        }
+        return receiptDAO;
+    }
+
+    /**
+     * This API is used to select the PIICategoryDAO from List of registered PIICategoryDAOs. By default set the highest
+     * priority one.
+     *
+     * @param piiCategoryDAOs list of PIICategoryDAOs.
+     * @return selected PIICategoryDAO.
+     */
+    protected PIICategoryDAO getPiiCategoryDAO(List<PIICategoryDAO> piiCategoryDAOs) {
+
+        PIICategoryDAO piiCategoryDAO = null;
+        if (CollectionUtils.isNotEmpty(piiCategoryDAOs)) {
+            piiCategoryDAO = piiCategoryDAOs.get(piiCategoryDAOs.size() - 1);
+        }
+        return piiCategoryDAO;
+    }
+
+    /**
+     * This API is used to select the PurposeCategoryDAO from List of registered PurposeCategoryDAOs. By default set the
+     * highest priority one.
+     *
+     * @param purposeCategoryDAOs list of PurposeCategoryDAOs.
+     * @return selected PurposeCategoryDAO.
+     */
+    protected PurposeCategoryDAO getPurposeCategoryDAO(List<PurposeCategoryDAO> purposeCategoryDAOs) {
+
+        PurposeCategoryDAO purposeCategoryDAO = null;
+        if (CollectionUtils.isNotEmpty(purposeCategoryDAOs)) {
+            purposeCategoryDAO = purposeCategoryDAOs.get(purposeCategoryDAOs.size() - 1);
+        }
+        return purposeCategoryDAO;
+    }
+
+    /**
+     * This API is used to select the PurposeDAO from List of registered PurposeDAOs. By default set the
+     * highest priority one.
+     *
+     * @param purposeDAOs list of PurposeDAOs.
+     * @return selected PurposeDAO.
+     */
+    protected PurposeDAO getPurposeDAO(List<PurposeDAO> purposeDAOs) {
+
+        PurposeDAO purposeDAO = null;
+        if (CollectionUtils.isNotEmpty(purposeDAOs)) {
+            purposeDAO = purposeDAOs.get(purposeDAOs.size() - 1);
+        }
+        return purposeDAO;
+    }
+
+    /**
+     * This API is used to set the API version is being used.
+     *
+     * @param receiptInput ReceiptInput.
+     */
     protected void setAPIVersion(ReceiptInput receiptInput) {
 
         receiptInput.setVersion(API_VERSION);
     }
 
+    /**
+     * This API is used to generate a unique consent receipt Id.
+     *
+     * @param receiptInput ReceiptInput
+     * @return A unique ID.
+     */
     protected String generateConsentReceiptId(ReceiptInput receiptInput) {
 
         return UUID.randomUUID().toString();
@@ -417,12 +509,9 @@ public class ConsentManager {
 
     private void setPIIControllerInfo(Receipt receipt) {
 
-        if (piiController != null && piiController.size() > 0) {
-            PiiController controllerInfo = piiController.get(piiController.size() - 1)
-                    .getControllerInfo(receipt.getTenantDomain());
-            List<PiiController> piiControllers = Arrays.asList(controllerInfo);
-            receipt.setPiiControllers(piiControllers);
-        }
+        PiiController controllerInfo = piiController.getControllerInfo(receipt.getTenantDomain());
+        List<PiiController> piiControllers = Arrays.asList(controllerInfo);
+        receipt.setPiiControllers(piiControllers);
     }
 
     private void validateInputParameters(ReceiptInput receiptInput) throws ConsentManagementClientException {

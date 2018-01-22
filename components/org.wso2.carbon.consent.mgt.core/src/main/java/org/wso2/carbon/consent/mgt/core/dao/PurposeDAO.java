@@ -23,6 +23,8 @@ import java.util.List;
 
 public interface PurposeDAO {
 
+    int getPriority();
+
     Purpose addPurpose(Purpose purpose) throws ConsentManagementException;
 
     Purpose getPurposeById(int id) throws ConsentManagementException;

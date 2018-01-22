@@ -47,6 +47,12 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     }
 
     @Override
+    public int getPriority() {
+
+        return 1;
+    }
+
+    @Override
     public PIICategory addPIICategory(PIICategory piiCategory) throws ConsentManagementException {
 
         PIICategory purposeResult;

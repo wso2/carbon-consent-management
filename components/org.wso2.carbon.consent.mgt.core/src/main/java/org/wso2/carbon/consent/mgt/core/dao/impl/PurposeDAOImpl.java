@@ -48,6 +48,12 @@ public class PurposeDAOImpl implements PurposeDAO {
     }
 
     @Override
+    public int getPriority() {
+
+        return 1;
+    }
+
+    @Override
     public Purpose addPurpose(Purpose purpose) throws ConsentManagementException {
 
         Purpose purposeResult;
