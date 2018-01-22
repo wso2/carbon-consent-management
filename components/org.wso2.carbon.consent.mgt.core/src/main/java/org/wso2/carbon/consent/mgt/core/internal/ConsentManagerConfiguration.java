@@ -27,51 +27,51 @@ import java.util.List;
 
 public class ConsentManagerConfiguration {
 
-    private PurposeDAO purposeDAO;
-    private PurposeCategoryDAO purposeCategoryDAO;
-    private PIICategoryDAO piiCategoryDAO;
-    private ReceiptDAO receiptDAO;
+    private List<PurposeDAO> purposeDAOs;
+    private List<PurposeCategoryDAO> purposeCategoryDAOs;
+    private List<PIICategoryDAO> piiCategoryDAOs;
+    private List<ReceiptDAO> receiptDAOs;
     private ConsentConfigParser configParser;
     private List<PIIController> piiControllers;
 
-    public PurposeDAO getPurposeDAO() {
+    public List<PurposeDAO> getPurposeDAOs() {
 
-        return purposeDAO;
+        return purposeDAOs;
     }
 
-    public void setPurposeDAO(PurposeDAO purposeDAO) {
+    public void setPurposeDAOs(List<PurposeDAO> purposeDAOs) {
 
-        this.purposeDAO = purposeDAO;
+        this.purposeDAOs = purposeDAOs;
     }
 
-    public PurposeCategoryDAO getPurposeCategoryDAO() {
+    public List<PurposeCategoryDAO> getPurposeCategoryDAOs() {
 
-        return purposeCategoryDAO;
+        return purposeCategoryDAOs;
     }
 
-    public void setPurposeCategoryDAO(PurposeCategoryDAO purposeCategoryDAO) {
+    public void setPurposeCategoryDAOs(List<PurposeCategoryDAO> purposeCategoryDAOs) {
 
-        this.purposeCategoryDAO = purposeCategoryDAO;
+        this.purposeCategoryDAOs = purposeCategoryDAOs;
     }
 
-    public PIICategoryDAO getPiiCategoryDAO() {
+    public List<PIICategoryDAO> getPiiCategoryDAOs() {
 
-        return piiCategoryDAO;
+        return piiCategoryDAOs;
     }
 
-    public void setPiiCategoryDAO(PIICategoryDAO piiCategoryDAO) {
+    public void setPiiCategoryDAOs(List<PIICategoryDAO> piiCategoryDAOs) {
 
-        this.piiCategoryDAO = piiCategoryDAO;
+        this.piiCategoryDAOs = piiCategoryDAOs;
     }
 
-    public ReceiptDAO getReceiptDAO() {
+    public List<ReceiptDAO> getReceiptDAOs() {
 
-        return receiptDAO;
+        return receiptDAOs;
     }
 
-    public void setReceiptDAO(ReceiptDAO receiptDAO) {
+    public void setReceiptDAOs(List<ReceiptDAO> receiptDAOs) {
 
-        this.receiptDAO = receiptDAO;
+        this.receiptDAOs = receiptDAOs;
     }
 
     public ConsentConfigParser getConfigParser() {

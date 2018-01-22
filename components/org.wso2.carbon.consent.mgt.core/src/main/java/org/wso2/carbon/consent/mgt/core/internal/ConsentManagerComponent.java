@@ -62,6 +62,10 @@ public class ConsentManagerComponent {
 
     private static final Log log = LogFactory.getLog(ConsentManagerComponent.class);
     private List<PIIController> piiControllers = new ArrayList<>();
+    private List<PurposeDAO> purposeDAOs = new ArrayList<>();
+    private List<PIICategoryDAO> piiCategoryDAOs = new ArrayList<>();
+    private List<PurposeCategoryDAO> purposeCategoryDAOs = new ArrayList<>();
+    private List<ReceiptDAO> receiptDAOs = new ArrayList<>();
 
     /**
      * Register ConsentManager as an OSGi service.
@@ -76,17 +80,18 @@ public class ConsentManagerComponent {
             ConsentConfigParser configParser = new ConsentConfigParser();
             DataSource dataSource = initDataSource(configParser);
             JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-            PurposeDAO purposeDAO = new PurposeDAOImpl(jdbcTemplate);
-            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
-            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
 
             bundleContext.registerService(PIIController.class.getName(), new DefaultPIIController(configParser), null);
+            bundleContext.registerService(PurposeDAO.class.getName(), new PurposeDAOImpl(jdbcTemplate), null);
+            bundleContext.registerService(ReceiptDAO.class.getName(), new ReceiptDAOImpl(jdbcTemplate), null);
+            bundleContext.registerService(PIICategoryDAO.class.getName(), new PIICategoryDAOImpl(jdbcTemplate), null);
+            bundleContext.registerService(PurposeCategoryDAO.class.getName(), new PurposeCategoryDAOImpl(jdbcTemplate), null);
+
             ConsentManagerConfiguration configurations = new ConsentManagerConfiguration();
-            configurations.setPurposeDAO(purposeDAO);
-            configurations.setPurposeCategoryDAO(purposeCategoryDAO);
-            configurations.setPiiCategoryDAO(piiCategoryDAO);
-            configurations.setReceiptDAO(receiptDAO);
+            configurations.setPurposeDAOs(purposeDAOs);
+            configurations.setPurposeCategoryDAOs(purposeCategoryDAOs);
+            configurations.setPiiCategoryDAOs(piiCategoryDAOs);
+            configurations.setReceiptDAOs(receiptDAOs);
             configurations.setConfigParser(configParser);
             configurations.setPiiControllers(piiControllers);
 
@@ -102,7 +107,8 @@ public class ConsentManagerComponent {
             name = "realm.service",
             service = org.wso2.carbon.user.core.service.RealmService.class,
             cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService"
     )
     protected void setRealmService(RealmService realmService) {
 
@@ -122,7 +128,8 @@ public class ConsentManagerComponent {
             name = "pii.controller",
             service = org.wso2.carbon.consent.mgt.core.connector.PIIController.class,
             cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetPIIController"
     )
     protected void setPIIController(PIIController piiController) {
 
@@ -142,6 +149,114 @@ public class ConsentManagerComponent {
             log.debug("PII Controller is unregistered in ConsentManager service.");
         }
         piiControllers.remove(piiController);
+    }
+
+    @Reference(
+            name = "purpose.dao",
+            service = org.wso2.carbon.consent.mgt.core.dao.PurposeDAO.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetPurpose"
+    )
+    protected void setPurpose(PurposeDAO purposeDAO) {
+
+        if (purposeDAO != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Purpose DAO is registered in ConsentManager service.");
+            }
+
+            purposeDAOs.add(purposeDAO);
+            purposeDAOs.sort(Comparator.comparingInt(PurposeDAO::getPriority));
+        }
+    }
+
+    protected void unsetPurpose(PurposeDAO purposeDAO) {
+
+        if (log.isDebugEnabled()) {
+            log.debug(" Purpose DAO is unregistered in ConsentManager service.");
+        }
+        purposeDAOs.remove(purposeDAO);
+    }
+
+    @Reference(
+            name = "purposeCategory.dao",
+            service = org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetPurposeCategory"
+    )
+    protected void setPurposeCategory(PurposeCategoryDAO purposeCategoryDAO) {
+
+        if (purposeCategoryDAO != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Purpose Category DAO is registered in ConsentManager service.");
+            }
+
+            purposeCategoryDAOs.add(purposeCategoryDAO);
+            purposeCategoryDAOs.sort(Comparator.comparingInt(PurposeCategoryDAO::getPriority));
+        }
+    }
+
+    protected void unsetPurposeCategory(PurposeCategoryDAO piiCategoryDAO) {
+
+        if (log.isDebugEnabled()) {
+            log.debug(" Purpose Category DAO is unregistered in ConsentManager service.");
+        }
+        purposeCategoryDAOs.remove(piiCategoryDAO);
+    }
+
+    @Reference(
+            name = "piiCategory.dao",
+            service = org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetPIICategory"
+    )
+    protected void setPIICategory(PIICategoryDAO piiCategory) {
+
+        if (piiCategory != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("PII Category DAO is registered in ConsentManager service.");
+            }
+
+            piiCategoryDAOs.add(piiCategory);
+            piiCategoryDAOs.sort(Comparator.comparingInt(PIICategoryDAO::getPriority));
+        }
+    }
+
+    protected void unsetPIICategory(PIICategoryDAO piiCategoryDAO) {
+
+        if (log.isDebugEnabled()) {
+            log.debug(" PII Category DAO is unregistered in ConsentManager service.");
+        }
+        piiCategoryDAOs.remove(piiCategoryDAO);
+    }
+
+    @Reference(
+            name = "receipt.dao",
+            service = org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetReceiptDAO"
+    )
+    protected void setReceiptDAO(ReceiptDAO receiptDAO) {
+
+        if (receiptDAO != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Receipt DAO is registered in ConsentManager service.");
+            }
+
+            receiptDAOs.add(receiptDAO);
+            receiptDAOs.sort(Comparator.comparingInt(ReceiptDAO::getPriority));
+        }
+    }
+
+    protected void unsetReceiptDAO(ReceiptDAO receiptDAO) {
+
+        if (log.isDebugEnabled()) {
+            log.debug(" Receipt DAO is unregistered in ConsentManager service.");
+        }
+        receiptDAOs.remove(receiptDAO);
     }
 
     private DataSource initDataSource(ConsentConfigParser configParser) {

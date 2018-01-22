@@ -65,6 +65,12 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     }
 
     @Override
+    public int getPriority() {
+
+        return 1;
+    }
+
+    @Override
     public void addReceipt(ReceiptInput receiptInput) throws ConsentManagementException {
 
         addReceiptInfo(receiptInput);

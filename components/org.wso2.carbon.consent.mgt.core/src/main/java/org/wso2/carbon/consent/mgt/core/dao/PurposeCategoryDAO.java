@@ -23,6 +23,8 @@ import java.util.List;
 
 public interface PurposeCategoryDAO {
 
+    int getPriority();
+
     PurposeCategory addPurposeCategory(PurposeCategory purposeCategory) throws ConsentManagementException;
 
     PurposeCategory getPurposeCategoryById(int id) throws ConsentManagementException;

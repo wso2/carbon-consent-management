@@ -24,6 +24,8 @@ import java.util.List;
 
 public interface PIICategoryDAO {
 
+    int getPriority();
+
     PIICategory addPIICategory(PIICategory piiCategory) throws ConsentManagementException;
 
     PIICategory getPIICategoryById(int id) throws ConsentManagementException;

@@ -22,6 +22,8 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 
 public interface ReceiptDAO {
 
+    int getPriority();
+
     void addReceipt(ReceiptInput receiptInput) throws ConsentManagementException;
 
     Receipt getReceipt(String receiptId) throws ConsentManagementException;
