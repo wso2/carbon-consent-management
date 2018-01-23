@@ -29,6 +29,7 @@ import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.endpoint.ApiResponseMessage;
 import org.wso2.carbon.consent.mgt.endpoint.ConsentsApiService;
+import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentReceiptDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PIIcategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryListResponseDTO;
@@ -297,8 +298,8 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
         try {
             Receipt receipt = getConsentManager().getReceipt(receiptId);
-//            PurposeListResponseDTO purposeListResponse = getPurposeListResponse(purpose);
-            return Response.ok().entity(receipt).build();
+            ConsentReceiptDTO consentReceipt = ConsentEndpointUtils.getConsentReceiptDTO(receipt);
+            return Response.ok().entity(consentReceipt).build();
         } catch (ConsentManagementClientException e) {
             return handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {

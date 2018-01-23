@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PiiControllerDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ServiceResponseDTO;
-import org.wso2.carbon.consent.mgt.endpoint.dto.SpiCatDTO;
 
 import io.swagger.annotations.*;
 import com.fasterxml.jackson.annotation.*;
@@ -26,7 +25,7 @@ public class ConsentReceiptDTO  {
   private String jurisdiction = null;
   
   @NotNull
-  private Integer consentTimestamp = null;
+  private Long consentTimestamp = null;
   
   @NotNull
   private String collectionMethod = null;
@@ -59,7 +58,7 @@ public class ConsentReceiptDTO  {
   private Boolean sensitive = null;
   
   @NotNull
-  private List<SpiCatDTO> spiCat = new ArrayList<SpiCatDTO>();
+  private List<String> spiCat = new ArrayList<String>();
 
   
   /**
@@ -93,10 +92,10 @@ public class ConsentReceiptDTO  {
    **/
   @ApiModelProperty(required = true, value = "Date and time of the consent transaction. The JSON value is expressed as the number of seconds since 1970-01-01 00:00:00 GMT")
   @JsonProperty("consentTimestamp")
-  public Integer getConsentTimestamp() {
+  public Long getConsentTimestamp() {
     return consentTimestamp;
   }
-  public void setConsentTimestamp(Integer consentTimestamp) {
+  public void setConsentTimestamp(Long consentTimestamp) {
     this.consentTimestamp = consentTimestamp;
   }
 
@@ -236,10 +235,10 @@ public class ConsentReceiptDTO  {
    **/
   @ApiModelProperty(required = true, value = "A listing of categories where PII data collected is sensitive.")
   @JsonProperty("spiCat")
-  public List<SpiCatDTO> getSpiCat() {
+  public List<String> getSpiCat() {
     return spiCat;
   }
-  public void setSpiCat(List<SpiCatDTO> spiCat) {
+  public void setSpiCat(List<String> spiCat) {
     this.spiCat = spiCat;
   }
 

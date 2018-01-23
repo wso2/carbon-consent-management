@@ -89,9 +89,6 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
                     .valueOf(id), e);
         }
 
-        if (piiCategory == null) {
-            throw ConsentUtils.handleClientException(ERROR_CODE_PII_CATEGORY_ID_INVALID, String.valueOf(id));
-        }
         return piiCategory;
     }
 

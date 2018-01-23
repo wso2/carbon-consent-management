@@ -38,6 +38,7 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
+import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 
 import java.util.Arrays;
@@ -129,7 +130,11 @@ public class ConsentManager {
      */
     public Purpose getPurpose(int purposeId) throws ConsentManagementException {
 
-        return getPurposeDAO(purposeDAOs).getPurposeById(purposeId);
+        Purpose purpose = getPurposeDAO(purposeDAOs).getPurposeById(purposeId);
+        if (purpose == null) {
+            throw ConsentUtils.handleClientException(ERROR_CODE_PURPOSE_ID_INVALID, String.valueOf(purposeId));
+        }
+        return purpose;
     }
 
     /**
@@ -223,7 +228,12 @@ public class ConsentManager {
      */
     public PurposeCategory getPurposeCategory(int purposeCategoryId) throws ConsentManagementException {
 
-        return getPurposeCategoryDAO(purposeCategoryDAOs).getPurposeCategoryById(purposeCategoryId);
+        PurposeCategory category = getPurposeCategoryDAO(purposeCategoryDAOs).getPurposeCategoryById(purposeCategoryId);
+        if (category == null) {
+            throw ConsentUtils.handleClientException(ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID,
+                    String.valueOf(purposeCategoryId));
+        }
+        return category;
     }
 
     /**
@@ -325,11 +335,15 @@ public class ConsentManager {
      *
      * @param piiCategoryId ID of the PII category.
      * @return 200 OK. Returns PII category
-     * @throws ConsentManagementException
+     * @throws ConsentManagementException Consent Management Exception.
      */
     public PIICategory getPIICategory(int piiCategoryId) throws ConsentManagementException {
 
-        return getPiiCategoryDAO(piiCategoryDAOs).getPIICategoryById(piiCategoryId);
+        PIICategory piiCategory = getPiiCategoryDAO(piiCategoryDAOs).getPIICategoryById(piiCategoryId);
+        if (piiCategory == null) {
+            throw ConsentUtils.handleClientException(ERROR_CODE_PII_CATEGORY_ID_INVALID, String.valueOf(piiCategoryId));
+        }
+        return piiCategory;
     }
 
     /**

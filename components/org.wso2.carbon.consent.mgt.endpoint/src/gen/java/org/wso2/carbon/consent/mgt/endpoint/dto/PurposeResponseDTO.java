@@ -2,8 +2,6 @@ package org.wso2.carbon.consent.mgt.endpoint.dto;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryDTO;
-import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryDTO;
 
 import io.swagger.annotations.*;
 import com.fasterxml.jackson.annotation.*;
@@ -22,13 +20,13 @@ public class PurposeResponseDTO  {
   private String purpose = null;
   
   @NotNull
-  private List<PurposeCategoryDTO> purposeCategory = new ArrayList<PurposeCategoryDTO>();
+  private List<String> purposeCategory = new ArrayList<String>();
   
   
   private String consentType = null;
   
   @NotNull
-  private List<PiiCategoryDTO> piiCategory = new ArrayList<PiiCategoryDTO>();
+  private List<String> piiCategory = new ArrayList<String>();
   
   
   private Boolean primaryPurpose = null;
@@ -64,10 +62,10 @@ public class PurposeResponseDTO  {
    **/
   @ApiModelProperty(required = true, value = "The reason the PII Controller is collecting the PII.")
   @JsonProperty("purposeCategory")
-  public List<PurposeCategoryDTO> getPurposeCategory() {
+  public List<String> getPurposeCategory() {
     return purposeCategory;
   }
-  public void setPurposeCategory(List<PurposeCategoryDTO> purposeCategory) {
+  public void setPurposeCategory(List<String> purposeCategory) {
     this.purposeCategory = purposeCategory;
   }
 
@@ -90,10 +88,10 @@ public class PurposeResponseDTO  {
    **/
   @ApiModelProperty(required = true, value = "A list of defined PII categories Ids.  PII Category should reflect the category that will be shared as understood by the PII Principal.")
   @JsonProperty("piiCategory")
-  public List<PiiCategoryDTO> getPiiCategory() {
+  public List<String> getPiiCategory() {
     return piiCategory;
   }
-  public void setPiiCategory(List<PiiCategoryDTO> piiCategory) {
+  public void setPiiCategory(List<String> piiCategory) {
     this.piiCategory = piiCategory;
   }
 

@@ -86,10 +86,6 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_CATEGORY_BY_ID, String
                     .valueOf(id), e);
         }
-
-        if (purposeCategory == null) {
-            throw ConsentUtils.handleClientException(ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID, String.valueOf(id));
-        }
         return purposeCategory;
     }
 

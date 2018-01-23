@@ -895,6 +895,7 @@ definitions:
         description: 'The jurisdiction(s) applicable to this transaction.'
       consentTimestamp:
         type: 'integer'
+        format: 'int64'
         description: 'Date and time of the consent transaction. The JSON value is expressed as the number of seconds since 1970-01-01 00:00:00 GMT'
       collectionMethod:
         type: 'string'
@@ -934,7 +935,7 @@ definitions:
         type: array
         description: 'A listing of categories where PII data collected is sensitive.'
         items:
-          $ref: '#/definitions/spiCat'
+          type: 'string'
 
 
 #-----------------------------------------------------
@@ -1035,7 +1036,7 @@ definitions:
         type: array
         description: 'The reason the PII Controller is collecting the PII.'
         items:
-          $ref: '#/definitions/purposeCategory'
+          type: 'string'
       consentType:
         type: 'string'
         description: 'The type of the consent used by the PII Controller as their authority to collect, use or disclose PII.'
@@ -1043,7 +1044,7 @@ definitions:
         type: array
         description: 'A list of defined PII categories Ids.  PII Category should reflect the category that will be shared as understood by the PII Principal.'
         items:
-          $ref: '#/definitions/piiCategory'
+          type: 'string'
       primaryPurpose:
         type: 'boolean'
         description: 'Indicates if a purpose is part of the core service of the PII Controller. Possible values are TRUE or FALSE.'
@@ -1059,31 +1060,6 @@ definitions:
       state:
         type: 'string'
         description: 'State of the consent. This represents whether the consent is ACTIVE or REVOKED.'
-#-----------------------------------------------------
-# The purposeCategory  object
-#-----------------------------------------------------
-  purposeCategory:
-    type: string
-    description: 'The reason the PII Controller is collecting the PII.'
-
-  purposeCatergoryId:
-    type: Integer
-    description: 'unique Id for purpose Category'
-
-
-#-----------------------------------------------------
-# The piiCategory object
-#-----------------------------------------------------
-  piiCategory:
-    type: string
-    description: 'PII Category'
-
-#-----------------------------------------------------
-# The piiCategory object
-#-----------------------------------------------------
-  piiCategoryId:
-    type: string
-    description: 'PII Category Id'
 
 #-----------------------------------------------------
 # The Purpose List response object
@@ -1180,13 +1156,6 @@ definitions:
       piiControllerUrl:
         type: 'string'
         description: 'A URL for contacting the PII Controller.'
-
-#-----------------------------------------------------
-# The spiCat  object
-#-----------------------------------------------------
-  spiCat:
-    type: 'string'
-
 
 #-----------------------------------------------------
 # Parameters
