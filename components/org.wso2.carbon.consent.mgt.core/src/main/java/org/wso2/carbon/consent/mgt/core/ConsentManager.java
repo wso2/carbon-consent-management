@@ -26,6 +26,7 @@ import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
 import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerConfiguration;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
@@ -51,6 +52,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_PURPOSE_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_SERVICE_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_TYPE_MANDATORY;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GET_DAO;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_IS_PRIMARY_PURPOSE_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ALREADY_EXIST;
@@ -73,6 +75,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_THIRD_PARTY_DISCLOSURE_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_SEARCH_LIMIT_PATH;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleClientException;
+import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleServerException;
 import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrowConsumer;
 
 /**
@@ -82,20 +85,25 @@ public class ConsentManager {
 
     private static final Log log = LogFactory.getLog(ConsentManager.class);
     private static final int DEFAULT_SEARCH_LIMIT = 100;
-    private PurposeDAO purposeDAO;
-    private PurposeCategoryDAO purposeCategoryDAO;
-    private PIICategoryDAO piiCategoryDAO;
-    private ReceiptDAO receiptDAO;
+    private static final String PII_CONTROLLER = "piiController";
+    private static final String RECEIPT_DAO = "receiptDAO";
+    private static final String PII_CATEGORY_DAO = "piiCategoryDAO";
+    private static final String PURPOSED_CATEGORY_DAO = "purposedCategoryDAO";
+    private static final String PURPOSED_DAO = "purposedDAO";
+    private List<PurposeDAO> purposeDAOs;
+    private List<PurposeCategoryDAO> purposeCategoryDAOs;
+    private List<PIICategoryDAO> piiCategoryDAOs;
+    private List<ReceiptDAO> receiptDAOs;
     private ConsentConfigParser configParser;
-    private PIIController piiController;
+    private List<PIIController> piiControllers;
 
     public ConsentManager(ConsentManagerConfiguration configuration) {
 
-        purposeDAO = getPurposeDAO(configuration.getPurposeDAOs());
-        purposeCategoryDAO = getPurposeCategoryDAO(configuration.getPurposeCategoryDAOs());
-        piiCategoryDAO = getPiiCategoryDAO(configuration.getPiiCategoryDAOs());
-        receiptDAO = getReceiptsDAO(configuration.getReceiptDAOs());
-        piiController = getPIIController(configuration.getPiiControllers());
+        purposeDAOs = configuration.getPurposeDAOs();
+        purposeCategoryDAOs = configuration.getPurposeCategoryDAOs();
+        piiCategoryDAOs = configuration.getPiiCategoryDAOs();
+        receiptDAOs = configuration.getReceiptDAOs();
+        piiControllers = configuration.getPiiControllers();
         configParser = configuration.getConfigParser();
     }
 
@@ -109,7 +117,7 @@ public class ConsentManager {
     public Purpose addPurpose(Purpose purpose) throws ConsentManagementException {
 
         validateInputParameters(purpose);
-        return purposeDAO.addPurpose(purpose);
+        return getPurposeDAO(purposeDAOs).addPurpose(purpose);
     }
 
     /**
@@ -121,7 +129,7 @@ public class ConsentManager {
      */
     public Purpose getPurpose(int purposeId) throws ConsentManagementException {
 
-        return purposeDAO.getPurposeById(purposeId);
+        return getPurposeDAO(purposeDAOs).getPurposeById(purposeId);
     }
 
     /**
@@ -133,7 +141,7 @@ public class ConsentManager {
      */
     public Purpose getPurposeByName(String name) throws ConsentManagementException {
 
-        return purposeDAO.getPurposeByName(name);
+        return getPurposeDAO(purposeDAOs).getPurposeByName(name);
     }
 
     /**
@@ -154,7 +162,7 @@ public class ConsentManager {
                 log.debug("Limit is not defied the request, default to :" + limit);
             }
         }
-        return purposeDAO.listPurposes(limit, offset);
+        return getPurposeDAO(purposeDAOs).listPurposes(limit, offset);
     }
 
     /**
@@ -175,7 +183,7 @@ public class ConsentManager {
         if (getPurpose(purposeId) == null) {
             throw handleClientException(ERROR_CODE_PURPOSE_ID_INVALID, String.valueOf(purposeId));
         }
-        int id = purposeDAO.deletePurpose(purposeId);
+        int id = getPurposeDAO(purposeDAOs).deletePurpose(purposeId);
         if (log.isDebugEnabled()) {
             log.debug("Purpose deleted successfully. ID: " + id);
         }
@@ -203,7 +211,7 @@ public class ConsentManager {
     public PurposeCategory addPurposeCategory(PurposeCategory purposeCategory) throws ConsentManagementException {
 
         validateInputParameters(purposeCategory);
-        return purposeCategoryDAO.addPurposeCategory(purposeCategory);
+        return getPurposeCategoryDAO(purposeCategoryDAOs).addPurposeCategory(purposeCategory);
     }
 
     /**
@@ -215,7 +223,7 @@ public class ConsentManager {
      */
     public PurposeCategory getPurposeCategory(int purposeCategoryId) throws ConsentManagementException {
 
-        return purposeCategoryDAO.getPurposeCategoryById(purposeCategoryId);
+        return getPurposeCategoryDAO(purposeCategoryDAOs).getPurposeCategoryById(purposeCategoryId);
     }
 
     /**
@@ -227,7 +235,7 @@ public class ConsentManager {
      */
     public PurposeCategory getPurposeCategoryByName(String name) throws ConsentManagementException {
 
-        return purposeCategoryDAO.getPurposeCategoryByName(name);
+        return getPurposeCategoryDAO(purposeCategoryDAOs).getPurposeCategoryByName(name);
     }
 
     /**
@@ -248,7 +256,7 @@ public class ConsentManager {
                 log.debug("Limit is not defied the request, default to :" + limit);
             }
         }
-        return purposeCategoryDAO.listPurposeCategories(limit, offset);
+        return getPurposeCategoryDAO(purposeCategoryDAOs).listPurposeCategories(limit, offset);
     }
 
     /**
@@ -269,7 +277,7 @@ public class ConsentManager {
         if (getPurposeCategory(purposeCategoryId) == null) {
             throw handleClientException(ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID, String.valueOf(purposeCategoryId));
         }
-        int id = purposeCategoryDAO.deletePurposeCategory(purposeCategoryId);
+        int id = getPurposeCategoryDAO(purposeCategoryDAOs).deletePurposeCategory(purposeCategoryId);
         if (log.isDebugEnabled()) {
             log.debug("Purpose category deleted successfully. ID: " + id);
         }
@@ -297,7 +305,7 @@ public class ConsentManager {
     public PIICategory addPIICategory(PIICategory piiCategory) throws ConsentManagementException {
 
         validateInputParameters(piiCategory);
-        return piiCategoryDAO.addPIICategory(piiCategory);
+        return getPiiCategoryDAO(piiCategoryDAOs).addPIICategory(piiCategory);
     }
 
     /**
@@ -309,7 +317,7 @@ public class ConsentManager {
      */
     public PIICategory getPIICategoryByName(String name) throws ConsentManagementException {
 
-        return piiCategoryDAO.getPIICategoryByName(name);
+        return getPiiCategoryDAO(piiCategoryDAOs).getPIICategoryByName(name);
     }
 
     /**
@@ -321,7 +329,7 @@ public class ConsentManager {
      */
     public PIICategory getPIICategory(int piiCategoryId) throws ConsentManagementException {
 
-        return piiCategoryDAO.getPIICategoryById(piiCategoryId);
+        return getPiiCategoryDAO(piiCategoryDAOs).getPIICategoryById(piiCategoryId);
     }
 
     /**
@@ -342,7 +350,7 @@ public class ConsentManager {
                 log.debug("Limit is not defied the request, default to :" + limit);
             }
         }
-        return piiCategoryDAO.listPIICategories(limit, offset);
+        return getPiiCategoryDAO(piiCategoryDAOs).listPIICategories(limit, offset);
     }
 
     /**
@@ -363,7 +371,7 @@ public class ConsentManager {
         if (getPIICategory(piiCategoryId) == null) {
             throw handleClientException(ERROR_CODE_PII_CATEGORY_ID_INVALID, String.valueOf(piiCategoryId));
         }
-        int id = piiCategoryDAO.deletePIICategory(piiCategoryId);
+        int id = getPiiCategoryDAO(piiCategoryDAOs).deletePIICategory(piiCategoryId);
         if (log.isDebugEnabled()) {
             log.debug("PII Category deleted successfully. ID: " + id);
         }
@@ -394,14 +402,14 @@ public class ConsentManager {
         validateInputParameters(receiptInput);
         receiptInput.setConsentReceiptId(generateConsentReceiptId(receiptInput));
         setAPIVersion(receiptInput);
-        receiptDAO.addReceipt(receiptInput);
+        getReceiptsDAO(receiptDAOs).addReceipt(receiptInput);
         return new AddReceiptResponse(receiptInput.getConsentReceiptId(), receiptInput.getCollectionMethod(),
                 receiptInput.getLanguage(), receiptInput.getPiiPrincipalId(), receiptInput.getTenantDomain());
     }
 
     public Receipt getReceipt(String receiptId) throws ConsentManagementException {
 
-        Receipt receipt = receiptDAO.getReceipt(receiptId);
+        Receipt receipt = getReceiptsDAO(receiptDAOs).getReceipt(receiptId);
         setPIIControllerInfo(receipt);
         return receipt;
     }
@@ -413,13 +421,14 @@ public class ConsentManager {
      * @param piiControllers list of PIIControllers.
      * @return selected PIIController.
      */
-    protected PIIController getPIIController(List<PIIController> piiControllers) {
+    private PIIController getPIIController(List<PIIController> piiControllers)
+            throws ConsentManagementServerException {
 
-        PIIController piiController = null;
         if (CollectionUtils.isNotEmpty(piiControllers)) {
-            piiController = piiControllers.get(piiControllers.size() - 1);
+            return piiControllers.get(piiControllers.size() - 1);
+        } else {
+            throw handleServerException(ERROR_CODE_GET_DAO, PII_CONTROLLER);
         }
-        return piiController;
     }
 
     /**
@@ -429,13 +438,13 @@ public class ConsentManager {
      * @param receiptDAOs list of ReceiptDAOs.
      * @return selected ReceiptDAO.
      */
-    protected ReceiptDAO getReceiptsDAO(List<ReceiptDAO> receiptDAOs) {
+    private ReceiptDAO getReceiptsDAO(List<ReceiptDAO> receiptDAOs) throws ConsentManagementServerException {
 
-        ReceiptDAO receiptDAO = null;
         if (CollectionUtils.isNotEmpty(receiptDAOs)) {
-            receiptDAO = receiptDAOs.get(receiptDAOs.size() - 1);
+            return receiptDAOs.get(receiptDAOs.size() - 1);
+        } else {
+            throw handleServerException(ERROR_CODE_GET_DAO, RECEIPT_DAO);
         }
-        return receiptDAO;
     }
 
     /**
@@ -445,13 +454,14 @@ public class ConsentManager {
      * @param piiCategoryDAOs list of PIICategoryDAOs.
      * @return selected PIICategoryDAO.
      */
-    protected PIICategoryDAO getPiiCategoryDAO(List<PIICategoryDAO> piiCategoryDAOs) {
+    private PIICategoryDAO getPiiCategoryDAO(List<PIICategoryDAO> piiCategoryDAOs)
+            throws ConsentManagementServerException {
 
-        PIICategoryDAO piiCategoryDAO = null;
         if (CollectionUtils.isNotEmpty(piiCategoryDAOs)) {
-            piiCategoryDAO = piiCategoryDAOs.get(piiCategoryDAOs.size() - 1);
+            return piiCategoryDAOs.get(piiCategoryDAOs.size() - 1);
+        } else {
+            throw handleServerException(ERROR_CODE_GET_DAO, PII_CATEGORY_DAO);
         }
-        return piiCategoryDAO;
     }
 
     /**
@@ -461,13 +471,14 @@ public class ConsentManager {
      * @param purposeCategoryDAOs list of PurposeCategoryDAOs.
      * @return selected PurposeCategoryDAO.
      */
-    protected PurposeCategoryDAO getPurposeCategoryDAO(List<PurposeCategoryDAO> purposeCategoryDAOs) {
+    private PurposeCategoryDAO getPurposeCategoryDAO(List<PurposeCategoryDAO> purposeCategoryDAOs)
+            throws ConsentManagementServerException {
 
-        PurposeCategoryDAO purposeCategoryDAO = null;
         if (CollectionUtils.isNotEmpty(purposeCategoryDAOs)) {
-            purposeCategoryDAO = purposeCategoryDAOs.get(purposeCategoryDAOs.size() - 1);
+            return purposeCategoryDAOs.get(purposeCategoryDAOs.size() - 1);
+        } else {
+            throw handleServerException(ERROR_CODE_GET_DAO, PURPOSED_CATEGORY_DAO);
         }
-        return purposeCategoryDAO;
     }
 
     /**
@@ -477,13 +488,13 @@ public class ConsentManager {
      * @param purposeDAOs list of PurposeDAOs.
      * @return selected PurposeDAO.
      */
-    protected PurposeDAO getPurposeDAO(List<PurposeDAO> purposeDAOs) {
+    private PurposeDAO getPurposeDAO(List<PurposeDAO> purposeDAOs) throws ConsentManagementServerException {
 
-        PurposeDAO purposeDAO = null;
         if (CollectionUtils.isNotEmpty(purposeDAOs)) {
-            purposeDAO = purposeDAOs.get(purposeDAOs.size() - 1);
+            return purposeDAOs.get(purposeDAOs.size() - 1);
+        } else {
+            throw handleServerException(ERROR_CODE_GET_DAO, PURPOSED_DAO);
         }
-        return purposeDAO;
     }
 
     /**
@@ -507,9 +518,9 @@ public class ConsentManager {
         return UUID.randomUUID().toString();
     }
 
-    private void setPIIControllerInfo(Receipt receipt) {
+    private void setPIIControllerInfo(Receipt receipt) throws ConsentManagementServerException {
 
-        PiiController controllerInfo = piiController.getControllerInfo(receipt.getTenantDomain());
+        PiiController controllerInfo = getPIIController(piiControllers).getControllerInfo(receipt.getTenantDomain());
         List<PiiController> piiControllers = Arrays.asList(controllerInfo);
         receipt.setPiiControllers(piiControllers);
     }

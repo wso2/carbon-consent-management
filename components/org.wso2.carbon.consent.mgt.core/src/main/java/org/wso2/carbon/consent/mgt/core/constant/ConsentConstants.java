@@ -112,7 +112,8 @@ public class ConsentConstants {
         ERROR_CODE_RETRIEVE_RECEIPT_INFO("CM_000054", "Error occurred while retrieving receipt info from DB for the " +
                 "ID: %s."),
         ERROR_CODE_RETRIEVE_PURPOSE_INFO("CM_000055", "Error occurred while retrieving receipt purpose info from DB " +
-                "for the  receipt ID: %s.");
+                "for the  receipt ID: %s."),
+        ERROR_CODE_GET_DAO("CM_00056", "No %s are registered");
 
         private final String code;
         private final String message;
