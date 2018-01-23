@@ -85,11 +85,11 @@ public class ConsentManager {
 
     private static final Log log = LogFactory.getLog(ConsentManager.class);
     private static final int DEFAULT_SEARCH_LIMIT = 100;
-    private static final String PII_CONTROLLER = "piiController";
-    private static final String RECEIPT_DAO = "receiptDAO";
-    private static final String PII_CATEGORY_DAO = "piiCategoryDAO";
-    private static final String PURPOSED_CATEGORY_DAO = "purposedCategoryDAO";
-    private static final String PURPOSED_DAO = "purposedDAO";
+    private static final String PII_CONTROLLER = "piiControllers";
+    private static final String RECEIPT_DAO = "receiptDAOs";
+    private static final String PII_CATEGORY_DAO = "piiCategoryDAOs";
+    private static final String PURPOSE_CATEGORY_DAO = "purposedCategoryDAOs";
+    private static final String PURPOSE_DAO = "purposedDAOs";
     private List<PurposeDAO> purposeDAOs;
     private List<PurposeCategoryDAO> purposeCategoryDAOs;
     private List<PIICategoryDAO> piiCategoryDAOs;
@@ -477,7 +477,7 @@ public class ConsentManager {
         if (CollectionUtils.isNotEmpty(purposeCategoryDAOs)) {
             return purposeCategoryDAOs.get(purposeCategoryDAOs.size() - 1);
         } else {
-            throw handleServerException(ERROR_CODE_GET_DAO, PURPOSED_CATEGORY_DAO);
+            throw handleServerException(ERROR_CODE_GET_DAO, PURPOSE_CATEGORY_DAO);
         }
     }
 
@@ -493,7 +493,7 @@ public class ConsentManager {
         if (CollectionUtils.isNotEmpty(purposeDAOs)) {
             return purposeDAOs.get(purposeDAOs.size() - 1);
         } else {
-            throw handleServerException(ERROR_CODE_GET_DAO, PURPOSED_DAO);
+            throw handleServerException(ERROR_CODE_GET_DAO, PURPOSE_DAO);
         }
     }
 
