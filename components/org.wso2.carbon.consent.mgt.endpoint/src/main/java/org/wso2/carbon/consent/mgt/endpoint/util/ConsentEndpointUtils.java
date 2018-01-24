@@ -23,17 +23,23 @@ import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
+import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
+import org.wso2.carbon.consent.mgt.endpoint.dto.AddressDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentReceiptDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ErrorDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PIIcategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryListResponseDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PiiControllerDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeResponseDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.ServiceResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.exception.BadRequestException;
 import org.wso2.carbon.consent.mgt.endpoint.exception.ConflictRequestException;
 import org.wso2.carbon.consent.mgt.endpoint.exception.InternalServerErrorException;
@@ -263,5 +269,63 @@ public class ConsentEndpointUtils {
             return receiptServiceInput;
         }).collect(Collectors.toList()));
         return receiptInput;
+    }
+
+    /**
+     * This API is used to get ConsentReceiptDTO response.
+     * @param receipt Receipt instance.
+     * @return ConsentReceiptDTO.
+     */
+    public static ConsentReceiptDTO getConsentReceiptDTO(Receipt receipt) {
+
+        ConsentReceiptDTO consentReceiptDTO = new ConsentReceiptDTO();
+        consentReceiptDTO.setCollectionMethod(receipt.getCollectionMethod());
+        consentReceiptDTO.setConsentReceiptID(receipt.getConsentReceiptId());
+        consentReceiptDTO.setJurisdiction(receipt.getJurisdiction());
+        consentReceiptDTO.setConsentTimestamp(receipt.getConsentTimestamp());
+        consentReceiptDTO.setLanguage(receipt.getLanguage());
+        consentReceiptDTO.setPiiPrincipalId(receipt.getPiiPrincipalId());
+        consentReceiptDTO.setPolicyUrl(receipt.getPolicyUrl());
+        consentReceiptDTO.setSensitive(receipt.isSensitive());
+        consentReceiptDTO.setTenantDomain(receipt.getTenantDomain());
+        consentReceiptDTO.setVersion(receipt.getVersion());
+        consentReceiptDTO.setServices(receipt.getServices().stream().map(receiptService -> {
+            ServiceResponseDTO serviceResponseDTO = new ServiceResponseDTO();
+            serviceResponseDTO.setService(receiptService.getService());
+            serviceResponseDTO.setTenantDomain(receiptService.getTenantDomain());
+            serviceResponseDTO.setPurposes(receiptService.getPurposes().stream().map(consentPurpose -> {
+                PurposeResponseDTO purposeResponseDTO = new PurposeResponseDTO();
+                purposeResponseDTO.setConsentType(consentPurpose.getConsentType());
+                purposeResponseDTO.setPiiCategory(consentPurpose.getPiiCategory());
+                purposeResponseDTO.setPrimaryPurpose(consentPurpose.isPrimaryPurpose());
+                purposeResponseDTO.setPurpose(consentPurpose.getPurpose());
+                purposeResponseDTO.setPurposeCategory(consentPurpose.getPurposeCategory());
+                //TODO handle state/publicKey and onBehalf.
+                purposeResponseDTO.setTermination(consentPurpose.getTermination());
+                purposeResponseDTO.setThirdPartyDisclosure(consentPurpose.isThirdPartyDisclosure());
+                purposeResponseDTO.setThirdPartyName(consentPurpose.getThirdPartyName());
+                return purposeResponseDTO;
+            }).collect(Collectors.toList()));
+            return serviceResponseDTO;
+        }).collect(Collectors.toList()));
+        consentReceiptDTO.setSpiCat(receipt.getSpiCat());
+        consentReceiptDTO.setPiiControllers(receipt.getPiiControllers().stream().map(piiController -> {
+            PiiControllerDTO piiControllerDTO = new PiiControllerDTO();
+            AddressDTO addressDTO = new AddressDTO();
+            addressDTO.setAddressCountry(piiController.getAddress().getAddressCountry());
+            addressDTO.setAddressLocality(piiController.getAddress().getAddressLocality());
+            addressDTO.setAddressRegion(piiController.getAddress().getAddressRegion());
+            addressDTO.setPostalCode(piiController.getAddress().getPostalCode());
+            addressDTO.setPostOfficeBoxNumber(piiController.getAddress().getPostOfficeBoxNumber());
+            addressDTO.setStreetAddress(piiController.getAddress().getStreetAddress());
+            piiControllerDTO.setAddress(addressDTO);
+            piiControllerDTO.setContact(piiController.getContact());
+            piiControllerDTO.setEmail(piiController.getEmail());
+            piiControllerDTO.setPhone(piiController.getPhone());
+            piiControllerDTO.setPiiController(piiController.getPiiController());
+            piiControllerDTO.setPiiControllerUrl(piiController.getPiiControllerUrl());
+            return piiControllerDTO;
+        }).collect(Collectors.toList()));
+        return consentReceiptDTO;
     }
 }

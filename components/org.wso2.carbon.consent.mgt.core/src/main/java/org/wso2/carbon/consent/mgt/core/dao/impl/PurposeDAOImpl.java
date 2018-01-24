@@ -87,10 +87,6 @@ public class PurposeDAOImpl implements PurposeDAO {
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_ID, String.valueOf(id), e);
         }
-
-        if (purpose == null) {
-            throw ConsentUtils.handleClientException(ERROR_CODE_PURPOSE_ID_INVALID, String.valueOf(id));
-        }
         return purpose;
     }
 
