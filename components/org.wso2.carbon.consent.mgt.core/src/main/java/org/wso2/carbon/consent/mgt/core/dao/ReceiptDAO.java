@@ -32,6 +32,8 @@ public interface ReceiptDAO {
 
     Receipt getReceipt(String receiptId) throws ConsentManagementException;
 
+    void revokeReceipt(String receiptId) throws ConsentManagementException;
+
     List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String spTenantDomain,
-                                             String service) throws ConsentManagementException;
+                                             String service, String state) throws ConsentManagementException;
 }

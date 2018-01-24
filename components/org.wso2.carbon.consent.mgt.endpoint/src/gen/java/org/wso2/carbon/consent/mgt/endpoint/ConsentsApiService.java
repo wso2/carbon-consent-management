@@ -26,7 +26,7 @@ import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import javax.ws.rs.core.Response;
 
 public abstract class ConsentsApiService {
-    public abstract Response consentsGet(Integer limit,Integer offset,String piiPrincipalId,String spTenantDomain,String service);
+    public abstract Response consentsGet(Integer limit,Integer offset,String piiPrincipalId,String spTenantDomain,String service,String state);
     public abstract Response consentsPiiCategoriesGet(Integer limit,Integer offset);
     public abstract Response consentsPiiCategoriesPiiCategoryIdDelete(String piiCategoryId);
     public abstract Response consentsPiiCategoriesPiiCategoryIdGet(String piiCategoryId);

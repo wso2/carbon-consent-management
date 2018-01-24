@@ -45,6 +45,9 @@ public class ConsentReceiptDTO  {
   
   private String tenantDomain = null;
   
+  
+  private String state = null;
+  
   @NotNull
   private List<PiiControllerDTO> piiControllers = new ArrayList<PiiControllerDTO>();
   
@@ -179,6 +182,19 @@ public class ConsentReceiptDTO  {
 
   
   /**
+   * Current state of the receipt.
+   **/
+  @ApiModelProperty(value = "Current state of the receipt.")
+  @JsonProperty("state")
+  public String getState() {
+    return state;
+  }
+  public void setState(String state) {
+    this.state = state;
+  }
+
+  
+  /**
    * An array that contains one or more items where each item represents one PII Controller.
    **/
   @ApiModelProperty(required = true, value = "An array that contains one or more items where each item represents one PII Controller.")
@@ -258,6 +274,7 @@ public class ConsentReceiptDTO  {
     sb.append("  language: ").append(language).append("\n");
     sb.append("  piiPrincipalId: ").append(piiPrincipalId).append("\n");
     sb.append("  tenantDomain: ").append(tenantDomain).append("\n");
+    sb.append("  state: ").append(state).append("\n");
     sb.append("  piiControllers: ").append(piiControllers).append("\n");
     sb.append("  policyUrl: ").append(policyUrl).append("\n");
     sb.append("  services: ").append(services).append("\n");

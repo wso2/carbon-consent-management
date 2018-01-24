@@ -48,7 +48,7 @@ public class SQLConstants {
 
     public static final String INSERT_RECEIPT_SQL = "INSERT INTO CM_RECEIPT (CONSENT_RECEIPT_ID,VERSION, " +
             "JURISDICTION,CONSENT_TIMESTAMP,COLLECTION_METHOD,LANGUAGE,PII_PRINCIPAL_ID,PRINCIPAL_TENANT_DOMAIN, " +
-            "POLICY_URL) values (?,?,?,?,?,?,?,?,?)";
+            "POLICY_URL,STATE) values (?,?,?,?,?,?,?,?,?,?)";
     public static final String INSERT_RECEIPT_SP_ASSOC_SQL = "INSERT INTO CM_RECEIPT_SP_ASSOC (CONSENT_RECEIPT_ID, SP_NAME," +
             "SP_TENANT_DOMAIN) VALUES (?,?,?)";
     public static final String INSERT_SP_TO_PURPOSE_ASSOC_SQL = "INSERT INTO CM_SP_PURPOSE_ASSOC (RECEIPT_SP_ASSOC," +
@@ -65,7 +65,8 @@ public class SQLConstants {
             "(CONSENT_RECEIPT_ID,NAME,VALUE) VALUES (?,?,?)";
 
     public static final String GET_RECEIPT_SQL = "SELECT version,jurisdiction,consent_timestamp,collection_method," +
-            "language,pii_principal_id,principal_tenant_domain,policy_url FROM cm_receipt WHERE consent_receipt_id =?";
+            "language,pii_principal_id,principal_tenant_domain,policy_url,state FROM cm_receipt WHERE " +
+            "consent_receipt_id =?";
 
     public static final String GET_RECEIPT_SP_SQL = "SELECT ID,SP_NAME,SP_TENANT_DOMAIN  FROM CM_RECEIPT_SP_ASSOC " +
             "WHERE CONSENT_RECEIPT_ID =?";
@@ -81,7 +82,10 @@ public class SQLConstants {
             "INNER JOIN  CM_PII_CATEGORY PC ON SPC.PII_CATEGORY_ID = PC.ID WHERE SPC.SP_PURPOSE_ASSOC_ID =?";
 
     public static final String SEARCH_RECEIPT_SQL = "SELECT R.CONSENT_RECEIPT_ID, R.LANGUAGE, R.PII_PRINCIPAL_ID, R" +
-            ".PRINCIPAL_TENANT_DOMAIN from CM_RECEIPT R INNER JOIN CM_RECEIPT_SP_ASSOC RS ON R" +
-            ".CONSENT_RECEIPT_ID=RS.CONSENT_RECEIPT_ID where PII_PRINCIPAL_ID LIKE ? AND SP_NAME LIKE" +
-            " ? AND SP_TENANT_DOMAIN LIKE ? ORDER BY ID  ASC LIMIT ? OFFSET ?";
+            ".PRINCIPAL_TENANT_DOMAIN, R.STATE FROM CM_RECEIPT R INNER JOIN CM_RECEIPT_SP_ASSOC RS ON R" +
+            ".CONSENT_RECEIPT_ID=RS.CONSENT_RECEIPT_ID WHERE PII_PRINCIPAL_ID LIKE ? AND SP_NAME LIKE" +
+            " ? AND SP_TENANT_DOMAIN LIKE ? AND STATE LIKE ? ORDER BY ID  ASC LIMIT ? OFFSET ?";
+
+    public static final String REVOKE_RECEIPT_SQL = "UPDATE CM_RECEIPT SET STATE = ? WHERE CONSENT_RECEIPT_ID = ?";
+
 }

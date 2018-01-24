@@ -56,9 +56,10 @@ public class ConsentsApi  {
     @ApiParam(value = "Start index of the search.") @QueryParam("offset")  Integer offset,
     @ApiParam(value = "Subject identifier") @QueryParam("piiPrincipalId")  String piiPrincipalId,
     @ApiParam(value = "Service provider tenant domain") @QueryParam("spTenantDomain")  String spTenantDomain,
-    @ApiParam(value = "Service name") @QueryParam("service")  String service)
+    @ApiParam(value = "Service name") @QueryParam("service")  String service,
+    @ApiParam(value = "State Ex. ACTIVE/REVOKED") @QueryParam("state")  String state)
     {
-    return delegate.consentsGet(limit,offset,piiPrincipalId,spTenantDomain,service);
+    return delegate.consentsGet(limit,offset,piiPrincipalId,spTenantDomain,service,state);
     }
     @GET
     @Path("/pii-categories")

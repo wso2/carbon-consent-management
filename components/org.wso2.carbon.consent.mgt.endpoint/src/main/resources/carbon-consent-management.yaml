@@ -119,6 +119,7 @@ paths:
         - $ref: '#/parameters/piiPrincipalId'
         - $ref: '#/parameters/spTenantDomain'
         - $ref: '#/parameters/service'
+        - $ref: '#/parameters/state'
 
       responses:
         200:
@@ -861,6 +862,8 @@ definitions:
         type: 'string'
       tenantDomain:
         type: 'string'
+      state:
+        type: 'string'
 #-----------------------------------------------------
 # Consent response object
 #-----------------------------------------------------
@@ -908,6 +911,9 @@ definitions:
       tenantDomain:
         type: 'string'
         description: 'Tenant domain of the service (SP).'
+      state:
+        type: 'string'
+        description: 'Current state of the receipt.'
       piiControllers:
         type: array
         description: 'An array that contains one or more items where each item represents one PII Controller.'
@@ -1173,6 +1179,13 @@ parameters:
     name: service
     in: query
     description: Service name
+    required: false
+    type: string
+
+  state:
+    name: state
+    in: query
+    description: State Ex. ACTIVE/REVOKED
     required: false
     type: string
 

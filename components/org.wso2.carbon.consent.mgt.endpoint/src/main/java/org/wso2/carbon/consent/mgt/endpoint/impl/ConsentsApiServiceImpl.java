@@ -28,10 +28,10 @@ import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
-import org.wso2.carbon.consent.mgt.endpoint.ApiResponseMessage;
 import org.wso2.carbon.consent.mgt.endpoint.ConsentsApiService;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentReceiptDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentRequestDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PIIcategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
@@ -42,7 +42,9 @@ import org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ALREADY_EXIST;
@@ -73,10 +75,11 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsGet(Integer limit, Integer offset, String piiPrincipalId, String spTenantDomain,
-                                String service) {
+                                String service, String state) {
 
         try {
-            List<ReceiptListResponse> receipts = searchReceipts(limit, offset, piiPrincipalId, spTenantDomain, service);
+            List<ConsentResponseDTO> receipts = searchReceipts(limit, offset, piiPrincipalId, spTenantDomain,
+                    service, state);
             return Response.ok().entity(receipts).build();
         } catch (ConsentManagementClientException e) {
             return handleBadRequestResponse(e);
@@ -299,8 +302,17 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsReceiptsReceiptIdDelete(String receiptId) {
-        // do some magic!
-        return Response.ok().entity(new ApiResponseMessage(ApiResponseMessage.OK, "magic!")).build();
+
+        try {
+            getConsentManager().revokeReceipt(receiptId);
+            return Response.ok().build();
+        } catch (ConsentManagementClientException e) {
+            return handleBadRequestResponse(e);
+        } catch (ConsentManagementException e) {
+            return handleServerErrorResponse(e);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable);
+        }
     }
 
     @Override
@@ -319,8 +331,8 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
         }
     }
 
-    private List<ReceiptListResponse> searchReceipts(Integer limit, Integer offset, String piiPrincipalId, String
-            spTenantDomain, String service) throws ConsentManagementException {
+    private List<ConsentResponseDTO> searchReceipts(Integer limit, Integer offset, String piiPrincipalId, String
+            spTenantDomain, String service, String state) throws ConsentManagementException {
 
         if (limit == null) {
             limit = 0;
@@ -329,7 +341,21 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
         if (offset == null) {
             offset = 0;
         }
-        return getConsentManager().searchReceipts(limit, offset, piiPrincipalId, spTenantDomain, service);
+        List<ReceiptListResponse> receiptListResponses = getConsentManager().searchReceipts(limit, offset,
+                piiPrincipalId, spTenantDomain, service, state);
+        if (receiptListResponses == null) {
+            return new ArrayList<>();
+        }
+
+        return receiptListResponses.stream().map(receiptListResponse -> {
+            ConsentResponseDTO consentResponseDTO = new ConsentResponseDTO();
+            consentResponseDTO.setConsentReceiptID(receiptListResponse.getConsentReceiptId());
+            consentResponseDTO.setLanguage(receiptListResponse.getLanguage());
+            consentResponseDTO.setPiiPrincipalId(receiptListResponse.getPiiPrincipalId());
+            consentResponseDTO.setTenantDomain(receiptListResponse.getTenantDomain());
+            consentResponseDTO.setState(receiptListResponse.getState());
+            return consentResponseDTO;
+        }).collect(Collectors.toList());
     }
 
     private Response handleBadRequestResponse(ConsentManagementClientException e) {

@@ -27,13 +27,16 @@ public class ReceiptListResponse {
     private String language;
     private String piiPrincipalId;
     private String tenantDomain;
+    private String state;
 
-    public ReceiptListResponse(String consentReceiptId, String language, String piiPrincipalId, String tenantDomain) {
+    public ReceiptListResponse(String consentReceiptId, String language, String piiPrincipalId, String tenantDomain,
+                               String state) {
 
         this.consentReceiptId = consentReceiptId;
         this.language = language;
         this.piiPrincipalId = piiPrincipalId;
         this.tenantDomain = tenantDomain;
+        this.state = state;
     }
 
     public String getConsentReceiptId() {
@@ -74,5 +77,15 @@ public class ReceiptListResponse {
     public void setTenantDomain(String tenantDomain) {
 
         this.tenantDomain = tenantDomain;
+    }
+
+    public String getState() {
+
+        return state;
+    }
+
+    public void setState(String state) {
+
+        this.state = state;
     }
 }
