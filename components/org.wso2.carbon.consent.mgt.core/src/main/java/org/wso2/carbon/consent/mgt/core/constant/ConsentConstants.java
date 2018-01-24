@@ -36,6 +36,8 @@ public class ConsentConstants {
     public static final String PURPOSE_CATEGORY_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "purpose-categories";
     public static final String PII_CATEGORY_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "pii-categories";
     public static final String API_VERSION = "KI-CR-v1.1.0";
+    public static final String REVOKE_STATE = "REVOKED";
+    public static final String ACTIVE_STATE = "ACTIVE";
 
     public enum ErrorMessages {
         ERROR_CODE_DATABASE_CONNECTION("CM_00001", "Error when getting a database connection object from the Identity" +
@@ -114,7 +116,8 @@ public class ConsentConstants {
         ERROR_CODE_RETRIEVE_PURPOSE_INFO("CM_000055", "Error occurred while retrieving receipt purpose info from DB " +
                 "for the  receipt ID: %s."),
         ERROR_CODE_GET_DAO("CM_00056", "No %s are registered."),
-        ERROR_CODE_SEARCH_RECEIPTS("CM_00057", "Error while searching receipts.");
+        ERROR_CODE_SEARCH_RECEIPTS("CM_00057", "Error while searching receipts."),
+        ERROR_CODE_REVOKE_RECEIPT("CM_00058", "Error while revoking receipt: %s.");
 
 
         private final String code;

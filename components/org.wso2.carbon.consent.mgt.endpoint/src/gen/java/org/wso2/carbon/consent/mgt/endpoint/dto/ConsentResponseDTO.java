@@ -25,6 +25,9 @@ public class ConsentResponseDTO  {
   
   @NotNull
   private String tenantDomain = null;
+  
+  
+  private String state = null;
 
   
   /**
@@ -75,6 +78,18 @@ public class ConsentResponseDTO  {
   }
 
   
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("state")
+  public String getState() {
+    return state;
+  }
+  public void setState(String state) {
+    this.state = state;
+  }
+
+  
 
   @Override
   public String toString()  {
@@ -85,6 +100,7 @@ public class ConsentResponseDTO  {
     sb.append("  language: ").append(language).append("\n");
     sb.append("  piiPrincipalId: ").append(piiPrincipalId).append("\n");
     sb.append("  tenantDomain: ").append(tenantDomain).append("\n");
+    sb.append("  state: ").append(state).append("\n");
     sb.append("}\n");
     return sb.toString();
   }

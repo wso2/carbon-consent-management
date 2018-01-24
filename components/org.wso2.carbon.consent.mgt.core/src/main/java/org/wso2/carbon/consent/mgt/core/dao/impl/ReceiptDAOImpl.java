@@ -18,6 +18,7 @@ package org.wso2.carbon.consent.mgt.core.dao.impl;
 
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
+import org.wso2.carbon.consent.mgt.core.dao.QueryFilter;
 import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
@@ -33,6 +34,8 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -40,6 +43,7 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import static java.time.ZoneOffset.UTC;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_SP_SQL;
@@ -51,6 +55,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECE
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_PURPOSE_TO_PII_CAT_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_PURPOSE_TO_PURPOSE_CAT_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_TO_PURPOSE_ASSOC_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.REVOKE_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrowConsumer;
 
@@ -114,6 +119,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 receiptInfo.setPiiPrincipalId(resultSet.getString(6));
                 receiptInfo.setTenantDomain(resultSet.getString(7));
                 receiptInfo.setPolicyUrl(resultSet.getString(8));
+                receiptInfo.setState(resultSet.getString(9));
                 return receiptInfo;
             }, preparedStatement -> preparedStatement.setString(1, receiptId));
 
@@ -127,8 +133,21 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     }
 
     @Override
+    public void revokeReceipt(String receiptId) throws ConsentManagementException {
+        try {
+            jdbcTemplate.executeUpdate(REVOKE_RECEIPT_SQL, preparedStatement -> {
+                preparedStatement.setString(1, ConsentConstants.REVOKE_STATE);
+                preparedStatement.setString(2, receiptId);
+            });
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_REVOKE_RECEIPT,
+                    receiptId, e);
+        }
+    }
+
+    @Override
     public List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String
-            spTenantDomain, String service) throws ConsentManagementException {
+            spTenantDomain, String service, String state) throws ConsentManagementException {
 
         List<ReceiptListResponse> receiptListResponses;
         try {
@@ -148,20 +167,26 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 service = service.replaceAll(QUERY_FILTER_STRING_ANY_ESCAPED, SQL_FILTER_STRING_ANY);
             }
 
+            if (state == null) {
+                state = SQL_FILTER_STRING_ANY;
+            }
+
             String finalPiiPrincipalId = piiPrincipalId;
             String finalSpTenantDomain = spTenantDomain;
             String finalService = service;
-
+            String finalState = state;
             receiptListResponses = jdbcTemplate.executeQuery(SEARCH_RECEIPT_SQL, (resultSet, rowNumber) ->
                             new ReceiptListResponse(resultSet.getString(1), resultSet
-                                    .getString(2), resultSet.getString(3), resultSet.getString(4)),
+                                    .getString(2), resultSet.getString(3), resultSet.getString(4), resultSet
+                                    .getString(5)),
                     preparedStatement -> {
 
                         preparedStatement.setString(1, finalPiiPrincipalId);
                         preparedStatement.setString(2, finalService);
                         preparedStatement.setString(3, finalSpTenantDomain);
-                        preparedStatement.setInt(4, limit);
-                        preparedStatement.setInt(5, offset);
+                        preparedStatement.setString(4, finalState);
+                        preparedStatement.setInt(5, limit);
+                        preparedStatement.setInt(6, offset);
                     });
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_SEARCH_RECEIPTS,
@@ -193,6 +218,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 preparedStatement.setString(8, receiptInput.getTenantDomain() != null ?
                         receiptInput.getTenantDomain() : MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
                 preparedStatement.setString(9, receiptInput.getPolicyUrl());
+                preparedStatement.setString(10, ConsentConstants.ACTIVE_STATE);
 
             }), receiptInput, false);
         } catch (DataAccessException e) {

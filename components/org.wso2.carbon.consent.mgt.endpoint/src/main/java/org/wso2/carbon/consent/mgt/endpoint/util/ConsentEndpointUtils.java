@@ -287,6 +287,7 @@ public class ConsentEndpointUtils {
         consentReceiptDTO.setSensitive(receipt.isSensitive());
         consentReceiptDTO.setTenantDomain(receipt.getTenantDomain());
         consentReceiptDTO.setVersion(receipt.getVersion());
+        consentReceiptDTO.setState(receipt.getState());
         consentReceiptDTO.setServices(receipt.getServices().stream().map(receiptService -> {
             ServiceResponseDTO serviceResponseDTO = new ServiceResponseDTO();
             serviceResponseDTO.setService(receiptService.getService());

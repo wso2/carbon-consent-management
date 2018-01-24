@@ -422,6 +422,12 @@ public class ConsentManager {
                 receiptInput.getLanguage(), receiptInput.getPiiPrincipalId(), receiptInput.getTenantDomain());
     }
 
+    /**
+     * This API is used to retrieve the consent receipt.
+     * @param receiptId Receipt Id.
+     * @return Consent Receipt.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
     public Receipt getReceipt(String receiptId) throws ConsentManagementException {
 
         Receipt receipt = getReceiptsDAO(receiptDAOs).getReceipt(receiptId);
@@ -429,8 +435,18 @@ public class ConsentManager {
         return receipt;
     }
 
+    /**
+     * This API is used to search receipts.
+     * @param limit No of search results.
+     * @param offset start index of the search.
+     * @param piiPrincipalId PII principal Id.
+     * @param spTenantDomain SP tenant domain.
+     * @param service Service name.
+     * @return List of Receipts details.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
     public List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String spTenantDomain,
-                                                    String service) throws ConsentManagementException {
+                                                    String service, String state) throws ConsentManagementException {
 
         validatePaginationParameters(limit, offset);
         if (limit == 0) {
@@ -439,8 +455,19 @@ public class ConsentManager {
                 log.debug("Limit is not defied the request, default to: " + limit);
             }
         }
-        return getReceiptsDAO(receiptDAOs).searchReceipts(limit, offset, piiPrincipalId, spTenantDomain, service);
+        return getReceiptsDAO(receiptDAOs).searchReceipts(limit, offset, piiPrincipalId, spTenantDomain, service, state);
     }
+
+    /**
+     * This API is used to revoke a given receipt.
+     * @param receiptId Receipt Id.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    public void revokeReceipt(String receiptId) throws ConsentManagementException {
+
+       getReceiptsDAO(receiptDAOs).revokeReceipt(receiptId);
+    }
+
 
     /**
      * This API is used to select the PIIController from List of registered PIIController. By default set the highest
