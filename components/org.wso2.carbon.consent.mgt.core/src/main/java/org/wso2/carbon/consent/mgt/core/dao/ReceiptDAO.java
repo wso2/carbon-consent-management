@@ -17,8 +17,12 @@
 package org.wso2.carbon.consent.mgt.core.dao;
 
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
+
+import java.util.List;
 
 public interface ReceiptDAO {
 
@@ -27,4 +31,7 @@ public interface ReceiptDAO {
     void addReceipt(ReceiptInput receiptInput) throws ConsentManagementException;
 
     Receipt getReceipt(String receiptId) throws ConsentManagementException;
+
+    List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String spTenantDomain,
+                                             String service) throws ConsentManagementException;
 }

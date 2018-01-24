@@ -25,12 +25,6 @@ public class ConsentResponseDTO  {
   
   @NotNull
   private String tenantDomain = null;
-  
-  
-  private String next = null;
-  
-  
-  private String previous = null;
 
   
   /**
@@ -81,30 +75,6 @@ public class ConsentResponseDTO  {
   }
 
   
-  /**
-   **/
-  @ApiModelProperty(value = "")
-  @JsonProperty("next")
-  public String getNext() {
-    return next;
-  }
-  public void setNext(String next) {
-    this.next = next;
-  }
-
-  
-  /**
-   **/
-  @ApiModelProperty(value = "")
-  @JsonProperty("previous")
-  public String getPrevious() {
-    return previous;
-  }
-  public void setPrevious(String previous) {
-    this.previous = previous;
-  }
-
-  
 
   @Override
   public String toString()  {
@@ -115,8 +85,6 @@ public class ConsentResponseDTO  {
     sb.append("  language: ").append(language).append("\n");
     sb.append("  piiPrincipalId: ").append(piiPrincipalId).append("\n");
     sb.append("  tenantDomain: ").append(tenantDomain).append("\n");
-    sb.append("  next: ").append(next).append("\n");
-    sb.append("  previous: ").append(previous).append("\n");
     sb.append("}\n");
     return sb.toString();
   }

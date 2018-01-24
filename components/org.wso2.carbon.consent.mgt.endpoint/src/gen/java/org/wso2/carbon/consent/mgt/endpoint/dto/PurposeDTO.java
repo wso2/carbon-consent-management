@@ -39,9 +39,6 @@ public class PurposeDTO  {
   
   @NotNull
   private String thirdPartyName = null;
-  
-  
-  private String state = null;
 
   
   /**
@@ -148,19 +145,6 @@ public class PurposeDTO  {
   }
 
   
-  /**
-   * State of the consent. This represents whether the consent is ACTIVE or REVOKED.
-   **/
-  @ApiModelProperty(value = "State of the consent. This represents whether the consent is ACTIVE or REVOKED.")
-  @JsonProperty("state")
-  public String getState() {
-    return state;
-  }
-  public void setState(String state) {
-    this.state = state;
-  }
-
-  
 
   @Override
   public String toString()  {
@@ -175,7 +159,6 @@ public class PurposeDTO  {
     sb.append("  termination: ").append(termination).append("\n");
     sb.append("  thirdPartyDisclosure: ").append(thirdPartyDisclosure).append("\n");
     sb.append("  thirdPartyName: ").append(thirdPartyName).append("\n");
-    sb.append("  state: ").append(state).append("\n");
     sb.append("}\n");
     return sb.toString();
   }

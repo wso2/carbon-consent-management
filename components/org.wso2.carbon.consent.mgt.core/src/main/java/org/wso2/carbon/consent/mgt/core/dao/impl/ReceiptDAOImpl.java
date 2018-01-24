@@ -26,6 +26,7 @@ import org.wso2.carbon.consent.mgt.core.model.ConsentPurpose;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptContext;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptService;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
@@ -50,6 +51,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECE
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_PURPOSE_TO_PII_CAT_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_PURPOSE_TO_PURPOSE_CAT_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_TO_PURPOSE_ASSOC_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrowConsumer;
 
 /**
@@ -58,6 +60,9 @@ import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrow
 public class ReceiptDAOImpl implements ReceiptDAO {
 
     private final JdbcTemplate jdbcTemplate;
+    private static final String SQL_FILTER_STRING_ANY = "%";
+    private static final String QUERY_FILTER_STRING_ANY = "*";
+    private static final String QUERY_FILTER_STRING_ANY_ESCAPED = "\\*";
 
     public ReceiptDAOImpl(JdbcTemplate jdbcTemplate) {
 
@@ -119,6 +124,50 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
                     String.valueOf(receiptId), e);
         }
+    }
+
+    @Override
+    public List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String
+            spTenantDomain, String service) throws ConsentManagementException {
+
+        List<ReceiptListResponse> receiptListResponses;
+        try {
+            if (piiPrincipalId == null) {
+                piiPrincipalId = SQL_FILTER_STRING_ANY;
+            } else if (piiPrincipalId.contains(QUERY_FILTER_STRING_ANY)) {
+                piiPrincipalId = piiPrincipalId.replaceAll(QUERY_FILTER_STRING_ANY_ESCAPED, SQL_FILTER_STRING_ANY);
+            }
+
+            if (spTenantDomain == null) {
+                spTenantDomain = SQL_FILTER_STRING_ANY;
+            }
+
+            if (service == null) {
+                service = SQL_FILTER_STRING_ANY;
+            } else if (service.contains(QUERY_FILTER_STRING_ANY)) {
+                service = service.replaceAll(QUERY_FILTER_STRING_ANY_ESCAPED, SQL_FILTER_STRING_ANY);
+            }
+
+            String finalPiiPrincipalId = piiPrincipalId;
+            String finalSpTenantDomain = spTenantDomain;
+            String finalService = service;
+
+            receiptListResponses = jdbcTemplate.executeQuery(SEARCH_RECEIPT_SQL, (resultSet, rowNumber) ->
+                            new ReceiptListResponse(resultSet.getString(1), resultSet
+                                    .getString(2), resultSet.getString(3), resultSet.getString(4)),
+                    preparedStatement -> {
+
+                        preparedStatement.setString(1, finalPiiPrincipalId);
+                        preparedStatement.setString(2, finalService);
+                        preparedStatement.setString(3, finalSpTenantDomain);
+                        preparedStatement.setInt(4, limit);
+                        preparedStatement.setInt(5, offset);
+                    });
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_SEARCH_RECEIPTS,
+                    piiPrincipalId, e);
+        }
+        return receiptListResponses;
     }
 
     protected void setReceiptSensitivity(ReceiptContext receiptContext, Receipt receipt) {
