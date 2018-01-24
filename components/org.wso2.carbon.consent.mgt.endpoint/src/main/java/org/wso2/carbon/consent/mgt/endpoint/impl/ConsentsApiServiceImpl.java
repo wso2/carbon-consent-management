@@ -27,6 +27,7 @@ import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.consent.mgt.endpoint.ApiResponseMessage;
 import org.wso2.carbon.consent.mgt.endpoint.ConsentsApiService;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentReceiptDTO;
@@ -72,9 +73,18 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
     @Override
     public Response consentsGet(Integer limit, Integer offset, String piiPrincipalId, String spTenantDomain,
-                                String service, String state, String collectionMethod, String piiCategoryId) {
+                                String service) {
 
-        return null;
+        try {
+            List<ReceiptListResponse> receipts = searchReceipts(limit, offset, piiPrincipalId, spTenantDomain, service);
+            return Response.ok().entity(receipts).build();
+        } catch (ConsentManagementClientException e) {
+            return handleBadRequestResponse(e);
+        } catch (ConsentManagementException e) {
+            return handleServerErrorResponse(e);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable);
+        }
     }
 
     @Override
@@ -307,6 +317,19 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
         } catch (Throwable throwable) {
             return handleUnexpectedServerError(throwable);
         }
+    }
+
+    private List<ReceiptListResponse> searchReceipts(Integer limit, Integer offset, String piiPrincipalId, String
+            spTenantDomain, String service) throws ConsentManagementException {
+
+        if (limit == null) {
+            limit = 0;
+        }
+
+        if (offset == null) {
+            offset = 0;
+        }
+        return getConsentManager().searchReceipts(limit, offset, piiPrincipalId, spTenantDomain, service);
     }
 
     private Response handleBadRequestResponse(ConsentManagementClientException e) {

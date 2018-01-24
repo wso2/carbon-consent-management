@@ -35,6 +35,7 @@ import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
@@ -164,7 +165,7 @@ public class ConsentManager {
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
             if (log.isDebugEnabled()) {
-                log.debug("Limit is not defied the request, default to :" + limit);
+                log.debug("Limit is not defied the request, default to: " + limit);
             }
         }
         return getPurposeDAO(purposeDAOs).listPurposes(limit, offset);
@@ -263,7 +264,7 @@ public class ConsentManager {
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
             if (log.isDebugEnabled()) {
-                log.debug("Limit is not defied the request, default to :" + limit);
+                log.debug("Limit is not defied the request, default to: " + limit);
             }
         }
         return getPurposeCategoryDAO(purposeCategoryDAOs).listPurposeCategories(limit, offset);
@@ -361,7 +362,7 @@ public class ConsentManager {
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
             if (log.isDebugEnabled()) {
-                log.debug("Limit is not defied the request, default to :" + limit);
+                log.debug("Limit is not defied the request, default to: " + limit);
             }
         }
         return getPiiCategoryDAO(piiCategoryDAOs).listPIICategories(limit, offset);
@@ -426,6 +427,19 @@ public class ConsentManager {
         Receipt receipt = getReceiptsDAO(receiptDAOs).getReceipt(receiptId);
         setPIIControllerInfo(receipt);
         return receipt;
+    }
+
+    public List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String spTenantDomain,
+                                                    String service) throws ConsentManagementException {
+
+        validatePaginationParameters(limit, offset);
+        if (limit == 0) {
+            limit = getDefaultLimitFromConfig();
+            if (log.isDebugEnabled()) {
+                log.debug("Limit is not defied the request, default to: " + limit);
+            }
+        }
+        return getReceiptsDAO(receiptDAOs).searchReceipts(limit, offset, piiPrincipalId, spTenantDomain, service);
     }
 
     /**

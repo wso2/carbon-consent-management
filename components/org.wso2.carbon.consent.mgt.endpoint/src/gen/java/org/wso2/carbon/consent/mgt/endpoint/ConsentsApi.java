@@ -56,12 +56,9 @@ public class ConsentsApi  {
     @ApiParam(value = "Start index of the search.") @QueryParam("offset")  Integer offset,
     @ApiParam(value = "Subject identifier") @QueryParam("piiPrincipalId")  String piiPrincipalId,
     @ApiParam(value = "Service provider tenant domain") @QueryParam("spTenantDomain")  String spTenantDomain,
-    @ApiParam(value = "Service name") @QueryParam("service")  String service,
-    @ApiParam(value = "State of the consent. This represents whether the consent is ACTIVE or REVOKED.") @QueryParam("state")  String state,
-    @ApiParam(value = "Collection method of the consent.") @QueryParam("collectionMethod")  String collectionMethod,
-    @ApiParam(value = "ID of PII Category that will be shared as understood by the PII Principal.") @QueryParam("piiCategoryId")  String piiCategoryId)
+    @ApiParam(value = "Service name") @QueryParam("service")  String service)
     {
-    return delegate.consentsGet(limit,offset,piiPrincipalId,spTenantDomain,service,state,collectionMethod,piiCategoryId);
+    return delegate.consentsGet(limit,offset,piiPrincipalId,spTenantDomain,service);
     }
     @GET
     @Path("/pii-categories")

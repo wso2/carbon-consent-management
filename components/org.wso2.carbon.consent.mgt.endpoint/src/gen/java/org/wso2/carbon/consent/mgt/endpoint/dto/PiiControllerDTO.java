@@ -31,7 +31,7 @@ public class PiiControllerDTO  {
   private String phone = null;
   
   
-  private String onBehalf = null;
+  private Boolean onBehalf = null;
   
   
   private String piiControllerUrl = null;
@@ -106,10 +106,10 @@ public class PiiControllerDTO  {
    **/
   @ApiModelProperty(value = "A PII Processor acting on behalf of a PII Controller or PII Processor. For example, a third-party analytics service would be a PII Processor on behalf of the PII Controller, or a site operator acting on behalf of the PII Controller.")
   @JsonProperty("onBehalf")
-  public String getOnBehalf() {
+  public Boolean getOnBehalf() {
     return onBehalf;
   }
-  public void setOnBehalf(String onBehalf) {
+  public void setOnBehalf(Boolean onBehalf) {
     this.onBehalf = onBehalf;
   }
 

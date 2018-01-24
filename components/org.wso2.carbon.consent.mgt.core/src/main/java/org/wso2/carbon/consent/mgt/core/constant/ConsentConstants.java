@@ -113,7 +113,9 @@ public class ConsentConstants {
                 "ID: %s."),
         ERROR_CODE_RETRIEVE_PURPOSE_INFO("CM_000055", "Error occurred while retrieving receipt purpose info from DB " +
                 "for the  receipt ID: %s."),
-        ERROR_CODE_GET_DAO("CM_00056", "No %s are registered");
+        ERROR_CODE_GET_DAO("CM_00056", "No %s are registered."),
+        ERROR_CODE_SEARCH_RECEIPTS("CM_00057", "Error while searching receipts.");
+
 
         private final String code;
         private final String message;
@@ -155,5 +157,6 @@ public class ConsentConstants {
         public static final String piiControllerEmailElement = "PIIController.Email";
         public static final String piiControllerOnBehalfElement = "PIIController.OnBehalf";
         public static final String piiControllerUrlElement = "PIIController.PiiControllerUrl";
+        public static final String piiControllerPublicKeyElement = "PIIController.PublicKey";
     }
 }

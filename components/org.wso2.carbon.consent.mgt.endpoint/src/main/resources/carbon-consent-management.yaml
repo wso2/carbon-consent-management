@@ -119,9 +119,6 @@ paths:
         - $ref: '#/parameters/piiPrincipalId'
         - $ref: '#/parameters/spTenantDomain'
         - $ref: '#/parameters/service'
-        - $ref: '#/parameters/state'
-        - $ref: '#/parameters/collectionMethod'
-        - $ref: '#/parameters/piiCategoryId'
 
       responses:
         200:
@@ -864,10 +861,6 @@ definitions:
         type: 'string'
       tenantDomain:
         type: 'string'
-      next:
-        type: 'string'
-      previous:
-        type: 'string'
 #-----------------------------------------------------
 # Consent response object
 #-----------------------------------------------------
@@ -1012,9 +1005,6 @@ definitions:
       thirdPartyName:
         type: 'string'
         description: 'The name or names of the third party to which the PII Processor may disclose the PII.'
-      state:
-        type: 'string'
-        description: 'State of the consent. This represents whether the consent is ACTIVE or REVOKED.'
 
 
 #-----------------------------------------------------
@@ -1057,9 +1047,6 @@ definitions:
       thirdPartyName:
         type: 'string'
         description: 'The name or names of the third party to which the PII Processor may disclose the PII.'
-      state:
-        type: 'string'
-        description: 'State of the consent. This represents whether the consent is ACTIVE or REVOKED.'
 
 #-----------------------------------------------------
 # The Purpose List response object
@@ -1151,7 +1138,7 @@ definitions:
         type: 'string'
         description: 'Contact phone number of the PII Controller. The business phone number to contact the PII Controller regarding the consent.'
       onBehalf:
-        type: 'string'
+        type: 'boolean'
         description: 'A PII Processor acting on behalf of a PII Controller or PII Processor. For example, a third-party analytics service would be a PII Processor on behalf of the PII Controller, or a site operator acting on behalf of the PII Controller.'
       piiControllerUrl:
         type: 'string'
@@ -1181,13 +1168,6 @@ parameters:
     description: Start index of the search.
     required: false
     type: integer
-
-  state:
-    name: state
-    in: query
-    description: State of the consent. This represents whether the consent is ACTIVE or REVOKED.
-    required: false
-    type: string
 
   service:
     name: service

@@ -34,6 +34,7 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.ErrorDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PIIcategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PiiControllerDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PropertyDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeListResponseDTO;
@@ -46,7 +47,6 @@ import org.wso2.carbon.consent.mgt.endpoint.exception.InternalServerErrorExcepti
 import org.wso2.carbon.consent.mgt.endpoint.exception.NotFoundException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -244,11 +244,8 @@ public class ConsentEndpointUtils {
         receiptInput.setLanguage(consent.getLanguage());
         receiptInput.setPolicyUrl(consent.getPolicyURL());
 
-        Map<String, String> properties = new HashMap<>();
-        consent.getProperties().forEach(propertyDTO -> {
-            properties.put(propertyDTO.getKey(), propertyDTO.getValue());
-        });
-        receiptInput.setProperties(properties);
+        receiptInput.setProperties(consent.getProperties().stream().collect(Collectors.toMap(PropertyDTO::getKey,
+                PropertyDTO::getValue)));
 
         receiptInput.setServices(consent.getServices().stream().map(serviceDTO -> {
             ReceiptServiceInput receiptServiceInput = new ReceiptServiceInput();
@@ -273,6 +270,7 @@ public class ConsentEndpointUtils {
 
     /**
      * This API is used to get ConsentReceiptDTO response.
+     *
      * @param receipt Receipt instance.
      * @return ConsentReceiptDTO.
      */
@@ -300,7 +298,6 @@ public class ConsentEndpointUtils {
                 purposeResponseDTO.setPrimaryPurpose(consentPurpose.isPrimaryPurpose());
                 purposeResponseDTO.setPurpose(consentPurpose.getPurpose());
                 purposeResponseDTO.setPurposeCategory(consentPurpose.getPurposeCategory());
-                //TODO handle state/publicKey and onBehalf.
                 purposeResponseDTO.setTermination(consentPurpose.getTermination());
                 purposeResponseDTO.setThirdPartyDisclosure(consentPurpose.isThirdPartyDisclosure());
                 purposeResponseDTO.setThirdPartyName(consentPurpose.getThirdPartyName());
@@ -312,6 +309,7 @@ public class ConsentEndpointUtils {
         consentReceiptDTO.setPiiControllers(receipt.getPiiControllers().stream().map(piiController -> {
             PiiControllerDTO piiControllerDTO = new PiiControllerDTO();
             AddressDTO addressDTO = new AddressDTO();
+            consentReceiptDTO.setPublicKey(piiController.getPublicKey());
             addressDTO.setAddressCountry(piiController.getAddress().getAddressCountry());
             addressDTO.setAddressLocality(piiController.getAddress().getAddressLocality());
             addressDTO.setAddressRegion(piiController.getAddress().getAddressRegion());
@@ -324,6 +322,7 @@ public class ConsentEndpointUtils {
             piiControllerDTO.setPhone(piiController.getPhone());
             piiControllerDTO.setPiiController(piiController.getPiiController());
             piiControllerDTO.setPiiControllerUrl(piiController.getPiiControllerUrl());
+            piiControllerDTO.setOnBehalf(piiController.isOnBehalf());
             return piiControllerDTO;
         }).collect(Collectors.toList()));
         return consentReceiptDTO;
