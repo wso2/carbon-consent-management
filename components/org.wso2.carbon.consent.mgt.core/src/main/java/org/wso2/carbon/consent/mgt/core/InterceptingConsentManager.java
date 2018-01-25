@@ -18,9 +18,10 @@
 
 package org.wso2.carbon.consent.mgt.core;
 
+import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerConfiguration;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
+import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
@@ -36,10 +37,13 @@ import java.util.List;
 public class InterceptingConsentManager implements ConsentManager {
 
     private ConsentManager consentManager;
+    List<ConsentMgtInterceptor> consentMgtInterceptors;
 
-    public InterceptingConsentManager(ConsentManagerConfiguration configuration) {
+    public InterceptingConsentManager(ConsentManagerConfigurationHolder configHolder, List<ConsentMgtInterceptor>
+            consentMgtInterceptors) {
 
-        consentManager = new ConsentManagerImpl(configuration);
+        consentManager = new ConsentManagerImpl(configHolder);
+        this.consentMgtInterceptors = consentMgtInterceptors;
     }
 
     public Purpose addPurpose(Purpose purpose) throws ConsentManagementException {

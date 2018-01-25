@@ -40,6 +40,7 @@ import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeCategoryDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.ReceiptDAOImpl;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementRuntimeException;
+import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -68,6 +69,7 @@ public class ConsentManagerComponent {
     private List<PurposeCategoryDAO> purposeCategoryDAOs = new ArrayList<>();
     private List<ReceiptDAO> receiptDAOs = new ArrayList<>();
     private List<ConsentMgtInterceptor> consentMgtInterceptors = new ArrayList<>();
+    private RealmService realmService;
 
     /**
      * Register ConsentManager as an OSGi service.
@@ -89,17 +91,17 @@ public class ConsentManagerComponent {
             bundleContext.registerService(PIICategoryDAO.class.getName(), new PIICategoryDAOImpl(jdbcTemplate), null);
             bundleContext.registerService(PurposeCategoryDAO.class.getName(), new PurposeCategoryDAOImpl(jdbcTemplate), null);
 
-            ConsentManagerConfiguration configurations = new ConsentManagerConfiguration();
-            configurations.setPurposeDAOs(purposeDAOs);
-            configurations.setPurposeCategoryDAOs(purposeCategoryDAOs);
-            configurations.setPiiCategoryDAOs(piiCategoryDAOs);
-            configurations.setReceiptDAOs(receiptDAOs);
-            configurations.setConfigParser(configParser);
-            configurations.setPiiControllers(piiControllers);
-            configurations.setConsentMgtInterceptors(consentMgtInterceptors);
+            ConsentManagerConfigurationHolder configHolder = new ConsentManagerConfigurationHolder();
+            configHolder.setPurposeDAOs(purposeDAOs);
+            configHolder.setPurposeCategoryDAOs(purposeCategoryDAOs);
+            configHolder.setPiiCategoryDAOs(piiCategoryDAOs);
+            configHolder.setReceiptDAOs(receiptDAOs);
+            configHolder.setConfigParser(configParser);
+            configHolder.setPiiControllers(piiControllers);
+            configHolder.setRealmService(realmService);
 
             bundleContext.registerService(InterceptingConsentManager.class.getName(), new InterceptingConsentManager
-                    (configurations), null);
+                    (configHolder, consentMgtInterceptors), null);
             log.info("ConsentManagerComponent is activated.");
         } catch (Throwable e) {
             log.error("Error while activating ConsentManagerComponent.", e);
@@ -116,6 +118,7 @@ public class ConsentManagerComponent {
     )
     protected void setRealmService(RealmService realmService) {
 
+        this.realmService = realmService;
         if (realmService != null && log.isDebugEnabled()) {
             log.debug("RealmService is registered in ConsentManager service.");
         }
@@ -126,6 +129,7 @@ public class ConsentManagerComponent {
         if (log.isDebugEnabled()) {
             log.debug("RealmService is unregistered in ConsentManager service.");
         }
+        this.realmService = null;
     }
 
     @Reference(

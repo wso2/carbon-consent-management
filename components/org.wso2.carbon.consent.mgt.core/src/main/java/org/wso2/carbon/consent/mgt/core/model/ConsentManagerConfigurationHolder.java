@@ -1,32 +1,34 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *   Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
  */
 
-package org.wso2.carbon.consent.mgt.core.internal;
+package org.wso2.carbon.consent.mgt.core.model;
 
-import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
 import org.wso2.carbon.consent.mgt.core.connector.PIIController;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
 import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.List;
 
-public class ConsentManagerConfiguration {
+public class ConsentManagerConfigurationHolder {
 
     private List<PurposeDAO> purposeDAOs;
     private List<PurposeCategoryDAO> purposeCategoryDAOs;
@@ -34,7 +36,7 @@ public class ConsentManagerConfiguration {
     private List<ReceiptDAO> receiptDAOs;
     private ConsentConfigParser configParser;
     private List<PIIController> piiControllers;
-    private List<ConsentMgtInterceptor> consentMgtInterceptors;
+    private RealmService realmService;
 
     public List<PurposeDAO> getPurposeDAOs() {
 
@@ -96,13 +98,13 @@ public class ConsentManagerConfiguration {
         this.piiControllers = piiControllers;
     }
 
-    public List<ConsentMgtInterceptor> getConsentMgtInterceptors() {
+    public RealmService getRealmService() {
 
-        return consentMgtInterceptors;
+        return realmService;
     }
 
-    public void setConsentMgtInterceptors(List<ConsentMgtInterceptor> consentMgtInterceptors) {
+    public void setRealmService(RealmService realmService) {
 
-        this.consentMgtInterceptors = consentMgtInterceptors;
+        this.realmService = realmService;
     }
 }
