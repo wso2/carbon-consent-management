@@ -29,7 +29,7 @@ import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
-import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerConfiguration;
+import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PiiController;
@@ -101,14 +101,14 @@ public class ConsentManagerImpl implements ConsentManager {
     private ConsentConfigParser configParser;
     private List<PIIController> piiControllers;
 
-    public ConsentManagerImpl(ConsentManagerConfiguration configuration) {
+    public ConsentManagerImpl(ConsentManagerConfigurationHolder configHolder) {
 
-        purposeDAOs = configuration.getPurposeDAOs();
-        purposeCategoryDAOs = configuration.getPurposeCategoryDAOs();
-        piiCategoryDAOs = configuration.getPiiCategoryDAOs();
-        receiptDAOs = configuration.getReceiptDAOs();
-        piiControllers = configuration.getPiiControllers();
-        configParser = configuration.getConfigParser();
+        purposeDAOs = configHolder.getPurposeDAOs();
+        purposeCategoryDAOs = configHolder.getPurposeCategoryDAOs();
+        piiCategoryDAOs = configHolder.getPiiCategoryDAOs();
+        receiptDAOs = configHolder.getReceiptDAOs();
+        piiControllers = configHolder.getPiiControllers();
+        configParser = configHolder.getConfigParser();
     }
 
     /**
