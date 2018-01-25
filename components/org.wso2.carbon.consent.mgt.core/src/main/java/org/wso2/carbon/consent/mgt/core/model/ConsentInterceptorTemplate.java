@@ -1,70 +1,88 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
+
 package org.wso2.carbon.consent.mgt.core.model;
 
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
+import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
 
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public abstract class ConsentInterceptorTemplate<T1, T2> {
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RESULT;
+import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrowConsumer;
 
-    private String operation;
-    protected Map<T1, T2> parameters = new HashMap<>();
+/**
+ * This template is used to trigger pre interceptor , main logic and post interceptors of an operation.
+ *
+ * @param <T> The type to be returned from the intercepted method.
+ * @param <X> Generic exception thrown. If any.
+ */
+public class ConsentInterceptorTemplate<T extends Object, X extends Exception> {
 
-    public ConsentInterceptorTemplate(String operation) {
+    private List<ConsentMgtInterceptor> consentMgtInterceptors;
+    private ConsentMessageContext context;
+    private T result;
 
-        this.operation = operation;
+    public ConsentInterceptorTemplate(List<ConsentMgtInterceptor> consentMgtInterceptors, ConsentMessageContext context) {
+
+        this.consentMgtInterceptors = consentMgtInterceptors;
+        this.context = context;
     }
 
-    public String getOperation() {
+    /**
+     * Execute the main logic.
+     *
+     * @param delegate Functional delegate interface.
+     * @return ConsentInterceptorTemplate.
+     * @throws X Generic exception thrown. If any.
+     */
+    public ConsentInterceptorTemplate<T, X> executeWith(OperationDelegate<T> delegate) throws X {
 
-        return operation;
+        result = delegate.execute();
+        return this;
     }
 
-    public abstract void addParameter(T1 key, T2 value);
-//    public void addParameter(T1 key, T2 value) throws ConsentManagementClientException {
-//
-//        if (this.parameters.containsKey(key)) {
-//            throw new ConsentManagementClientException("Parameters map trying to override existing key " + key, "");
-//        } else {
-//            this.parameters.put(key, value);
-//        }
-//    }
+    /**
+     * Intercepting PRE and POST interceptors.
+     *
+     * @param operation Operation name.
+     * @param binder    PropertyBinder.
+     * @return ConsentInterceptorTemplate.
+     */
+    public ConsentInterceptorTemplate<T, X> intercept(String operation, PropertyBinder binder) throws X {
 
-//    public void addParameters(Map<T1, T2> parameters) throws ConsentManagementClientException {
-//
-//        for (Map.Entry<T1, T2> parameter : parameters.entrySet()) {
-//            if (this.parameters.containsKey(parameter.getKey())) {
-//                throw new ConsentManagementClientException("Parameters map trying to override existing key " +
-//                        parameter.getKey(), "");
-//            }
-//            parameters.put(parameter.getKey(), parameter.getValue());
-//        }
-//
-//    }
-
-    public Map<T1, T2> getParameters() {
-
-        return Collections.unmodifiableMap(this.parameters);
+        Map<String, Object> operationProperties = new HashMap<>();
+        binder.bind(operationProperties);
+        if (result != null) {
+            operationProperties.put(RESULT, result);
+        }
+        consentMgtInterceptors.forEach(rethrowConsumer(interceptor -> interceptor.intercept(new ConsentMessage
+                (operation, operationProperties, context))));
+        return this;
     }
 
-    public T2 getParameter(T1 key) {
+    /**
+     * Result of the main operation.
+     *
+     * @return Result.
+     */
+    public T getResult() {
 
-        return this.parameters.get(key);
+        return result;
     }
 }

@@ -18,7 +18,6 @@
 package org.wso2.carbon.consent.mgt.endpoint.util;
 
 import org.apache.commons.logging.Log;
-import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.InterceptingConsentManager;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
@@ -49,7 +48,6 @@ import org.wso2.carbon.consent.mgt.endpoint.exception.NotFoundException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**

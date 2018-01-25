@@ -16,7 +16,8 @@
 
 package org.wso2.carbon.consent.mgt.core.connector;
 
-import org.wso2.carbon.consent.mgt.core.model.ConsentInterceptorTemplate;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.model.ConsentMessage;
 
 /**
  * This interface is used to define the Consent Management listeners.
@@ -29,5 +30,5 @@ public interface ConsentMgtInterceptor {
      */
     int getOrder();
 
-    void intercept(ConsentInterceptorTemplate template);
+    void intercept(ConsentMessage message) throws ConsentManagementException;
 }
