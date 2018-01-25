@@ -25,7 +25,8 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.consent.mgt.core.InterceptingConsentManager;
+import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
 import org.wso2.carbon.consent.mgt.core.connector.PIIController;
 import org.wso2.carbon.consent.mgt.core.connector.impl.DefaultPIIController;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
@@ -66,6 +67,7 @@ public class ConsentManagerComponent {
     private List<PIICategoryDAO> piiCategoryDAOs = new ArrayList<>();
     private List<PurposeCategoryDAO> purposeCategoryDAOs = new ArrayList<>();
     private List<ReceiptDAO> receiptDAOs = new ArrayList<>();
+    private List<ConsentMgtInterceptor> consentMgtInterceptors = new ArrayList<>();
 
     /**
      * Register ConsentManager as an OSGi service.
@@ -94,8 +96,10 @@ public class ConsentManagerComponent {
             configurations.setReceiptDAOs(receiptDAOs);
             configurations.setConfigParser(configParser);
             configurations.setPiiControllers(piiControllers);
+            configurations.setConsentMgtInterceptors(consentMgtInterceptors);
 
-            bundleContext.registerService(ConsentManager.class.getName(), new ConsentManager(configurations), null);
+            bundleContext.registerService(InterceptingConsentManager.class.getName(), new InterceptingConsentManager
+                    (configurations), null);
             log.info("ConsentManagerComponent is activated.");
         } catch (Throwable e) {
             log.error("Error while activating ConsentManagerComponent.", e);
@@ -257,6 +261,33 @@ public class ConsentManagerComponent {
             log.debug(" Receipt DAO is unregistered in ConsentManager service.");
         }
         receiptDAOs.remove(receiptDAO);
+    }
+
+    @Reference(
+            name = "consent.interceptor",
+            service = org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetConsentInterceptor"
+    )
+    protected void setConsentInterceptor(ConsentMgtInterceptor interceptor) {
+
+        if (interceptor != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Consent Management Interceptor is registered in ConsentManager service.");
+            }
+
+            consentMgtInterceptors.add(interceptor);
+            consentMgtInterceptors.sort(Comparator.comparingInt(ConsentMgtInterceptor::getOrder));
+        }
+    }
+
+    protected void unsetConsentInterceptor(ConsentMgtInterceptor interceptor) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Consent Management Interceptor is unregistered in ConsentManager service.");
+        }
+        consentMgtInterceptors.remove(interceptor);
     }
 
     private DataSource initDataSource(ConsentConfigParser configParser) {

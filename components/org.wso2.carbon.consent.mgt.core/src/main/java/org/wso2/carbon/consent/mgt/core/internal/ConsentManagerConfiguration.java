@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.consent.mgt.core.internal;
 
+import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
 import org.wso2.carbon.consent.mgt.core.connector.PIIController;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
@@ -33,6 +34,7 @@ public class ConsentManagerConfiguration {
     private List<ReceiptDAO> receiptDAOs;
     private ConsentConfigParser configParser;
     private List<PIIController> piiControllers;
+    private List<ConsentMgtInterceptor> consentMgtInterceptors;
 
     public List<PurposeDAO> getPurposeDAOs() {
 
@@ -92,5 +94,15 @@ public class ConsentManagerConfiguration {
     public void setPiiControllers(List<PIIController> piiControllers) {
 
         this.piiControllers = piiControllers;
+    }
+
+    public List<ConsentMgtInterceptor> getConsentMgtInterceptors() {
+
+        return consentMgtInterceptors;
+    }
+
+    public void setConsentMgtInterceptors(List<ConsentMgtInterceptor> consentMgtInterceptors) {
+
+        this.consentMgtInterceptors = consentMgtInterceptors;
     }
 }

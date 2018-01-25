@@ -19,6 +19,7 @@ package org.wso2.carbon.consent.mgt.endpoint.util;
 
 import org.apache.commons.logging.Log;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.consent.mgt.core.InterceptingConsentManager;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
@@ -56,10 +57,10 @@ import java.util.stream.Collectors;
  */
 public class ConsentEndpointUtils {
 
-    public static ConsentManager getConsentManager() {
+    public static InterceptingConsentManager getConsentManager() {
 
-        return (ConsentManager) PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                .getOSGiService(ConsentManager.class, null);
+        return (InterceptingConsentManager) PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                .getOSGiService(InterceptingConsentManager.class, null);
     }
 
     /**
