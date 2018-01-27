@@ -39,6 +39,25 @@ public class ConsentConstants {
     public static final String REVOKE_STATE = "REVOKED";
     public static final String ACTIVE_STATE = "ACTIVE";
 
+    public static final String PURPOSE = "PURPOSE";
+    public static final String PURPOSE_CATEGORY = "PURPOSE_CATEGORY";
+    public static final String PII_CATEGORY = "PII_CATEGORY";
+    public static final String RECEIPT_ID = "RECEIPT_ID";
+    public static final String PURPOSE_ID = "PURPOSE_ID";
+    public static final String PURPOSE_CATEGORY_ID = "PURPOSE_CATEGORY_ID";
+    public static final String PII_CATEGORY_ID = "PII_CATEGORY_ID";
+    public static final String PURPOSE_NAME = "PURPOSE_NAME";
+    public static final String PURPOSE_CATEGORY_NAME = "PURPOSE_CATEGORY_NAME";
+    public static final String PII_CATEGORY_NAME = "PII_CATEGORY_NAME";
+    public static final String LIMIT = "LIMIT";
+    public static final String OFFSET = "OFFSET";
+    public static final String PII_PRINCIPAL_ID = "PII_PRINCIPAL_ID";
+    public static final String SP_TENANT_DOMAIN = "SP_TENANT_DOMAIN";
+    public static final String SERVICE = "SERVICE";
+    public static final String STATE = "STATE";
+    public static final String RECEIPT_INPUT = "RECEIPT_INPUT";
+    public static final String RESULT = "RESULT";
+
     public enum ErrorMessages {
         ERROR_CODE_DATABASE_CONNECTION("CM_00001", "Error when getting a database connection object from the Identity" +
                 " data source."),
@@ -119,7 +138,6 @@ public class ConsentConstants {
         ERROR_CODE_SEARCH_RECEIPTS("CM_00057", "Error while searching receipts."),
         ERROR_CODE_REVOKE_RECEIPT("CM_00058", "Error while revoking receipt: %s.");
 
-
         private final String code;
         private final String message;
 
@@ -146,6 +164,9 @@ public class ConsentConstants {
         }
     }
 
+    /**
+     * PII Controller related constants.
+     */
     public class PIIControllerElements {
 
         public static final String countryElement = "PIIController.Address.Country";
@@ -161,5 +182,59 @@ public class ConsentConstants {
         public static final String piiControllerOnBehalfElement = "PIIController.OnBehalf";
         public static final String piiControllerUrlElement = "PIIController.PiiControllerUrl";
         public static final String piiControllerPublicKeyElement = "PIIController.PublicKey";
+    }
+
+    /**
+     * Consent Interceptor related constants.
+     */
+    public static class InterceptorConstants {
+
+        public static final String PRE_ADD_PURPOSE = "PRE_ADD_PURPOSE";
+        public static final String POST_ADD_PURPOSE = "POST_ADD_PURPOSE";
+        public static final String PRE_GET_PURPOSE = "PRE_GET_PURPOSE";
+        public static final String POST_GET_PURPOSE = "POST_GET_PURPOSE";
+        public static final String PRE_GET_PURPOSE_BY_NAME = "PRE_GET_PURPOSE_BY_NAME";
+        public static final String POST_GET_PURPOSE_BY_NAME = "POST_GET_PURPOSE_BY_NAME";
+        public static final String PRE_GET_PURPOSE_LIST = "PRE_GET_PURPOSE_LIST";
+        public static final String POST_GET_PURPOSE_LIST = "POST_GET_PURPOSE_LIST";
+        public static final String PRE_DELETE_PURPOSE = "PRE_DELETE_PURPOSE";
+        public static final String POST_DELETE_PURPOSE = "POST_DELETE_PURPOSE";
+        public static final String PRE_IS_PURPOSE_EXIST = "PRE_IS_PURPOSE_EXIST";
+        public static final String POST_IS_PURPOSE_EXIST = "POST_IS_PURPOSE_EXIST";
+
+        public static final String PRE_ADD_PURPOSE_CATEGORY = "PRE_ADD_PURPOSE_CATEGORY";
+        public static final String POST_ADD_PURPOSE_CATEGORY = "POST_ADD_PURPOSE_CATEGORY";
+        public static final String PRE_GET_PURPOSE_CATEGORY = "PRE_GET_PURPOSE_CATEGORY";
+        public static final String POST_GET_PURPOSE_CATEGORY = "POST_GET_PURPOSE_CATEGORY";
+        public static final String PRE_GET_PURPOSE_CATEGORY_BY_NAME = "PRE_GET_PURPOSE_CATEGORY_BY_NAME";
+        public static final String POST_GET_PURPOSE_CATEGORY_BY_NAME = "POST_GET_PURPOSE_CATEGORY_BY_NAME";
+        public static final String PRE_GET_PURPOSE_CATEGORY_LIST = "PRE_GET_PURPOSE_CATEGORY_LIST";
+        public static final String POST_GET_PURPOSE_CATEGORY_LIST = "POST_GET_PURPOSE_CATEGORY_LIST";
+        public static final String PRE_DELETE_PURPOSE_CATEGORY = "PRE_DELETE_PURPOSE_CATEGORY";
+        public static final String POST_DELETE_PURPOSE_CATEGORY = "POST_DELETE_PURPOSE_CATEGORY";
+        public static final String PRE_IS_PURPOSE_CATEGORY_EXIST = "PRE_IS_PURPOSE_CATEGORY_EXIST";
+        public static final String POST_IS_PURPOSE_CATEGORY_EXIST = "POST_IS_PURPOSE_CATEGORY_EXIST";
+
+        public static final String PRE_ADD_PII_CATEGORY = "PRE_ADD_PII_CATEGORY";
+        public static final String POST_ADD_PII_CATEGORY = "POST_ADD_PII_CATEGORY";
+        public static final String PRE_GET_PII_CATEGORY = "PRE_GET_PII_CATEGORY";
+        public static final String POST_GET_PII_CATEGORY = "POST_GET_PII_CATEGORY";
+        public static final String PRE_GET_PII_CATEGORY_BY_NAME = "PRE_GET_PII_CATEGORY_BY_NAME";
+        public static final String POST_GET_PII_CATEGORY_BY_NAME = "POST_GET_PII_CATEGORY_BY_NAME";
+        public static final String PRE_GET_PII_CATEGORY_LIST = "PRE_GET_PII_CATEGORY_LIST";
+        public static final String POST_GET_PII_CATEGORY_LIST = "POST_GET_PII_CATEGORY_LIST";
+        public static final String PRE_DELETE_PII_CATEGORY = "PRE_DELETE_PII_CATEGORY";
+        public static final String POST_DELETE_PII_CATEGORY = "POST_DELETE_PII_CATEGORY";
+        public static final String PRE_IS_PII_CATEGORY_EXIST = "PRE_IS_PII_CATEGORY_EXIST";
+        public static final String POST_IS_PII_CATEGORY_EXIST = "POST_IS_PII_CATEGORY_EXIST";
+
+        public static final String PRE_ADD_RECEIPT = "PRE_ADD_RECEIPT";
+        public static final String POST_ADD_RECEIPT = "POST_ADD_RECEIPT";
+        public static final String PRE_GET_RECEIPT = "PRE_GET_RECEIPT";
+        public static final String POST_GET_RECEIPT = "POST_GET_RECEIPT";
+        public static final String PRE_REVOKE_RECEIPT = "PRE_REVOKE_RECEIPT";
+        public static final String POST_REVOKE_RECEIPT = "POST_REVOKE_RECEIPT";
+        public static final String PRE_LIST_RECEIPTS = "PRE_LIST_RECEIPTS";
+        public static final String POST_LIST_RECEIPTS = "POST_LIST_RECEIPTS";
     }
 }
