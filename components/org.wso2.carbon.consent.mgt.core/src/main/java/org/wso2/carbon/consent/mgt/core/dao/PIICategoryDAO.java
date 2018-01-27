@@ -30,9 +30,9 @@ public interface PIICategoryDAO {
 
     PIICategory getPIICategoryById(int id) throws ConsentManagementException;
 
-    List<PIICategory> listPIICategories(int limit, int offset) throws ConsentManagementException;
+    List<PIICategory> listPIICategories(int limit, int offset, int tenantId) throws ConsentManagementException;
 
     int deletePIICategory(int id) throws ConsentManagementException;
 
-    PIICategory getPIICategoryByName(String name) throws ConsentManagementServerException;
+    PIICategory getPIICategoryByName(String name, int tenantId) throws ConsentManagementServerException;
 }

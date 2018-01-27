@@ -45,10 +45,7 @@ public class ConsentConfigParser {
 
     private static final String DATA_SOURCE_NAME = "DataSource.Name";
     private static Map<String, Object> configuration = new HashMap<>();
-    private static ConsentConfigParser parser;
     private static SecretResolver secretResolver;
-    // To enable attempted thread-safety using double-check locking
-    private static Object lock = new Object();
     private static Log log = LogFactory.getLog(ConsentConfigParser.class);
     private static String configFilePath;
     private OMElement rootElement;

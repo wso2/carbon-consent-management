@@ -121,6 +121,12 @@
                 <version>${jacoco.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.h2database.wso2</groupId>
+                <artifactId>h2-database-engine</artifactId>
+                <version>${orbit.version.h2.engine}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
                 <version>${org.apache.felix.annotations.version}</version>
@@ -172,6 +178,7 @@
         <powermock.version>1.6.6</powermock.version>
         <jacoco.version>0.7.9</jacoco.version>
         <maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
+        <orbit.version.h2.engine>1.2.140.wso2v3</orbit.version.h2.engine>
         <org.apache.felix.annotations.version>1.2.4</org.apache.felix.annotations.version>
     </properties>
 </project>

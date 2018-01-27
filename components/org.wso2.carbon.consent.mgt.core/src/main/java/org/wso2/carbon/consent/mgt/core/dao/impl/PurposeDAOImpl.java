@@ -24,6 +24,7 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerExcepti
 import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.List;
 
@@ -63,11 +64,12 @@ public class PurposeDAOImpl implements PurposeDAO {
             insertedId = jdbcTemplate.executeInsert(INSERT_PURPOSE_SQL, (preparedStatement -> {
                 preparedStatement.setString(1, purpose.getName());
                 preparedStatement.setString(2, purpose.getDescription());
+                preparedStatement.setInt(3, purpose.getTenantId());
             }), purpose, true);
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE, purpose.getName(), e);
         }
-        purposeResult = new Purpose(insertedId, purpose.getName(), purpose.getDescription());
+        purposeResult = new Purpose(insertedId, purpose.getName(), purpose.getDescription(), purpose.getTenantId());
         return purposeResult;
     }
 
@@ -82,7 +84,8 @@ public class PurposeDAOImpl implements PurposeDAO {
 
         try {
             purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_ID_SQL, (resultSet, rowNumber) ->
-                            new Purpose(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3)),
+                            new Purpose(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
+                                        resultSet.getInt(4)),
                     preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_ID, String.valueOf(id), e);
@@ -91,7 +94,7 @@ public class PurposeDAOImpl implements PurposeDAO {
     }
 
     @Override
-    public Purpose getPurposeByName(String name) throws ConsentManagementException {
+    public Purpose getPurposeByName(String name, int tenantId) throws ConsentManagementException {
 
         if (StringUtils.isBlank(name)) {
             throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_PURPOSE_NAME_REQUIRED, null);
@@ -102,7 +105,10 @@ public class PurposeDAOImpl implements PurposeDAO {
         try {
             purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_NAME_SQL, (resultSet, rowNumber) ->
                             new Purpose(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3)),
-                    preparedStatement -> preparedStatement.setString(1, name));
+                    preparedStatement -> {
+                        preparedStatement.setString(1, name);
+                        preparedStatement.setInt(2, tenantId);
+                    });
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_NAME, name, e);
         }
@@ -110,7 +116,7 @@ public class PurposeDAOImpl implements PurposeDAO {
     }
 
     @Override
-    public List<Purpose> listPurposes(int limit, int offset) throws ConsentManagementException {
+    public List<Purpose> listPurposes(int limit, int offset, int tenantId) throws ConsentManagementException {
 
         List<Purpose> purposes;
         try {
@@ -119,8 +125,9 @@ public class PurposeDAOImpl implements PurposeDAO {
                             resultSet.getString(2),
                             resultSet.getString(3)),
                     preparedStatement -> {
-                        preparedStatement.setInt(1, limit);
-                        preparedStatement.setInt(2, offset);
+                        preparedStatement.setInt(1, tenantId);
+                        preparedStatement.setInt(2, limit);
+                        preparedStatement.setInt(3, offset);
                     });
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_PURPOSE.getMessage(),
