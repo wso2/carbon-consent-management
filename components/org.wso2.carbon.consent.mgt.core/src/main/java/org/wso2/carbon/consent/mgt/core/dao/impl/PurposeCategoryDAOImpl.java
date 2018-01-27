@@ -62,12 +62,14 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
             insertedId = jdbcTemplate.executeInsert(INSERT_PURPOSE_CATEGORY_SQL, (preparedStatement -> {
                 preparedStatement.setString(1, purposeCategory.getName());
                 preparedStatement.setString(2, purposeCategory.getDescription());
+                preparedStatement.setInt(3, purposeCategory.getTenantId());
             }), purposeCategory, true);
         } catch (DataAccessException e) {
-            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE_CATEGORY, purposeCategory.getName(), e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE_CATEGORY, purposeCategory
+                    .getName(), e);
         }
         purposeCategoryResult = new PurposeCategory(insertedId, purposeCategory.getName(),
-                purposeCategory.getDescription());
+                purposeCategory.getDescription(), purposeCategory.getTenantId());
         return purposeCategoryResult;
     }
 
@@ -78,9 +80,10 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
 
         try {
             purposeCategory = jdbcTemplate.fetchSingleRecord(SELECT_PURPOSE_CATEGORY_BY_ID_SQL, (resultSet, rowNumber) ->
-                            new PurposeCategory(resultSet.getInt(1),
-                                    resultSet.getString(2),
-                                    resultSet.getString(3)),
+                                                                     new PurposeCategory(resultSet.getInt(1),
+                                                                                         resultSet.getString(2),
+                                                                                         resultSet.getString(3),
+                                                                                         resultSet.getInt(4)),
                     preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_CATEGORY_BY_ID, String
@@ -90,7 +93,8 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
     }
 
     @Override
-    public List<PurposeCategory> listPurposeCategories(int limit, int offset) throws ConsentManagementException {
+    public List<PurposeCategory> listPurposeCategories(int limit, int offset, int tenantId) throws
+            ConsentManagementException {
 
         List<PurposeCategory> purposesCategories;
 
@@ -98,10 +102,12 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
             purposesCategories = jdbcTemplate.executeQuery(LIST_PAGINATED_PURPOSE_CATEGORY_MYSQL,
                     (resultSet, rowNumber) -> new PurposeCategory(resultSet.getInt(1),
                             resultSet.getString(2),
-                            resultSet.getString(3)),
+                            resultSet.getString(3),
+                            resultSet.getInt(4)),
                     preparedStatement -> {
-                        preparedStatement.setInt(1, limit);
-                        preparedStatement.setInt(2, offset);
+                        preparedStatement.setInt(1, tenantId);
+                        preparedStatement.setInt(2, limit);
+                        preparedStatement.setInt(3, offset);
                     });
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_PURPOSE_CATEGORY
@@ -125,7 +131,7 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
     }
 
     @Override
-    public PurposeCategory getPurposeCategoryByName(String name) throws ConsentManagementException {
+    public PurposeCategory getPurposeCategoryByName(String name, int tenantId) throws ConsentManagementException {
 
         PurposeCategory purposeCategory;
 
@@ -133,8 +139,12 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
             purposeCategory = jdbcTemplate.fetchSingleRecord(SELECT_PURPOSE_CATEGORY_BY_NAME_SQL, (resultSet, rowNumber) ->
                             new PurposeCategory(resultSet.getInt(1),
                                     resultSet.getString(2),
-                                    resultSet.getString(3)),
-                    preparedStatement -> preparedStatement.setString(1, name));
+                                    resultSet.getString(3),
+                                    resultSet.getInt(4)),
+                    preparedStatement -> {
+                        preparedStatement.setString(1, name);
+                        preparedStatement.setInt(2, tenantId);
+                    });
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_CATEGORY_BY_NAME, name, e);
         }

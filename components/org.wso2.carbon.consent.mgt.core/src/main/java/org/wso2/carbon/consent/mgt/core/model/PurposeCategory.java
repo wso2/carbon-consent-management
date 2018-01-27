@@ -24,18 +24,22 @@ public class PurposeCategory {
     private Integer id;
     private String name;
     private String description;
+    private int tenantId;
+    private String tenantDomain;
 
-    public PurposeCategory(Integer id, String name, String description) {
+    public PurposeCategory(Integer id, String name, String description, int tenantId) {
 
         this.id = id;
         this.name = name;
         this.description = description;
+        this.tenantId = tenantId;
     }
 
-    public PurposeCategory(Integer id, String name) {
+    public PurposeCategory(String name, String description, int tenantId) {
 
-        this.id = id;
         this.name = name;
+        this.description = description;
+        this.tenantId = tenantId;
     }
 
     public PurposeCategory(String name, String description) {
@@ -67,5 +71,21 @@ public class PurposeCategory {
     public void setDescription(String description) {
 
         this.description = description;
+    }
+
+    public int getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(int tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public String getTenantDomain() {
+        return tenantDomain;
+    }
+
+    public void setTenantDomain(String tenantDomain) {
+        this.tenantDomain = tenantDomain;
     }
 }

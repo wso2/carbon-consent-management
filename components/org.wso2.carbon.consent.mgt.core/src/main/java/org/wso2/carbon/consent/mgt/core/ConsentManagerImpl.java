@@ -256,7 +256,7 @@ public class ConsentManagerImpl implements ConsentManager {
      */
     public PurposeCategory getPurposeCategoryByName(String name) throws ConsentManagementException {
 
-        return getPurposeCategoryDAO(purposeCategoryDAOs).getPurposeCategoryByName(name);
+        return getPurposeCategoryDAO(purposeCategoryDAOs).getPurposeCategoryByName(name, getTenantIdFromCarbonContext());
     }
 
     /**
@@ -277,7 +277,8 @@ public class ConsentManagerImpl implements ConsentManager {
                 log.debug("Limit is not defied the request, default to: " + limit);
             }
         }
-        return getPurposeCategoryDAO(purposeCategoryDAOs).listPurposeCategories(limit, offset);
+        return getPurposeCategoryDAO(purposeCategoryDAOs).listPurposeCategories(limit, offset,
+                                                                                getTenantIdFromCarbonContext());
     }
 
     /**
@@ -707,6 +708,14 @@ public class ConsentManagerImpl implements ConsentManager {
                 log.debug("A purpose category already exists with name: " + purposeCategory.getName());
             }
             throw handleClientException(ERROR_CODE_PURPOSE_CATEGORY_ALREADY_EXIST, purposeCategory.getName());
+        }
+
+        // Set authenticated user's tenant id if it is not set.
+        if (isBlank(purposeCategory.getTenantDomain())) {
+            purposeCategory.setTenantId(getTenantIdFromCarbonContext());
+            purposeCategory.setTenantDomain(getTenantDomainFromCarbonContext());
+        } else {
+            purposeCategory.setTenantId(getTenantId(realmService, purposeCategory.getTenantDomain()));
         }
     }
 

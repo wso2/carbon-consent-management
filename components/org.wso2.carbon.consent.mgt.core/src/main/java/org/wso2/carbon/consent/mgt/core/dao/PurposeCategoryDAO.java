@@ -29,9 +29,9 @@ public interface PurposeCategoryDAO {
 
     PurposeCategory getPurposeCategoryById(int id) throws ConsentManagementException;
 
-    List<PurposeCategory> listPurposeCategories(int limit, int offset) throws ConsentManagementException;
+    List<PurposeCategory> listPurposeCategories(int limit, int offset, int tenantId) throws ConsentManagementException;
 
     int deletePurposeCategory(int id) throws ConsentManagementException;
 
-    PurposeCategory getPurposeCategoryByName(String name) throws ConsentManagementException;
+    PurposeCategory getPurposeCategoryByName(String name, int tenantId) throws ConsentManagementException;
 }

@@ -42,15 +42,15 @@ public class SQLConstants {
     public static final String SELECT_PII_CATEGORY_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
                                                                  "TENANT_ID FROM CM_PII_CATEGORY WHERE NAME = ? AND " +
                                                                  "TENANT_ID = ? ";
-    public static final String INSERT_PURPOSE_CATEGORY_SQL = "INSERT INTO CM_PURPOSE_CATEGORY (NAME, DESCRIPTION) " +
-            "VALUES (?,?)";
-    public static final String SELECT_PURPOSE_CATEGORY_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION FROM " +
+    public static final String INSERT_PURPOSE_CATEGORY_SQL = "INSERT INTO CM_PURPOSE_CATEGORY (NAME, DESCRIPTION, " +
+                                                             "TENANT_ID) VALUES (?,?,?)";
+    public static final String SELECT_PURPOSE_CATEGORY_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM " +
             "CM_PURPOSE_CATEGORY  WHERE ID = ?";
-    public static final String LIST_PAGINATED_PURPOSE_CATEGORY_MYSQL = "SELECT ID, NAME, DESCRIPTION FROM " +
-            "CM_PURPOSE_CATEGORY ORDER BY ID  ASC LIMIT ? OFFSET ?";
+    public static final String LIST_PAGINATED_PURPOSE_CATEGORY_MYSQL = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM " +
+            "CM_PURPOSE_CATEGORY WHERE TENANT_ID = ? ORDER BY ID ASC LIMIT ? OFFSET ?";
     public static final String DELETE_PURPOSE_CATEGORY_SQL = "DELETE FROM CM_PURPOSE_CATEGORY WHERE ID = ?";
-    public static final String SELECT_PURPOSE_CATEGORY_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION FROM " +
-            "CM_PURPOSE_CATEGORY WHERE NAME= ?";
+    public static final String SELECT_PURPOSE_CATEGORY_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM " +
+            "CM_PURPOSE_CATEGORY WHERE NAME = ? AND TENANT_ID = ?";
 
     public static final String INSERT_RECEIPT_SQL = "INSERT INTO CM_RECEIPT (CONSENT_RECEIPT_ID,VERSION, " +
             "JURISDICTION,CONSENT_TIMESTAMP,COLLECTION_METHOD,LANGUAGE,PII_PRINCIPAL_ID,PRINCIPAL_TENANT_DOMAIN, " +
