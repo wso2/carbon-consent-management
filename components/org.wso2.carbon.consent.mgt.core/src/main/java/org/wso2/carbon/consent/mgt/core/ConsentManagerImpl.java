@@ -338,7 +338,7 @@ public class ConsentManagerImpl implements ConsentManager {
      */
     public PIICategory getPIICategoryByName(String name) throws ConsentManagementException {
 
-        return getPiiCategoryDAO(piiCategoryDAOs).getPIICategoryByName(name);
+        return getPiiCategoryDAO(piiCategoryDAOs).getPIICategoryByName(name, getTenantIdFromCarbonContext());
     }
 
     /**
@@ -375,7 +375,7 @@ public class ConsentManagerImpl implements ConsentManager {
                 log.debug("Limit is not defied the request, default to: " + limit);
             }
         }
-        return getPiiCategoryDAO(piiCategoryDAOs).listPIICategories(limit, offset);
+        return getPiiCategoryDAO(piiCategoryDAOs).listPIICategories(limit, offset, getTenantIdFromCarbonContext());
     }
 
     /**
@@ -753,6 +753,14 @@ public class ConsentManagerImpl implements ConsentManager {
 
         if (piiCategory.getSensitive() == null) {
             piiCategory.setSensitive(false);
+        }
+
+        // Set authenticated user's tenant id if it is not set.
+        if (isBlank(piiCategory.getTenantDomain())) {
+            piiCategory.setTenantId(getTenantIdFromCarbonContext());
+            piiCategory.setTenantDomain(getTenantDomainFromCarbonContext());
+        } else {
+            piiCategory.setTenantId(getTenantId(realmService, piiCategory.getTenantDomain()));
         }
     }
 }

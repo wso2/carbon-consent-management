@@ -62,12 +62,13 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
                 preparedStatement.setString(1, piiCategory.getName());
                 preparedStatement.setString(2, piiCategory.getDescription());
                 preparedStatement.setInt(3, piiCategory.getSensitive() ? 1 : 0);
+                preparedStatement.setInt(4, piiCategory.getTenantId());
             }), piiCategory, true);
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PII_CATEGORY, piiCategory.getName(), e);
         }
         purposeResult = new PIICategory(insertedId, piiCategory.getName(), piiCategory.getDescription(),
-                piiCategory.getSensitive());
+                piiCategory.getSensitive(), piiCategory.getTenantId());
         return purposeResult;
     }
 
@@ -79,9 +80,10 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
         try {
             piiCategory = jdbcTemplate.fetchSingleRecord(SELECT_PII_CATEGORY_BY_ID_SQL, (resultSet, rowNumber) ->
                             new PIICategory(resultSet.getInt(1),
-                                    resultSet.getString(2),
-                                    resultSet.getString(3),
-                                    resultSet.getInt(4) == 1),
+                                            resultSet.getString(2),
+                                            resultSet.getString(3),
+                                            resultSet.getInt(4) == 1,
+                                            resultSet.getInt(5)),
                     preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PII_CATEGORY_BY_ID, String
@@ -92,19 +94,21 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     }
 
     @Override
-    public List<PIICategory> listPIICategories(int limit, int offset) throws ConsentManagementException {
+    public List<PIICategory> listPIICategories(int limit, int offset, int tenantId) throws ConsentManagementException {
 
         List<PIICategory> piiCategories;
 
         try {
             piiCategories = jdbcTemplate.executeQuery(LIST_PAGINATED_PII_CATEGORY_MYSQL,
                     (resultSet, rowNumber) -> new PIICategory(resultSet.getInt(1),
-                            resultSet.getString(2),
-                            resultSet.getString(3),
-                            resultSet.getInt(4) == 1),
+                                                              resultSet.getString(2),
+                                                              resultSet.getString(3),
+                                                              resultSet.getInt(4) == 1,
+                                                              resultSet.getInt(5)),
                     preparedStatement -> {
-                        preparedStatement.setInt(1, limit);
-                        preparedStatement.setInt(2, offset);
+                        preparedStatement.setInt(1, tenantId);
+                        preparedStatement.setInt(2, limit);
+                        preparedStatement.setInt(3, offset);
                     });
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_PII_CATEGORY
@@ -127,17 +131,21 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     }
 
     @Override
-    public PIICategory getPIICategoryByName(String name) throws ConsentManagementServerException {
+    public PIICategory getPIICategoryByName(String name, int tenantId) throws ConsentManagementServerException {
 
         PIICategory piiCategory;
 
         try {
             piiCategory = jdbcTemplate.fetchSingleRecord(SELECT_PII_CATEGORY_BY_NAME_SQL, (resultSet, rowNumber) ->
                             new PIICategory(resultSet.getInt(1),
-                                    resultSet.getString(2),
-                                    resultSet.getString(3),
-                                    resultSet.getInt(4) == 1),
-                    preparedStatement -> preparedStatement.setString(1, name));
+                                            resultSet.getString(2),
+                                            resultSet.getString(3),
+                                            resultSet.getInt(4) == 1,
+                                            resultSet.getInt(5)),
+                    preparedStatement -> {
+                        preparedStatement.setString(1, name);
+                        preparedStatement.setInt(2, tenantId);
+                    });
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PII_CATEGORY_BY_NAME, name, e);
         }

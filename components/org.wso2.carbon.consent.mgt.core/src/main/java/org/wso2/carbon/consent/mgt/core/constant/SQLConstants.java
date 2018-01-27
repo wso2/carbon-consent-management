@@ -32,14 +32,16 @@ public class SQLConstants {
                                                               " OFFSET ?";
     public static final String DELETE_PURPOSE_SQL = "DELETE FROM CM_PURPOSE WHERE ID = ?";
     public static final String INSERT_PII_CATEGORY_SQL = "INSERT INTO CM_PII_CATEGORY (NAME, DESCRIPTION," +
-                                                         "IS_SENSITIVE) VALUES (?,?,?)";
-    public static final String SELECT_PII_CATEGORY_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION,IS_SENSITIVE FROM " +
-            "CM_PII_CATEGORY WHERE ID = ?";
-    public static final String LIST_PAGINATED_PII_CATEGORY_MYSQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE FROM " +
-            "CM_PII_CATEGORY ORDER BY ID ASC LIMIT ? OFFSET ?";
+                                                         "IS_SENSITIVE, TENANT_ID) VALUES (?,?,?,?)";
+    public static final String SELECT_PII_CATEGORY_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, TENANT_ID" +
+                                                               " FROM CM_PII_CATEGORY WHERE ID = ?";
+    public static final String LIST_PAGINATED_PII_CATEGORY_MYSQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
+                                                                   "TENANT_ID FROM CM_PII_CATEGORY WHERE TENANT_ID = " +
+                                                                   "? ORDER BY ID ASC LIMIT ? OFFSET ?";
     public static final String DELETE_PII_CATEGORY_SQL = "DELETE FROM CM_PII_CATEGORY WHERE ID = ?";
-    public static final String SELECT_PII_CATEGORY_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE FROM " +
-                                                                 "CM_PII_CATEGORY WHERE NAME = ?";
+    public static final String SELECT_PII_CATEGORY_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
+                                                                 "TENANT_ID FROM CM_PII_CATEGORY WHERE NAME = ? AND " +
+                                                                 "TENANT_ID = ? ";
     public static final String INSERT_PURPOSE_CATEGORY_SQL = "INSERT INTO CM_PURPOSE_CATEGORY (NAME, DESCRIPTION) " +
             "VALUES (?,?)";
     public static final String SELECT_PURPOSE_CATEGORY_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION FROM " +
