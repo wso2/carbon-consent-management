@@ -20,7 +20,7 @@
 
     <test name="ConsentManagementCoreTests" preserve-order="true" parallel="false">
         <classes>
-            <class name="org.wso2.carbon.consent.mgt.core.model.AddressTest"/>
+            <class name="org.wso2.carbon.consent.mgt.core.dao.impl.PurposeDAOImplTest"/>
         </classes>
     </test>
 </suite>

@@ -25,6 +25,13 @@ public class Purpose {
     private String name;
     private String description;
 
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    private int tenantId;
+    private String tenantDomain;
+
     public Purpose(Integer id, String name, String description) {
 
         this.id = id;
@@ -42,6 +49,19 @@ public class Purpose {
 
         this.name = name;
         this.description = description;
+    }
+
+    public Purpose(String name, String description, int tenantId) {
+        this.name = name;
+        this.description = description;
+        this.tenantId = tenantId;
+    }
+
+    public Purpose(Integer id, String name, String description, int tenantId) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.tenantId = tenantId;
     }
 
     public Integer getId() {
@@ -67,5 +87,21 @@ public class Purpose {
     public void setDescription(String description) {
 
         this.description = description;
+    }
+
+    public int getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(int tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public String getTenantDomain() {
+        return tenantDomain;
+    }
+
+    public void setTenantDomain(String tenantDomain) {
+        this.tenantDomain = tenantDomain;
     }
 }

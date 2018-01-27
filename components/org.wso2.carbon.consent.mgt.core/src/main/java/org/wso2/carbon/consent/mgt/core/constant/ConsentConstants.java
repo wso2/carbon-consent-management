@@ -136,7 +136,12 @@ public class ConsentConstants {
                 "for the  receipt ID: %s."),
         ERROR_CODE_GET_DAO("CM_00056", "No %s are registered."),
         ERROR_CODE_SEARCH_RECEIPTS("CM_00057", "Error while searching receipts."),
-        ERROR_CODE_REVOKE_RECEIPT("CM_00058", "Error while revoking receipt: %s.");
+        ERROR_CODE_REVOKE_RECEIPT("CM_00058", "Error while revoking receipt: %s."),
+        ERROR_CODE_RETRIEVE_TENANT_DOMAIN("CM_000059", "Error occurred while retrieving tenant domain for tenant ID:" +
+                                                       " %s."),
+        ERROR_CODE_RETRIEVE_TENANT_ID("CM_000060", "Error occurred while retrieving tenant ID for tenant domain %s."),
+        ERROR_CODE_INVALID_TENANT_ID("CM_000061", "Invalid tenant ID: %s"),
+        ERROR_CODE_INVALID_TENANT_DOMAIN("CM_000062", "Invalid tenant domain: %s");
 
         private final String code;
         private final String message;

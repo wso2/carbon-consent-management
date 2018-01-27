@@ -43,6 +43,7 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -58,6 +59,8 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_TYPE_MANDATORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GET_DAO;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET;
+
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_TENANT_DOMAIN;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_IS_PRIMARY_PURPOSE_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ALREADY_EXIST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_INVALID;
@@ -78,6 +81,9 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_TERMINATION_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_THIRD_PARTY_DISCLOSURE_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_SEARCH_LIMIT_PATH;
+import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.getTenantDomainFromCarbonContext;
+import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.getTenantId;
+import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.getTenantIdFromCarbonContext;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleClientException;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleServerException;
 import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrowConsumer;
@@ -100,6 +106,7 @@ public class ConsentManagerImpl implements ConsentManager {
     private List<ReceiptDAO> receiptDAOs;
     private ConsentConfigParser configParser;
     private List<PIIController> piiControllers;
+    private RealmService realmService;
 
     public ConsentManagerImpl(ConsentManagerConfigurationHolder configHolder) {
 
@@ -109,6 +116,7 @@ public class ConsentManagerImpl implements ConsentManager {
         receiptDAOs = configHolder.getReceiptDAOs();
         piiControllers = configHolder.getPiiControllers();
         configParser = configHolder.getConfigParser();
+        realmService = configHolder.getRealmService();
     }
 
     /**
@@ -149,7 +157,7 @@ public class ConsentManagerImpl implements ConsentManager {
      */
     public Purpose getPurposeByName(String name) throws ConsentManagementException {
 
-        return getPurposeDAO(purposeDAOs).getPurposeByName(name);
+        return getPurposeDAO(purposeDAOs).getPurposeByName(name, getTenantIdFromCarbonContext());
     }
 
     /**
@@ -170,7 +178,7 @@ public class ConsentManagerImpl implements ConsentManager {
                 log.debug("Limit is not defied the request, default to: " + limit);
             }
         }
-        return getPurposeDAO(purposeDAOs).listPurposes(limit, offset);
+        return getPurposeDAO(purposeDAOs).listPurposes(limit, offset, getTenantIdFromCarbonContext());
     }
 
     /**
@@ -716,6 +724,14 @@ public class ConsentManagerImpl implements ConsentManager {
                 log.debug("A purpose already exists with name: " + purpose.getName());
             }
             throw handleClientException(ERROR_CODE_PURPOSE_ALREADY_EXIST, purpose.getName());
+        }
+
+        // Set authenticated user's tenant id if it is not set.
+        if (isBlank(purpose.getTenantDomain())) {
+            purpose.setTenantId(getTenantIdFromCarbonContext());
+            purpose.setTenantDomain(getTenantDomainFromCarbonContext());
+        } else {
+            purpose.setTenantId(getTenantId(realmService, purpose.getTenantDomain()));
         }
     }
 
