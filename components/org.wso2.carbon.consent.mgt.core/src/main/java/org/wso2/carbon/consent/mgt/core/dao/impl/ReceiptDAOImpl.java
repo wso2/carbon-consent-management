@@ -18,7 +18,6 @@ package org.wso2.carbon.consent.mgt.core.dao.impl;
 
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
-import org.wso2.carbon.consent.mgt.core.dao.QueryFilter;
 import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
@@ -34,8 +33,6 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -43,7 +40,6 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import static java.time.ZoneOffset.UTC;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_SP_SQL;
@@ -123,8 +119,10 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 return receiptInfo;
             }, preparedStatement -> preparedStatement.setString(1, receiptId));
 
-            receipt.setServices(getServiceInfoOfReceipt(receiptId, receiptContext));
-            setReceiptSensitivity(receiptContext, receipt);
+            if (receipt != null) {
+                receipt.setServices(getServiceInfoOfReceipt(receiptId, receiptContext));
+                setReceiptSensitivity(receiptContext, receipt);
+            }
             return receipt;
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,

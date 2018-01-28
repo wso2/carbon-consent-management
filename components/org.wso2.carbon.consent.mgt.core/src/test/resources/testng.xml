@@ -22,6 +22,8 @@
         <classes>
             <class name="org.wso2.carbon.consent.mgt.core.dao.impl.PurposeDAOImplTest"/>
             <class name="org.wso2.carbon.consent.mgt.core.dao.impl.PIICategoryDAOImplTest"/>
+            <class name="org.wso2.carbon.consent.mgt.core.dao.impl.PurposeCategoryDAOImplTest"/>
+            <class name="org.wso2.carbon.consent.mgt.core.dao.impl.ReceiptDAOImplTest"/>
         </classes>
     </test>
 </suite>
