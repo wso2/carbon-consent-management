@@ -68,6 +68,7 @@ public class PurposeCategoryDAOImplTest {
                 {10, 0, -1234, 2}
         };
     }
+
     @Test
     public void testAddPurposeCategory() throws Exception {
         DataSource dataSource = mock(DataSource.class);
