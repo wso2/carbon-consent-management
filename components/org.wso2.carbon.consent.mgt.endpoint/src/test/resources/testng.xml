@@ -20,6 +20,7 @@
 
     <test name="ConsentManagementEndpointTests" preserve-order="true" parallel="false">
         <classes>
+            <class name="org.wso2.carbon.consent.mgt.endpoint.impl.ConsentsApiServiceImplTest" />
         </classes>
     </test>
 </suite>

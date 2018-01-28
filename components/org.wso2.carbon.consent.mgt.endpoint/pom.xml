@@ -98,6 +98,13 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/org/wso2/carbon/consent/mgt/endpoint/*</exclude>
+                        <exclude>**/org/wso2/carbon/consent/mgt/endpoint/dto/*</exclude>
+                        <exclude>**/org/wso2/carbon/consent/mgt/endpoint/factories/*</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>
@@ -214,6 +221,11 @@
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database.wso2</groupId>
+            <artifactId>h2-database-engine</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
