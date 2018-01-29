@@ -141,8 +141,9 @@ public class ConsentConstants {
                                                        " %s."),
         ERROR_CODE_RETRIEVE_TENANT_ID("CM_000060", "Error occurred while retrieving tenant ID for tenant domain %s."),
         ERROR_CODE_INVALID_TENANT_ID("CM_000061", "Invalid tenant ID: %s"),
-        ERROR_CODE_INVALID_TENANT_DOMAIN("CM_000062", "Invalid tenant domain: %s");
-
+        ERROR_CODE_INVALID_TENANT_DOMAIN("CM_000062", "Invalid tenant domain: %s"),
+        ERROR_CODE_ADD_PURPOSE_PII_ASSOC("CM_00063", "Error occurred while adding Purpose to PII Category " +
+                "association for purpose: %s");
         private final String code;
         private final String message;
 

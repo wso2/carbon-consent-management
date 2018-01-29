@@ -23,6 +23,7 @@ public class ReceiptServiceInput {
     private String service;
     private String tenantDomain;
     private List<ReceiptPurposeInput> purposes;
+    private int tenantId;
 
     public String getService() {
 
@@ -52,5 +53,15 @@ public class ReceiptServiceInput {
     public void setPurposes(List<ReceiptPurposeInput> purposes) {
 
         this.purposes = purposes;
+    }
+
+    public int getTenantId() {
+
+        return tenantId;
+    }
+
+    public void setTenantId(int tenantId) {
+
+        this.tenantId = tenantId;
     }
 }

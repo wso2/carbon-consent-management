@@ -36,6 +36,7 @@ public class ReceiptInput {
     private List<Integer> spiCat;
     private String state;
     private String tenantDomain;
+    private int tenantId;
     private Map<String, String> properties;
 
     public String getConsentReceiptId() {
@@ -186,5 +187,15 @@ public class ReceiptInput {
     public void setTenantDomain(String tenantDomain) {
 
         this.tenantDomain = tenantDomain;
+    }
+
+    public int getTenantId() {
+
+        return tenantId;
+    }
+
+    public void setTenantId(int tenantId) {
+
+        this.tenantId = tenantId;
     }
 }

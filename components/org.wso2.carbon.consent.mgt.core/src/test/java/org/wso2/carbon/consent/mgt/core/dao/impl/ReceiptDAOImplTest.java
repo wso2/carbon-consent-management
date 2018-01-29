@@ -96,6 +96,7 @@ public class ReceiptDAOImplTest {
         String policyUrl = "http://foo.com/policy";
         String service1 = "foo-company";
         String tenantDomain = "carbon.super";
+        int tenantId = -1234;
         String consentType = "EXPLICIT";
         String termination = "1 year";
         String version = "KI-CR-v1.1.0";
@@ -137,6 +138,7 @@ public class ReceiptDAOImplTest {
         ReceiptServiceInput serviceInput = new ReceiptServiceInput();
         serviceInput.setPurposes(purposeInputs);
         serviceInput.setTenantDomain(tenantDomain);
+        serviceInput.setTenantId(tenantId);
         serviceInput.setService(service1);
 
         serviceInputs.add(serviceInput);
@@ -156,6 +158,7 @@ public class ReceiptDAOImplTest {
         receiptInput1.setPolicyUrl(policyUrl);
         receiptInput1.setServices(serviceInputs);
         receiptInput1.setTenantDomain(tenantDomain);
+        receiptInput1.setTenantId(tenantId);
         receiptInput1.setPiiControllers(piiControllers);
         receiptInput1.setConsentTimestamp(new Date());
         receiptInput1.setSensitive(false);
@@ -208,17 +211,17 @@ public class ReceiptDAOImplTest {
 
         return new Object[][]{
                 // limit, offset, principalId, tenantDomain, service, state, resultCount
-                {10, 0, "subject1", "carbon.super", "foo-company", "ACTIVE", 1},
-                {10, 0, "subject1", "carbon.super", "foo-company", null, 1},
-                {10, 0, "subject1", "carbon.super", null, null, 1},
-                {10, 0, "subject1", null, null, null, 1},
-                {10, 0, null, null, null, null, 2},
-                {10, 1, null, null, null, null, 1},
-                {1, 1, null, null, null, null, 1},
-                {0, 0, null, null, null, null, 0},
-                {10, 0, "subject*", null, null, null, 2},
-                {10, 0, null, "carbon.super", null, null, 2},
-                {10, 0, null, null, "foo*", null, 2}
+                {10, 0, "subject1", -1234, "foo-company", "ACTIVE", 1},
+                {10, 0, "subject1", -1234, "foo-company", null, 1},
+                {10, 0, "subject1", -1234, null, null, 1},
+                {10, 0, "subject1", 0, null, null, 1},
+                {10, 0, null, 0, null, null, 2},
+                {10, 1, null, 0, null, null, 1},
+                {1, 1, null, 0, null, null, 1},
+                {0, 0, null, 0, null, null, 0},
+                {10, 0, "subject*", 0, null, null, 2},
+                {10, 0, null, -1234, null, null, 2},
+                {10, 0, null, 0, "foo*", null, 2}
         };
     }
 
@@ -295,7 +298,7 @@ public class ReceiptDAOImplTest {
     }
 
     @Test(dataProvider = "receiptSearchProvider")
-    public void testSearchReceipts(int limit, int offset, String principalId, String tenantDomain, String service,
+    public void testSearchReceipts(int limit, int offset, String principalId, int tenantId, String service,
                                    String state, int resultCount) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
@@ -310,7 +313,7 @@ public class ReceiptDAOImplTest {
             receiptDAO.addReceipt(receiptInputs.get(1));
 
             List<ReceiptListResponse> receiptResponses = receiptDAO.searchReceipts(limit, offset, principalId,
-                                                                                   tenantDomain, service, state);
+                                                                                   tenantId, service, state);
             Assert.assertNotNull(receiptResponses);
             Assert.assertEquals(receiptResponses.size(), resultCount);
         }
@@ -327,7 +330,7 @@ public class ReceiptDAOImplTest {
             JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
             ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
-            receiptDAO.searchReceipts(1, 0, "subject1", "carbon.super", "foo*", "ACTIVE");
+            receiptDAO.searchReceipts(1, 0, "subject1", -1234, "foo*", "ACTIVE");
         }
     }
 
