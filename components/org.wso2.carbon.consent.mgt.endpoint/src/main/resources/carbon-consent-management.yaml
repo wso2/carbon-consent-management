@@ -998,11 +998,11 @@ definitions:
       consentType:
         type: 'string'
         description: 'The type of the consent used by the PII Controller as their authority to collect, use or disclose PII.'
-      piiCategoryId:
+      piiCategory:
         type: array
         description: 'A list of defined PII categories Ids.'
         items:
-          type: 'integer'
+          $ref: '#/definitions/piiCategoryList'
       primaryPurpose:
         type: 'boolean'
         description: 'Indicates if a purpose is part of the core service of the PII Controller. Possible values are TRUE or FALSE.'
@@ -1044,7 +1044,7 @@ definitions:
         type: array
         description: 'A list of defined PII categories Ids.  PII Category should reflect the category that will be shared as understood by the PII Principal.'
         items:
-          type: 'string'
+          $ref: '#/definitions/piiCategoryNameList'
       primaryPurpose:
         type: 'boolean'
         description: 'Indicates if a purpose is part of the core service of the PII Controller. Possible values are TRUE or FALSE.'
@@ -1088,6 +1088,30 @@ definitions:
       purposeCategory:
         type: 'string'
       description:
+        type: 'string'
+
+#-----------------------------------------------------
+# The PII category object with id, validity
+#-----------------------------------------------------
+
+  piiCategoryList:
+    type: object
+    properties:
+      piiCategoryId:
+        type: 'integer'
+      validity:
+        type: 'string'
+
+#-----------------------------------------------------
+# The PII category object with name, validity
+#-----------------------------------------------------
+
+  piiCategoryNameList:
+    type: object
+    properties:
+      piiCategory:
+        type: 'string'
+      validity:
         type: 'string'
 
 #-----------------------------------------------------

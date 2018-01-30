@@ -21,6 +21,7 @@ import org.apache.commons.logging.Log;
 import org.wso2.carbon.consent.mgt.core.InterceptingConsentManager;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
+import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
@@ -33,6 +34,7 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ErrorDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PIIcategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryListResponseDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryNameListDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PiiControllerDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PropertyDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
@@ -267,7 +269,9 @@ public class ConsentEndpointUtils {
                 receiptPurposeInput.setTermination(purposeDTO.getTermination());
                 receiptPurposeInput.setThirdPartyDisclosure(purposeDTO.getThirdPartyDisclosure());
                 receiptPurposeInput.setThirdPartyName(purposeDTO.getThirdPartyName());
-                receiptPurposeInput.setPiiCategoryId(purposeDTO.getPiiCategoryId());
+                receiptPurposeInput.setPiiCategory(purposeDTO.getPiiCategory().stream().map(piiCategoryListDTO ->
+                        new PIICategoryValidity(piiCategoryListDTO.getPiiCategoryId(), piiCategoryListDTO
+                                .getValidity())).collect(Collectors.toList()));
                 receiptPurposeInput.setPurposeCategoryId(purposeDTO.getPurposeCategoryId());
                 return receiptPurposeInput;
             }).collect(Collectors.toList()));
@@ -303,7 +307,12 @@ public class ConsentEndpointUtils {
             serviceResponseDTO.setPurposes(receiptService.getPurposes().stream().map(consentPurpose -> {
                 PurposeResponseDTO purposeResponseDTO = new PurposeResponseDTO();
                 purposeResponseDTO.setConsentType(consentPurpose.getConsentType());
-                purposeResponseDTO.setPiiCategory(consentPurpose.getPiiCategory());
+                purposeResponseDTO.setPiiCategory(consentPurpose.getPiiCategory().stream().map(piiCategoryValidity -> {
+                    PiiCategoryNameListDTO piiCategoryNameListDTO = new PiiCategoryNameListDTO();
+                    piiCategoryNameListDTO.setPiiCategory(piiCategoryValidity.getName());
+                    piiCategoryNameListDTO.setValidity(piiCategoryValidity.getValidity());
+                    return piiCategoryNameListDTO;
+                }).collect(Collectors.toList()));
                 purposeResponseDTO.setPrimaryPurpose(consentPurpose.isPrimaryPurpose());
                 purposeResponseDTO.setPurpose(consentPurpose.getPurpose());
                 purposeResponseDTO.setPurposeCategory(consentPurpose.getPurposeCategory());

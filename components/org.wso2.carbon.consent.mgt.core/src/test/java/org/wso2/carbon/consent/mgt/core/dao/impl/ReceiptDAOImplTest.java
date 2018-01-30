@@ -30,6 +30,7 @@ import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.Address;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
+import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.PiiController;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
@@ -105,11 +106,11 @@ public class ReceiptDAOImplTest {
         List<ReceiptPurposeInput> purposeInputs = new ArrayList<>();
         List<PiiController> piiControllers = new ArrayList<>();
         List<Integer> purposeCategoryIds = new ArrayList<>();
-        List<Integer> piiCategoryIds = new ArrayList<>();
+        List<PIICategoryValidity> piiCategoryIds = new ArrayList<>();
         Map<String, String> properties = new HashMap<>();
 
         purposeCategoryIds.add(1);
-        piiCategoryIds.add(1);
+        piiCategoryIds.add(new PIICategoryValidity(1,"45"));
         properties.put("K1", "V1");
         properties.put("K2", "V2");
 
@@ -120,7 +121,7 @@ public class ReceiptDAOImplTest {
         purposeInput1.setThirdPartyDisclosure(false);
         purposeInput1.setPurposeId(1);
         purposeInput1.setPurposeCategoryId(purposeCategoryIds);
-        purposeInput1.setPiiCategoryId(piiCategoryIds);
+        purposeInput1.setPiiCategory(piiCategoryIds);
 
         ReceiptPurposeInput purposeInput2 = new ReceiptPurposeInput();
         purposeInput2.setPrimaryPurpose(false);
@@ -130,7 +131,7 @@ public class ReceiptDAOImplTest {
         purposeInput2.setThirdPartyName("bar-company");
         purposeInput2.setPurposeId(2);
         purposeInput2.setPurposeCategoryId(purposeCategoryIds);
-        purposeInput2.setPiiCategoryId(piiCategoryIds);
+        purposeInput2.setPiiCategory(piiCategoryIds);
 
         purposeInputs.add(purposeInput1);
         purposeInputs.add(purposeInput2);

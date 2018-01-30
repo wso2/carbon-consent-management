@@ -19,10 +19,12 @@ package org.wso2.carbon.consent.mgt.core.dao.impl;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
+import org.wso2.carbon.consent.mgt.core.dao.RowMapper;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
 import org.wso2.carbon.consent.mgt.core.model.ConsentPurpose;
+import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptContext;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
@@ -32,6 +34,8 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptService;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -89,8 +93,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 receiptPurposeInput.getPurposeCategoryId().forEach(rethrowConsumer(id ->
                         addSpPurposeToPurposeCategoryAssociation(spToPurposeAssocId, id)));
 
-                receiptPurposeInput.getPiiCategoryId().forEach(rethrowConsumer(id ->
-                        addSpPurposeToPiiCategoryAssociation(spToPurposeAssocId, id)));
+                receiptPurposeInput.getPiiCategory().forEach(rethrowConsumer(piiCategoryValidity ->
+                        addSpPurposeToPiiCategoryAssociation(spToPurposeAssocId, piiCategoryValidity.getId(),
+                                piiCategoryValidity.getValidity())));
             }));
         }));
 
@@ -284,13 +289,14 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         }
     }
 
-    protected void addSpPurposeToPiiCategoryAssociation(int spToPurposeAssocId, Integer id) throws
+    protected void addSpPurposeToPiiCategoryAssociation(int spToPurposeAssocId, int id, String validity) throws
             ConsentManagementServerException {
 
         try {
             jdbcTemplate.executeInsert(INSERT_SP_PURPOSE_TO_PII_CAT_ASSOC_SQL, (preparedStatement -> {
                 preparedStatement.setInt(1, spToPurposeAssocId);
                 preparedStatement.setInt(2, id);
+                preparedStatement.setString(3, validity);
             }), id, false);
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages
@@ -375,20 +381,21 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         return consentPurposes;
     }
 
-    private List<String> getPIICategoryInfoOfPurpose(int serviceToPurposeId, String consentReceiptId,
-                                                     ReceiptContext receiptContext) throws
+    private List<PIICategoryValidity> getPIICategoryInfoOfPurpose(int serviceToPurposeId, String consentReceiptId,
+                                                                  ReceiptContext receiptContext) throws
             ConsentManagementServerException {
 
         try {
-            return jdbcTemplate.executeQuery(GET_PII_CAT_SQL, (resultSet, rowNumber) -> {
+            return jdbcTemplate.executeQuery(GET_PII_CAT_SQL, ((resultSet, rowNumber) -> {
+
                 String name = resultSet.getString(1);
                 boolean isSensitive = resultSet.getInt(2) == 1;
+                String validity = resultSet.getString(3);
                 if (isSensitive) {
                     receiptContext.getSecretPIICategory().addSecretCategory(name);
                 }
-                return name;
-            }, preparedStatement -> preparedStatement.setInt
-                    (1, serviceToPurposeId));
+                return new PIICategoryValidity(name, validity);
+            }), preparedStatement -> preparedStatement.setInt(1, serviceToPurposeId));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
                     consentReceiptId, e);

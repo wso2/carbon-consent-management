@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ConsentPurpose {
@@ -23,7 +24,7 @@ public class ConsentPurpose {
     private String purpose;
     private List<String> purposeCategory;
     private String consentType;
-    private List<String> piiCategory;
+    private List<PIICategoryValidity> piiCategory;
     private boolean primaryPurpose;
     private String termination;
     private boolean thirdPartyDisclosure;
@@ -60,12 +61,15 @@ public class ConsentPurpose {
         this.consentType = consentType;
     }
 
-    public List<String> getPiiCategory() {
+    public List<PIICategoryValidity> getPiiCategory() {
 
+        if (piiCategory == null) {
+            return new ArrayList<>();
+        }
         return piiCategory;
     }
 
-    public void setPiiCategory(List<String> piiCategory) {
+    public void setPiiCategory(List<PIICategoryValidity> piiCategory) {
 
         this.piiCategory = piiCategory;
     }

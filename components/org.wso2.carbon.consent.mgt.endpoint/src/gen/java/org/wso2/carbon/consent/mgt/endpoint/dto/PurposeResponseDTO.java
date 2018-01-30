@@ -2,6 +2,7 @@ package org.wso2.carbon.consent.mgt.endpoint.dto;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryNameListDTO;
 
 import io.swagger.annotations.*;
 import com.fasterxml.jackson.annotation.*;
@@ -26,7 +27,7 @@ public class PurposeResponseDTO  {
   private String consentType = null;
   
   @NotNull
-  private List<String> piiCategory = new ArrayList<String>();
+  private List<PiiCategoryNameListDTO> piiCategory = new ArrayList<PiiCategoryNameListDTO>();
   
   
   private Boolean primaryPurpose = null;
@@ -85,10 +86,10 @@ public class PurposeResponseDTO  {
    **/
   @ApiModelProperty(required = true, value = "A list of defined PII categories Ids.  PII Category should reflect the category that will be shared as understood by the PII Principal.")
   @JsonProperty("piiCategory")
-  public List<String> getPiiCategory() {
+  public List<PiiCategoryNameListDTO> getPiiCategory() {
     return piiCategory;
   }
-  public void setPiiCategory(List<String> piiCategory) {
+  public void setPiiCategory(List<PiiCategoryNameListDTO> piiCategory) {
     this.piiCategory = piiCategory;
   }
 
