@@ -681,12 +681,14 @@ public class ConsentManagerImpl implements ConsentManager {
             receiptPurposeInput.getPurposeCategoryId().forEach(rethrowConsumer(this::getPurposeCategory));
         }
 
-        if (isEmpty(receiptPurposeInput.getPiiCategoryId())) {
+        if (isEmpty(receiptPurposeInput.getPiiCategory())) {
             throw handleClientException(ERROR_CODE_AT_LEAST_ONE_PII_CATEGORY_ID_REQUIRED, serviceName);
         } else {
             // To verify whether the piiCategory exist in the system.
             // This method will throw an exception if not exist.
-            receiptPurposeInput.getPiiCategoryId().forEach(rethrowConsumer(this::getPIICategory));
+            receiptPurposeInput.getPiiCategory().forEach(rethrowConsumer(piiCategoryValidity -> {
+                getPIICategory(piiCategoryValidity.getId());
+            }));
         }
 
         if (receiptPurposeInput.isPrimaryPurpose() == null) {

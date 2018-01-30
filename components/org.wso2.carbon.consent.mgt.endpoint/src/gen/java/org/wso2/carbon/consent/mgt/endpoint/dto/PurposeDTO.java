@@ -2,6 +2,7 @@ package org.wso2.carbon.consent.mgt.endpoint.dto;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryListDTO;
 
 import io.swagger.annotations.*;
 import com.fasterxml.jackson.annotation.*;
@@ -25,8 +26,8 @@ public class PurposeDTO  {
   
   private String consentType = null;
   
-  @NotNull
-  private List<Integer> piiCategoryId = new ArrayList<Integer>();
+  
+  private List<PiiCategoryListDTO> piiCategory = new ArrayList<PiiCategoryListDTO>();
   
   
   private Boolean primaryPurpose = null;
@@ -83,13 +84,13 @@ public class PurposeDTO  {
   /**
    * A list of defined PII categories Ids.
    **/
-  @ApiModelProperty(required = true, value = "A list of defined PII categories Ids.")
-  @JsonProperty("piiCategoryId")
-  public List<Integer> getPiiCategoryId() {
-    return piiCategoryId;
+  @ApiModelProperty(value = "A list of defined PII categories Ids.")
+  @JsonProperty("piiCategory")
+  public List<PiiCategoryListDTO> getPiiCategory() {
+    return piiCategory;
   }
-  public void setPiiCategoryId(List<Integer> piiCategoryId) {
-    this.piiCategoryId = piiCategoryId;
+  public void setPiiCategory(List<PiiCategoryListDTO> piiCategory) {
+    this.piiCategory = piiCategory;
   }
 
   
@@ -154,7 +155,7 @@ public class PurposeDTO  {
     sb.append("  purposeId: ").append(purposeId).append("\n");
     sb.append("  purposeCategoryId: ").append(purposeCategoryId).append("\n");
     sb.append("  consentType: ").append(consentType).append("\n");
-    sb.append("  piiCategoryId: ").append(piiCategoryId).append("\n");
+    sb.append("  piiCategory: ").append(piiCategory).append("\n");
     sb.append("  primaryPurpose: ").append(primaryPurpose).append("\n");
     sb.append("  termination: ").append(termination).append("\n");
     sb.append("  thirdPartyDisclosure: ").append(thirdPartyDisclosure).append("\n");
