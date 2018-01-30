@@ -25,18 +25,6 @@ import javax.ws.rs.core.Response;
 
 public class InternalServerErrorException extends WebApplicationException {
 
-    private String message;
-
-    public InternalServerErrorException(Throwable e) {
-
-        super(e, Response.Status.INTERNAL_SERVER_ERROR);
-    }
-
-    public InternalServerErrorException() {
-
-        super(Response.Status.INTERNAL_SERVER_ERROR);
-    }
-
     public InternalServerErrorException(ErrorDTO errorDTO) {
 
         super(Response.status(Response.Status.INTERNAL_SERVER_ERROR)

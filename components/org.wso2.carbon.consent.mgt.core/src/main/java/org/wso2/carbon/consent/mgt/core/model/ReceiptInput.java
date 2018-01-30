@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -28,16 +27,16 @@ public class ReceiptInput {
     private String collectionMethod;
     private String language;
     private String piiPrincipalId;
-    private Date consentTimestamp;
-    private List<PiiController> piiControllers;
     private List<ReceiptServiceInput> services;
     private String policyUrl;
-    private boolean sensitive;
-    private List<Integer> spiCat;
     private String state;
     private String tenantDomain;
     private int tenantId;
     private Map<String, String> properties;
+
+    public ReceiptInput() {
+
+    }
 
     public String getConsentReceiptId() {
 
@@ -99,26 +98,6 @@ public class ReceiptInput {
         this.piiPrincipalId = piiPrincipalId;
     }
 
-    public Date getConsentTimestamp() {
-
-        return consentTimestamp;
-    }
-
-    public void setConsentTimestamp(Date consentTimestamp) {
-
-        this.consentTimestamp = consentTimestamp;
-    }
-
-    public List<PiiController> getPiiControllers() {
-
-        return piiControllers;
-    }
-
-    public void setPiiControllers(List<PiiController> piiControllers) {
-
-        this.piiControllers = piiControllers;
-    }
-
     public List<ReceiptServiceInput> getServices() {
 
         return services;
@@ -137,26 +116,6 @@ public class ReceiptInput {
     public void setPolicyUrl(String policyUrl) {
 
         this.policyUrl = policyUrl;
-    }
-
-    public boolean isSensitive() {
-
-        return sensitive;
-    }
-
-    public void setSensitive(boolean sensitive) {
-
-        this.sensitive = sensitive;
-    }
-
-    public List<Integer> getSpiCat() {
-
-        return spiCat;
-    }
-
-    public void setSpiCat(List<Integer> spiCat) {
-
-        this.spiCat = spiCat;
     }
 
     public String getState() {
