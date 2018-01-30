@@ -760,6 +760,10 @@ definitions:
         type: 'string'
       description:
         type: 'string'
+      piiCategories:
+        type: 'array'
+        items:
+          type: 'integer'
 
 
 #-----------------------------------------------------
@@ -1067,6 +1071,10 @@ definitions:
         type: 'string'
       description:
         type: 'string'
+      piiCategories:
+        type: 'array'
+        items:
+          $ref: '#/definitions/piiCategoryListResponse'
 
 #-----------------------------------------------------
 # The Purpose category List response object

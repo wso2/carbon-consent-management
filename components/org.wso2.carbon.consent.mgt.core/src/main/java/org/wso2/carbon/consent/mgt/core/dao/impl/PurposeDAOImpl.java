@@ -17,6 +17,7 @@
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
@@ -24,17 +25,19 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerExcepti
 import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
-import org.wso2.carbon.user.core.service.RealmService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_NAME_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_PII_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_PURPOSE_PII_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_MYSQL;
+import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrowConsumer;
 
 /**
  * Default implementation of {@link PurposeDAO}. This handles {@link Purpose} related DB operations.
@@ -69,7 +72,20 @@ public class PurposeDAOImpl implements PurposeDAO {
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE, purpose.getName(), e);
         }
-        purposeResult = new Purpose(insertedId, purpose.getName(), purpose.getDescription(), purpose.getTenantId());
+
+        purpose.getPiiCategoryIds().forEach(rethrowConsumer(id -> {
+            try {
+                jdbcTemplate.executeInsert(INSERT_RECEIPT_PURPOSE_PII_ASSOC_SQL, (preparedStatement -> {
+                    preparedStatement.setInt(1, insertedId);
+                    preparedStatement.setInt(2, id);
+                }), id, false);
+            } catch (DataAccessException e) {
+                throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_ADD_PURPOSE_PII_ASSOC,
+                        String.valueOf(insertedId), e);
+            }
+        }));
+        purposeResult = new Purpose(insertedId, purpose.getName(), purpose.getDescription(), purpose.getTenantId(),
+                purpose.getPiiCategoryIds());
         return purposeResult;
     }
 
@@ -85,10 +101,22 @@ public class PurposeDAOImpl implements PurposeDAO {
         try {
             purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_ID_SQL, (resultSet, rowNumber) ->
                             new Purpose(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
-                                        resultSet.getInt(4)),
+                                    resultSet.getInt(4)),
                     preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_ID, String.valueOf(id), e);
+        }
+
+        if (purpose != null) {
+            try {
+                List<Integer> piiCategories = new ArrayList<>();
+                jdbcTemplate.fetchSingleRecord(GET_PURPOSE_PII_CAT_SQL, (resultSet, rowNumber) ->
+                                piiCategories.add(resultSet.getInt(1)),
+                        preparedStatement -> preparedStatement.setInt(1, purpose.getId()));
+                purpose.setPiiCategoryIds(piiCategories);
+            } catch (DataAccessException e) {
+                throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_ID, String.valueOf(id), e);
+            }
         }
         return purpose;
     }

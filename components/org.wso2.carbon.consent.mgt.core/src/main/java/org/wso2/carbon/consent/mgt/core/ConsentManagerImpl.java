@@ -19,6 +19,7 @@
 package org.wso2.carbon.consent.mgt.core;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.connector.PIIController;
@@ -29,8 +30,8 @@ import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
-import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
+import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PiiController;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
@@ -42,9 +43,9 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -59,8 +60,6 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_TYPE_MANDATORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GET_DAO;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET;
-
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_TENANT_DOMAIN;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_IS_PRIMARY_PURPOSE_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ALREADY_EXIST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_INVALID;
@@ -129,7 +128,8 @@ public class ConsentManagerImpl implements ConsentManager {
     public Purpose addPurpose(Purpose purpose) throws ConsentManagementException {
 
         validateInputParameters(purpose);
-        return getPurposeDAO(purposeDAOs).addPurpose(purpose);
+        Purpose purposeResponse = getPurposeDAO(purposeDAOs).addPurpose(purpose);
+        return populatePiiCategories(purposeResponse);
     }
 
     /**
@@ -145,6 +145,7 @@ public class ConsentManagerImpl implements ConsentManager {
         if (purpose == null) {
             throw ConsentUtils.handleClientException(ERROR_CODE_PURPOSE_ID_INVALID, String.valueOf(purposeId));
         }
+        purpose.getPiiCategoryIds().forEach(rethrowConsumer(id -> purpose.getPiiCategories().add(getPIICategory(id))));
         return purpose;
     }
 
@@ -278,7 +279,7 @@ public class ConsentManagerImpl implements ConsentManager {
             }
         }
         return getPurposeCategoryDAO(purposeCategoryDAOs).listPurposeCategories(limit, offset,
-                                                                                getTenantIdFromCarbonContext());
+                getTenantIdFromCarbonContext());
     }
 
     /**
@@ -423,8 +424,6 @@ public class ConsentManagerImpl implements ConsentManager {
      */
     public AddReceiptResponse addConsent(ReceiptInput receiptInput) throws ConsentManagementException {
         //TODO checkIsReceiptExists
-        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        receiptInput.setTenantDomain(tenantDomain);
         validateInputParameters(receiptInput);
         receiptInput.setConsentReceiptId(generateConsentReceiptId(receiptInput));
         setAPIVersion(receiptInput);
@@ -443,6 +442,7 @@ public class ConsentManagerImpl implements ConsentManager {
     public Receipt getReceipt(String receiptId) throws ConsentManagementException {
 
         Receipt receipt = getReceiptsDAO(receiptDAOs).getReceipt(receiptId);
+        populateTenantDomain(receipt);
         setPIIControllerInfo(receipt);
         return receipt;
     }
@@ -461,6 +461,11 @@ public class ConsentManagerImpl implements ConsentManager {
     public List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String spTenantDomain,
                                                     String service, String state) throws ConsentManagementException {
 
+        int spTenantId = 0;
+        if (StringUtils.isNotBlank(spTenantDomain)) {
+            spTenantId = ConsentUtils.getTenantId(realmService, spTenantDomain);
+        }
+
         validatePaginationParameters(limit, offset);
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
@@ -468,7 +473,13 @@ public class ConsentManagerImpl implements ConsentManager {
                 log.debug("Limit is not defied the request, default to: " + limit);
             }
         }
-        return getReceiptsDAO(receiptDAOs).searchReceipts(limit, offset, piiPrincipalId, spTenantDomain, service, state);
+        List<ReceiptListResponse> receiptListResponses = getReceiptsDAO(receiptDAOs).searchReceipts(limit, offset,
+                piiPrincipalId, spTenantId, service, state);
+        receiptListResponses.forEach(rethrowConsumer(receiptListResponse -> receiptListResponse.setTenantDomain
+                (ConsentUtils.getTenantDomain(realmService, receiptListResponse
+                        .getTenantId()))));
+
+        return receiptListResponses;
     }
 
     /**
@@ -593,8 +604,15 @@ public class ConsentManagerImpl implements ConsentManager {
         receipt.setPiiControllers(piiControllers);
     }
 
-    private void validateInputParameters(ReceiptInput receiptInput) throws ConsentManagementClientException {
+    private void validateInputParameters(ReceiptInput receiptInput) throws ConsentManagementException {
 
+        // Set authenticated user's tenant id if it is not set.
+        if (isBlank(receiptInput.getTenantDomain())) {
+            receiptInput.setTenantId(getTenantIdFromCarbonContext());
+            receiptInput.setTenantDomain(getTenantDomainFromCarbonContext());
+        } else {
+            receiptInput.setTenantId(getTenantId(realmService, receiptInput.getTenantDomain()));
+        }
         validateRequiredParametersInConsent(receiptInput);
         receiptInput.getServices().forEach(rethrowConsumer(receiptServiceInput -> {
             validateRequiredParametersInService(receiptServiceInput);
@@ -620,7 +638,7 @@ public class ConsentManagerImpl implements ConsentManager {
     }
 
     private void validateRequiredParametersInService(ReceiptServiceInput receiptServiceInput)
-            throws ConsentManagementClientException {
+            throws ConsentManagementException {
 
         if (isBlank(receiptServiceInput.getService())) {
             throw handleClientException(ERROR_CODE_SERVICE_NAME_REQUIRED, null);
@@ -628,6 +646,14 @@ public class ConsentManagerImpl implements ConsentManager {
 
         if (isEmpty(receiptServiceInput.getPurposes())) {
             throw handleClientException(ERROR_CODE_AT_LEAST_ONE_PURPOSE_REQUIRED, null);
+        }
+
+        // Set authenticated user's tenant id if it is not set.
+        if (isBlank(receiptServiceInput.getTenantDomain())) {
+            receiptServiceInput.setTenantId(getTenantIdFromCarbonContext());
+            receiptServiceInput.setTenantDomain(getTenantDomainFromCarbonContext());
+        } else {
+            receiptServiceInput.setTenantId(getTenantId(realmService, receiptServiceInput.getTenantDomain()));
         }
     }
 
@@ -742,6 +768,14 @@ public class ConsentManagerImpl implements ConsentManager {
         } else {
             purpose.setTenantId(getTenantId(realmService, purpose.getTenantDomain()));
         }
+
+        if (CollectionUtils.isNotEmpty(purpose.getPiiCategoryIds())) {
+            purpose.getPiiCategoryIds().forEach(rethrowConsumer(id -> {
+                if (getPIICategory(id) == null) {
+                    throw handleClientException(ERROR_CODE_PII_CATEGORY_ID_INVALID, String.valueOf(id));
+                }
+            }));
+        }
     }
 
     private void validateInputParameters(PIICategory piiCategory) throws ConsentManagementException {
@@ -771,5 +805,20 @@ public class ConsentManagerImpl implements ConsentManager {
         } else {
             piiCategory.setTenantId(getTenantId(realmService, piiCategory.getTenantDomain()));
         }
+    }
+
+    private void populateTenantDomain(Receipt receipt) throws ConsentManagementServerException {
+
+        receipt.setTenantDomain(ConsentUtils.getTenantDomain(realmService, receipt.getTenantId()));
+        receipt.getServices().forEach(rethrowConsumer(receiptService -> receiptService.setTenantDomain(ConsentUtils
+                .getTenantDomain(realmService, receiptService.getTenantId()))));
+    }
+
+    private Purpose populatePiiCategories(Purpose purposeResponse) {
+
+        List<PIICategory> piiCategories = new ArrayList<>();
+        purposeResponse.getPiiCategoryIds().forEach(rethrowConsumer(id -> piiCategories.add(getPIICategory(id))));
+        purposeResponse.setPiiCategories(piiCategories);
+        return purposeResponse;
     }
 }

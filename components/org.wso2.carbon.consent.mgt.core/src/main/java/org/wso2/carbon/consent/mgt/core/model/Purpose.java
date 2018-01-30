@@ -16,6 +16,9 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * The model representing a purpose of a given consent.
  */
@@ -24,13 +27,15 @@ public class Purpose {
     private Integer id;
     private String name;
     private String description;
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
+    private List<Integer> piiCategoryIds;
+    private List<PIICategory> piiCategories;
     private int tenantId;
     private String tenantDomain;
+
+    public void setId(Integer id) {
+
+        this.id = id;
+    }
 
     public Purpose(Integer id, String name, String description) {
 
@@ -51,13 +56,31 @@ public class Purpose {
         this.description = description;
     }
 
+    public Purpose(String name, String description, List<Integer> piiCategoryIds) {
+
+        this.name = name;
+        this.description = description;
+        this.piiCategoryIds = piiCategoryIds;
+    }
+
     public Purpose(String name, String description, int tenantId) {
+
         this.name = name;
         this.description = description;
         this.tenantId = tenantId;
     }
 
+    public Purpose(Integer id, String name, String description, int tenantId, List<Integer> piiCategoryIds) {
+
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.tenantId = tenantId;
+        this.piiCategoryIds = piiCategoryIds;
+    }
+
     public Purpose(Integer id, String name, String description, int tenantId) {
+
         this.id = id;
         this.name = name;
         this.description = description;
@@ -90,18 +113,48 @@ public class Purpose {
     }
 
     public int getTenantId() {
+
         return tenantId;
     }
 
     public void setTenantId(int tenantId) {
+
         this.tenantId = tenantId;
     }
 
     public String getTenantDomain() {
+
         return tenantDomain;
     }
 
     public void setTenantDomain(String tenantDomain) {
+
         this.tenantDomain = tenantDomain;
+    }
+
+    public List<Integer> getPiiCategoryIds() {
+
+        if (piiCategoryIds == null) {
+            return new ArrayList<>();
+        }
+        return piiCategoryIds;
+    }
+
+    public void setPiiCategoryIds(List<Integer> piiCategoryIds) {
+
+        this.piiCategoryIds = piiCategoryIds;
+    }
+
+    public List<PIICategory> getPiiCategories() {
+
+        if (piiCategories == null) {
+            return new ArrayList<>();
+        }
+        return piiCategories;
+    }
+
+    public void setPiiCategories(List<PIICategory> piiCategories) {
+
+        this.piiCategories = piiCategories;
     }
 }

@@ -3,6 +3,7 @@ package org.wso2.carbon.consent.mgt.core.util;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementRuntimeException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -113,7 +114,7 @@ public class ConsentUtils {
      * @throws ConsentManagementRuntimeException If the tenant domain is invalid.
      */
     public static int getTenantId(RealmService realmService, String tenantDomain) throws
-            ConsentManagementServerException {
+            ConsentManagementException {
 
         int tenantId;
         try {
@@ -123,7 +124,7 @@ public class ConsentUtils {
         }
 
         if (tenantId == MultitenantConstants.INVALID_TENANT_ID) {
-            throw handleServerException(ERROR_CODE_INVALID_TENANT_DOMAIN, tenantDomain);
+            throw handleClientException(ERROR_CODE_INVALID_TENANT_DOMAIN, tenantDomain);
         }
         return tenantId;
     }

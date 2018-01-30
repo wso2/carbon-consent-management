@@ -22,6 +22,7 @@ public class ReceiptService {
 
     private String service;
     private String tenantDomain;
+    private int tenantId;
     List<ConsentPurpose> purposes;
     private int receiptToServiceId;
 
@@ -63,5 +64,15 @@ public class ReceiptService {
     public void setReceiptToServiceId(int receiptToServiceId) {
 
         this.receiptToServiceId = receiptToServiceId;
+    }
+
+    public int getTenantId() {
+
+        return tenantId;
+    }
+
+    public void setTenantId(int tenantId) {
+
+        this.tenantId = tenantId;
     }
 }
