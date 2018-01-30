@@ -22,12 +22,14 @@ import java.util.List;
 public class ReceiptPurposeInput {
 
     private Integer purposeId;
+    private String purposeName;
     private List<Integer> purposeCategoryId;
     private String consentType;
     private List<PIICategoryValidity> piiCategory;
     private Boolean primaryPurpose;
     private String termination;
     private Boolean thirdPartyDisclosure;
+    private String thirdPartyName;
 
     public Integer getPurposeId() {
 
@@ -112,5 +114,13 @@ public class ReceiptPurposeInput {
         this.thirdPartyName = thirdPartyName;
     }
 
-    private String thirdPartyName;
+    public String getPurposeName() {
+
+        return purposeName;
+    }
+
+    public void setPurposeName(String purposeName) {
+
+        this.purposeName = purposeName;
+    }
 }
