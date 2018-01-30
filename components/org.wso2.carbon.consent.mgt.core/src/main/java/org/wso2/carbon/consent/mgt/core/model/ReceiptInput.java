@@ -34,10 +34,6 @@ public class ReceiptInput {
     private int tenantId;
     private Map<String, String> properties;
 
-    public ReceiptInput() {
-
-    }
-
     public String getConsentReceiptId() {
 
         return consentReceiptId;
