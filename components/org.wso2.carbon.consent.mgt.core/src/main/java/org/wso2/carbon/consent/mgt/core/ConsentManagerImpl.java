@@ -423,7 +423,6 @@ public class ConsentManagerImpl implements ConsentManager {
      * @throws ConsentManagementException Consent Management Exception.
      */
     public AddReceiptResponse addConsent(ReceiptInput receiptInput) throws ConsentManagementException {
-        //TODO checkIsReceiptExists
         validateInputParameters(receiptInput);
         receiptInput.setConsentReceiptId(generateConsentReceiptId(receiptInput));
         setAPIVersion(receiptInput);

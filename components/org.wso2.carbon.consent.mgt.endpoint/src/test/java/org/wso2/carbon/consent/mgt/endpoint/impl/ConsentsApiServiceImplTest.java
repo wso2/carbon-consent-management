@@ -23,6 +23,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
+import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.InterceptingConsentManager;
 import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
@@ -92,7 +93,7 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
                 .emptyList());
 
         when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
-        when(privilegedCarbonContext.getOSGiService(InterceptingConsentManager.class, null)).thenReturn
+        when(privilegedCarbonContext.getOSGiService(ConsentManager.class, null)).thenReturn
                 (consentManager);
         when(privilegedCarbonContext.getTenantDomain()).thenReturn("carbon.super");
         when(privilegedCarbonContext.getTenantId()).thenReturn(-1234);

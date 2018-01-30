@@ -16,10 +16,11 @@
 
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
-import org.wso2.carbon.consent.mgt.core.dao.RowMapper;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
@@ -34,8 +35,6 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptService;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -43,6 +42,8 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import static java.time.ZoneOffset.UTC;
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_ACTIVE_RECEIPTS_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_SP_SQL;
@@ -68,6 +69,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     private static final String SQL_FILTER_STRING_ANY = "%";
     private static final String QUERY_FILTER_STRING_ANY = "*";
     private static final String QUERY_FILTER_STRING_ANY_ESCAPED = "\\*";
+    private static final Log log = LogFactory.getLog(ReceiptDAOImpl.class);
 
     public ReceiptDAOImpl(JdbcTemplate jdbcTemplate) {
 
@@ -83,6 +85,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     @Override
     public void addReceipt(ReceiptInput receiptInput) throws ConsentManagementException {
 
+        revokeActiveReceipts(receiptInput);
         addReceiptInfo(receiptInput);
 
         receiptInput.getServices().forEach(rethrowConsumer(receiptServiceInput -> {
@@ -100,6 +103,34 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         }));
 
         addReceiptProperties(receiptInput.getConsentReceiptId(), receiptInput.getProperties());
+    }
+
+    private void revokeActiveReceipts(ReceiptInput receiptInput) {
+
+        receiptInput.getServices().forEach(rethrowConsumer(receiptServiceInput -> {
+            try {
+                List<String> ids = jdbcTemplate.executeQuery(GET_ACTIVE_RECEIPTS_SQL, (resultSet, rowNumber) -> resultSet
+                        .getString(1), preparedStatement -> {
+                    preparedStatement.setString(1, receiptInput.getPiiPrincipalId());
+                    preparedStatement.setString(2, receiptServiceInput.getService());
+                    preparedStatement.setInt(3, receiptInput.getTenantId());
+                    preparedStatement.setInt(4, receiptServiceInput.getTenantId());
+                });
+
+                if (isNotEmpty(ids)) {
+                    ids.forEach(rethrowConsumer(id-> {
+                        revokeReceipt(id);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Revoked active receipt: " + id + " of the user: " + receiptInput
+                                    .getPiiPrincipalId());
+                        }
+                    }));
+                }
+            } catch (DataAccessException e) {
+                throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_REVOKE_ACTIVE_RECEIPT,
+                        receiptInput.getPiiPrincipalId(), e);
+            }
+        }));
     }
 
     @Override

@@ -57,6 +57,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY_RESOURCE_PATH;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_CATEGORY_RESOURCE_PATH;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_RESOURCE_PATH;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_RESOURCE_PATH;
 import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getConsentManager;
 import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getPIICategoryRequest;
 import static org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils.getPiiCategoryListResponse;
@@ -161,7 +162,10 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
         ReceiptInput receiptInput = getReceiptInput(consent);
         try {
             AddReceiptResponse addReceiptResponse = getConsentManager().addConsent(receiptInput);
-            return Response.ok().entity(addReceiptResponse).build();
+            return Response.ok()
+                    .entity(addReceiptResponse)
+                    .location(getReceiptLocationURI(addReceiptResponse))
+                    .build();
         } catch (ConsentManagementClientException e) {
             return handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
@@ -464,6 +468,11 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
     private URI getPurposeLocationURI(PurposeListResponseDTO response) throws URISyntaxException {
 
         return new URI(PURPOSE_RESOURCE_PATH + "/" + response.getPurposeId());
+    }
+
+    private URI getReceiptLocationURI(AddReceiptResponse response) throws URISyntaxException {
+
+        return new URI(RECEIPT_RESOURCE_PATH + "/" + response.getConsentReceiptId());
     }
 
     private URI getPurposeCategoryLocationURI(PurposeCategoryListResponseDTO response) throws URISyntaxException {
