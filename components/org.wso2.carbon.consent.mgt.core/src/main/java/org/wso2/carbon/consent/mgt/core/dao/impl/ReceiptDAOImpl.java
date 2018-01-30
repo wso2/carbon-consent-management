@@ -118,7 +118,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 });
 
                 if (isNotEmpty(ids)) {
-                    ids.forEach(rethrowConsumer(id-> {
+                    ids.forEach(rethrowConsumer(id -> {
                         revokeReceipt(id);
                         if (log.isDebugEnabled()) {
                             log.debug("Revoked active receipt: " + id + " of the user: " + receiptInput
@@ -138,7 +138,6 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
         ReceiptContext receiptContext = new ReceiptContext();
         Receipt receipt;
-        //TODO need to improve performance.
         try {
             receipt = jdbcTemplate.fetchSingleRecord(GET_RECEIPT_SQL, (resultSet, rowNumber) -> {
                 Receipt receiptInfo = new Receipt();
@@ -301,8 +300,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             }), receiptPurposeInput, true);
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_ADD_SP_TO_PURPOSE_ASSOC,
-                    String.valueOf(receiptPurposeInput.getPurposeId()), e);
-            //TODO need to use purposeName here.IT should set to receiptPurposeInput when validation.
+                    String.valueOf(receiptPurposeInput.getPurposeName()), e);
         }
     }
 

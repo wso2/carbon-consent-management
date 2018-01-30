@@ -145,7 +145,11 @@ public class ConsentConstants {
         ERROR_CODE_INVALID_TENANT_DOMAIN("CM_000062", "Invalid tenant domain: %s"),
         ERROR_CODE_ADD_PURPOSE_PII_ASSOC("CM_00063", "Error occurred while adding Purpose to PII Category " +
                 "association for purpose: %s"),
-        ERROR_CODE_REVOKE_ACTIVE_RECEIPT("CM_00064", "Error while revoking active receipts or user: %s.");
+        ERROR_CODE_REVOKE_ACTIVE_RECEIPT("CM_00064", "Error while revoking active receipts or user: %s."),
+        ERROR_CODE_PURPOSE_NAME_INVALID("CM_00065", "Invalid Purpose name: %s"),
+        ERROR_CODE_PURPOSE_CAT_NAME_INVALID("CM_00066", "Invalid Purpose Category name: %s"),
+        ERROR_CODE_PII_CAT_NAME_INVALID("CM_00067", "Invalid PII Category name: %s"),
+        ERROR_CODE_RECEIPT_ID_INVALID("CM_00068", "Invalid Receipt Id: %s");
 
         private final String code;
         private final String message;
