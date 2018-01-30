@@ -53,6 +53,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ALREADY_EXIST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_RECEIPT_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY_RESOURCE_PATH;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_CATEGORY_RESOURCE_PATH;
@@ -378,7 +379,8 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
         return ERROR_CODE_PURPOSE_ID_INVALID.getCode().equals(e.getErrorCode())
                 || ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID.getCode().equals(e.getErrorCode())
-                || ERROR_CODE_PII_CATEGORY_ID_INVALID.getCode().equals(e.getErrorCode());
+                || ERROR_CODE_PII_CATEGORY_ID_INVALID.getCode().equals(e.getErrorCode())
+                || ERROR_CODE_RECEIPT_ID_INVALID.getCode().equals(e.getErrorCode());
     }
 
     private boolean isConflictError(ConsentManagementClientException e) {
