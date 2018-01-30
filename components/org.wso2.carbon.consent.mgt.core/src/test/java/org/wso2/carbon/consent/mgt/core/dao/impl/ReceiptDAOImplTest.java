@@ -160,9 +160,6 @@ public class ReceiptDAOImplTest {
         receiptInput1.setServices(serviceInputs);
         receiptInput1.setTenantDomain(tenantDomain);
         receiptInput1.setTenantId(tenantId);
-        receiptInput1.setPiiControllers(piiControllers);
-        receiptInput1.setConsentTimestamp(new Date());
-        receiptInput1.setSensitive(false);
         receiptInput1.setState(ConsentConstants.ACTIVE_STATE);
         receiptInput1.setVersion(version);
         receiptInput1.setProperties(properties);
@@ -176,9 +173,6 @@ public class ReceiptDAOImplTest {
         receiptInput2.setLanguage(language);
         receiptInput2.setPolicyUrl(policyUrl);
         receiptInput2.setServices(serviceInputs);
-        receiptInput2.setPiiControllers(piiControllers);
-        receiptInput2.setConsentTimestamp(new Date());
-        receiptInput2.setSensitive(true);
         receiptInput2.setState(ConsentConstants.ACTIVE_STATE);
         receiptInput2.setVersion(version);
         receiptInput2.setProperties(properties);

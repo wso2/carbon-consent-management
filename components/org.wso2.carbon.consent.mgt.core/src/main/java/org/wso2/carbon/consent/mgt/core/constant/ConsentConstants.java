@@ -180,7 +180,7 @@ public class ConsentConstants {
     /**
      * PII Controller related constants.
      */
-    public class PIIControllerElements {
+    public static class PIIControllerElements {
 
         public static final String countryElement = "PIIController.Address.Country";
         public static final String localityElement = "PIIController.Address.Locality";
