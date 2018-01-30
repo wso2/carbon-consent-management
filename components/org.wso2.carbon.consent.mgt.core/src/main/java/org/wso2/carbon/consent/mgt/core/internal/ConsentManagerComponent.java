@@ -25,6 +25,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.InterceptingConsentManager;
 import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
 import org.wso2.carbon.consent.mgt.core.connector.PIIController;
@@ -89,7 +90,8 @@ public class ConsentManagerComponent {
             bundleContext.registerService(PurposeDAO.class.getName(), new PurposeDAOImpl(jdbcTemplate), null);
             bundleContext.registerService(ReceiptDAO.class.getName(), new ReceiptDAOImpl(jdbcTemplate), null);
             bundleContext.registerService(PIICategoryDAO.class.getName(), new PIICategoryDAOImpl(jdbcTemplate), null);
-            bundleContext.registerService(PurposeCategoryDAO.class.getName(), new PurposeCategoryDAOImpl(jdbcTemplate), null);
+            bundleContext.registerService(PurposeCategoryDAO.class.getName(), new PurposeCategoryDAOImpl
+                    (jdbcTemplate), null);
 
             ConsentManagerConfigurationHolder configHolder = new ConsentManagerConfigurationHolder();
             configHolder.setPurposeDAOs(purposeDAOs);
@@ -100,7 +102,7 @@ public class ConsentManagerComponent {
             configHolder.setPiiControllers(piiControllers);
             configHolder.setRealmService(realmService);
 
-            bundleContext.registerService(InterceptingConsentManager.class.getName(), new InterceptingConsentManager
+            bundleContext.registerService(ConsentManager.class.getName(), new InterceptingConsentManager
                     (configHolder, consentMgtInterceptors), null);
             log.info("ConsentManagerComponent is activated.");
         } catch (Throwable e) {

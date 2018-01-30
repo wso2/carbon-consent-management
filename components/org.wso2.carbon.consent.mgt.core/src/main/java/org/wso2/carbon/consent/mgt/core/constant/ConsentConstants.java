@@ -33,6 +33,7 @@ public class ConsentConstants {
     public static final String PURPOSE_SEARCH_LIMIT_PATH = "SearchLimits.Purpose";
     public static final String CONSENT_RESOURCE_PATH = "consents";
     public static final String PURPOSE_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "purposes";
+    public static final String RECEIPT_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "receipts";
     public static final String PURPOSE_CATEGORY_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "purpose-categories";
     public static final String PII_CATEGORY_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "pii-categories";
     public static final String API_VERSION = "KI-CR-v1.1.0";
@@ -143,7 +144,9 @@ public class ConsentConstants {
         ERROR_CODE_INVALID_TENANT_ID("CM_000061", "Invalid tenant ID: %s"),
         ERROR_CODE_INVALID_TENANT_DOMAIN("CM_000062", "Invalid tenant domain: %s"),
         ERROR_CODE_ADD_PURPOSE_PII_ASSOC("CM_00063", "Error occurred while adding Purpose to PII Category " +
-                "association for purpose: %s");
+                "association for purpose: %s"),
+        ERROR_CODE_REVOKE_ACTIVE_RECEIPT("CM_00064", "Error while revoking active receipts or user: %s.");
+
         private final String code;
         private final String message;
 
