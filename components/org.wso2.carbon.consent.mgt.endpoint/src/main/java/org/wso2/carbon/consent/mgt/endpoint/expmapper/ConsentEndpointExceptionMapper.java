@@ -19,6 +19,8 @@ package org.wso2.carbon.consent.mgt.endpoint.expmapper;
 
 import org.apache.cxf.jaxrs.impl.WebApplicationExceptionMapper;
 import org.wso2.carbon.consent.mgt.endpoint.exception.BadRequestException;
+import org.wso2.carbon.consent.mgt.endpoint.exception.ConflictRequestException;
+import org.wso2.carbon.consent.mgt.endpoint.exception.NotFoundException;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -27,9 +29,10 @@ public class ConsentEndpointExceptionMapper extends WebApplicationExceptionMappe
 
     public Response toResponse(WebApplicationException ex) {
 
-        if (ex instanceof BadRequestException) {
+        if (ex instanceof BadRequestException || ex instanceof NotFoundException || ex instanceof ConflictRequestException) {
             this.setPrintStackTrace(false);
         }
+
         return super.toResponse(ex);
     }
 }
