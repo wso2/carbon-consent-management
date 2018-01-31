@@ -106,6 +106,47 @@ public class ConsentUtils {
     }
 
     /**
+     * This method can be used to generate a ConsentManagementRuntimeException from ConsentConstants.ErrorMessages
+     * object when an exception is thrown.
+     *
+     * @param error ConsentConstants.ErrorMessages.
+     * @param data  data to replace if message needs to be replaced.
+     * @param e     Parent exception.
+     * @return ConsentManagementRuntimeException
+     */
+    public static ConsentManagementRuntimeException handleRuntimeException(ConsentConstants.ErrorMessages error,
+                                                                         String data, Throwable e) {
+
+        String message;
+        if (StringUtils.isNotBlank(data)) {
+            message = String.format(error.getMessage(), data);
+        } else {
+            message = error.getMessage();
+        }
+        return new ConsentManagementRuntimeException(message, error.getCode(), e);
+    }
+
+    /**
+     * This method can be used to generate a ConsentManagementRuntimeException from ConsentConstants.ErrorMessages
+     * object when an exception is thrown.
+     *
+     * @param error ConsentConstants.ErrorMessages.
+     * @param data  data to replace if message needs to be replaced.
+     * @return ConsentManagementRuntimeException
+     */
+    public static ConsentManagementRuntimeException handleRuntimeException(ConsentConstants.ErrorMessages error,
+                                                                           String data) {
+
+        String message;
+        if (StringUtils.isNotBlank(data)) {
+            message = String.format(error.getMessage(), data);
+        } else {
+            message = error.getMessage();
+        }
+        return new ConsentManagementRuntimeException(message, error.getCode());
+    }
+
+    /**
      * Get tenant id corresponding to a tenant domain.
      *
      * @param realmService Realm service.
