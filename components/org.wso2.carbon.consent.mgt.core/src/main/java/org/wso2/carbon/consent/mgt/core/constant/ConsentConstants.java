@@ -60,7 +60,7 @@ public class ConsentConstants {
     public static final String RESULT = "RESULT";
 
     public enum ErrorMessages {
-        ERROR_CODE_DATABASE_CONNECTION("CM_00001", "Error when getting a database connection object from the Identity" +
+        ERROR_CODE_DATABASE_CONNECTION("CM_00001", "Error when getting a database connection object from the Consent" +
                 " data source."),
         ERROR_CODE_DATABASE_INITIALIZATION("CM_00002", "Error while initializing the consent management data source."),
         ERROR_CODE_DATABASE_QUERY_PERFORMING("CM_00003", "Error in performing Database query: '%s.'"),
@@ -149,7 +149,16 @@ public class ConsentConstants {
         ERROR_CODE_PURPOSE_NAME_INVALID("CM_00065", "Invalid Purpose name: %s"),
         ERROR_CODE_PURPOSE_CAT_NAME_INVALID("CM_00066", "Invalid Purpose Category name: %s"),
         ERROR_CODE_PII_CAT_NAME_INVALID("CM_00067", "Invalid PII Category name: %s"),
-        ERROR_CODE_RECEIPT_ID_INVALID("CM_00068", "Invalid Receipt Id: %s");
+        ERROR_CODE_RECEIPT_ID_INVALID("CM_00068", "Invalid Receipt Id: %s"),
+        ERROR_CODE_CREATE_DB_TABLES("CM_00069", "Error while creating database tables for Consent Management."),
+        ERROR_CODE_RUN_SQL_QUERY("CM_00070", "Error while executing SQL query: %s"),
+        ERROR_CODE_RUN_SQL_SCRIPT("CM_00071", "Error while executing Consent Management database creation script for " +
+                                              "at: %s."),
+        ERROR_CODE_UNSUPPORTED_DB("CM_00072", "Unsupported database: %s Database will not be created automatically. " +
+                                              "Please create the database using appropriate database scripts for " +
+                                              "the database."),
+        ERROR_CODE_GET_DB_TYPE("CM_00073", "Error while getting the database connection metadata."),
+        ERROR_CODE_NO_SQL_SCRIPT("CM_00074", "Could not find the database script at %s.");
 
         private final String code;
         private final String message;

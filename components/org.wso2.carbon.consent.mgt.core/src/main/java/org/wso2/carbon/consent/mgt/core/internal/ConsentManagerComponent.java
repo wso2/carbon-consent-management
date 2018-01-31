@@ -43,6 +43,7 @@ import org.wso2.carbon.consent.mgt.core.dao.impl.ReceiptDAOImpl;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementRuntimeException;
 import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
+import org.wso2.carbon.consent.mgt.core.util.ConsentDBInitializer;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
@@ -82,9 +83,11 @@ public class ConsentManagerComponent {
 
         try {
             BundleContext bundleContext = componentContext.getBundleContext();
+
             ConsentConfigParser configParser = new ConsentConfigParser();
             DataSource dataSource = initDataSource(configParser);
             JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+            initializeConsentDB(dataSource);
 
             bundleContext.registerService(PIIController.class.getName(), new DefaultPIIController(configParser), null);
             bundleContext.registerService(PurposeDAO.class.getName(), new PurposeDAOImpl(jdbcTemplate), null);
@@ -315,6 +318,19 @@ public class ConsentManagerComponent {
                     .ERROR_CODE_DATABASE_INITIALIZATION.getMessage(),
                     ConsentConstants.ErrorMessages
                             .ERROR_CODE_DATABASE_INITIALIZATION.getCode(), e);
+        }
+    }
+
+    private void initializeConsentDB(DataSource dataSource) {
+
+        if (System.getProperty("setup") == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Consent Database schema initialization check was skipped since " +
+                          "\'setup\' variable was not given during startup");
+            }
+        } else {
+            ConsentDBInitializer dbInitializer = new ConsentDBInitializer(dataSource);
+            dbInitializer.createConsentDatabase();
         }
     }
 }
