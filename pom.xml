@@ -273,7 +273,7 @@
         <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
         <maven.war.plugin.version>2.2</maven.war.plugin.version>
         <build.helper.plugin.version>3.0.0</build.helper.plugin.version>
-        <swagger2cxf.maven.plugin.version>1.0-SNAPSHOT</swagger2cxf.maven.plugin.version>
+        <!--swagger2cxf.maven.plugin.version>1.0-SNAPSHOT</swagger2cxf.maven.plugin.version-->
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
         <!-- OSGi Package Import Versions -->
         <carbon.core.version.range>[4.4.0, 5.0.0)</carbon.core.version.range>
