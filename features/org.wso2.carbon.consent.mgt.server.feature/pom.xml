@@ -68,7 +68,7 @@
                                     <type>war</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${basedir}/src/main/resources/</outputDirectory>
-                                    <destFileName>api#identity#approval#v1.0.war</destFileName>
+                                    <destFileName>api#identity#consent-mgt#v1.0.war</destFileName>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
@@ -118,7 +118,7 @@
                                 <resource>
                                     <directory>resources</directory>
                                     <includes>
-                                        <include>api#identity#approval#v1.0.war</include>
+                                        <include>api#identity#consent-mgt#v1.0.war</include>
                                         <include>consent-mgt-config.xml</include>
                                         <include>**/*.sql</include>
                                         <include>p2.inf</include>

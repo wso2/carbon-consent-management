@@ -8,4 +8,4 @@ org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../featur
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../deployment/);\
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../deployment/server/);\
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../deployment/server/webapps/);\
-org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.consent.mgt.server_${feature.version}/api#identity#approval#v1.0.war,target:${installFolder}/../../deployment/server/webapps/api#identity#approval#v1.0.war,overwrite:true);\
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.consent.mgt.server_${feature.version}/api#identity#consent-mgt#v1.0.war,target:${installFolder}/../../deployment/server/webapps/api#identity#consent-mgt#v1.0.war,overwrite:true);\
