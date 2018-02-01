@@ -58,7 +58,7 @@
                             <directory>src/main/webapp</directory>
                         </resource>
                     </webResources>
-                    <warName>api#identity#approval#v1.0</warName>
+                    <warName>api#identity#consent-mgt#v1.0</warName>
                 </configuration>
             </plugin>
             <plugin>
