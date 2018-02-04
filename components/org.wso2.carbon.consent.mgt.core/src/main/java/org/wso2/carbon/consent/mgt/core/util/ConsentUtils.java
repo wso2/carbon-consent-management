@@ -194,18 +194,6 @@ public class ConsentUtils {
         }
     }
 
-    public static boolean isValidTenantDomain(RealmService realmService, String tenantDomain) throws
-            ConsentManagementServerException {
-        int tenantId;
-        try {
-            tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
-        } catch (UserStoreException e) {
-            throw handleServerException(ERROR_CODE_RETRIEVE_TENANT_ID, tenantDomain, e);
-        }
-
-        return tenantId != MultitenantConstants.INVALID_TENANT_ID;
-    }
-
     /**
      * Get the tenant domain from carbon context.
      *
