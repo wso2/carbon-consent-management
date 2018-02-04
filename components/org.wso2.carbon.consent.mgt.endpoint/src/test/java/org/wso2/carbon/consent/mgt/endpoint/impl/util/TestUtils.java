@@ -50,7 +50,7 @@ public class TestUtils {
 
     public static String getFilePath(String fileName) {
         if (StringUtils.isNotBlank(fileName)) {
-            return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbScripts", fileName)
+            return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbscripts", fileName)
                         .toString();
         }
         throw new IllegalArgumentException("DB Script file name cannot be empty.");

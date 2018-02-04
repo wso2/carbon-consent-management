@@ -47,7 +47,6 @@ public class ConsentConfigParser {
     private static Map<String, Object> configuration = new HashMap<>();
     private static SecretResolver secretResolver;
     private static Log log = LogFactory.getLog(ConsentConfigParser.class);
-    private static String configFilePath;
     private OMElement rootElement;
 
     public ConsentConfigParser() {
@@ -71,18 +70,12 @@ public class ConsentConfigParser {
         StAXOMBuilder builder;
 
         try {
-            if (configFilePath != null) {
-                File configXml = new File(configFilePath);
-                if (configXml.exists()) {
-                    inStream = new FileInputStream(configXml);
-                }
-            } else {
-                String configurationFilePath = CarbonUtils.getCarbonConfigDirPath() + File.separator +
-                        ConsentConstants.CONSENT_MANAGEMENT_CONFIG_XML;
-                File consentConfigXml = new File(configurationFilePath);
-                if (consentConfigXml.exists()) {
-                    inStream = new FileInputStream(consentConfigXml);
-                }
+
+            String configurationFilePath = CarbonUtils.getCarbonConfigDirPath() + File.separator +
+                                           ConsentConstants.CONSENT_MANAGEMENT_CONFIG_XML;
+            File consentConfigXml = new File(configurationFilePath);
+            if (consentConfigXml.exists()) {
+                inStream = new FileInputStream(consentConfigXml);
             }
 
             if (inStream == null) {
