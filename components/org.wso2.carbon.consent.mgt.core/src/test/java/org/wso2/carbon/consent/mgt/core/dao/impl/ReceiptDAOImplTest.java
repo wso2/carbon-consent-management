@@ -96,6 +96,8 @@ public class ReceiptDAOImplTest {
         String language = "EN";
         String policyUrl = "http://foo.com/policy";
         String service1 = "foo-company";
+        String serviceDisplayName = "Foo Company";
+        String serviceDescription = "foo company";
         String tenantDomain = "carbon.super";
         int tenantId = -1234;
         String consentType = "EXPLICIT";
@@ -141,6 +143,8 @@ public class ReceiptDAOImplTest {
         serviceInput.setTenantDomain(tenantDomain);
         serviceInput.setTenantId(tenantId);
         serviceInput.setService(service1);
+        serviceInput.setSpDisplayName(serviceDisplayName);
+        serviceInput.setSpDescription(serviceDescription);
 
         serviceInputs.add(serviceInput);
 

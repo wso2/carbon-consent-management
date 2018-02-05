@@ -22,6 +22,8 @@ import java.util.List;
 public class ConsentPurpose {
 
     private String purpose;
+    private int purposeId;
+    private String purposeDescription;
     private List<String> purposeCategory;
     private String consentType;
     private List<PIICategoryValidity> piiCategory;
@@ -122,5 +124,25 @@ public class ConsentPurpose {
     public void setServiceToPurposeId(int serviceToPurposeId) {
 
         this.serviceToPurposeId = serviceToPurposeId;
+    }
+
+    public int getPurposeId() {
+
+        return purposeId;
+    }
+
+    public void setPurposeId(int purposeId) {
+
+        this.purposeId = purposeId;
+    }
+
+    public String getPurposeDescription() {
+
+        return purposeDescription;
+    }
+
+    public void setPurposeDescription(String purposeDescription) {
+
+        this.purposeDescription = purposeDescription;
     }
 }

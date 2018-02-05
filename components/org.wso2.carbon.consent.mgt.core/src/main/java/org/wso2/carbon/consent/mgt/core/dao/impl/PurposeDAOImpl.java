@@ -110,7 +110,7 @@ public class PurposeDAOImpl implements PurposeDAO {
         if (purpose != null) {
             try {
                 List<Integer> piiCategories = new ArrayList<>();
-                jdbcTemplate.fetchSingleRecord(GET_PURPOSE_PII_CAT_SQL, (resultSet, rowNumber) ->
+                jdbcTemplate.executeQuery(GET_PURPOSE_PII_CAT_SQL, (resultSet, rowNumber) ->
                                 piiCategories.add(resultSet.getInt(1)),
                         preparedStatement -> preparedStatement.setInt(1, purpose.getId()));
                 purpose.setPiiCategoryIds(piiCategories);

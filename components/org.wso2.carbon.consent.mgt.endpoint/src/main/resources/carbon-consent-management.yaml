@@ -950,6 +950,12 @@ definitions:
       service:
         type: 'string'
         description: 'The service or group of services being provided for which PII is collected. The name of the service for which consent for the collection, use, and disclosure of PII is being provided.'
+      serviceDisplayName:
+        type: 'string'
+        description: 'display name of the service'
+      serviceDescription:
+        type: 'string'
+        description: 'Description about the service'
       tenantDomain:
         type: 'string'
         description: 'Tenant domain of the SP'
@@ -967,6 +973,12 @@ definitions:
       service:
         type: 'string'
         description: 'The service or group of services being provided for which PII is collected. The name of the service for which consent for the collection, use, and disclosure of PII is being provided.'
+      serviceDisplayName:
+        type: 'string'
+        description: 'display name of the service'
+      serviceDescription:
+        type: 'string'
+        description: 'Description about the service'
       tenantDomain:
         type: 'string'
         description: 'Tenant domain of the SP'
@@ -1032,6 +1044,9 @@ definitions:
       purpose:
         type: 'string'
         description: 'A short, clear explanation of why the PII item is required.'
+      purposeId:
+        type: 'integer'
+        description: 'Id of the purpose.'
       purposeCategory:
         type: array
         description: 'The reason the PII Controller is collecting the PII.'
@@ -1109,8 +1124,10 @@ definitions:
   piiCategoryNameList:
     type: object
     properties:
-      piiCategory:
+      piiCategoryName:
         type: 'string'
+      piiCategoryId:
+        type: 'integer'
       validity:
         type: 'string'
 

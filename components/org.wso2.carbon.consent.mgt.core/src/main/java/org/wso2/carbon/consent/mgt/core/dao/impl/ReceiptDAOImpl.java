@@ -278,6 +278,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 preparedStatement.setString(1, receiptId);
                 preparedStatement.setString(2, receiptServiceInput.getService());
                 preparedStatement.setInt(3, receiptServiceInput.getTenantId());
+                preparedStatement.setString(4, receiptServiceInput.getSpDisplayName());
+                preparedStatement.setString(5, receiptServiceInput.getSpDescription());
             }), receiptServiceInput, true);
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_ADD_RECEIPT_SP_ASSOC,
@@ -363,6 +365,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 receiptService.setReceiptToServiceId(resultSet.getInt(1));
                 receiptService.setService(resultSet.getString(2));
                 receiptService.setTenantId(resultSet.getInt(3));
+                receiptService.setSpDisplayName(resultSet.getString(4));
+                receiptService.setSpDescription(resultSet.getString(5));
                 return receiptService;
             }, preparedStatement -> preparedStatement.setString(1, consentReceiptId));
 
@@ -392,6 +396,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 consentPurpose.setThirdPartyDisclosure(resultSet.getInt(5) == 1);
                 consentPurpose.setThirdPartyName(resultSet.getString(6));
                 consentPurpose.setPurpose(resultSet.getString(7));
+                consentPurpose.setPurposeDescription(resultSet.getString(8));
+                consentPurpose.setPurposeId(resultSet.getInt(9));
                 return consentPurpose;
             }, preparedStatement -> preparedStatement.setInt(1, receiptToServiceId));
 
@@ -420,10 +426,11 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 String name = resultSet.getString(1);
                 boolean isSensitive = resultSet.getInt(2) == 1;
                 String validity = resultSet.getString(3);
+                int id = resultSet.getInt(4);
                 if (isSensitive) {
                     receiptContext.getSecretPIICategory().addSecretCategory(name);
                 }
-                return new PIICategoryValidity(name, validity);
+                return new PIICategoryValidity(name, validity, id);
             }), preparedStatement -> preparedStatement.setInt(1, serviceToPurposeId));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
