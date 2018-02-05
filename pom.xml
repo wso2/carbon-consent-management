@@ -23,7 +23,7 @@
     <groupId>org.wso2.carbon.consent.mgt</groupId>
     <artifactId>consent-mgt</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.4-SNAPSHOT</version>
 
     <parent>
         <groupId>org.wso2</groupId>
