@@ -426,10 +426,11 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 String name = resultSet.getString(1);
                 boolean isSensitive = resultSet.getInt(2) == 1;
                 String validity = resultSet.getString(3);
+                int id = resultSet.getInt(4);
                 if (isSensitive) {
                     receiptContext.getSecretPIICategory().addSecretCategory(name);
                 }
-                return new PIICategoryValidity(name, validity);
+                return new PIICategoryValidity(name, validity, id);
             }), preparedStatement -> preparedStatement.setInt(1, serviceToPurposeId));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,

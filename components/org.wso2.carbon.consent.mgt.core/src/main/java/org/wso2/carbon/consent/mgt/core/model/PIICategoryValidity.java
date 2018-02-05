@@ -31,8 +31,9 @@ public class PIICategoryValidity {
         this.validity = validity;
     }
 
-    public PIICategoryValidity(String name, String validity) {
+    public PIICategoryValidity(String name, String validity, int id) {
 
+        this.id = id;
         this.validity = validity;
         this.name = name;
     }
