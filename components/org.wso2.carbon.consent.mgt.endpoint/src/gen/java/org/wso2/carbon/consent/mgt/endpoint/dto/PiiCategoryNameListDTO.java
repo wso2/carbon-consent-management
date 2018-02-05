@@ -15,7 +15,10 @@ public class PiiCategoryNameListDTO  {
   
   
   
-  private String piiCategory = null;
+  private String piiCategoryName = null;
+  
+  
+  private Integer piiCategoryId = null;
   
   
   private String validity = null;
@@ -24,12 +27,24 @@ public class PiiCategoryNameListDTO  {
   /**
    **/
   @ApiModelProperty(value = "")
-  @JsonProperty("piiCategory")
-  public String getPiiCategory() {
-    return piiCategory;
+  @JsonProperty("piiCategoryName")
+  public String getPiiCategoryName() {
+    return piiCategoryName;
   }
-  public void setPiiCategory(String piiCategory) {
-    this.piiCategory = piiCategory;
+  public void setPiiCategoryName(String piiCategoryName) {
+    this.piiCategoryName = piiCategoryName;
+  }
+
+  
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("piiCategoryId")
+  public Integer getPiiCategoryId() {
+    return piiCategoryId;
+  }
+  public void setPiiCategoryId(Integer piiCategoryId) {
+    this.piiCategoryId = piiCategoryId;
   }
 
   
@@ -51,7 +66,8 @@ public class PiiCategoryNameListDTO  {
     StringBuilder sb = new StringBuilder();
     sb.append("class PiiCategoryNameListDTO {\n");
     
-    sb.append("  piiCategory: ").append(piiCategory).append("\n");
+    sb.append("  piiCategoryName: ").append(piiCategoryName).append("\n");
+    sb.append("  piiCategoryId: ").append(piiCategoryId).append("\n");
     sb.append("  validity: ").append(validity).append("\n");
     sb.append("}\n");
     return sb.toString();

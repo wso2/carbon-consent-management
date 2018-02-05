@@ -261,6 +261,8 @@ public class ConsentEndpointUtils {
         receiptInput.setServices(consent.getServices().stream().map(serviceDTO -> {
             ReceiptServiceInput receiptServiceInput = new ReceiptServiceInput();
             receiptServiceInput.setService(serviceDTO.getService());
+            receiptServiceInput.setSpDisplayName(serviceDTO.getServiceDisplayName());
+            receiptServiceInput.setSpDescription(serviceDTO.getServiceDescription());
             receiptServiceInput.setTenantDomain(serviceDTO.getTenantDomain());
             receiptServiceInput.setPurposes(serviceDTO.getPurposes().stream().map(purposeDTO -> {
                 ReceiptPurposeInput receiptPurposeInput = new ReceiptPurposeInput();
@@ -304,18 +306,22 @@ public class ConsentEndpointUtils {
         consentReceiptDTO.setServices(receipt.getServices().stream().map(receiptService -> {
             ServiceResponseDTO serviceResponseDTO = new ServiceResponseDTO();
             serviceResponseDTO.setService(receiptService.getService());
+            serviceResponseDTO.setServiceDisplayName(receiptService.getSpDisplayName());
+            serviceResponseDTO.setServiceDescription(receiptService.getSpDescription());
             serviceResponseDTO.setTenantDomain(receiptService.getTenantDomain());
             serviceResponseDTO.setPurposes(receiptService.getPurposes().stream().map(consentPurpose -> {
                 PurposeResponseDTO purposeResponseDTO = new PurposeResponseDTO();
                 purposeResponseDTO.setConsentType(consentPurpose.getConsentType());
                 purposeResponseDTO.setPiiCategory(consentPurpose.getPiiCategory().stream().map(piiCategoryValidity -> {
                     PiiCategoryNameListDTO piiCategoryNameListDTO = new PiiCategoryNameListDTO();
-                    piiCategoryNameListDTO.setPiiCategory(piiCategoryValidity.getName());
+                    piiCategoryNameListDTO.setPiiCategoryName(piiCategoryValidity.getName());
+                    piiCategoryNameListDTO.setPiiCategoryId(piiCategoryValidity.getId());
                     piiCategoryNameListDTO.setValidity(piiCategoryValidity.getValidity());
                     return piiCategoryNameListDTO;
                 }).collect(Collectors.toList()));
                 purposeResponseDTO.setPrimaryPurpose(consentPurpose.isPrimaryPurpose());
                 purposeResponseDTO.setPurpose(consentPurpose.getPurpose());
+                purposeResponseDTO.setPurposeId(consentPurpose.getPurposeId());
                 purposeResponseDTO.setPurposeCategory(consentPurpose.getPurposeCategory());
                 purposeResponseDTO.setTermination(consentPurpose.getTermination());
                 purposeResponseDTO.setThirdPartyDisclosure(consentPurpose.isThirdPartyDisclosure());

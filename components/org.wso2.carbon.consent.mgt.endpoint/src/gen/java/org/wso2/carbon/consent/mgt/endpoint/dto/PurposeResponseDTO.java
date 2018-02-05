@@ -20,6 +20,9 @@ public class PurposeResponseDTO  {
   
   private String purpose = null;
   
+  
+  private Integer purposeId = null;
+  
   @NotNull
   private List<String> purposeCategory = new ArrayList<String>();
   
@@ -52,6 +55,19 @@ public class PurposeResponseDTO  {
   }
   public void setPurpose(String purpose) {
     this.purpose = purpose;
+  }
+
+  
+  /**
+   * Id of the purpose.
+   **/
+  @ApiModelProperty(value = "Id of the purpose.")
+  @JsonProperty("purposeId")
+  public Integer getPurposeId() {
+    return purposeId;
+  }
+  public void setPurposeId(Integer purposeId) {
+    this.purposeId = purposeId;
   }
 
   
@@ -153,6 +169,7 @@ public class PurposeResponseDTO  {
     sb.append("class PurposeResponseDTO {\n");
     
     sb.append("  purpose: ").append(purpose).append("\n");
+    sb.append("  purposeId: ").append(purposeId).append("\n");
     sb.append("  purposeCategory: ").append(purposeCategory).append("\n");
     sb.append("  consentType: ").append(consentType).append("\n");
     sb.append("  piiCategory: ").append(piiCategory).append("\n");

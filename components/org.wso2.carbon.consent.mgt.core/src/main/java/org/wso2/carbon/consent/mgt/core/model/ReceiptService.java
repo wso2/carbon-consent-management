@@ -21,6 +21,8 @@ import java.util.List;
 public class ReceiptService {
 
     private String service;
+    private String spDisplayName;
+    private String spDescription;
     private String tenantDomain;
     private int tenantId;
     List<ConsentPurpose> purposes;
@@ -74,5 +76,25 @@ public class ReceiptService {
     public void setTenantId(int tenantId) {
 
         this.tenantId = tenantId;
+    }
+
+    public String getSpDisplayName() {
+
+        return spDisplayName;
+    }
+
+    public void setSpDisplayName(String spDisplayName) {
+
+        this.spDisplayName = spDisplayName;
+    }
+
+    public String getSpDescription() {
+
+        return spDescription;
+    }
+
+    public void setSpDescription(String spDescription) {
+
+        this.spDescription = spDescription;
     }
 }

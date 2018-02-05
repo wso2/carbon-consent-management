@@ -21,6 +21,12 @@ public class ServiceResponseDTO  {
   private String service = null;
   
   
+  private String serviceDisplayName = null;
+  
+  
+  private String serviceDescription = null;
+  
+  
   private String tenantDomain = null;
   
   
@@ -37,6 +43,32 @@ public class ServiceResponseDTO  {
   }
   public void setService(String service) {
     this.service = service;
+  }
+
+  
+  /**
+   * display name of the service
+   **/
+  @ApiModelProperty(value = "display name of the service")
+  @JsonProperty("serviceDisplayName")
+  public String getServiceDisplayName() {
+    return serviceDisplayName;
+  }
+  public void setServiceDisplayName(String serviceDisplayName) {
+    this.serviceDisplayName = serviceDisplayName;
+  }
+
+  
+  /**
+   * Description about the service
+   **/
+  @ApiModelProperty(value = "Description about the service")
+  @JsonProperty("serviceDescription")
+  public String getServiceDescription() {
+    return serviceDescription;
+  }
+  public void setServiceDescription(String serviceDescription) {
+    this.serviceDescription = serviceDescription;
   }
 
   
@@ -72,6 +104,8 @@ public class ServiceResponseDTO  {
     sb.append("class ServiceResponseDTO {\n");
     
     sb.append("  service: ").append(service).append("\n");
+    sb.append("  serviceDisplayName: ").append(serviceDisplayName).append("\n");
+    sb.append("  serviceDescription: ").append(serviceDescription).append("\n");
     sb.append("  tenantDomain: ").append(tenantDomain).append("\n");
     sb.append("  purposes: ").append(purposes).append("\n");
     sb.append("}\n");
