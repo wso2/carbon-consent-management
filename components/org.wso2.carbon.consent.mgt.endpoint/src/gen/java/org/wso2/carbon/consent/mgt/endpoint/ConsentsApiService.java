@@ -13,7 +13,7 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentAddResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurpseCategoriesDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
-import org.wso2.carbon.consent.mgt.endpoint.dto.PurpsesDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposesDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeGetResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentReceiptDTO;

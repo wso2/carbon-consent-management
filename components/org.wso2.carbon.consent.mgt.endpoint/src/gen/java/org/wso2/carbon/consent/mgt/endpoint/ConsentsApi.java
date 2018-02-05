@@ -16,7 +16,7 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentAddResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurpseCategoriesDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
-import org.wso2.carbon.consent.mgt.endpoint.dto.PurpsesDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposesDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeGetResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentReceiptDTO;
@@ -247,7 +247,7 @@ public class ConsentsApi  {
     @Path("/purposes")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieve all purposes\n", notes = "This API is used to get  all Purposes.\n", response = PurpsesDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Retrieve all purposes\n", notes = "This API is used to get  all Purposes.\n", response = PurposesDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         
