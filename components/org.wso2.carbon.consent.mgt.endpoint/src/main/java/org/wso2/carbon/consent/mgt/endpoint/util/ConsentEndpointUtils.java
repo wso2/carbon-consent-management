@@ -40,6 +40,7 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.PiiControllerDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PropertyDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeGetResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeResponseDTO;
@@ -142,9 +143,9 @@ public class ConsentEndpointUtils {
                 piIcategoryRequestDTO.getDescription(), piIcategoryRequestDTO.getSensitive());
     }
 
-    public static PurposeListResponseDTO getPurposeListResponse(Purpose purposeResponse) {
+    public static PurposeGetResponseDTO getPurposeListResponse(Purpose purposeResponse) {
 
-        PurposeListResponseDTO purposeListResponseDTO = new PurposeListResponseDTO();
+        PurposeGetResponseDTO purposeListResponseDTO = new PurposeGetResponseDTO();
         purposeListResponseDTO.setPurposeId(purposeResponse.getId());
         purposeListResponseDTO.setPurpose(purposeResponse.getName());
         purposeListResponseDTO.setDescription(purposeResponse.getDescription());

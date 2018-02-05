@@ -48,6 +48,7 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeGetResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ServiceDTO;
@@ -161,7 +162,7 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setDescription("D1");
         Response response = service.consentsPurposesPost(purposeRequestDTO);
 
-        PurposeListResponseDTO responseDTO = (PurposeListResponseDTO) response.getEntity();
+        PurposeGetResponseDTO  responseDTO = (PurposeGetResponseDTO ) response.getEntity();
 
         Assert.assertNotNull(responseDTO);
         Assert.assertNotNull(responseDTO.getPurposeId());
@@ -211,7 +212,7 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setPurpose("P1");
         purposeRequestDTO.setDescription("D1");
         Response response = service.consentsPurposesPost(purposeRequestDTO);
-        PurposeListResponseDTO responseDTO = (PurposeListResponseDTO) response.getEntity();
+        PurposeGetResponseDTO  responseDTO = (PurposeGetResponseDTO ) response.getEntity();
         Response response1 = service.consentsPurposesPurposeIdDelete(Integer.toString(responseDTO.getPurposeId()));
 
         Assert.assertNotNull(response1);
@@ -239,10 +240,10 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setPurpose("P1");
         purposeRequestDTO.setDescription("D1");
         Response response = service.consentsPurposesPost(purposeRequestDTO);
-        PurposeListResponseDTO responseDTO = (PurposeListResponseDTO) response.getEntity();
+        PurposeGetResponseDTO  responseDTO = (PurposeGetResponseDTO ) response.getEntity();
 
         Response purposeIdGet = service.consentsPurposesPurposeIdGet(Integer.toString(responseDTO.getPurposeId()));
-        PurposeListResponseDTO responseDTO1 = (PurposeListResponseDTO) purposeIdGet.getEntity();
+        PurposeGetResponseDTO  responseDTO1 = (PurposeGetResponseDTO ) purposeIdGet.getEntity();
 
         Assert.assertEquals(responseDTO1.getPurposeId(), responseDTO.getPurposeId());
     }
@@ -546,7 +547,7 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setPurpose(purpose);
         purposeRequestDTO.setDescription("D1");
         Response response = service.consentsPurposesPost(purposeRequestDTO);
-        PurposeListResponseDTO responseDTO = (PurposeListResponseDTO) response.getEntity();
+        PurposeGetResponseDTO responseDTO = (PurposeGetResponseDTO) response.getEntity();
 
         Assert.assertNotNull(responseDTO, "PurposeListResponse cannot be null.");
         Assert.assertNotNull(responseDTO.getPurposeId(), "PurposeId cannot be null.");

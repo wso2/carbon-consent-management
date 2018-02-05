@@ -243,7 +243,7 @@ paths:
         201:
           description: Successful response
           schema:
-            $ref: '#/definitions/purposeListResponse'
+            $ref: '#/definitions/purposeGetResponse'
           headers:
             Location:
               type: 'string'
@@ -324,7 +324,7 @@ paths:
         200:
           description: OK
           schema:
-            $ref: '#/definitions/purposeListResponse'
+            $ref: '#/definitions/purposeGetResponse'
         400:
           description: Bad Request
           schema:
@@ -1078,6 +1078,20 @@ definitions:
 #-----------------------------------------------------
 
   purposeListResponse:
+    type: object
+    properties:
+      purposeId:
+        type: 'integer'
+      purpose:
+        type: 'string'
+      description:
+        type: 'string'
+
+#-----------------------------------------------------
+# The Purpose GET response object
+#-----------------------------------------------------
+
+  purposeGetResponse:
     type: object
     properties:
       purposeId:
