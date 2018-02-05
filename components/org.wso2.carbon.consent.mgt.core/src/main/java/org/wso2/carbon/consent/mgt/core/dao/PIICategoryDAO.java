@@ -17,22 +17,67 @@
 package org.wso2.carbon.consent.mgt.core.dao;
 
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 
 import java.util.List;
 
+/**
+ * Perform CRUD operations for {@link PIICategory}.
+ */
 public interface PIICategoryDAO {
 
+    /**
+     * Returns the priority of the DAO.
+     *
+     * @return priority of the DAO.
+     */
     int getPriority();
 
+    /**
+     * Add a {@link PIICategory}.
+     *
+     * @param piiCategory {@link PIICategory} to insert.
+     * @return Inserted {@link PIICategory}.
+     * @throws ConsentManagementException If error occurs while adding the {@link PIICategory}.
+     */
     PIICategory addPIICategory(PIICategory piiCategory) throws ConsentManagementException;
 
+    /**
+     * Retrieve {@link PIICategory} by ID.
+     *
+     * @param id ID of the {@link PIICategory} to retrieve.
+     * @return PIICategory for the given ID.
+     * @throws ConsentManagementException If error occurs while retrieving {@link PIICategory}.
+     */
     PIICategory getPIICategoryById(int id) throws ConsentManagementException;
 
+    /**
+     * List {@link PIICategory} items for a given search criteria.
+     *
+     * @param limit Maximum number of results expected.
+     * @param offset Result offset.
+     * @param tenantId Tenant domain to be searched.
+     * @return List of {@link PIICategory} entries.
+     * @throws ConsentManagementException If error occurs while searching the {@link PIICategory}.
+     */
     List<PIICategory> listPIICategories(int limit, int offset, int tenantId) throws ConsentManagementException;
 
+    /**
+     * Delete {@link PIICategory} for a given ID.
+     *
+     * @param id ID of the {@link PIICategory} to be deleted.
+     * @return ID of the deleted {@link PIICategory} if successful.
+     * @throws ConsentManagementException If error occurs while deleting the {@link PIICategory}
+     */
     int deletePIICategory(int id) throws ConsentManagementException;
 
-    PIICategory getPIICategoryByName(String name, int tenantId) throws ConsentManagementServerException;
+    /**
+     * Get the {@link PIICategory} corresponding to the input name.
+     *
+     * @param name Name of the {@link PIICategory}.
+     * @param tenantId Tenant domain of the {@link PIICategory}.
+     * @return PIICategory for the input criteria.
+     * @throws ConsentManagementException If error occurs while retrieving the {@link PIICategory}.
+     */
+    PIICategory getPIICategoryByName(String name, int tenantId) throws ConsentManagementException;
 }

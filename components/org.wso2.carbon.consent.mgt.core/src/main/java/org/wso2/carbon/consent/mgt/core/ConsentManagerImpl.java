@@ -587,7 +587,7 @@ public class ConsentManagerImpl implements ConsentManager {
         return getPurposeCategoryDAO(purposeCategoryDAOs).getPurposeCategoryById(purposeCategoryId);
     }
 
-    private PIICategory getPiiCategoryFromName(String name) throws ConsentManagementServerException {
+    private PIICategory getPiiCategoryFromName(String name) throws ConsentManagementException {
 
         return getPiiCategoryDAO(piiCategoryDAOs).getPIICategoryByName(name,
                 getTenantIdFromCarbonContext());
