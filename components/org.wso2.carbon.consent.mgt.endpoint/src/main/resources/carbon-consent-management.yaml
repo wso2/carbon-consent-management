@@ -283,7 +283,7 @@ paths:
         200:
           description: OK
           schema:
-            $ref: '#/definitions/purpses'
+            $ref: '#/definitions/purposes'
         400:
           description: Bad Request
           schema:
@@ -797,7 +797,7 @@ definitions:
 #-----------------------------------------------------
 # The Purpose response object
 #-----------------------------------------------------
-  purpses:
+  purposes:
     type: array
     items:
       $ref: '#/definitions/purposeListResponse'
