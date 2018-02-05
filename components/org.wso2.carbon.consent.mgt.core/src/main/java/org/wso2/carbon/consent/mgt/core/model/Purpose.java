@@ -27,8 +27,8 @@ public class Purpose {
     private Integer id;
     private String name;
     private String description;
-    private List<Integer> piiCategoryIds;
-    private List<PIICategory> piiCategories;
+    private List<Integer> piiCategoryIds = new ArrayList<>();
+    private List<PIICategory> piiCategories =  new ArrayList<>();
     private int tenantId;
     private String tenantDomain;
 
@@ -134,9 +134,6 @@ public class Purpose {
 
     public List<Integer> getPiiCategoryIds() {
 
-        if (piiCategoryIds == null) {
-            return new ArrayList<>();
-        }
         return piiCategoryIds;
     }
 
@@ -147,9 +144,6 @@ public class Purpose {
 
     public List<PIICategory> getPiiCategories() {
 
-        if (piiCategories == null) {
-            return new ArrayList<>();
-        }
         return piiCategories;
     }
 
