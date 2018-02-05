@@ -36,6 +36,7 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.PIIcategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeGetResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.util.ConsentEndpointUtils;
@@ -260,7 +261,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
     public Response consentsPurposesPost(PurposeRequestDTO purpose) {
 
         try {
-            PurposeListResponseDTO response = addPurpose(purpose);
+            PurposeGetResponseDTO response = addPurpose(purpose);
             return Response.ok()
                     .entity(response)
                     .location(getPurposeLocationURI(response))
@@ -294,7 +295,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
         try {
             Purpose purpose = getConsentManager().getPurpose(Integer.parseInt(purposeId));
-            PurposeListResponseDTO purposeListResponse = getPurposeListResponse(purpose);
+            PurposeGetResponseDTO purposeListResponse = getPurposeListResponse(purpose);
             return Response.ok().entity(purposeListResponse).build();
         } catch (ConsentManagementClientException e) {
             return handleBadRequestResponse(e);
@@ -444,7 +445,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
         throw ConsentEndpointUtils.buildInternalServerErrorException(ERROR_CODE_UNEXPECTED.getCode(), LOG, e);
     }
 
-    private PurposeListResponseDTO addPurpose(PurposeRequestDTO purpose) throws ConsentManagementException {
+    private PurposeGetResponseDTO addPurpose(PurposeRequestDTO purpose) throws ConsentManagementException {
 
         Purpose purposeRequest = getPurposeRequest(purpose);
         Purpose purposeResponse = getConsentManager().addPurpose(purposeRequest);
@@ -467,7 +468,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
         return getPiiCategoryListResponse(purposeResponse);
     }
 
-    private URI getPurposeLocationURI(PurposeListResponseDTO response) throws URISyntaxException {
+    private URI getPurposeLocationURI(PurposeGetResponseDTO response) throws URISyntaxException {
 
         return new URI(PURPOSE_RESOURCE_PATH + "/" + response.getPurposeId());
     }

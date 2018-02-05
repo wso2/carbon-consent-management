@@ -18,7 +18,7 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurpsesDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
-import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeListResponseDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeGetResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentReceiptDTO;
 
 import java.util.List;
@@ -268,7 +268,7 @@ public class ConsentsApi  {
     @Path("/purposes")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Add Purpose\n", notes = "This API is used to add new purposes for the consent management.\n", response = PurposeListResponseDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Add Purpose\n", notes = "This API is used to add new purposes for the consent management.\n", response = PurposeGetResponseDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 201, message = "Successful response"),
         
@@ -308,7 +308,7 @@ public class ConsentsApi  {
     @Path("/purposes/{purposeId}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieve a purpose\n", notes = "This API is used to get Purpose from the purpose Id.\n", response = PurposeListResponseDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Retrieve a purpose\n", notes = "This API is used to get Purpose from the purpose Id.\n", response = PurposeGetResponseDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         

@@ -15,7 +15,7 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurpsesDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
-import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeListResponseDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeGetResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentReceiptDTO;
 
 import java.util.List;
