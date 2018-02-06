@@ -29,7 +29,6 @@ import java.util.List;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.DB2;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.H2;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.INFORMIX;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.MY_SQL;
@@ -37,12 +36,11 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.POSTGRE
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.S_MICROSOFT;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_CATEGORY_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_DB2;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_INFOMIX;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_MSSQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_MYSQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_ORACLE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_CATEGORY_DB2;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_CATEGORY_INFORMIX;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_CATEGORY_MSSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_CATEGORY_MYSQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_CATEGORY_ORACLE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PURPOSE_CATEGORY_BY_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PURPOSE_CATEGORY_BY_NAME_SQL;
 
@@ -109,17 +107,34 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
             ConsentManagementException {
 
         List<PurposeCategory> purposesCategories;
-
         try {
-            purposesCategories = jdbcTemplate.executeQuery(LIST_PAGINATED_PURPOSE_CATEGORY_MYSQL,
+            String query;
+            if (isH2MySqlOrPostgresDB()) {
+                query = LIST_PAGINATED_PURPOSE_CATEGORY_MYSQL;
+            } else if (isDB2DB()) {
+                query = LIST_PAGINATED_PURPOSE_CATEGORY_DB2;
+                offset = offset + limit;
+            } else if (isMssqlDB()) {
+                query = LIST_PAGINATED_PURPOSE_CATEGORY_MSSQL;
+            } else if (isInformixDB()) {
+                query = LIST_PAGINATED_PURPOSE_CATEGORY_INFORMIX;
+            } else {
+                //oracle
+                query = LIST_PAGINATED_PURPOSE_CATEGORY_ORACLE;
+                limit = offset + limit;
+            }
+            int finalLimit = limit;
+            int finalOffset = offset;
+
+            purposesCategories = jdbcTemplate.executeQuery(query,
                     (resultSet, rowNumber) -> new PurposeCategory(resultSet.getInt(1),
                             resultSet.getString(2),
                             resultSet.getString(3),
                             resultSet.getInt(4)),
                     preparedStatement -> {
                         preparedStatement.setInt(1, tenantId);
-                        preparedStatement.setInt(2, limit);
-                        preparedStatement.setInt(3, offset);
+                        preparedStatement.setInt(2, finalLimit);
+                        preparedStatement.setInt(3, finalOffset);
                     });
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_PURPOSE_CATEGORY
@@ -163,18 +178,18 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
         return purposeCategory;
     }
 
-    private boolean isMysqlH2OrPostgressDB() throws DataAccessException {
+    private boolean isH2MySqlOrPostgresDB() throws DataAccessException {
 
         return jdbcTemplate.getDriverName().contains(MY_SQL) || jdbcTemplate.getDriverName().contains(H2) ||
                 jdbcTemplate.getDriverName().contains(POSTGRE_SQL);
     }
 
-    private boolean isDB2Database() throws DataAccessException {
+    private boolean isDB2DB() throws DataAccessException {
 
         return jdbcTemplate.getDriverName().contains(DB2);
     }
 
-    private boolean isMsSqlDB() throws DataAccessException {
+    private boolean isMssqlDB() throws DataAccessException {
 
         return jdbcTemplate.getDriverName().contains(ConsentConstants.MICROSOFT) || jdbcTemplate.getDriverName()
                 .contains(S_MICROSOFT);

@@ -29,14 +29,24 @@ import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.DB2;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.H2;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.INFORMIX;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.MY_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.POSTGRE_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.S_MICROSOFT;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_NAME_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_PII_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_PURPOSE_PII_ASSOC_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_DB2;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_INFORMIX;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_MSSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_MYSQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_ORACLE;
 import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrowConsumer;
 
 /**
@@ -148,14 +158,32 @@ public class PurposeDAOImpl implements PurposeDAO {
 
         List<Purpose> purposes;
         try {
-            purposes = jdbcTemplate.executeQuery(LIST_PAGINATED_PURPOSE_MYSQL,
+            String query;
+            if (isMysqlH2OrPostgresDB()) {
+                query = LIST_PAGINATED_PURPOSE_MYSQL;
+            } else if (isDatabaseDB2()) {
+                query = LIST_PAGINATED_PURPOSE_DB2;
+                offset = offset + limit;
+            } else if (isMsSqlDB()) {
+                query = LIST_PAGINATED_PURPOSE_MSSQL;
+            } else if (isInformixDB()) {
+                query = LIST_PAGINATED_PURPOSE_INFORMIX;
+            } else {
+                //oracle
+                query = LIST_PAGINATED_PURPOSE_ORACLE;
+                limit = offset + limit;
+            }
+            int finalLimit = limit;
+            int finalOffset = offset;
+
+            purposes = jdbcTemplate.executeQuery(query,
                     (resultSet, rowNumber) -> new Purpose(resultSet.getInt(1),
                             resultSet.getString(2),
                             resultSet.getString(3)),
                     preparedStatement -> {
                         preparedStatement.setInt(1, tenantId);
-                        preparedStatement.setInt(2, limit);
-                        preparedStatement.setInt(3, offset);
+                        preparedStatement.setInt(2, finalLimit);
+                        preparedStatement.setInt(3, finalOffset);
                     });
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_PURPOSE.getMessage(),
@@ -174,5 +202,27 @@ public class PurposeDAOImpl implements PurposeDAO {
         }
 
         return id;
+    }
+
+    private boolean isMysqlH2OrPostgresDB() throws DataAccessException {
+
+        return jdbcTemplate.getDriverName().contains(MY_SQL) || jdbcTemplate.getDriverName().contains(H2) ||
+                jdbcTemplate.getDriverName().contains(POSTGRE_SQL);
+    }
+
+    private boolean isDatabaseDB2() throws DataAccessException {
+
+        return jdbcTemplate.getDriverName().contains(DB2);
+    }
+
+    private boolean isMsSqlDB() throws DataAccessException {
+
+        return jdbcTemplate.getDriverName().contains(ConsentConstants.MICROSOFT) || jdbcTemplate.getDriverName()
+                .contains(S_MICROSOFT);
+    }
+
+    private boolean isInformixDB() throws DataAccessException {
+
+        return jdbcTemplate.getDriverName().contains(INFORMIX);
     }
 }

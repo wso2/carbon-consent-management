@@ -37,7 +37,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.S_MICRO
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PII_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PII_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_DB2;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_INFOMIX;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_INFORMIX;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_MSSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_MYSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_ORACLE;
@@ -111,7 +111,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
 
         try {
             String query;
-            if (isMysqlH2OrPostgressDB()) {
+            if (isMysqlH2OrPostgresDB()) {
                 query = LIST_PAGINATED_PII_CATEGORY_MYSQL;
             } else if (isDB2Database()) {
                 query = LIST_PAGINATED_PII_CATEGORY_DB2;
@@ -119,7 +119,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
             } else if (isMsSqlDB()) {
                 query = LIST_PAGINATED_PII_CATEGORY_MSSQL;
             } else if (isInformixDB()) {
-                query = LIST_PAGINATED_PII_CATEGORY_INFOMIX;
+                query = LIST_PAGINATED_PII_CATEGORY_INFORMIX;
             } else {
                 //oracle
                 query = LIST_PAGINATED_PII_CATEGORY_ORACLE;
@@ -181,7 +181,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
         return piiCategory;
     }
 
-    private boolean isMysqlH2OrPostgressDB() throws DataAccessException {
+    private boolean isMysqlH2OrPostgresDB() throws DataAccessException {
 
         return jdbcTemplate.getDriverName().contains(MY_SQL) || jdbcTemplate.getDriverName().contains(H2) ||
                 jdbcTemplate.getDriverName().contains(POSTGRE_SQL);
