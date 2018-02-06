@@ -29,6 +29,8 @@ import java.util.List;
 
 /**
  * Consent manager service interface.
+ *
+ * @since 1.0.0
  */
 public interface ConsentManager {
 

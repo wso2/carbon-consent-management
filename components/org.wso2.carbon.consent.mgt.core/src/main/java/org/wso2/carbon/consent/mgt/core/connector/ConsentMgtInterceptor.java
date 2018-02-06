@@ -21,6 +21,8 @@ import org.wso2.carbon.consent.mgt.core.model.ConsentMessage;
 
 /**
  * This interface is used to define the Consent Management Interceptors.
+ *
+ * @since 1.0.0
  */
 public interface ConsentMgtInterceptor {
 
