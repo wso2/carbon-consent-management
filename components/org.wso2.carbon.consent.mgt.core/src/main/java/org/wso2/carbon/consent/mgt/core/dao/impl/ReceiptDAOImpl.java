@@ -43,6 +43,12 @@ import java.util.TimeZone;
 
 import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.DB2;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.H2;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.INFORMIX;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.MY_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.POSTGRE_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.S_MICROSOFT;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_ACTIVE_RECEIPTS_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_CAT_SQL;
@@ -57,7 +63,15 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_P
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_TO_PURPOSE_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.REVOKE_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_DB2;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_INFORMIX;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_MSSQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_ORACLE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_TENANT;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_TENANT_DB2;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_TENANT_INFORMIX;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_TENANT_MSSQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_TENANT_ORACLE;
 import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrowConsumer;
 
 /**
@@ -204,9 +218,28 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             String finalPiiPrincipalId = piiPrincipalId;
             String finalService = service;
             String finalState = state;
+            String query;
 
             if (spTenantId != 0) { // Tenant domain is used for search results.
-                receiptListResponses = jdbcTemplate.executeQuery(SEARCH_RECEIPT_SQL, (resultSet, rowNumber) ->
+
+                if (isMysqlH2PostgresDB()) {
+                    query = SEARCH_RECEIPT_SQL;
+                } else if (isDatabaseDB2()) {
+                    query = SEARCH_RECEIPT_SQL_DB2;
+                    offset = offset + limit;
+                } else if (isMssqlDB()) {
+                    query = SEARCH_RECEIPT_SQL_MSSQL;
+                } else if (isInformixDB()) {
+                    query = SEARCH_RECEIPT_SQL_INFORMIX;
+                } else {
+                    //oracle
+                    query = SEARCH_RECEIPT_SQL_ORACLE;
+                    limit = offset + limit;
+                }
+
+                int finalLimit = limit;
+                int finalOffset = offset;
+                receiptListResponses = jdbcTemplate.executeQuery(query, (resultSet, rowNumber) ->
                                 new ReceiptListResponse(resultSet.getString(1), resultSet
                                         .getString(2), resultSet.getString(3), resultSet.getInt(4), resultSet
                                         .getString(5)),
@@ -215,11 +248,27 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                             preparedStatement.setString(2, finalService);
                             preparedStatement.setInt(3, spTenantId);
                             preparedStatement.setString(4, finalState);
-                            preparedStatement.setInt(5, limit);
-                            preparedStatement.setInt(6, offset);
+                            preparedStatement.setInt(5, finalLimit);
+                            preparedStatement.setInt(6, finalOffset);
                         });
             } else {
-                receiptListResponses = jdbcTemplate.executeQuery(SEARCH_RECEIPT_SQL_WITHOUT_TENANT, (resultSet, rowNumber) ->
+                if (isMysqlH2PostgresDB()) {
+                    query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT;
+                } else if (isDB2()) {
+                    query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT_DB2;
+                    offset = offset + limit;
+                } else if (isMssqlDB()) {
+                    query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT_MSSQL;
+                } else if (isInformixDB()) {
+                    query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT_INFORMIX;
+                } else {
+                    //oracle
+                    query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT_ORACLE;
+                    limit = offset + limit;
+                }
+                int finalLimit = limit;
+                int finalOffset = offset;
+                receiptListResponses = jdbcTemplate.executeQuery(query, (resultSet, rowNumber) ->
                                 new ReceiptListResponse(resultSet.getString(1), resultSet
                                         .getString(2), resultSet.getString(3), resultSet.getInt(4), resultSet
                                         .getString(5)),
@@ -228,8 +277,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                             preparedStatement.setString(1, finalPiiPrincipalId);
                             preparedStatement.setString(2, finalService);
                             preparedStatement.setString(3, finalState);
-                            preparedStatement.setInt(4, limit);
-                            preparedStatement.setInt(5, offset);
+                            preparedStatement.setInt(4, finalLimit);
+                            preparedStatement.setInt(5, finalOffset);
                         });
             }
         } catch (DataAccessException e) {
@@ -449,5 +498,32 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
                     consentReceiptId, e);
         }
+    }
+
+    private boolean isMysqlH2PostgresDB() throws DataAccessException {
+
+        return jdbcTemplate.getDriverName().contains(MY_SQL) || jdbcTemplate.getDriverName().contains(H2) ||
+                jdbcTemplate.getDriverName().contains(POSTGRE_SQL);
+    }
+
+    private boolean isDatabaseDB2() throws DataAccessException {
+
+        return jdbcTemplate.getDriverName().contains(DB2);
+    }
+
+    private boolean isDB2() throws DataAccessException {
+
+        return jdbcTemplate.getDriverName().contains(DB2);
+    }
+
+    private boolean isMssqlDB() throws DataAccessException {
+
+        return jdbcTemplate.getDriverName().contains(ConsentConstants.MICROSOFT) || jdbcTemplate.getDriverName()
+                .contains(S_MICROSOFT);
+    }
+
+    private boolean isInformixDB() throws DataAccessException {
+
+        return jdbcTemplate.getDriverName().contains(INFORMIX);
     }
 }
