@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
+import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
@@ -26,10 +27,21 @@ import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 
 import java.util.List;
 
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.DB2;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.H2;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.INFORMIX;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.MY_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.POSTGRE_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.S_MICROSOFT;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_CATEGORY_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_DB2;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_INFOMIX;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_MSSQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_MYSQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_ORACLE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_CATEGORY_MYSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PURPOSE_CATEGORY_BY_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PURPOSE_CATEGORY_BY_NAME_SQL;
@@ -149,5 +161,27 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_CATEGORY_BY_NAME, name, e);
         }
         return purposeCategory;
+    }
+
+    private boolean isMysqlH2OrPostgressDB() throws DataAccessException {
+
+        return jdbcTemplate.getDriverName().contains(MY_SQL) || jdbcTemplate.getDriverName().contains(H2) ||
+                jdbcTemplate.getDriverName().contains(POSTGRE_SQL);
+    }
+
+    private boolean isDB2Database() throws DataAccessException {
+
+        return jdbcTemplate.getDriverName().contains(DB2);
+    }
+
+    private boolean isMsSqlDB() throws DataAccessException {
+
+        return jdbcTemplate.getDriverName().contains(ConsentConstants.MICROSOFT) || jdbcTemplate.getDriverName()
+                .contains(S_MICROSOFT);
+    }
+
+    private boolean isInformixDB() throws DataAccessException {
+
+        return jdbcTemplate.getDriverName().contains(INFORMIX);
     }
 }
