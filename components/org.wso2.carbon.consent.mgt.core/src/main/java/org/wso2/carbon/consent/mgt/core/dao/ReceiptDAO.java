@@ -17,23 +17,61 @@
 package org.wso2.carbon.consent.mgt.core.dao;
 
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 
 import java.util.List;
 
+/**
+ * Perform CRUD operations for {@link Receipt}.
+ */
 public interface ReceiptDAO {
 
+    /**
+     * Returns the priority of the DAO.
+     *
+     * @return priority of the DAO.
+     */
     int getPriority();
 
+    /**
+     * Add a {@link Receipt}.
+     *
+     * @param receiptInput {@link Receipt} to insert.
+     * @throws ConsentManagementException If error occurs while adding the {@link Receipt}.
+     */
     void addReceipt(ReceiptInput receiptInput) throws ConsentManagementException;
 
+    /**
+     * Retrieve {@link Receipt} by receipt ID.
+     *
+     * @param receiptId ID of the {@link Receipt} to retrieve.
+     * @return Receipt for the given ID.
+     * @throws ConsentManagementException If error occurs while retrieving {@link Receipt}.
+     */
     Receipt getReceipt(String receiptId) throws ConsentManagementException;
 
+    /**
+     * Revoke a {@link Receipt} by ID.
+     *
+     * @param receiptId ID of the {@link Receipt}.
+     * @throws ConsentManagementException If error occurs while revoking the {@link Receipt}.
+     */
     void revokeReceipt(String receiptId) throws ConsentManagementException;
 
+    /**
+     *  Search {@link Receipt} items for a given criteria.
+     *
+     * @param limit Maximum number of results expected.
+     * @param offset Result offset.
+     * @param piiPrincipalId Identifier of the principal subject.
+     * @param spTenantId Tenant domain of the service.
+     * @param service Service name.
+     * @param state State of the {@link Receipt}.
+     * @return A list of {@link ReceiptListResponse}
+     * @throws ConsentManagementException If error occurs while searching {@link Receipt} items.
+     */
     List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, int spTenantId,
                                              String service, String state) throws ConsentManagementException;
 }

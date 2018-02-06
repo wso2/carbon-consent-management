@@ -131,7 +131,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     }
 
     @Override
-    public PIICategory getPIICategoryByName(String name, int tenantId) throws ConsentManagementServerException {
+    public PIICategory getPIICategoryByName(String name, int tenantId) throws ConsentManagementException {
 
         PIICategory piiCategory;
 
@@ -150,6 +150,5 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PII_CATEGORY_BY_NAME, name, e);
         }
         return piiCategory;
-
     }
 }

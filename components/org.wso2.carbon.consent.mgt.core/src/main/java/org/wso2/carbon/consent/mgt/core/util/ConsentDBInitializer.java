@@ -135,6 +135,9 @@ public class ConsentDBInitializer {
         return true;
     }
 
+    /**
+     * Create the consent management database if not exist.
+     */
     public void createConsentDatabase() {
 
         if (!isDatabaseStructureCreated()) {

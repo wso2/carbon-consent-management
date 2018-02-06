@@ -21,17 +21,63 @@ import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 
 import java.util.List;
 
+/**
+ * Perform CRUD operations for {@link PurposeCategory}.
+ */
 public interface PurposeCategoryDAO {
 
+    /**
+     * Returns the priority of the DAO.
+     *
+     * @return priority of the DAO.
+     */
     int getPriority();
 
+    /**
+     * Add a {@link PurposeCategory}.
+     *
+     * @param purposeCategory {@link PurposeCategory} to insert.
+     * @return Inserted {@link PurposeCategory}.
+     * @throws ConsentManagementException If error occurs while adding the {@link PurposeCategory}.
+     */
     PurposeCategory addPurposeCategory(PurposeCategory purposeCategory) throws ConsentManagementException;
 
+    /**
+     * Retrieve {@link PurposeCategory} by ID.
+     *
+     * @param id ID of the {@link PurposeCategory} to retrieve.
+     * @return PurposeCategory for the given ID.
+     * @throws ConsentManagementException If error occurs while retrieving {@link PurposeCategory}.
+     */
     PurposeCategory getPurposeCategoryById(int id) throws ConsentManagementException;
 
+    /**
+     * List {@link PurposeCategory} items for a given search criteria.
+     *
+     * @param limit Maximum number of results expected.
+     * @param offset Result offset.
+     * @param tenantId Tenant domain to be searched.
+     * @return List of {@link PurposeCategory} entries.
+     * @throws ConsentManagementException If error occurs while searching the {@link PurposeCategory}.
+     */
     List<PurposeCategory> listPurposeCategories(int limit, int offset, int tenantId) throws ConsentManagementException;
 
+    /**
+     * Delete {@link PurposeCategory} for a given ID.
+     *
+     * @param id ID of the {@link PurposeCategory} to be deleted.
+     * @return ID of the deleted {@link PurposeCategory} if successful.
+     * @throws ConsentManagementException If error occurs while deleting the {@link PurposeCategory}
+     */
     int deletePurposeCategory(int id) throws ConsentManagementException;
 
+    /**
+     * Get the {@link PurposeCategory} corresponding to the input name.
+     *
+     * @param name Name of the {@link PurposeCategory}.
+     * @param tenantId Tenant domain of the {@link PurposeCategory}.
+     * @return PurposeCategory for the input criteria.
+     * @throws ConsentManagementException If error occurs while retrieving the {@link PurposeCategory}.
+     */
     PurposeCategory getPurposeCategoryByName(String name, int tenantId) throws ConsentManagementException;
 }
