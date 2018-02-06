@@ -125,7 +125,7 @@ public class JdbcTemplate {
                 if (resultSet.next()) {
                     result = rowMapper.mapRow(resultSet, 0);
                 }
-                if (resultSet.next()) {
+                if (!resultSet.isClosed() && resultSet.next()) {
                     logDebugInfo("There are more records than one found for query: {} for the parameters {}", query,
                             queryFilter);
                     throw new DataAccessException(ConsentConstants.ErrorMessages.ERROR_CODE_MORE_RECORDS_IN_QUERY
