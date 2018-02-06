@@ -22,28 +22,46 @@ package org.wso2.carbon.consent.mgt.core.constant;
 public class SQLConstants {
 
     public static final String INSERT_PURPOSE_SQL = "INSERT INTO CM_PURPOSE (NAME, DESCRIPTION, TENANT_ID) values (?," +
-                                                    " ?, ?)";
+            " ?, ?)";
     public static final String GET_PURPOSE_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM CM_PURPOSE WHERE" +
-                                                       " ID = ?";
+            " ID = ?";
     public static final String GET_PURPOSE_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM CM_PURPOSE " +
-                                                         "WHERE NAME = ? AND TENANT_ID = ?";
+            "WHERE NAME = ? AND TENANT_ID = ?";
     public static final String LIST_PAGINATED_PURPOSE_MYSQL = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM " +
-                                                              "CM_PURPOSE WHERE TENANT_ID = ? ORDER BY ID ASC LIMIT ?" +
-                                                              " OFFSET ?";
+            "CM_PURPOSE WHERE TENANT_ID = ? ORDER BY ID ASC LIMIT ?" +
+            " OFFSET ?";
     public static final String DELETE_PURPOSE_SQL = "DELETE FROM CM_PURPOSE WHERE ID = ?";
     public static final String INSERT_PII_CATEGORY_SQL = "INSERT INTO CM_PII_CATEGORY (NAME, DESCRIPTION," +
-                                                         "IS_SENSITIVE, TENANT_ID) VALUES (?,?,?,?)";
+            "IS_SENSITIVE, TENANT_ID) VALUES (?,?,?,?)";
     public static final String SELECT_PII_CATEGORY_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, TENANT_ID" +
-                                                               " FROM CM_PII_CATEGORY WHERE ID = ?";
+            " FROM CM_PII_CATEGORY WHERE ID = ?";
     public static final String LIST_PAGINATED_PII_CATEGORY_MYSQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
-                                                                   "TENANT_ID FROM CM_PII_CATEGORY WHERE TENANT_ID = " +
-                                                                   "? ORDER BY ID ASC LIMIT ? OFFSET ?";
+            "TENANT_ID FROM CM_PII_CATEGORY WHERE TENANT_ID = " +
+            "? ORDER BY ID ASC LIMIT ? OFFSET ?";
+
+    public static final String LIST_PAGINATED_PII_CATEGORY_INFOMIX = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
+            "TENANT_ID FROM CM_PII_CATEGORY WHERE TENANT_ID = " +
+            "? ORDER BY ID ASC LIMIT ? OFFSET ?";
+
+    public static final String LIST_PAGINATED_PII_CATEGORY_DB2 = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE," +
+            "TENANT_ID FROM (SELECT ROW_NUMBER() OVER (ORDER BY ID) AS rn, p.*  FROM CM_PII_CATEGORY AS" +
+            " p) WHERE TENANT_ID =? AND rn BETWEEN ? AND ?";
+
+    public static final String LIST_PAGINATED_PII_CATEGORY_MSSQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE,TENANT_ID FROM " +
+            "(SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE,TENANT_ID ROW_NUMBER() OVER (ORDER BY ID) AS RowNum FROM " +
+            "CM_PII_CATEGORY) AS P WHERE P.TENANT_ID = ? AND P.RowNum BETWEEN ? AND ?";
+
+    public static final String LIST_PAGINATED_PII_CATEGORY_ORACLE = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE," +
+            "TENANT_ID FROM (SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE,TENANT_ID, rownum AS rnum " +
+            "FROM (SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE,TENANT_ID FROM CM_PII_CATEGORY ORDER BY ID) WHERE " +
+            "TENANT_ID =? AND rownum <= ?) WHERE  rnum > ?";
+
     public static final String DELETE_PII_CATEGORY_SQL = "DELETE FROM CM_PII_CATEGORY WHERE ID = ?";
     public static final String SELECT_PII_CATEGORY_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
-                                                                 "TENANT_ID FROM CM_PII_CATEGORY WHERE NAME = ? AND " +
-                                                                 "TENANT_ID = ? ";
+            "TENANT_ID FROM CM_PII_CATEGORY WHERE NAME = ? AND " +
+            "TENANT_ID = ? ";
     public static final String INSERT_PURPOSE_CATEGORY_SQL = "INSERT INTO CM_PURPOSE_CATEGORY (NAME, DESCRIPTION, " +
-                                                             "TENANT_ID) VALUES (?,?,?)";
+            "TENANT_ID) VALUES (?,?,?)";
     public static final String SELECT_PURPOSE_CATEGORY_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM " +
             "CM_PURPOSE_CATEGORY  WHERE ID = ?";
     public static final String LIST_PAGINATED_PURPOSE_CATEGORY_MYSQL = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM " +

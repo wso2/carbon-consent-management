@@ -59,6 +59,14 @@ public class ConsentConstants {
     public static final String RECEIPT_INPUT = "RECEIPT_INPUT";
     public static final String RESULT = "RESULT";
 
+    public static final String MY_SQL = "MySQL";
+    public static final String POSTGRE_SQL = "PostgreSQL";
+    public static final String DB2 = "DB2";
+    public static final String MICROSOFT = "Microsoft";
+    public static final String S_MICROSOFT = "microsoft";
+    public static final String INFORMIX = "Informix";
+    public static final String H2 = "H2";
+
     public enum ErrorMessages {
         ERROR_CODE_DATABASE_CONNECTION("CM_00001", "Error when getting a database connection object from the Consent" +
                 " data source."),
