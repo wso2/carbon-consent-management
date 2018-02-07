@@ -242,7 +242,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 receiptListResponses = jdbcTemplate.executeQuery(query, (resultSet, rowNumber) ->
                                 new ReceiptListResponse(resultSet.getString(1), resultSet
                                         .getString(2), resultSet.getString(3), resultSet.getInt(4), resultSet
-                                        .getString(5)),
+                                        .getString(5), resultSet.getString(6), resultSet.getString(7)),
                         preparedStatement -> {
                             preparedStatement.setString(1, finalPiiPrincipalId);
                             preparedStatement.setString(2, finalService);
@@ -271,7 +271,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 receiptListResponses = jdbcTemplate.executeQuery(query, (resultSet, rowNumber) ->
                                 new ReceiptListResponse(resultSet.getString(1), resultSet
                                         .getString(2), resultSet.getString(3), resultSet.getInt(4), resultSet
-                                        .getString(5)),
+                                        .getString(5), resultSet.getString(6), resultSet.getString(7)),
                         preparedStatement -> {
 
                             preparedStatement.setString(1, finalPiiPrincipalId);

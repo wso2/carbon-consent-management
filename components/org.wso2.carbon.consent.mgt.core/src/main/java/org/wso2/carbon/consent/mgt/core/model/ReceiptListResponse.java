@@ -16,8 +16,6 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
-import java.util.List;
-
 /**
  * The model representing a a consent receipt.
  */
@@ -29,15 +27,19 @@ public class ReceiptListResponse {
     private String tenantDomain;
     private int tenantId;
     private String state;
+    private String spDisplayName;
+    private String spDescription;
 
     public ReceiptListResponse(String consentReceiptId, String language, String piiPrincipalId, int tenantId,
-                               String state) {
+                               String state, String spDisplayName, String spDescription) {
 
         this.consentReceiptId = consentReceiptId;
         this.language = language;
         this.piiPrincipalId = piiPrincipalId;
         this.tenantId = tenantId;
         this.state = state;
+        this.spDisplayName = spDisplayName;
+        this.spDescription = spDescription;
     }
 
     public String getConsentReceiptId() {
@@ -98,5 +100,25 @@ public class ReceiptListResponse {
     public void setTenantId(int tenantId) {
 
         this.tenantId = tenantId;
+    }
+
+    public String getSpDisplayName() {
+
+        return spDisplayName;
+    }
+
+    public void setSpDisplayName(String spDisplayName) {
+
+        this.spDisplayName = spDisplayName;
+    }
+
+    public String getSpDescription() {
+
+        return spDescription;
+    }
+
+    public void setSpDescription(String spDescription) {
+
+        this.spDescription = spDescription;
     }
 }
