@@ -22,6 +22,7 @@ package org.wso2.carbon.consent.mgt.core.model;
  * and before firing POST-interceptors.
  *
  * @param <T> Handler delegate type.
+ * @since 1.0.0
  */
 @FunctionalInterface
 public interface OperationDelegate<T> {

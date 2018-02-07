@@ -20,6 +20,8 @@ import org.wso2.carbon.consent.mgt.core.model.PiiController;
 
 /**
  * This interface is used to define the PIIController information.
+ *
+ * @since 1.0.0
  */
 public interface PIIController {
 

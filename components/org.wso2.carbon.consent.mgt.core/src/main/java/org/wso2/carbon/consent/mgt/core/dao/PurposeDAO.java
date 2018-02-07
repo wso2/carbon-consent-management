@@ -23,6 +23,8 @@ import java.util.List;
 
 /**
  * Perform CRUD operations for {@link Purpose}.
+ *
+ * @since 1.0.0
  */
 public interface PurposeDAO {
 

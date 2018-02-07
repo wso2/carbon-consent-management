@@ -25,6 +25,8 @@ import java.util.List;
 
 /**
  * Perform CRUD operations for {@link Receipt}.
+ *
+ * @since 1.0.0
  */
 public interface ReceiptDAO {
 

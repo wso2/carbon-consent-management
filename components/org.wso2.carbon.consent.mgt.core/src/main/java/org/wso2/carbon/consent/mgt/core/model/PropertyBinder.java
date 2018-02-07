@@ -21,6 +21,8 @@ import java.util.Map;
 
 /**
  * Functional interface used in Consent management interceptors to map the operation related properties.
+ *
+ * @since 1.0.0
  */
 public interface PropertyBinder {
 

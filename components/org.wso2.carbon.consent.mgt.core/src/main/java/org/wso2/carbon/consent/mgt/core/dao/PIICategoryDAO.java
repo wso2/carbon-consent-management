@@ -23,6 +23,8 @@ import java.util.List;
 
 /**
  * Perform CRUD operations for {@link PIICategory}.
+ *
+ * @since 1.0.0
  */
 public interface PIICategoryDAO {
 
