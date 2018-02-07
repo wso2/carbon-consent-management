@@ -23,7 +23,7 @@
     <groupId>org.wso2.carbon.consent.mgt</groupId>
     <artifactId>consent-mgt</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.13-SNAPSHOT</version>
+    <version>1.0.13</version>
 
     <parent>
         <groupId>org.wso2</groupId>
@@ -35,7 +35,7 @@
         <url>https://github.com/wso2/carbon-consent-management.git</url>
         <developerConnection>scm:git:https://github.com/wso2/carbon-consent-management.git</developerConnection>
         <connection>scm:git:https://github.com/wso2/carbon-consent-management.git</connection>
-        <tag>HEAD</tag>
+        <tag>v1.0.13</tag>
     </scm>
 
     <modules>
