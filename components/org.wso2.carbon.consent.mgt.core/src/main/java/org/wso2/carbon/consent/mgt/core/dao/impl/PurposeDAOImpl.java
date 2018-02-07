@@ -165,6 +165,9 @@ public class PurposeDAOImpl implements PurposeDAO {
                 query = LIST_PAGINATED_PURPOSE_DB2;
                 offset = offset + limit;
             } else if (isMsSqlDB()) {
+                int initialOffset = offset;
+                offset = limit + offset;
+                limit = initialOffset + 1;
                 query = LIST_PAGINATED_PURPOSE_MSSQL;
             } else if (isInformixDB()) {
                 query = LIST_PAGINATED_PURPOSE_INFORMIX;

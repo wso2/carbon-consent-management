@@ -116,6 +116,9 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
                 offset = offset + limit;
             } else if (isMssqlDB()) {
                 query = LIST_PAGINATED_PURPOSE_CATEGORY_MSSQL;
+                int initialOffset = offset;
+                offset = limit + offset;
+                limit = initialOffset + 1;
             } else if (isInformixDB()) {
                 query = LIST_PAGINATED_PURPOSE_CATEGORY_INFORMIX;
             } else {
