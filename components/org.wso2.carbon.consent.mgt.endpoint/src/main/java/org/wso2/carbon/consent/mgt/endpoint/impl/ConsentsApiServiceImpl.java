@@ -360,6 +360,8 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
             consentResponseDTO.setPiiPrincipalId(receiptListResponse.getPiiPrincipalId());
             consentResponseDTO.setTenantDomain(receiptListResponse.getTenantDomain());
             consentResponseDTO.setState(receiptListResponse.getState());
+            consentResponseDTO.setSpDisplayName(receiptListResponse.getSpDisplayName());
+            consentResponseDTO.setSpDescription(receiptListResponse.getSpDescription());
             return consentResponseDTO;
         }).collect(Collectors.toList());
     }

@@ -28,6 +28,12 @@ public class ConsentResponseDTO  {
   
   
   private String state = null;
+  
+  
+  private String spDisplayName = null;
+  
+  
+  private String spDescription = null;
 
   
   /**
@@ -90,6 +96,30 @@ public class ConsentResponseDTO  {
   }
 
   
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("spDisplayName")
+  public String getSpDisplayName() {
+    return spDisplayName;
+  }
+  public void setSpDisplayName(String spDisplayName) {
+    this.spDisplayName = spDisplayName;
+  }
+
+  
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("spDescription")
+  public String getSpDescription() {
+    return spDescription;
+  }
+  public void setSpDescription(String spDescription) {
+    this.spDescription = spDescription;
+  }
+
+  
 
   @Override
   public String toString()  {
@@ -101,6 +131,8 @@ public class ConsentResponseDTO  {
     sb.append("  piiPrincipalId: ").append(piiPrincipalId).append("\n");
     sb.append("  tenantDomain: ").append(tenantDomain).append("\n");
     sb.append("  state: ").append(state).append("\n");
+    sb.append("  spDisplayName: ").append(spDisplayName).append("\n");
+    sb.append("  spDescription: ").append(spDescription).append("\n");
     sb.append("}\n");
     return sb.toString();
   }

@@ -868,6 +868,10 @@ definitions:
         type: 'string'
       state:
         type: 'string'
+      spDisplayName:
+        type: 'string'
+      spDescription:
+        type: 'string'
 #-----------------------------------------------------
 # Consent response object
 #-----------------------------------------------------
