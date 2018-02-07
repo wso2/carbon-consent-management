@@ -118,6 +118,9 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
                 offset = offset + limit;
             } else if (isMsSqlDB()) {
                 query = LIST_PAGINATED_PII_CATEGORY_MSSQL;
+                int initialOffset = offset;
+                offset = limit + offset;
+                limit = initialOffset + 1;
             } else if (isInformixDB()) {
                 query = LIST_PAGINATED_PII_CATEGORY_INFORMIX;
             } else {
