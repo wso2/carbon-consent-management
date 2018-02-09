@@ -42,7 +42,11 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.user.api.AuthorizationManager;
+import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,6 +56,8 @@ import java.util.UUID;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.wso2.carbon.CarbonConstants.UI_PERMISSION_ACTION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.API_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_CATEGORY_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_PII_CATEGORY_ID_REQUIRED;
@@ -61,6 +67,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GET_DAO;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_IS_PRIMARY_PURPOSE_IS_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_NO_USER_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ALREADY_EXIST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_REQUIRED;
@@ -83,7 +90,15 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_SERVICE_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_TERMINATION_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_THIRD_PARTY_DISCLOSURE_IS_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_USER_NOT_AUTHORIZED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GET_RECEIPT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.LIST_RECEIPT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PERMISSION_CONSENT_MGT_DELETE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PERMISSION_CONSENT_MGT_LIST;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PERMISSION_CONSENT_MGT_VIEW;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_SEARCH_LIMIT_PATH;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.getTenantDomainFromCarbonContext;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.getTenantId;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.getTenantIdFromCarbonContext;
@@ -487,6 +502,7 @@ public class ConsentManagerImpl implements ConsentManager {
      */
     public Receipt getReceipt(String receiptId) throws ConsentManagementException {
 
+        validateAuthorizationForGetOrRevokeReceipts(receiptId, GET_RECEIPT);
         Receipt receipt = getReceiptsDAO(receiptDAOs).getReceipt(receiptId);
 
         if (receipt == null || receipt.getConsentReceiptId() == null) {
@@ -518,7 +534,7 @@ public class ConsentManagerImpl implements ConsentManager {
         if (StringUtils.isNotBlank(spTenantDomain)) {
             spTenantId = ConsentUtils.getTenantId(realmService, spTenantDomain);
         }
-
+        validateAuthorizationForListReceipts(piiPrincipalId);
         validatePaginationParameters(limit, offset);
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
@@ -543,6 +559,7 @@ public class ConsentManagerImpl implements ConsentManager {
      */
     public void revokeReceipt(String receiptId) throws ConsentManagementException {
 
+        validateAuthorizationForGetOrRevokeReceipts(receiptId, REVOKE_RECEIPT);
         getReceiptsDAO(receiptDAOs).revokeReceipt(receiptId);
         if (log.isDebugEnabled()) {
             log.debug("Receipt revoked successfully with the Id: " + receiptId);
@@ -568,6 +585,83 @@ public class ConsentManagerImpl implements ConsentManager {
             return piiControllers.get(piiControllers.size() - 1);
         } else {
             throw handleServerException(ERROR_CODE_GET_DAO, PII_CONTROLLER);
+        }
+    }
+
+    private void validateAuthorizationForListReceipts(String piiPrincipalId) throws ConsentManagementException {
+
+        String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(loggedInUser);
+        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+
+        if (isBlank(tenantAwareUsername)) {
+            throw handleClientException(ERROR_CODE_NO_USER_FOUND, LIST_RECEIPT);
+        }
+        if (isNotBlank(piiPrincipalId) && piiPrincipalId.equalsIgnoreCase(tenantAwareUsername)) {
+            if (log.isDebugEnabled()) {
+                log.debug("User: " + piiPrincipalId + " is authorized to perform a search on own consent receipts.");
+            }
+            //Returns here since same user is trying to search own receipts.
+            return;
+        }
+
+        handleAuthorization(LIST_RECEIPT, tenantAwareUsername, tenantId);
+    }
+
+    private void validateAuthorizationForGetOrRevokeReceipts(String receiptId, String operation) throws
+            ConsentManagementException {
+
+        String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(loggedInUser);
+        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+
+        if (isBlank(tenantAwareUsername)) {
+            throw handleClientException(ERROR_CODE_NO_USER_FOUND, operation);
+        }
+        if (getReceiptsDAO(receiptDAOs).isReceiptExist(receiptId, tenantAwareUsername, tenantId)) {
+            if (log.isDebugEnabled()) {
+                log.debug("User: " + tenantAwareUsername + " is authorized to perform a " + operation + " on own " +
+                        "consent receipt.");
+            }
+            //Returns here since same user is trying to get/revoke own receipts.
+            return;
+        }
+
+        handleAuthorization(operation, tenantAwareUsername, tenantId);
+    }
+
+    private void handleAuthorization(String operation, String tenantAwareUsername, int tenantId) throws
+            ConsentManagementException {
+
+        try {
+            boolean authorized = false;
+            AuthorizationManager authorizationManager = realmService.getTenantUserRealm(tenantId)
+                    .getAuthorizationManager();
+            if (GET_RECEIPT.equals(operation)) {
+                authorized = authorizationManager.isUserAuthorized(tenantAwareUsername,
+                        PERMISSION_CONSENT_MGT_VIEW, UI_PERMISSION_ACTION);
+            } else if (LIST_RECEIPT.equals(operation)) {
+                authorized = authorizationManager.isUserAuthorized(tenantAwareUsername,
+                        PERMISSION_CONSENT_MGT_LIST, UI_PERMISSION_ACTION);
+            } else if (REVOKE_RECEIPT.equals(operation)) {
+                authorized = authorizationManager.isUserAuthorized(tenantAwareUsername,
+                        PERMISSION_CONSENT_MGT_DELETE, UI_PERMISSION_ACTION);
+            }
+
+            if (authorized) {
+                if (log.isDebugEnabled()) {
+                    log.debug("User: " + tenantAwareUsername + " is successfully authorized to perform the operation: " +
+                            operation);
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("LoggedIn user: " + tenantAwareUsername + " is not authorized to perform operation :" +
+                            operation + " of another users");
+                }
+                throw handleClientException(ERROR_CODE_USER_NOT_AUTHORIZED, tenantAwareUsername);
+            }
+        } catch (UserStoreException e) {
+            throw handleServerException(ERROR_CODE_UNEXPECTED, null, e);
         }
     }
 
@@ -697,6 +791,11 @@ public class ConsentManagerImpl implements ConsentManager {
 
     private void validateInputParameters(ReceiptInput receiptInput) throws ConsentManagementException {
 
+        //Set authenticated user.
+        if (isBlank(receiptInput.getPiiPrincipalId())) {
+            receiptInput.setPiiPrincipalId(MultitenantUtils.getTenantAwareUsername(PrivilegedCarbonContext
+                    .getThreadLocalCarbonContext().getUsername()));
+        }
         // Set authenticated user's tenant id if it is not set.
         if (isBlank(receiptInput.getTenantDomain())) {
             receiptInput.setTenantId(getTenantIdFromCarbonContext());

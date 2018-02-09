@@ -61,7 +61,7 @@ paths:
          This API is used to storing consent information given by the users.
 
       x-wso2-request: |
-        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"piiPrincipalId\": \"testuser\", \"services\": [ { \"service\": \"foo-service\", \"tenantDomain\": \"carbon.super\", \"purposes\": [ { \"purposeId\": 1, \"purposeCategoryId\": [ 1 ], \"consentType\": \"EXPLICIT\", \"piiCategory\": [ { \"piiCategoryId\": 1, \"validity\": \"days:30\" }, { \"piiCategoryId\": 2, \"validity\": \"days:30\" } ], \"primaryPurpose\": true, \"termination\": \"days:30\", \"thirdPartyDisclosure\": false, \"thirdPartyName\": \"\" } ] } ], \"collectionMethod\": \"Sign-Up\", \"jurisdiction\": \"CA\", \"language\": \"EN\", \"policyURL\": \"https://foo.com/privacy\", \"properties\": [ { \"key\": \"k1\", \"value\": \"v1\" } ]}"
+        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"services\": [ { \"service\": \"foo-service\", \"tenantDomain\": \"carbon.super\", \"purposes\": [ { \"purposeId\": 1, \"purposeCategoryId\": [ 1 ], \"consentType\": \"EXPLICIT\", \"piiCategory\": [ { \"piiCategoryId\": 1, \"validity\": \"days:30\" }, { \"piiCategoryId\": 2, \"validity\": \"days:30\" } ], \"primaryPurpose\": true, \"termination\": \"days:30\", \"thirdPartyDisclosure\": false, \"thirdPartyName\": \"\" } ] } ], \"collectionMethod\": \"Sign-Up\", \"jurisdiction\": \"CA\", \"language\": \"EN\", \"policyURL\": \"https://foo.com/privacy\", \"properties\": [ { \"key\": \"k1\", \"value\": \"v1\" } ]}"
       x-wso2-response: |
         {"consentReceiptId":"7a6886ab-b02f-424f-9cd4-adf5e92f0798","collectionMethod":"Sign-Up","language":"EN","piiPrincipalId":"testuser","tenantDomain":"carbon.super"}
       summary: |
@@ -729,8 +729,6 @@ definitions:
   ConsentRequest:
     type: object
     properties:
-      piiPrincipalId:
-        type: 'string'
       services:
         type: array
         items:

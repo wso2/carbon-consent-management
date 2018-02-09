@@ -76,4 +76,15 @@ public interface ReceiptDAO {
      */
     List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, int spTenantId,
                                              String service, String state) throws ConsentManagementException;
+
+    /**
+     * Check whether a receipt exists with the given criteria.
+     * @param receiptId Consent Receipt Id.
+     * @param piiPrincipalId PII Principal Id.
+     * @param tenantId PII Principal tenant Id.
+     * @return true if a receiept exists.
+     * @throws ConsentManagementException If error occurs while checking {@link ConsentManagementException}
+     */
+    boolean isReceiptExist(String receiptId, String piiPrincipalId, int tenantId) throws ConsentManagementException;
+
 }
