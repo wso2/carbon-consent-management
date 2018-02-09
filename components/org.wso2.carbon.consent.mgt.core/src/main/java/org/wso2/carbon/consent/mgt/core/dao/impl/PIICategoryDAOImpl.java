@@ -17,13 +17,14 @@
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
-import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
-import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
+import org.wso2.carbon.consent.mgt.core.util.JdbcUtils;
+import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 
 import java.util.List;
 
@@ -49,11 +50,8 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PII_
  */
 public class PIICategoryDAOImpl implements PIICategoryDAO {
 
-    private final JdbcTemplate jdbcTemplate;
+    public PIICategoryDAOImpl() {
 
-    public PIICategoryDAOImpl(JdbcTemplate jdbcTemplate) {
-
-        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
@@ -67,7 +65,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
 
         PIICategory purposeResult;
         int insertedId;
-
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             insertedId = jdbcTemplate.executeInsert(INSERT_PII_CATEGORY_SQL, (preparedStatement -> {
                 preparedStatement.setString(1, piiCategory.getName());
@@ -86,6 +84,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     @Override
     public PIICategory getPIICategoryById(int id) throws ConsentManagementException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         PIICategory piiCategory;
 
         try {
@@ -107,6 +106,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     @Override
     public List<PIICategory> listPIICategories(int limit, int offset, int tenantId) throws ConsentManagementException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         List<PIICategory> piiCategories;
 
         try {
@@ -153,6 +153,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     @Override
     public int deletePIICategory(int id) throws ConsentManagementException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.executeUpdate(DELETE_PII_CATEGORY_SQL, preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
@@ -165,6 +166,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     @Override
     public PIICategory getPIICategoryByName(String name, int tenantId) throws ConsentManagementException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         PIICategory piiCategory;
 
         try {
@@ -186,23 +188,27 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
 
     private boolean isMysqlH2OrPostgresDB() throws DataAccessException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         return jdbcTemplate.getDriverName().contains(MY_SQL) || jdbcTemplate.getDriverName().contains(H2) ||
                 jdbcTemplate.getDriverName().contains(POSTGRE_SQL);
     }
 
     private boolean isDB2Database() throws DataAccessException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         return jdbcTemplate.getDriverName().contains(DB2);
     }
 
     private boolean isMsSqlDB() throws DataAccessException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         return jdbcTemplate.getDriverName().contains(ConsentConstants.MICROSOFT) || jdbcTemplate.getDriverName()
                 .contains(S_MICROSOFT);
     }
 
     private boolean isInformixDB() throws DataAccessException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         return jdbcTemplate.getDriverName().contains(INFORMIX);
     }
 }

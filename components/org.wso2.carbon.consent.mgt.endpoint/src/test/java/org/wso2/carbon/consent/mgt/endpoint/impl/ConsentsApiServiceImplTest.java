@@ -27,7 +27,6 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.InterceptingConsentManager;
 import org.wso2.carbon.consent.mgt.core.connector.PIIController;
 import org.wso2.carbon.consent.mgt.core.connector.impl.DefaultPIIController;
-import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
@@ -36,6 +35,7 @@ import org.wso2.carbon.consent.mgt.core.dao.impl.PIICategoryDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeCategoryDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.ReceiptDAOImpl;
+import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
@@ -49,11 +49,11 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeGetResponseDTO;
-import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ServiceDTO;
 import org.wso2.carbon.consent.mgt.endpoint.exception.ConflictRequestException;
 import org.wso2.carbon.consent.mgt.endpoint.exception.NotFoundException;
+import org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -76,9 +76,10 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_
 import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.getConnection;
 import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.initiateH2Base;
+import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.mockComponentDataHolder;
 import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.spyConnection;
 
-@PrepareForTest(PrivilegedCarbonContext.class)
+@PrepareForTest({PrivilegedCarbonContext.class, ConsentManagerComponentDataHolder.class})
 public class ConsentsApiServiceImplTest extends PowerMockTestCase {
 
     private Connection connection;
@@ -92,28 +93,28 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         connection = getConnection();
         Connection spyConnection = spyConnection(connection);
         when(dataSource.getConnection()).thenReturn(spyConnection);
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-        prepareConfigs(jdbcTemplate);
+        prepareConfigs();
     }
 
-    private void prepareConfigs(JdbcTemplate jdbcTemplate) throws UserStoreException {
+    private void prepareConfigs() throws UserStoreException {
 
         ConsentManagerConfigurationHolder configurationHolder = new ConsentManagerConfigurationHolder();
 
-        PurposeDAO purposeDAO = new PurposeDAOImpl(jdbcTemplate);
+        PurposeDAO purposeDAO = new PurposeDAOImpl();
         configurationHolder.setPurposeDAOs(Collections.singletonList(purposeDAO));
 
-        PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+        PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
         configurationHolder.setPiiCategoryDAOs(Collections.singletonList(piiCategoryDAO));
 
-        PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+        PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
         configurationHolder.setPurposeCategoryDAOs(Collections.singletonList(purposeCategoryDAO));
 
-        ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
+        ReceiptDAO receiptDAO = new ReceiptDAOImpl();
         configurationHolder.setReceiptDAOs(Collections.singletonList(receiptDAO));
 
         RealmService realmService = mock(RealmService.class);
@@ -148,6 +149,7 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
 
     @AfterMethod
     public void tearDown() throws Exception {
+
         connection.close();
         closeH2Base();
     }
@@ -162,7 +164,7 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setDescription("D1");
         Response response = service.consentsPurposesPost(purposeRequestDTO);
 
-        PurposeGetResponseDTO  responseDTO = (PurposeGetResponseDTO ) response.getEntity();
+        PurposeGetResponseDTO responseDTO = (PurposeGetResponseDTO) response.getEntity();
 
         Assert.assertNotNull(responseDTO);
         Assert.assertNotNull(responseDTO.getPurposeId());
@@ -212,7 +214,7 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setPurpose("P1");
         purposeRequestDTO.setDescription("D1");
         Response response = service.consentsPurposesPost(purposeRequestDTO);
-        PurposeGetResponseDTO  responseDTO = (PurposeGetResponseDTO ) response.getEntity();
+        PurposeGetResponseDTO responseDTO = (PurposeGetResponseDTO) response.getEntity();
         Response response1 = service.consentsPurposesPurposeIdDelete(Integer.toString(responseDTO.getPurposeId()));
 
         Assert.assertNotNull(response1);
@@ -240,10 +242,10 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setPurpose("P1");
         purposeRequestDTO.setDescription("D1");
         Response response = service.consentsPurposesPost(purposeRequestDTO);
-        PurposeGetResponseDTO  responseDTO = (PurposeGetResponseDTO ) response.getEntity();
+        PurposeGetResponseDTO responseDTO = (PurposeGetResponseDTO) response.getEntity();
 
         Response purposeIdGet = service.consentsPurposesPurposeIdGet(Integer.toString(responseDTO.getPurposeId()));
-        PurposeGetResponseDTO  responseDTO1 = (PurposeGetResponseDTO ) purposeIdGet.getEntity();
+        PurposeGetResponseDTO responseDTO1 = (PurposeGetResponseDTO) purposeIdGet.getEntity();
 
         Assert.assertEquals(responseDTO1.getPurposeId(), responseDTO.getPurposeId());
     }
@@ -504,7 +506,7 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
 
         Assert.assertNotNull(receipt, "ConsentReceiptDTO cannot be null.");
         Assert.assertEquals(receipt.getConsentReceiptID(), receiptResponse.getConsentReceiptId(), "ReceiptId " +
-                                                                                                  "mismatch.");
+                "mismatch.");
         Assert.assertNotNull(receipt.getPiiPrincipalId(), "PiiPrincipalId cannot be null in a receipt.");
         Assert.assertNotNull(receipt.getPiiControllers(), "PiiControllers cannot be null in a receipt.");
     }

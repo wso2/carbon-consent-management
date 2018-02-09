@@ -18,13 +18,14 @@ package org.wso2.carbon.consent.mgt.core.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
-import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
-import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
+import org.wso2.carbon.consent.mgt.core.util.JdbcUtils;
+import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,11 +55,8 @@ import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrow
  */
 public class PurposeDAOImpl implements PurposeDAO {
 
-    private final JdbcTemplate jdbcTemplate;
+    public PurposeDAOImpl() {
 
-    public PurposeDAOImpl(JdbcTemplate jdbcTemplate) {
-
-        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
@@ -73,6 +71,7 @@ public class PurposeDAOImpl implements PurposeDAO {
         Purpose purposeResult;
         int insertedId;
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             insertedId = jdbcTemplate.executeInsert(INSERT_PURPOSE_SQL, (preparedStatement -> {
                 preparedStatement.setString(1, purpose.getName());
@@ -107,7 +106,7 @@ public class PurposeDAOImpl implements PurposeDAO {
         }
 
         Purpose purpose;
-
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_ID_SQL, (resultSet, rowNumber) ->
                             new Purpose(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
@@ -137,7 +136,7 @@ public class PurposeDAOImpl implements PurposeDAO {
         if (StringUtils.isBlank(name)) {
             throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_PURPOSE_NAME_REQUIRED, null);
         }
-
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         Purpose purpose;
 
         try {
@@ -156,6 +155,7 @@ public class PurposeDAOImpl implements PurposeDAO {
     @Override
     public List<Purpose> listPurposes(int limit, int offset, int tenantId) throws ConsentManagementException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         List<Purpose> purposes;
         try {
             String query;
@@ -198,6 +198,7 @@ public class PurposeDAOImpl implements PurposeDAO {
     @Override
     public int deletePurpose(int id) throws ConsentManagementException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.executeUpdate(DELETE_PURPOSE_SQL, preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
@@ -209,23 +210,27 @@ public class PurposeDAOImpl implements PurposeDAO {
 
     private boolean isMysqlH2OrPostgresDB() throws DataAccessException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         return jdbcTemplate.getDriverName().contains(MY_SQL) || jdbcTemplate.getDriverName().contains(H2) ||
                 jdbcTemplate.getDriverName().contains(POSTGRE_SQL);
     }
 
     private boolean isDatabaseDB2() throws DataAccessException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         return jdbcTemplate.getDriverName().contains(DB2);
     }
 
     private boolean isMsSqlDB() throws DataAccessException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         return jdbcTemplate.getDriverName().contains(ConsentConstants.MICROSOFT) || jdbcTemplate.getDriverName()
                 .contains(S_MICROSOFT);
     }
 
     private boolean isInformixDB() throws DataAccessException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         return jdbcTemplate.getDriverName().contains(INFORMIX);
     }
 }

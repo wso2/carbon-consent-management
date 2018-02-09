@@ -102,6 +102,11 @@
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.api.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.utils</groupId>
+                <artifactId>org.wso2.carbon.database.utils</artifactId>
+                <version>${org.wso2.carbon.database.utils.version}</version>
+            </dependency>
             <!-- Test Dependencies -->
             <dependency>
                 <groupId>org.testng</groupId>
@@ -281,6 +286,7 @@
         <commons.lang.version.range>[2.6.0, 3.0.0)</commons.lang.version.range>
         <commons.logging.version.range>[1.2, 2.0)</commons.logging.version.range>
         <slf4j.version.range>[1.7.21, 2.0.0)</slf4j.version.range>
+        <org.wso2.carbon.database.utils.version.range>[2.0.0,2.1.0)</org.wso2.carbon.database.utils.version.range>
 
         <!-- Test Dependency Versions -->
         <testng.version>6.3.1</testng.version>
@@ -288,5 +294,7 @@
         <jacoco.version>0.7.9</jacoco.version>
         <maven.surefire.plugin.version>2.20</maven.surefire.plugin.version>
         <orbit.version.h2.engine>1.2.140.wso2v3</orbit.version.h2.engine>
+
+        <org.wso2.carbon.database.utils.version>2.0.5</org.wso2.carbon.database.utils.version>
     </properties>
 </project>

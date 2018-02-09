@@ -166,7 +166,8 @@ public class ConsentConstants {
                                               "Please create the database using appropriate database scripts for " +
                                               "the database."),
         ERROR_CODE_GET_DB_TYPE("CM_00073", "Error while getting the database connection metadata."),
-        ERROR_CODE_NO_SQL_SCRIPT("CM_00074", "Could not find the database script at %s.");
+        ERROR_CODE_NO_SQL_SCRIPT("CM_00074", "Could not find the database script at %s."),
+        ERROR_CODE_ADD_CONSENT_RECEIPT("CM_0075", "Could not add consent receipt for principal: %s.");
 
         private final String code;
         private final String message;

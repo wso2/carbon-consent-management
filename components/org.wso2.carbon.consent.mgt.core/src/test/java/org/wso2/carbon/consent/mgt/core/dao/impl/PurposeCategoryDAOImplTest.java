@@ -16,15 +16,16 @@
 
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
+import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 
 import java.sql.Connection;
@@ -37,16 +38,18 @@ import static org.mockito.Mockito.when;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.getConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.initiateH2Base;
+import static org.wso2.carbon.consent.mgt.core.util.TestUtils.mockComponentDataHolder;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnectionWithError;
 
-public class PurposeCategoryDAOImplTest {
+@PrepareForTest(ConsentManagerComponentDataHolder.class)
+public class PurposeCategoryDAOImplTest extends PowerMockTestCase {
 
     private static List<PurposeCategory> purposeCategories = new ArrayList<>();
 
-
     @BeforeMethod
     public void setUp() throws Exception {
+
         initiateH2Base();
         PurposeCategory purposeCategory1 = new PurposeCategory("PC1", "D1", -1234);
         PurposeCategory purposeCategory2 = new PurposeCategory("PC2", "D2", -1234);
@@ -56,11 +59,13 @@ public class PurposeCategoryDAOImplTest {
 
     @AfterMethod
     public void tearDown() throws Exception {
+
         closeH2Base();
     }
 
     @DataProvider(name = "purposeCategoryListProvider")
     public Object[][] provideListData() throws Exception {
+
         return new Object[][]{
                 // limit, offset, tenantId, resultSize
                 {0, 0, -1234, 0},
@@ -71,14 +76,15 @@ public class PurposeCategoryDAOImplTest {
 
     @Test
     public void testAddPurposeCategory() throws Exception {
+
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             when(dataSource.getConnection()).thenReturn(connection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
             PurposeCategory purposeCategory = purposeCategoryDAO.addPurposeCategory(purposeCategories.get(0));
 
             Assert.assertEquals(purposeCategory.getName(), purposeCategories.get(0).getName());
@@ -91,6 +97,7 @@ public class PurposeCategoryDAOImplTest {
     public void testAddDuplicatePurposeCategory() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -98,9 +105,7 @@ public class PurposeCategoryDAOImplTest {
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
 
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-
-            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
             purposeCategoryDAO.addPurposeCategory(purposeCategories.get(1));
             purposeCategoryDAO.addPurposeCategory(purposeCategories.get(1));
 
@@ -112,14 +117,14 @@ public class PurposeCategoryDAOImplTest {
     public void testGetPurposeCategoryById() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
             PurposeCategory purposeCategory = purposeCategoryDAO.addPurposeCategory(purposeCategories.get(0));
             Assert.assertEquals(purposeCategory.getName(), purposeCategories.get(0).getName());
 
@@ -133,14 +138,14 @@ public class PurposeCategoryDAOImplTest {
     public void testGetPurposeCategoryByInvalidId() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
             PurposeCategory purposeCategoryById = purposeCategoryDAO.getPurposeCategoryById(0);
 
             Assert.assertNull(purposeCategoryById);
@@ -151,14 +156,14 @@ public class PurposeCategoryDAOImplTest {
     public void testGetPurposeCategoryByIdWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnectionWithError(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
             purposeCategoryDAO.getPurposeCategoryById(0);
 
             Assert.fail("Expected: " + ConsentManagementServerException.class.getName());
@@ -169,14 +174,14 @@ public class PurposeCategoryDAOImplTest {
     public void testGetPurposeCategoryByName() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
             PurposeCategory purposeCategory = purposeCategoryDAO.addPurposeCategory(purposeCategories.get(0));
             Assert.assertEquals(purposeCategory.getName(), purposeCategories.get(0).getName());
 
@@ -193,14 +198,14 @@ public class PurposeCategoryDAOImplTest {
     public void testGetPurposeCategoryByInvalidName() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
             PurposeCategory purposeCategoryByName = purposeCategoryDAO.getPurposeCategoryByName("InvalidName", 0);
 
             Assert.assertNull(purposeCategoryByName);
@@ -211,14 +216,14 @@ public class PurposeCategoryDAOImplTest {
     public void testGetPurposeCategoryByNameWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnectionWithError(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
             purposeCategoryDAO.getPurposeCategoryByName("InvalidName", 0);
 
             Assert.fail("Expected: " + ConsentManagementServerException.class.getName());
@@ -229,14 +234,14 @@ public class PurposeCategoryDAOImplTest {
     public void testListPurposeCategories(int limit, int offset, int tenantId, int resultSize) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
 
             PurposeCategory purposeCategory1 = purposeCategoryDAO.addPurposeCategory(purposeCategories.get(0));
             Assert.assertEquals(purposeCategory1.getName(), purposeCategories.get(0).getName());
@@ -245,7 +250,7 @@ public class PurposeCategoryDAOImplTest {
             Assert.assertEquals(purposeCategory2.getName(), purposeCategories.get(1).getName());
 
             List<PurposeCategory> purposeCategoryList = purposeCategoryDAO.listPurposeCategories(limit, offset,
-                                                                                                 tenantId);
+                    tenantId);
 
             Assert.assertEquals(purposeCategoryList.size(), resultSize);
 
@@ -259,14 +264,14 @@ public class PurposeCategoryDAOImplTest {
     public void testListPurposeCategoriesWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnectionWithError(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
             purposeCategoryDAO.listPurposeCategories(0, 0, 0);
 
             Assert.fail("Expected: " + ConsentManagementServerException.class.getName());
@@ -277,14 +282,14 @@ public class PurposeCategoryDAOImplTest {
     public void testDeletePurposeCategory() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
             PurposeCategory purposeCategory = purposeCategoryDAO.addPurposeCategory(purposeCategories.get(0));
             Assert.assertEquals(purposeCategory.getName(), purposeCategories.get(0).getName());
 
@@ -298,14 +303,14 @@ public class PurposeCategoryDAOImplTest {
     public void testDeletePurposeWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnectionWithError(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
             purposeCategoryDAO.deletePurposeCategory(0);
 
             Assert.fail("Expected: " + ConsentManagementServerException.class.getName());

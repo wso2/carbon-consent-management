@@ -16,18 +16,20 @@
 
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
-import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
 import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
+import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
 import org.wso2.carbon.consent.mgt.core.model.Address;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
@@ -43,22 +45,24 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.sql.DataSource;
 
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.getConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.initiateH2Base;
+import static org.wso2.carbon.consent.mgt.core.util.TestUtils.mockComponentDataHolder;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnectionWithError;
 
-public class ReceiptDAOImplTest {
+@PrepareForTest(ConsentManagerComponentDataHolder.class)
+public class ReceiptDAOImplTest extends PowerMockTestCase {
 
     private static List<ReceiptInput> receiptInputs = new ArrayList<>();
 
@@ -68,23 +72,23 @@ public class ReceiptDAOImplTest {
         initiateH2Base();
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
         try (Connection connection = getConnection()) {
 
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PurposeDAO purposeDAO = new PurposeDAOImpl(jdbcTemplate);
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
             Purpose purpose1 = new Purpose("P1", "D1", -1234);
             Purpose purpose2 = new Purpose("P2", "D3", -1234);
             purposeDAO.addPurpose(purpose1);
             purposeDAO.addPurpose(purpose2);
 
-            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+            PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
             PurposeCategory purposeCategory = new PurposeCategory("PC1", "D1", -1234);
             purposeCategoryDAO.addPurposeCategory(purposeCategory);
 
-            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
             PIICategory piiCategory = new PIICategory("PII1", "D1", true, -1234);
             piiCategoryDAO.addPIICategory(piiCategory);
         }
@@ -112,7 +116,7 @@ public class ReceiptDAOImplTest {
         Map<String, String> properties = new HashMap<>();
 
         purposeCategoryIds.add(1);
-        piiCategoryIds.add(new PIICategoryValidity(1,"45"));
+        piiCategoryIds.add(new PIICategoryValidity(1, "45"));
         properties.put("K1", "V1");
         properties.put("K2", "V2");
 
@@ -150,7 +154,7 @@ public class ReceiptDAOImplTest {
 
         Address address = new Address("LK", "EN", "South", "1435", "10443", "2nd Street, Colombo 03");
         PiiController piiController = new PiiController("ACME", false, "John Wick", "johnw@acme.com",
-                                                        "+17834563445", "http://acme.com", address, null);
+                "+17834563445", "http://acme.com", address, null);
         piiControllers.add(piiController);
 
         ReceiptInput receiptInput1 = new ReceiptInput();
@@ -188,6 +192,7 @@ public class ReceiptDAOImplTest {
 
     @AfterMethod
     public void tearDown() throws Exception {
+
         closeH2Base();
     }
 
@@ -197,11 +202,7 @@ public class ReceiptDAOImplTest {
         return new Object[][]{
                 // exception level
                 {1},
-                {2},
-                {3},
-                {4},
-                {5},
-                {6}
+                {2}
         };
     }
 
@@ -228,14 +229,14 @@ public class ReceiptDAOImplTest {
     public void testAddReceipt() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             receiptDAO.addReceipt(receiptInputs.get(0));
 
             Receipt receipt = receiptDAO.getReceipt(receiptInputs.get(0).getConsentReceiptId());
@@ -248,14 +249,14 @@ public class ReceiptDAOImplTest {
     public void testAddDuplicateReceipt() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             receiptDAO.addReceipt(receiptInputs.get(0));
             receiptDAO.addReceipt(receiptInputs.get(0));
         }
@@ -265,6 +266,7 @@ public class ReceiptDAOImplTest {
     public void testAddReceiptWithException(int exceptionLevel) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -273,25 +275,14 @@ public class ReceiptDAOImplTest {
             if (exceptionLevel == 1) {
                 when(dataSource.getConnection()).thenThrow(new SQLException("Test exception"));
             } else if (exceptionLevel == 2) {
-                when(dataSource.getConnection()).thenReturn(spy).thenThrow(new SQLException("Test exception"));
+                when(dataSource.getConnection()).thenReturn(spy);
+                when(spy.prepareStatement(anyString())).thenThrow(new SQLException("Test exception"));
             } else if (exceptionLevel == 3) {
                 when(dataSource.getConnection()).thenReturn(spy).thenReturn(spy)
-                                                .thenThrow(new SQLException("Test exception"));
-            } else if (exceptionLevel == 4) {
-                when(dataSource.getConnection()).thenReturn(spy).thenReturn(spy).thenReturn(spy)
-                                                .thenThrow(new SQLException("Test exception"));
-            } else if (exceptionLevel == 5) {
-                when(dataSource.getConnection()).thenReturn(spy).thenReturn(spy).thenReturn(spy).thenReturn(spy)
-                                                .thenThrow(new SQLException("Test exception"));
-            } else if (exceptionLevel == 6) {
-                when(dataSource.getConnection()).thenReturn(spy).thenReturn(spy).thenReturn(spy).thenReturn(spy)
-                                                .thenReturn(spy).thenReturn(spy).thenReturn(spy).thenReturn(spy)
-                                                .thenThrow(new SQLException("Test exception"));
+                        .thenThrow(new SQLException("Test exception"));
             }
 
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             receiptDAO.addReceipt(receiptInputs.get(0));
         }
     }
@@ -301,18 +292,18 @@ public class ReceiptDAOImplTest {
                                    String state, int resultCount) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             receiptDAO.addReceipt(receiptInputs.get(0));
             receiptDAO.addReceipt(receiptInputs.get(1));
 
             List<ReceiptListResponse> receiptResponses = receiptDAO.searchReceipts(limit, offset, principalId,
-                                                                                   tenantId, service, state);
+                    tenantId, service, state);
             Assert.assertNotNull(receiptResponses);
             Assert.assertEquals(receiptResponses.size(), resultCount);
         }
@@ -322,13 +313,13 @@ public class ReceiptDAOImplTest {
     public void testSearchReceiptsWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spy = spyConnectionWithError(connection);
             when(dataSource.getConnection()).thenReturn(spy);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             receiptDAO.searchReceipts(1, 0, "subject1", -1234, "foo*", "ACTIVE");
         }
     }
@@ -337,13 +328,13 @@ public class ReceiptDAOImplTest {
     public void testRevokeReceipt() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             receiptDAO.addReceipt(receiptInputs.get(0));
             receiptDAO.revokeReceipt(receiptInputs.get(0).getConsentReceiptId());
             Receipt receipt = receiptDAO.getReceipt(receiptInputs.get(0).getConsentReceiptId());
@@ -356,27 +347,28 @@ public class ReceiptDAOImplTest {
     public void testRevokeReceiptWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spy = spyConnectionWithError(connection);
             when(dataSource.getConnection()).thenReturn(spy);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             receiptDAO.revokeReceipt(receiptInputs.get(0).getConsentReceiptId());
         }
     }
 
     @Test
     public void testGetReceipt() throws Exception {
+
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             receiptDAO.addReceipt(receiptInputs.get(1));
             Receipt receipt = receiptDAO.getReceipt(receiptInputs.get(1).getConsentReceiptId());
 
@@ -386,14 +378,15 @@ public class ReceiptDAOImplTest {
 
     @Test
     public void testGetInvalidReceipt() throws Exception {
+
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             receiptDAO.addReceipt(receiptInputs.get(1));
             Receipt receipt = receiptDAO.getReceipt("invalid-receipt-id");
 
@@ -403,14 +396,15 @@ public class ReceiptDAOImplTest {
 
     @Test(dataProvider = "exceptionLevelProvider", expectedExceptions = ConsentManagementServerException.class)
     public void testGetReceiptWithException(int exceptionLevel) throws Exception {
+
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             receiptDAO.addReceipt(receiptInputs.get(1));
         }
 
@@ -420,21 +414,11 @@ public class ReceiptDAOImplTest {
             if (exceptionLevel == 1) {
                 when(dataSource.getConnection()).thenThrow(new SQLException("Test exception"));
             } else if (exceptionLevel == 2) {
-                when(dataSource.getConnection()).thenReturn(spy).thenThrow(new SQLException("Test exception"));
-            } else if (exceptionLevel == 3) {
-                when(dataSource.getConnection()).thenReturn(spy).thenReturn(spy)
-                                                .thenThrow(new SQLException("Test exception"));
-            } else if (exceptionLevel == 4) {
-                when(dataSource.getConnection()).thenReturn(spy).thenReturn(spy).thenReturn(spy)
-                                                .thenThrow(new SQLException("Test exception"));
-            } else {
-                when(dataSource.getConnection()).thenReturn(spy).thenReturn(spy).thenReturn(spy).thenReturn(spy)
-                                                .thenThrow(new SQLException("Test exception"));
+                when(dataSource.getConnection()).thenReturn(spy);
+                when(spy.prepareStatement(anyString())).thenThrow(new SQLException("Test exception"));
             }
 
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             receiptDAO.getReceipt(receiptInputs.get(1).getConsentReceiptId());
         }
     }
