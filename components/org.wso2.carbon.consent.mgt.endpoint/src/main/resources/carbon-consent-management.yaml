@@ -29,7 +29,7 @@ paths:
       x-wso2-request: |
         curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purposeCategory\": \"Marketing\", \"description\": \"For marketing related activities\"}"
       x-wso2-curl: |
-        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purposeCategory\": \"<Category_Name>\", \"description\": \"<Category_Description\"}"
+        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purposeCategory\": \"<Category_Name>\", \"description\": \"<Category_Description>\"}"
       x-wso2-response: |
         {"purposeCategoryId":1,"purposeCategory":"Marketing","description":"For marketing related activities"}
       summary: |
@@ -110,7 +110,7 @@ paths:
       description: |
         This API is used to retrieve a purpose category using the purpose category ID.
       x-wso2-request: |
-        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories/<Purpose_Category_ID" -H "accept: application/json"
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories/<Purpose_Category_ID>" -H "accept: application/json"
       x-wso2-curl: |
         curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories/1" -H "accept: application/json"
       x-wso2-response: |
@@ -212,7 +212,7 @@ paths:
           headers:
             Location:
               type: string
-              description: Location of the newly created pii category
+              description: Location of the newly created PII category
         '400':
           description: Bad Request
           schema:
@@ -579,7 +579,7 @@ paths:
           headers:
             Location:
               type: string
-              description: Location to retireve the consent element
+              description: Location to retireve the consent element to. 
         '400':
           description: Bad Request
           schema:
@@ -609,7 +609,7 @@ paths:
       parameters:
         - name: receiptId
           in: path
-          description: This represents the Revoke Receipt Id.
+          description: This represents the Revoke Receipt ID.
           required: true
           type: string
       responses:
