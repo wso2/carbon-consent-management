@@ -52,6 +52,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.S_MICRO
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_ACTIVE_RECEIPTS_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_CAT_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_BASIC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_SP_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_SP_PURPOSE_SQL;
@@ -116,7 +117,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             }));
         }));
 
-        addReceiptProperties(receiptInput.getConsentReceiptId(), receiptInput.getProperties());
+        if (receiptInput.getProperties() != null) {
+            addReceiptProperties(receiptInput.getConsentReceiptId(), receiptInput.getProperties());
+        }
     }
 
     private void revokeActiveReceipts(ReceiptInput receiptInput) {
@@ -176,6 +179,26 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
                     String.valueOf(receiptId), e);
+        }
+    }
+
+    @Override
+    public boolean isReceiptExist(String receiptId, String piiPrincipalId, int tenantId) throws
+            ConsentManagementException {
+
+        try {
+            String receipt = jdbcTemplate.fetchSingleRecord(GET_RECEIPT_BASIC_SQL, (resultSet, rowNumber) ->
+                            resultSet.getString(1),
+                    preparedStatement -> {
+                        preparedStatement.setString(1, receiptId);
+                        preparedStatement.setString(2, piiPrincipalId);
+                        preparedStatement.setInt(3, tenantId);
+                    });
+            return receipt != null;
+
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_EXISTENCE,
+                    "Receipt Id: "+ receiptId+ ", PII Principal Id: "+ piiPrincipalId+ "and Tenant Id: "+ tenantId, e);
         }
     }
 
@@ -393,9 +416,6 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     protected void addReceiptProperties(String consentReceiptId, Map<String, String> properties) throws
             ConsentManagementServerException {
 
-        if (properties == null) {
-            return;
-        }
         try {
             jdbcTemplate.executeBatchInsert(INSERT_RECEIPT_PROPERTIES_SQL, (preparedStatement -> {
 

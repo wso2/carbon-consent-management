@@ -66,6 +66,12 @@ public class ConsentConstants {
     public static final String S_MICROSOFT = "microsoft";
     public static final String INFORMIX = "Informix";
     public static final String H2 = "H2";
+    public static final String PERMISSION_CONSENT_MGT_VIEW = "/permission/admin/manage/identity/consentmgt/view";
+    public static final String PERMISSION_CONSENT_MGT_LIST = "/permission/admin/manage/identity/consentmgt/list";
+    public static final String PERMISSION_CONSENT_MGT_DELETE = "/permission/admin/manage/identity/consentmgt/delete";
+    public static final String GET_RECEIPT = "GET_RECEIPT";
+    public static final String LIST_RECEIPT = "LIST_RECEIPT";
+    public static final String REVOKE_RECEIPT = "REVOKE_RECEIPT";
 
     public enum ErrorMessages {
         ERROR_CODE_DATABASE_CONNECTION("CM_00001", "Error when getting a database connection object from the Consent" +
@@ -166,8 +172,11 @@ public class ConsentConstants {
                                               "Please create the database using appropriate database scripts for " +
                                               "the database."),
         ERROR_CODE_GET_DB_TYPE("CM_00073", "Error while getting the database connection metadata."),
-        ERROR_CODE_NO_SQL_SCRIPT("CM_00074", "Could not find the database script at %s.");
-
+        ERROR_CODE_NO_SQL_SCRIPT("CM_00074", "Could not find the database script at %s."),
+        ERROR_CODE_NO_USER_FOUND("CM_00075", "No authenticated user found to perform the operation: %s."),
+        ERROR_CODE_USER_NOT_AUTHORIZED("CM_00076", "User: %s is not authorized to perform this operation."),
+        ERROR_CODE_RETRIEVE_RECEIPT_EXISTENCE("CM_000077", "Error occurred while check receipt existance from " +
+                "DB for: %s.");
         private final String code;
         private final String message;
 

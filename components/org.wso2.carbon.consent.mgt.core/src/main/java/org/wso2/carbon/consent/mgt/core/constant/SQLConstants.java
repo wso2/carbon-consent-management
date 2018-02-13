@@ -127,6 +127,9 @@ public class SQLConstants {
             "language,pii_principal_id,principal_tenant_id,policy_url,state FROM cm_receipt WHERE " +
             "consent_receipt_id =?";
 
+    public static final String GET_RECEIPT_BASIC_SQL = "SELECT PII_PRINCIPAL_ID FROM CM_RECEIPT" +
+            " WHERE CONSENT_RECEIPT_ID =? AND PII_PRINCIPAL_ID =? AND PRINCIPAL_TENANT_ID = ?";
+
     public static final String GET_RECEIPT_SP_SQL = "SELECT ID,SP_NAME,SP_TENANT_ID,SP_DISPLAY_NAME,SP_DESCRIPTION  " +
             "FROM CM_RECEIPT_SP_ASSOC WHERE CONSENT_RECEIPT_ID =?";
 
