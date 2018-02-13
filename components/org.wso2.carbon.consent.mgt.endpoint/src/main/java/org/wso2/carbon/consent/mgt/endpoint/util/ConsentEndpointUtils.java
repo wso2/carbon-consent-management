@@ -252,7 +252,6 @@ public class ConsentEndpointUtils {
         ReceiptInput receiptInput = new ReceiptInput();
         receiptInput.setCollectionMethod(consent.getCollectionMethod());
         receiptInput.setJurisdiction(consent.getJurisdiction());
-        receiptInput.setPiiPrincipalId(consent.getPiiPrincipalId());
         receiptInput.setLanguage(consent.getLanguage());
         receiptInput.setPolicyUrl(consent.getPolicyURL());
 

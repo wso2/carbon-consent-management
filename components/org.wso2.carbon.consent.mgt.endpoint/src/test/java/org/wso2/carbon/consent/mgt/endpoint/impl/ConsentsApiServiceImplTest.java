@@ -55,6 +55,8 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.ServiceDTO;
 import org.wso2.carbon.consent.mgt.endpoint.exception.ConflictRequestException;
 import org.wso2.carbon.consent.mgt.endpoint.exception.NotFoundException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.user.api.AuthorizationManager;
+import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
@@ -70,8 +72,12 @@ import javax.ws.rs.core.Response;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.wso2.carbon.CarbonConstants.UI_PERMISSION_ACTION;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PERMISSION_CONSENT_MGT_DELETE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PERMISSION_CONSENT_MGT_LIST;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PERMISSION_CONSENT_MGT_VIEW;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_STATE;
 import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.getConnection;
@@ -118,9 +124,19 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
 
         RealmService realmService = mock(RealmService.class);
         TenantManager tenantManager = mock(TenantManager.class);
+        UserRealm userRealm = mock(UserRealm.class);
+        AuthorizationManager authorizationManager = mock(AuthorizationManager.class);
         when(tenantManager.getTenantId(SUPER_TENANT_DOMAIN_NAME)).thenReturn(SUPER_TENANT_ID);
         when(tenantManager.getDomain(SUPER_TENANT_ID)).thenReturn(SUPER_TENANT_DOMAIN_NAME);
         when(realmService.getTenantManager()).thenReturn(tenantManager);
+        when(realmService.getTenantUserRealm(-1234)).thenReturn(userRealm);
+        when(userRealm.getAuthorizationManager()).thenReturn(authorizationManager);
+        when(authorizationManager.isUserAuthorized("admin", PERMISSION_CONSENT_MGT_VIEW, UI_PERMISSION_ACTION))
+                .thenReturn(true);
+        when(authorizationManager.isUserAuthorized("admin", PERMISSION_CONSENT_MGT_LIST, UI_PERMISSION_ACTION))
+                .thenReturn(true);
+        when(authorizationManager.isUserAuthorized("admin", PERMISSION_CONSENT_MGT_DELETE, UI_PERMISSION_ACTION))
+                .thenReturn(true);
 
         configurationHolder.setRealmService(realmService);
 
@@ -462,7 +478,6 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         consentRequestDTO.setCollectionMethod("SIGN-UP");
         consentRequestDTO.setJurisdiction("CA");
         consentRequestDTO.setLanguage("EN");
-        consentRequestDTO.setPiiPrincipalId("admin");
         consentRequestDTO.setPolicyURL("http://foo-service.com/privacy");
 
         ServiceDTO serviceDTO = new ServiceDTO();
@@ -601,7 +616,6 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         consentRequestDTO.setCollectionMethod("SIGN-UP");
         consentRequestDTO.setJurisdiction("CA");
         consentRequestDTO.setLanguage("EN");
-        consentRequestDTO.setPiiPrincipalId("admin");
         consentRequestDTO.setPolicyURL("http://foo-service.com/privacy");
 
         ServiceDTO serviceDTO = new ServiceDTO();

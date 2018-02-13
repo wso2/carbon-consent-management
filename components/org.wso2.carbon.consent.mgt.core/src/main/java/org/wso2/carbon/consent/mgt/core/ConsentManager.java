@@ -234,4 +234,15 @@ public interface ConsentManager {
      * @throws ConsentManagementException Consent Management Exception.
      */
     void revokeReceipt(String receiptId) throws ConsentManagementException;
+
+    /**
+     * This API is used to check whether a receipt exists for the user identified by the tenantAwareUser name in the
+     * provided tenant.
+     * @param receiptId Consent Receipt ID
+     * @param tenantAwareUsername Tenant aware username
+     * @param tenantId User tenant id
+     * @return boolean true if receipt exists for match criteria
+     */
+    boolean isReceiptExist(String receiptId, String tenantAwareUsername, int tenantId) throws ConsentManagementException;
+
 }
