@@ -393,6 +393,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     protected void addReceiptProperties(String consentReceiptId, Map<String, String> properties) throws
             ConsentManagementServerException {
 
+        if (properties == null) {
+            return;
+        }
         try {
             jdbcTemplate.executeBatchInsert(INSERT_RECEIPT_PROPERTIES_SQL, (preparedStatement -> {
 
