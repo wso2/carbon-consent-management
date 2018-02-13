@@ -117,7 +117,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             }));
         }));
 
-        addReceiptProperties(receiptInput.getConsentReceiptId(), receiptInput.getProperties());
+        if (receiptInput.getProperties() != null) {
+            addReceiptProperties(receiptInput.getConsentReceiptId(), receiptInput.getProperties());
+        }
     }
 
     private void revokeActiveReceipts(ReceiptInput receiptInput) {
