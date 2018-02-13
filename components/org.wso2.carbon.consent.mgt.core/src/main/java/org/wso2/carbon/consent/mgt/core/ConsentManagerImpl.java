@@ -502,7 +502,6 @@ public class ConsentManagerImpl implements ConsentManager {
      */
     public Receipt getReceipt(String receiptId) throws ConsentManagementException {
 
-        validateAuthorizationForGetOrRevokeReceipts(receiptId, GET_RECEIPT);
         Receipt receipt = getReceiptsDAO(receiptDAOs).getReceipt(receiptId);
 
         if (receipt == null || receipt.getConsentReceiptId() == null) {
@@ -534,7 +533,6 @@ public class ConsentManagerImpl implements ConsentManager {
         if (StringUtils.isNotBlank(spTenantDomain)) {
             spTenantId = ConsentUtils.getTenantId(realmService, spTenantDomain);
         }
-        validateAuthorizationForListReceipts(piiPrincipalId);
         validatePaginationParameters(limit, offset);
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
@@ -559,11 +557,25 @@ public class ConsentManagerImpl implements ConsentManager {
      */
     public void revokeReceipt(String receiptId) throws ConsentManagementException {
 
-        validateAuthorizationForGetOrRevokeReceipts(receiptId, REVOKE_RECEIPT);
         getReceiptsDAO(receiptDAOs).revokeReceipt(receiptId);
         if (log.isDebugEnabled()) {
             log.debug("Receipt revoked successfully with the Id: " + receiptId);
         }
+    }
+
+    /**
+     * This API is used to check whether a receipt exists for the user identified by the tenantAwareUser name in the
+     * provided tenant
+     *
+     * @param receiptId           Consent Receipt ID
+     * @param tenantAwareUsername Tenant aware username
+     * @param tenantId            User tenant id
+     * @return boolean true if receipt exists for match criteria
+     */
+    @Override
+    public boolean isReceiptExist(String receiptId, String tenantAwareUsername, int tenantId) throws
+            ConsentManagementException {
+        return getReceiptsDAO(receiptDAOs).isReceiptExist(receiptId, tenantAwareUsername, tenantId);
     }
 
     private Purpose getPurposeFromName(String name) throws ConsentManagementException {
@@ -585,83 +597,6 @@ public class ConsentManagerImpl implements ConsentManager {
             return piiControllers.get(piiControllers.size() - 1);
         } else {
             throw handleServerException(ERROR_CODE_GET_DAO, PII_CONTROLLER);
-        }
-    }
-
-    private void validateAuthorizationForListReceipts(String piiPrincipalId) throws ConsentManagementException {
-
-        String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(loggedInUser);
-        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
-
-        if (isBlank(tenantAwareUsername)) {
-            throw handleClientException(ERROR_CODE_NO_USER_FOUND, LIST_RECEIPT);
-        }
-        if (isNotBlank(piiPrincipalId) && piiPrincipalId.equalsIgnoreCase(tenantAwareUsername)) {
-            if (log.isDebugEnabled()) {
-                log.debug("User: " + piiPrincipalId + " is authorized to perform a search on own consent receipts.");
-            }
-            //Returns here since same user is trying to search own receipts.
-            return;
-        }
-
-        handleAuthorization(LIST_RECEIPT, tenantAwareUsername, tenantId);
-    }
-
-    private void validateAuthorizationForGetOrRevokeReceipts(String receiptId, String operation) throws
-            ConsentManagementException {
-
-        String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(loggedInUser);
-        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
-
-        if (isBlank(tenantAwareUsername)) {
-            throw handleClientException(ERROR_CODE_NO_USER_FOUND, operation);
-        }
-        if (getReceiptsDAO(receiptDAOs).isReceiptExist(receiptId, tenantAwareUsername, tenantId)) {
-            if (log.isDebugEnabled()) {
-                log.debug("User: " + tenantAwareUsername + " is authorized to perform a " + operation + " on own " +
-                        "consent receipt.");
-            }
-            //Returns here since same user is trying to get/revoke own receipts.
-            return;
-        }
-
-        handleAuthorization(operation, tenantAwareUsername, tenantId);
-    }
-
-    private void handleAuthorization(String operation, String tenantAwareUsername, int tenantId) throws
-            ConsentManagementException {
-
-        try {
-            boolean authorized = false;
-            AuthorizationManager authorizationManager = realmService.getTenantUserRealm(tenantId)
-                    .getAuthorizationManager();
-            if (GET_RECEIPT.equals(operation)) {
-                authorized = authorizationManager.isUserAuthorized(tenantAwareUsername,
-                        PERMISSION_CONSENT_MGT_VIEW, UI_PERMISSION_ACTION);
-            } else if (LIST_RECEIPT.equals(operation)) {
-                authorized = authorizationManager.isUserAuthorized(tenantAwareUsername,
-                        PERMISSION_CONSENT_MGT_LIST, UI_PERMISSION_ACTION);
-            } else if (REVOKE_RECEIPT.equals(operation)) {
-                authorized = authorizationManager.isUserAuthorized(tenantAwareUsername,
-                        PERMISSION_CONSENT_MGT_DELETE, UI_PERMISSION_ACTION);
-            }
-
-            if (authorized) {
-                if (log.isDebugEnabled()) {
-                    log.debug("User: " + tenantAwareUsername + " is successfully authorized to perform the operation: " +
-                            operation);
-                }
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("LoggedIn user: " + tenantAwareUsername + " is not authorized to perform operation :" +
-                            operation + " of another users");
-                }
-                throw handleClientException(ERROR_CODE_USER_NOT_AUTHORIZED, tenantAwareUsername);
-            }
-        } catch (UserStoreException e) {
-            throw handleServerException(ERROR_CODE_UNEXPECTED, null, e);
         }
     }
 

@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.consent.mgt.core;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
@@ -31,10 +33,22 @@ import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.user.api.AuthorizationManager;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.wso2.carbon.CarbonConstants.UI_PERMISSION_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_NO_USER_FOUND;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_USER_NOT_AUTHORIZED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GET_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE_CATEGORY;
@@ -80,7 +94,11 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.Interce
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_LIST_RECEIPTS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_REVOKE_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.LIMIT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.LIST_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.OFFSET;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PERMISSION_CONSENT_MGT_DELETE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PERMISSION_CONSENT_MGT_LIST;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PERMISSION_CONSENT_MGT_VIEW;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY_NAME;
@@ -93,23 +111,30 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_NAME;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_INPUT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.SERVICE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.SP_TENANT_DOMAIN;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.STATE;
+import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleClientException;
+import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleServerException;
 
 /**
  * Consent Manager intercepting layer.
  */
 public class InterceptingConsentManager implements ConsentManager {
 
+    private static final Log log = LogFactory.getLog(InterceptingConsentManager.class);
     private ConsentManager consentManager;
     private List<ConsentMgtInterceptor> consentMgtInterceptors;
+    private RealmService realmService;
 
     public InterceptingConsentManager(ConsentManagerConfigurationHolder configHolder, List<ConsentMgtInterceptor>
             consentMgtInterceptors) {
 
         consentManager = new ConsentManagerImpl(configHolder);
         this.consentMgtInterceptors = consentMgtInterceptors;
+        this.realmService = configHolder.getRealmService();
+
     }
 
     public Purpose addPurpose(Purpose purpose) throws ConsentManagementException {
@@ -478,7 +503,7 @@ public class InterceptingConsentManager implements ConsentManager {
     }
 
     public Receipt getReceipt(String receiptId) throws ConsentManagementException {
-
+        validateAuthorizationForGetOrRevokeReceipts(receiptId, GET_RECEIPT);
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Receipt, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
@@ -498,6 +523,7 @@ public class InterceptingConsentManager implements ConsentManager {
     public List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String spTenantDomain,
                                                     String service, String state) throws ConsentManagementException {
 
+        validateAuthorizationForListReceipts(piiPrincipalId);
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<List<ReceiptListResponse>, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
@@ -519,7 +545,7 @@ public class InterceptingConsentManager implements ConsentManager {
     }
 
     public void revokeReceipt(String receiptId) throws ConsentManagementException {
-
+        validateAuthorizationForGetOrRevokeReceipts(receiptId, REVOKE_RECEIPT);
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Void, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
@@ -536,6 +562,21 @@ public class InterceptingConsentManager implements ConsentManager {
                 .intercept(POST_REVOKE_RECEIPT, properties -> properties.put(RECEIPT_ID, receiptId));
     }
 
+    /**
+     * This API is used to check whether a receipt exists for the user identified by the tenantAwareUser name in the
+     * provided tenant
+     * This is not supposed to invoke any interceptor, since this is added to
+     *
+     * @param receiptId           Consent Receipt ID
+     * @param tenantAwareUsername Tenant aware username
+     * @param tenantId            User tenant id
+     * @return boolean true if receipt exists for match criteria
+     */
+    @Override
+    public boolean isReceiptExist(String receiptId, String tenantAwareUsername, int tenantId) throws ConsentManagementException {
+        return consentManager.isReceiptExist(receiptId, tenantAwareUsername, tenantId);
+    }
+
     private void populateProperties(int limit, int offset, String piiPrincipalId, String spTenantDomain, String
             service, String state, Map<String, Object> properties) {
 
@@ -545,5 +586,82 @@ public class InterceptingConsentManager implements ConsentManager {
         properties.put(SP_TENANT_DOMAIN, spTenantDomain);
         properties.put(SERVICE, service);
         properties.put(STATE, state);
+    }
+
+    private void validateAuthorizationForListReceipts(String piiPrincipalId) throws ConsentManagementException {
+
+        String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(loggedInUser);
+        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+
+        if (isBlank(tenantAwareUsername)) {
+            throw handleClientException(ERROR_CODE_NO_USER_FOUND, LIST_RECEIPT);
+        }
+        if (isNotBlank(piiPrincipalId) && piiPrincipalId.equalsIgnoreCase(tenantAwareUsername)) {
+            if (log.isDebugEnabled()) {
+                log.debug("User: " + piiPrincipalId + " is authorized to perform a search on own consent receipts.");
+            }
+            //Returns here since same user is trying to search own receipts.
+            return;
+        }
+
+        handleAuthorization(LIST_RECEIPT, tenantAwareUsername, tenantId);
+    }
+
+    private void validateAuthorizationForGetOrRevokeReceipts(String receiptId, String operation) throws
+            ConsentManagementException {
+
+        String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(loggedInUser);
+        int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+
+        if (isBlank(tenantAwareUsername)) {
+            throw handleClientException(ERROR_CODE_NO_USER_FOUND, operation);
+        }
+        if (consentManager.isReceiptExist(receiptId, tenantAwareUsername, tenantId)) {
+            if (log.isDebugEnabled()) {
+                log.debug("User: " + tenantAwareUsername + " is authorized to perform a " + operation + " on own " +
+                        "consent receipt.");
+            }
+            //Returns here since same user is trying to get/revoke own receipts.
+            return;
+        }
+
+        handleAuthorization(operation, tenantAwareUsername, tenantId);
+    }
+
+    private void handleAuthorization(String operation, String tenantAwareUsername, int tenantId) throws
+            ConsentManagementException {
+
+        try {
+            boolean authorized = false;
+            AuthorizationManager authorizationManager = realmService.getTenantUserRealm(tenantId)
+                    .getAuthorizationManager();
+            if (GET_RECEIPT.equals(operation)) {
+                authorized = authorizationManager.isUserAuthorized(tenantAwareUsername,
+                        PERMISSION_CONSENT_MGT_VIEW, UI_PERMISSION_ACTION);
+            } else if (LIST_RECEIPT.equals(operation)) {
+                authorized = authorizationManager.isUserAuthorized(tenantAwareUsername,
+                        PERMISSION_CONSENT_MGT_LIST, UI_PERMISSION_ACTION);
+            } else if (REVOKE_RECEIPT.equals(operation)) {
+                authorized = authorizationManager.isUserAuthorized(tenantAwareUsername,
+                        PERMISSION_CONSENT_MGT_DELETE, UI_PERMISSION_ACTION);
+            }
+
+            if (authorized) {
+                if (log.isDebugEnabled()) {
+                    log.debug("User: " + tenantAwareUsername + " is successfully authorized to perform the operation: " +
+                            operation);
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("LoggedIn user: " + tenantAwareUsername + " is not authorized to perform operation :" +
+                            operation + " of another users");
+                }
+                throw handleClientException(ERROR_CODE_USER_NOT_AUTHORIZED, tenantAwareUsername);
+            }
+        } catch (UserStoreException e) {
+            throw handleServerException(ERROR_CODE_UNEXPECTED, null, e);
+        }
     }
 }
