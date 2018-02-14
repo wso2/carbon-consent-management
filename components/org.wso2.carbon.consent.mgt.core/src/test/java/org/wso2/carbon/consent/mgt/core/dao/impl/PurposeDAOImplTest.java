@@ -64,7 +64,7 @@ public class PurposeDAOImplTest {
                 // limit, offset, tenantId, resultSize
                 {0, 0, -1234, 0},
                 {1, 1, -1234, 1},
-                {10, 0, -1234, 2}
+                {10, 0, -1234, 3}
         };
     }
 
@@ -267,7 +267,7 @@ public class PurposeDAOImplTest {
             Assert.assertEquals(purposeList.size(), resultSize);
 
             if (resultSize == 1) {
-                Assert.assertEquals(purposeList.get(0).getName(), purposes.get(offset).getName());
+                Assert.assertEquals(purposeList.get(0).getName(), purposes.get(offset + 1).getName());
             }
         }
     }

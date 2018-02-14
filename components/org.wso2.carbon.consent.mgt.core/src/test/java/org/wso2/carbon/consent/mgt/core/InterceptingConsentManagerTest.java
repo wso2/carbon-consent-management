@@ -177,6 +177,17 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         };
     }
 
+    @DataProvider(name = "listWithDefaultDataProvider")
+    public static Object[][] listWithDefaultData() {
+        return new Object[][]{
+                // limit, offset, resultCount
+                {0, 0, 3},
+                {0, 1, 2},
+                {0, 2, 1},
+                {1, 0, 1}
+        };
+    }
+
     @DataProvider(name = "deleteDataProvider")
     public static Object[][] deleteData() {
         return new Object[][]{
@@ -264,7 +275,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
     }
 
-    @Test(dataProvider = "listDataProvider")
+    @Test(dataProvider = "listWithDefaultDataProvider")
     public void testListPurposeCategories(int limit, int offset, int resultSize) throws Exception {
 
         addPurposeCategory("PC1");
@@ -466,7 +477,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         Assert.assertEquals(purposeByName.getName(), name);
     }
 
-    @Test(dataProvider = "listDataProvider")
+    @Test(dataProvider = "listWithDefaultDataProvider")
     public void testListPurposes(int limit, int offset, int resultCount) throws Exception {
 
         addPurpose("P1");
