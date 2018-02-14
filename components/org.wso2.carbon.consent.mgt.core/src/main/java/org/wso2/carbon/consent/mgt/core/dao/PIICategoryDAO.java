@@ -82,4 +82,12 @@ public interface PIICategoryDAO {
      * @throws ConsentManagementException If error occurs while retrieving the {@link PIICategory}.
      */
     PIICategory getPIICategoryByName(String name, int tenantId) throws ConsentManagementException;
+
+
+    /**
+     * Check whether the {@link PIICategory} by ID is used in a purpose or service
+     * @param id D of the {@link PIICategory} to be validated
+     * @return
+     */
+    boolean isPIICategoryUsed(int id) throws ConsentManagementException;
 }
