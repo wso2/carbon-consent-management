@@ -40,6 +40,8 @@
 
     <modules>
         <module>components/org.wso2.carbon.consent.mgt.core</module>
+        <module>service-stubs/org.wso2.carbon.claim.metadata.mgt.stub</module>
+        <module>components/org.wso2.carbon.consent.mgt.ui</module>
         <module>components/org.wso2.carbon.consent.mgt.endpoint</module>
         <module>features/org.wso2.carbon.consent.mgt.server.feature</module>
     </modules>
@@ -132,6 +134,51 @@
                 <artifactId>h2</artifactId>
                 <version>1.4.196</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.axis2.wso2</groupId>
+                <artifactId>axis2</artifactId>
+                <version>${axis2.wso2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.axis2.wso2</groupId>
+                <artifactId>axis2-client</artifactId>
+                <version>${axis2.wso2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon</groupId>
+                <artifactId>org.wso2.carbon.ui</artifactId>
+                <version>${carbon.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.orbit.org.owasp.encoder</groupId>
+                <artifactId>encoder</artifactId>
+                <version>${encoder.wso2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${apache.httpclient.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.consent.mgt</groupId>
+                <artifactId>org.wso2.carbon.consent.mgt.core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.json.wso2</groupId>
+                <artifactId>json</artifactId>
+                <version>${org.json.wso2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.consent.mgt</groupId>
+                <artifactId>org.wso2.carbon.claim.metadata.mgt.stub.dep</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.ws.commons.axiom.wso2</groupId>
+                <artifactId>axiom</artifactId>
+                <version>${axiom.wso2.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.felix</groupId>
@@ -271,6 +318,12 @@
         <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
         <maven.war.plugin.version>2.2</maven.war.plugin.version>
         <build.helper.plugin.version>3.0.0</build.helper.plugin.version>
+        <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
+        <axis2.wso2.version>1.6.1.wso2v12</axis2.wso2.version>
+        <org.json.wso2.version>3.0.0.wso2v1</org.json.wso2.version>
+        <apache.httpclient.version>4.3.1</apache.httpclient.version>
+        <axiom.wso2.version>1.2.11.wso2v10</axiom.wso2.version>
+
         <!--swagger2cxf.maven.plugin.version>1.0-SNAPSHOT</swagger2cxf.maven.plugin.version-->
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
         <!-- OSGi Package Import Versions -->
@@ -281,7 +334,8 @@
         <commons.lang.version.range>[2.6.0, 3.0.0)</commons.lang.version.range>
         <commons.logging.version.range>[1.2, 2.0)</commons.logging.version.range>
         <slf4j.version.range>[1.7.21, 2.0.0)</slf4j.version.range>
-
+        <axis2.osgi.version.range>[1.6.1.wso2v12, 2.0.0)</axis2.osgi.version.range>
+        <claim.metadata.version.range>[5.0.0,6.0.0)</claim.metadata.version.range>
         <!-- Test Dependency Versions -->
         <testng.version>6.3.1</testng.version>
         <powermock.version>1.6.6</powermock.version>
