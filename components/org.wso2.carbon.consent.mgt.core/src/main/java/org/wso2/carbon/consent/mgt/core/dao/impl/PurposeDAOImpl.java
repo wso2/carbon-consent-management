@@ -40,6 +40,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURP
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_NAME_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_PII_CAT_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_COUNT_ASSOCIATED_WITH_PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_PURPOSE_PII_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_DB2;
@@ -205,6 +206,27 @@ public class PurposeDAOImpl implements PurposeDAO {
         }
 
         return id;
+    }
+
+    /**
+     * Check whether the {@link Purpose} by ID is used in a receipt
+     *
+     * @param id D of the {@link Purpose} to be validated
+     * @return
+     */
+    @Override
+    public boolean isPurposeUsed(int id) throws ConsentManagementServerException {
+
+        int count;
+        try {
+            count = jdbcTemplate.fetchSingleRecord(GET_RECEIPT_COUNT_ASSOCIATED_WITH_PURPOSE, (resultSet, rowNumber) ->
+                            resultSet.getInt(1),
+                    preparedStatement -> preparedStatement.setInt(1, id));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages
+                    .ERROR_CODE_RETRIEVE_RECEIPTS_ASSOCIATED_WITH_PURPOSE, String.valueOf(id), e);
+        }
+        return (count > 0);
     }
 
     private boolean isMysqlH2OrPostgresDB() throws DataAccessException {
