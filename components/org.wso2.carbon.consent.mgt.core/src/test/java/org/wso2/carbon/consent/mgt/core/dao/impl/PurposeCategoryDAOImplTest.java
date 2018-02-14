@@ -23,7 +23,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 
@@ -65,7 +64,7 @@ public class PurposeCategoryDAOImplTest {
                 // limit, offset, tenantId, resultSize
                 {0, 0, -1234, 0},
                 {1, 1, -1234, 1},
-                {10, 0, -1234, 2}
+                {10, 0, -1234, 3}
         };
     }
 
@@ -250,7 +249,7 @@ public class PurposeCategoryDAOImplTest {
             Assert.assertEquals(purposeCategoryList.size(), resultSize);
 
             if (resultSize == 1) {
-                Assert.assertEquals(purposeCategoryList.get(0).getName(), purposeCategories.get(offset).getName());
+                Assert.assertEquals(purposeCategoryList.get(0).getName(), purposeCategories.get(offset + 1).getName());
             }
         }
     }
