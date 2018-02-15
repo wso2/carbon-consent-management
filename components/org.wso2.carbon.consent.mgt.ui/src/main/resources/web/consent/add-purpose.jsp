@@ -47,7 +47,7 @@
             }
         }
     } catch (Exception e) {
-        String message = MessageFormat.format(resourceBundle.getString("error.while.loading.user.store.info"),
+        String message = MessageFormat.format(resourceBundle.getString("error.while.loading.claim.info"),
                 e.getMessage());
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
     }
