@@ -53,7 +53,7 @@
                     serviceClient.deletePurposeByName(purposeName);
                     forwardTo = "list-purposes.jsp";
                 } catch (Exception e) {
-                    String message = resourceBundle.getString("error.while.delete.purpose") + " : " + e.getMessage();
+                    String message = resourceBundle.getString("error.while.delete.purpose");
                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
                     forwardTo = "list-purposes.jsp";
                 }
