@@ -23,12 +23,12 @@
     <parent>
         <groupId>org.wso2.carbon.consent.mgt</groupId>
         <artifactId>consent-mgt</artifactId>
-        <version>1.0.22-SNAPSHOT</version>
+        <version>1.0.22</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>org.wso2.carbon.consent.mgt.core</artifactId>
-    <version>1.0.22-SNAPSHOT</version>
+    <version>1.0.22</version>
     <packaging>bundle</packaging>
 
     <build>
