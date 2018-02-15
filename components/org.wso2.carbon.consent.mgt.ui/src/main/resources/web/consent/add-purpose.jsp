@@ -67,6 +67,12 @@
         }
 
         function doValidation() {
+            var reason = "";
+            reason = validateEmpty("purposeName");
+            if (reason != "") {
+                CARBON.showWarningDialog("Purpose name cannot be empty");
+                return false;
+            }
             return true
         }
 
@@ -130,7 +136,7 @@
                                 <tr>
                                     <td><fmt:message key="purpose.name"/><font color="red">*</font>
                                     </td>
-                                    <td><input type="text" name="purposeName"
+                                    <td><input type="text" name="purposeName" id="purposeName"
                                                value=""
                                                style="width:150px"/></td>
                                 </tr>

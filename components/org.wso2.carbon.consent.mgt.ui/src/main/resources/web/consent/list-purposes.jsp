@@ -24,7 +24,8 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
            prefix="carbon" %>
-<%! public static final String LOGGED_USER = "logged-user";
+<%! private static final String DEFAULT = "DEFAULT";
+    private static final String LOGGED_USER = "logged-user";
 %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
@@ -113,20 +114,35 @@
                                 </td>
                                 <td><%=purpose.getDescription() != null ? Encode.forHtml(purpose.getDescription()) : ""%>
                                 </td>
+                                <%
+                                    if (DEFAULT.equals(purpose.getName())) {
+                                %>
+                                <td style="width: 100px; white-space: nowrap;">
+                                </td>
+                                <%
+                                } else {
+                                %>
+    
                                 <td style="width: 100px; white-space: nowrap;"><a
                                         title="View PII Categories"
                                         href="view-pii-category.jsp?purposeId=<%=Encode.forUriComponent(String.valueOf(purpose.getId()))%>&purposeName=<%=Encode.forUriComponent(purpose.getName())%>"
                                         class="icon-link"
                                         style="background-image: url(../admin/images/edit.gif)"><fmt:message
                                         key='view.pii.cat'/></a>
-                                    
+        
                                     <a title="Delete Purpose"
                                        onclick="removeItem('<%=Encode.forJavaScriptAttribute(purpose.getName())%>');return
                                                false;" href="#"
                                        class="icon-link"
                                        style="background-image: url(../admin/images/delete.gif)"><fmt:message
                                             key='delete'/>
-                                    </a></td>
+                                    </a>
+                                </td>
+                                <%
+            
+                                    }
+    
+                                %>
                             </tr>
                             <%
                                     }
