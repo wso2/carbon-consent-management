@@ -17,6 +17,7 @@
 package org.wso2.carbon.consent.mgt.core.dao;
 
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 
 import java.util.List;
@@ -82,4 +83,12 @@ public interface PurposeDAO {
      * @throws ConsentManagementException If error occurs while deleting the {@link Purpose}
      */
     int deletePurpose(int id) throws ConsentManagementException;
+
+    /**
+     * Check whether the {@link Purpose} by ID is used in a receipt
+     * @param id D of the {@link Purpose} to be validated
+     * @return
+     */
+    boolean isPurposeUsed(int id) throws ConsentManagementServerException;
+
 }

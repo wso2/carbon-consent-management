@@ -69,6 +69,7 @@ public class ConsentConstants {
     public static final String PERMISSION_CONSENT_MGT_VIEW = "/permission/admin/manage/identity/consentmgt/view";
     public static final String PERMISSION_CONSENT_MGT_LIST = "/permission/admin/manage/identity/consentmgt/list";
     public static final String PERMISSION_CONSENT_MGT_DELETE = "/permission/admin/manage/identity/consentmgt/delete";
+    public static final String PERMISSION_CONSENT_MGT_ADD = "/permission/admin/manage/identity/consentmgt/add";
     public static final String GET_RECEIPT = "GET_RECEIPT";
     public static final String LIST_RECEIPT = "LIST_RECEIPT";
     public static final String REVOKE_RECEIPT = "REVOKE_RECEIPT";
@@ -175,8 +176,17 @@ public class ConsentConstants {
         ERROR_CODE_NO_SQL_SCRIPT("CM_00074", "Could not find the database script at %s."),
         ERROR_CODE_NO_USER_FOUND("CM_00075", "No authenticated user found to perform the operation: %s."),
         ERROR_CODE_USER_NOT_AUTHORIZED("CM_00076", "User: %s is not authorized to perform this operation."),
-        ERROR_CODE_RETRIEVE_RECEIPT_EXISTENCE("CM_000077", "Error occurred while check receipt existance from " +
-                "DB for: %s.");
+        ERROR_CODE_RETRIEVE_RECEIPT_EXISTENCE("CM_000077", "Error occurred while check receipt existence from " +
+                "DB for: %s."),
+        ERROR_CODE_NO_AUTH_USER_FOUND("CM_00078", "No authenticated user found to perform the operation"),
+        ERROR_CODE_PURPOSE_IS_ASSOCIATED("CM_00079", "Purpose Id: %s is associated with one or more receipt(s)."),
+        ERROR_CODE_RETRIEVE_RECEIPTS_ASSOCIATED_WITH_PURPOSE("CM_00080", "Error occurred while checking usage of " +
+                "purpose from DB for the ID: %s."),
+        ERROR_CODE_RETRIEVE_SP_PURPOSE_ASSOCIATED_WITH_PIICATERY("CM_00081", "Error occurred while checking usage of " +
+                "pii-category from DB for the ID: %s."),
+        ERROR_CODE_PII_CATEGORY_IS_ASSOCIATED("CM_00082", "PII Category Id: %s is associated with one or more " +
+                "purpose(s) or service(s).");
+
         private final String code;
         private final String message;
 

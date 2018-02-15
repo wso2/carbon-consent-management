@@ -249,7 +249,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     query = SEARCH_RECEIPT_SQL;
                 } else if (isDatabaseDB2()) {
                     query = SEARCH_RECEIPT_SQL_DB2;
+                    int initialOffset = offset;
                     offset = offset + limit;
+                    limit = initialOffset + 1;
                 } else if (isMssqlDB()) {
                     int initialOffset = offset;
                     offset = limit + offset;
@@ -282,7 +284,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT;
                 } else if (isDB2()) {
                     query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT_DB2;
+                    int initialOffset = offset;
                     offset = offset + limit;
+                    limit = initialOffset + 1;
                 } else if (isMssqlDB()) {
                     int initialOffset = offset;
                     query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT_MSSQL;

@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.consent.mgt</groupId>
         <artifactId>consent-mgt</artifactId>
-        <version>1.0.16-SNAPSHOT</version>
+        <version>1.0.23-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -36,6 +36,11 @@
         <dependency>
             <groupId>org.wso2.carbon.consent.mgt</groupId>
             <artifactId>org.wso2.carbon.consent.mgt.core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.consent.mgt</groupId>
+            <artifactId>org.wso2.carbon.consent.mgt.ui</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -95,6 +100,7 @@
                             </adviceFile>
                             <bundles>
                                 <bundleDef>org.wso2.carbon.consent.mgt:org.wso2.carbon.consent.mgt.core</bundleDef>
+                                <bundleDef>org.wso2.carbon.consent.mgt:org.wso2.carbon.consent.mgt.ui</bundleDef>
                             </bundles>
                             <importFeatures>
                             </importFeatures>
