@@ -113,7 +113,9 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
                 query = LIST_PAGINATED_PURPOSE_CATEGORY_MYSQL;
             } else if (isDB2DB()) {
                 query = LIST_PAGINATED_PURPOSE_CATEGORY_DB2;
+                int initialOffset = offset;
                 offset = offset + limit;
+                limit = initialOffset + 1;
             } else if (isMssqlDB()) {
                 query = LIST_PAGINATED_PURPOSE_CATEGORY_MSSQL;
                 int initialOffset = offset;

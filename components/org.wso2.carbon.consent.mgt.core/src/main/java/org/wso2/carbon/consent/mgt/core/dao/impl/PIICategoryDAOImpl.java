@@ -117,7 +117,9 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
                 query = LIST_PAGINATED_PII_CATEGORY_MYSQL;
             } else if (isDB2Database()) {
                 query = LIST_PAGINATED_PII_CATEGORY_DB2;
+                int initialOffset = offset;
                 offset = offset + limit;
+                limit = initialOffset + 1;
             } else if (isMsSqlDB()) {
                 query = LIST_PAGINATED_PII_CATEGORY_MSSQL;
                 int initialOffset = offset;

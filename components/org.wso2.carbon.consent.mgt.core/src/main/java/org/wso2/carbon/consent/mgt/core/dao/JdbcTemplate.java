@@ -299,7 +299,12 @@ public class JdbcTemplate {
         }
 
         try (Connection connection = dataSource.getConnection()) {
-            driverName = connection.getMetaData().getDriverName();
+            if (connection.getMetaData().getDatabaseProductName().contains("DB2")) {
+                driverName = connection.getMetaData().getDatabaseProductName();
+            } else {
+                driverName = connection.getMetaData().getDriverName();
+            }
+
             return driverName;
         } catch (SQLException e) {
             throw new DataAccessException(ERROR_CODE_GET_DB_TYPE.getMessage(), ERROR_CODE_GET_DB_TYPE.getCode(), e);
