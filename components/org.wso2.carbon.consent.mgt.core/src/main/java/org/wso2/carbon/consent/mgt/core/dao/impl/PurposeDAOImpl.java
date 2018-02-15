@@ -164,7 +164,9 @@ public class PurposeDAOImpl implements PurposeDAO {
                 query = LIST_PAGINATED_PURPOSE_MYSQL;
             } else if (isDatabaseDB2()) {
                 query = LIST_PAGINATED_PURPOSE_DB2;
+                int initialOffset = offset;
                 offset = offset + limit;
+                limit = initialOffset + 1;
             } else if (isMsSqlDB()) {
                 int initialOffset = offset;
                 offset = limit + offset;
