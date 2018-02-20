@@ -17,34 +17,39 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.json.JSONObject" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
-<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.LocalClaimDTO" %>
 <%@ page import="org.wso2.carbon.consent.mgt.ui.client.ClaimMetadataAdminClient" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.ClaimPropertyDTO" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.LocalClaimDTO" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Arrays" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.CLAIM_URI" %>
+<%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DESCRIPTION" %>
+<%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DISPLAY_NAME" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
+    ClaimMetadataAdminClient client = null;
     String BUNDLE = "org.wso2.carbon.consent.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
-    List<String> claimUris = new ArrayList<String>();
+    List<LocalClaimDTO> claims = new ArrayList<LocalClaimDTO>();
     try {
         String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         ConfigurationContext configContext = (ConfigurationContext)
                 config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
         
-        ClaimMetadataAdminClient client = new ClaimMetadataAdminClient(cookie, serverURL, configContext);
+        client = new ClaimMetadataAdminClient(cookie, serverURL, configContext);
         LocalClaimDTO[] localClaims = client.getLocalClaims();
         if (localClaims != null) {
-            for (LocalClaimDTO localClaimDTO : localClaims) {
-                claimUris.add(localClaimDTO.getLocalClaimURI());
-            }
+            claims.addAll(Arrays.asList(localClaims));
         }
     } catch (Exception e) {
         String message = MessageFormat.format(resourceBundle.getString("error.while.loading.claim.info"),
@@ -97,8 +102,9 @@
                 claimRowId++;
                 var option = '<option value="">---Select Claim URI ---</option>';
 
-                <% for(int i =0 ; i< claimUris.size() ; i++){%>
-                option += '<option value="' + "<%=claimUris.get(i)%>" + '">' + "<%=claimUris.get(i)%>" + '</option>';
+                <% for(int i =0 ; i< claims.size() ; i++){%>
+                option += "<option value='" + '<%=getLocalClaims(claims.get(i))%>' + "'>" +
+                    "<%=claims.get(i).getLocalClaimURI()%>" + '</option>';
 
                 <%}%>
                 $("#claimrow_id_count").val(claimRowId + 1);
@@ -140,11 +146,13 @@
                                                value=""
                                                style="width:150px"/></td>
                                 </tr>
-                                
+    
                                 <tr id="descripiton">
                                     <td><fmt:message key="description"/></td>
-                                    <td><input type="text" name="purpose.description" id="purpose.description"
-                                               style="width:150px"/></td>
+                                    <td>
+                                        <textarea type="text" name="purpose.description" id="purpose.description"
+                                                  style="width:300px"></textarea>
+                                    </td>
                                 </tr>
                                 
                                 <tr>
@@ -193,3 +201,21 @@
         <p>&nbsp;</p>
     </div>
 </fmt:bundle>
+<%!
+    private String getLocalClaims(LocalClaimDTO localClaimDTO) {
+    
+        ClaimPropertyDTO[] claimProperties = localClaimDTO.getClaimProperties();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(CLAIM_URI, localClaimDTO.getLocalClaimURI());
+        if (claimProperties != null) {
+            for (ClaimPropertyDTO claimPropertyDTO : claimProperties) {
+                if (DESCRIPTION.equalsIgnoreCase(claimPropertyDTO.getPropertyName())) {
+                    jsonObject.put(DESCRIPTION, claimPropertyDTO.getPropertyValue());
+                } else if (DISPLAY_NAME.equalsIgnoreCase(claimPropertyDTO.getPropertyName())) {
+                    jsonObject.put(DISPLAY_NAME, claimPropertyDTO.getPropertyValue());
+                }
+            }
+        }
+        return jsonObject.toString();
+    }
+%>

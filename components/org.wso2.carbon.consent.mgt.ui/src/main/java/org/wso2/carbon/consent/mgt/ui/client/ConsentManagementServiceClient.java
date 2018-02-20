@@ -19,6 +19,7 @@
 package org.wso2.carbon.consent.mgt.ui.client;
 
 import org.apache.commons.lang.StringUtils;
+import org.json.JSONObject;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
@@ -92,7 +93,8 @@ public class ConsentManagementServiceClient {
                     piiCategories.add(piiCategoryId.getId());
                 }
             } else {
-                PIICategory piiCategory = new PIICategory(piiCategoryDTO.getName(), null, true, null);
+                PIICategory piiCategory = new PIICategory(piiCategoryDTO.getName(), piiCategoryDTO.getDescription(),
+                        true, piiCategoryDTO.getDisplayName());
                 PIICategory piiCategoryResponse = getConsentManager().addPIICategory(piiCategory);
                 if (!piiCategories.contains(piiCategoryResponse.getId())) {
                     piiCategories.add(piiCategoryResponse.getId());

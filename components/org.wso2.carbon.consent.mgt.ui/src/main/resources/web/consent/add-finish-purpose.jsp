@@ -18,14 +18,18 @@
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@page import="org.apache.commons.lang.StringUtils" %>
+<%@page import="org.json.JSONObject" %>
 <%@page import="org.wso2.carbon.consent.mgt.ui.client.ConsentManagementServiceClient" %>
 <%@page import="org.wso2.carbon.consent.mgt.ui.dto.PiiCategoryDTO" %>
 <%@page import="org.wso2.carbon.consent.mgt.ui.dto.PurposeRequestDTO" %>
-<%@page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.CLAIM_URI" %>
+<%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DISPLAY_NAME" %>
+<%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DESCRIPTION" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
@@ -49,9 +53,27 @@
         String description = request.getParameter("purpose.description");
         int categoryCount = Integer.parseInt(request.getParameter("claimrow_name_count"));
         for (int i = 0; i < categoryCount; i++) {
-            String claim = request.getParameter("claimrow_name_wso2_" + i);
-            if (StringUtils.isNotBlank(claim)) {
-                categories.add(new PiiCategoryDTO(claim));
+            String claimInfo = request.getParameter("claimrow_name_wso2_" + i);
+            if (StringUtils.isNotBlank(claimInfo)) {
+                JSONObject jsonObject = new JSONObject(claimInfo);
+                String piiCatName = null;
+                String displayName = null;
+                String piiCatDescription = null;
+            
+                if (jsonObject.get(CLAIM_URI) != null && jsonObject.get(CLAIM_URI) instanceof String) {
+                    piiCatName = (String) jsonObject.get(CLAIM_URI);
+                }
+            
+                if (jsonObject.get(DISPLAY_NAME) != null && jsonObject.get(DISPLAY_NAME) instanceof String) {
+                    displayName = (String) jsonObject.get(DISPLAY_NAME);
+                }
+            
+                if (jsonObject.get(DESCRIPTION) != null && jsonObject.get(DESCRIPTION) instanceof String) {
+                    piiCatDescription = (String) jsonObject.get(DESCRIPTION);
+                }
+                if (StringUtils.isNotBlank(piiCatName)) {
+                    categories.add(new PiiCategoryDTO(piiCatName, displayName, piiCatDescription));
+                }
             }
         }
         purposeRequestDTO.setPurpose(name);

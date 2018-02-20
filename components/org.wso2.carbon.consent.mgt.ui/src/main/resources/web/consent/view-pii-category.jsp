@@ -78,6 +78,7 @@
                             <thead>
                             <tr style="white-space: nowrap">
                                 <th class="leftCol-med"><fmt:message key="field.pii.consent.id"/></th>
+                                <th class="leftCol-big"><fmt:message key="consent.mgt.displayname"/></th>
                                 <th class="leftCol-big"><fmt:message key="consent.mgt.description"/></th>
                             </tr>
                             </thead>
@@ -90,6 +91,8 @@
                             %>
                             <tr>
                                 <td><%=Encode.forHtml(piiCategory.getName())%>
+                                </td>
+                                <td><%=piiCategory.getDisplayName() != null ? Encode.forHtml(piiCategory.getDisplayName()) : ""%>
                                 </td>
                                 <td><%=piiCategory.getDescription() != null ? Encode.forHtml(piiCategory.getDescription()) : ""%>
                                 </td>
