@@ -90,6 +90,7 @@
                             org.wso2.carbon.user.core.service; version="${carbon.core.version.range}",
                             org.wso2.carbon.user.api.*; version="${carbon.api.version.range}",
                             org.wso2.carbon.context.*; version="${carbon.core.version.range}",
+                            org.json.*; version="${org.json.wso2.version.range}",
                             org.wso2.carbon.identity.claim.metadata.mgt.*; version="${claim.metadata.version.range}",
                         </Import-Package>
                         <Export-Package>org.wso2.carbon.consent.mgt.ui.*</Export-Package>

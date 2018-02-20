@@ -336,6 +336,7 @@
         <slf4j.version.range>[1.7.21, 2.0.0)</slf4j.version.range>
         <axis2.osgi.version.range>[1.6.1.wso2v12, 2.0.0)</axis2.osgi.version.range>
         <claim.metadata.version.range>[5.0.0,6.0.0)</claim.metadata.version.range>
+        <org.json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</org.json.wso2.version.range>
         <!-- Test Dependency Versions -->
         <testng.version>6.3.1</testng.version>
         <powermock.version>1.6.6</powermock.version>
