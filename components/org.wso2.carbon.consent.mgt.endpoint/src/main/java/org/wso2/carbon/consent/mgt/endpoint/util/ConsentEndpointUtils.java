@@ -19,7 +19,6 @@ package org.wso2.carbon.consent.mgt.endpoint.util;
 
 import org.apache.commons.logging.Log;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
-import org.wso2.carbon.consent.mgt.core.InterceptingConsentManager;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
@@ -139,8 +138,8 @@ public class ConsentEndpointUtils {
 
     public static PIICategory getPIICategoryRequest(PIIcategoryRequestDTO piIcategoryRequestDTO) {
 
-        return new PIICategory(piIcategoryRequestDTO.getPiiCategory(),
-                piIcategoryRequestDTO.getDescription(), piIcategoryRequestDTO.getSensitive());
+        return new PIICategory(piIcategoryRequestDTO.getPiiCategory(), piIcategoryRequestDTO.getDescription(),
+                piIcategoryRequestDTO.getSensitive(), piIcategoryRequestDTO.getDisplayName());
     }
 
     public static PurposeGetResponseDTO getPurposeListResponse(Purpose purposeResponse) {
@@ -176,6 +175,7 @@ public class ConsentEndpointUtils {
         piiCategoryListResponseDTO.setPiiCategory(piiCategory.getName());
         piiCategoryListResponseDTO.setDescription(piiCategory.getDescription());
         piiCategoryListResponseDTO.setSensitive(piiCategory.getSensitive());
+        piiCategoryListResponseDTO.setDisplayName(piiCategory.getDisplayName());
         return piiCategoryListResponseDTO;
     }
 
@@ -236,6 +236,7 @@ public class ConsentEndpointUtils {
                     piiCategoryListResponseDTO.setDescription(piiCategory.getDescription());
                     piiCategoryListResponseDTO.setPiiCategoryId(piiCategory.getId());
                     piiCategoryListResponseDTO.setSensitive(piiCategory.getSensitive());
+                    piiCategoryListResponseDTO.setDisplayName(piiCategory.getDisplayName());
                     return piiCategoryListResponseDTO;
                 })
                 .collect(Collectors.toList());
@@ -317,6 +318,7 @@ public class ConsentEndpointUtils {
                     piiCategoryNameListDTO.setPiiCategoryName(piiCategoryValidity.getName());
                     piiCategoryNameListDTO.setPiiCategoryId(piiCategoryValidity.getId());
                     piiCategoryNameListDTO.setValidity(piiCategoryValidity.getValidity());
+                    piiCategoryNameListDTO.setPiiCategoryDisplayName(piiCategoryValidity.getDisplayName());
                     return piiCategoryNameListDTO;
                 }).collect(Collectors.toList()));
                 purposeResponseDTO.setPrimaryPurpose(consentPurpose.isPrimaryPurpose());

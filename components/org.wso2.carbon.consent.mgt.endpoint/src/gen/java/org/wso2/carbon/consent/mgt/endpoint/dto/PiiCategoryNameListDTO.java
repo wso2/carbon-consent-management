@@ -22,6 +22,9 @@ public class PiiCategoryNameListDTO  {
   
   
   private String validity = null;
+  
+  
+  private String piiCategoryDisplayName = null;
 
   
   /**
@@ -60,6 +63,18 @@ public class PiiCategoryNameListDTO  {
   }
 
   
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("piiCategoryDisplayName")
+  public String getPiiCategoryDisplayName() {
+    return piiCategoryDisplayName;
+  }
+  public void setPiiCategoryDisplayName(String piiCategoryDisplayName) {
+    this.piiCategoryDisplayName = piiCategoryDisplayName;
+  }
+
+  
 
   @Override
   public String toString()  {
@@ -69,6 +84,7 @@ public class PiiCategoryNameListDTO  {
     sb.append("  piiCategoryName: ").append(piiCategoryName).append("\n");
     sb.append("  piiCategoryId: ").append(piiCategoryId).append("\n");
     sb.append("  validity: ").append(validity).append("\n");
+    sb.append("  piiCategoryDisplayName: ").append(piiCategoryDisplayName).append("\n");
     sb.append("}\n");
     return sb.toString();
   }

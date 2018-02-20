@@ -24,6 +24,7 @@ public class PIICategoryValidity {
     private Integer id;
     private String validity;
     private String name;
+    private String displayName;
 
     public PIICategoryValidity(Integer id, String validity) {
 
@@ -31,11 +32,12 @@ public class PIICategoryValidity {
         this.validity = validity;
     }
 
-    public PIICategoryValidity(String name, String validity, int id) {
+    public PIICategoryValidity(String name, String validity, int id, String displayName) {
 
         this.id = id;
         this.validity = validity;
         this.name = name;
+        this.displayName = displayName;
     }
 
     public Integer getId() {
@@ -66,5 +68,15 @@ public class PIICategoryValidity {
     public void setName(String name) {
 
         this.name = name;
+    }
+
+    public String getDisplayName() {
+
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+
+        this.displayName = displayName;
     }
 }

@@ -76,12 +76,13 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
                 preparedStatement.setString(2, piiCategory.getDescription());
                 preparedStatement.setInt(3, piiCategory.getSensitive() ? 1 : 0);
                 preparedStatement.setInt(4, piiCategory.getTenantId());
+                preparedStatement.setString(5, piiCategory.getDisplayName());
             }), piiCategory, true);
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PII_CATEGORY, piiCategory.getName(), e);
         }
         purposeResult = new PIICategory(insertedId, piiCategory.getName(), piiCategory.getDescription(),
-                piiCategory.getSensitive(), piiCategory.getTenantId());
+                piiCategory.getSensitive(), piiCategory.getTenantId(), piiCategory.getDisplayName());
         return purposeResult;
     }
 
@@ -96,7 +97,8 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
                                     resultSet.getString(2),
                                     resultSet.getString(3),
                                     resultSet.getInt(4) == 1,
-                                    resultSet.getInt(5)),
+                                    resultSet.getInt(5),
+                                    resultSet.getString(6)),
                     preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PII_CATEGORY_BY_ID, String
@@ -140,7 +142,8 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
                             resultSet.getString(2),
                             resultSet.getString(3),
                             resultSet.getInt(4) == 1,
-                            resultSet.getInt(5)),
+                            resultSet.getInt(5),
+                            resultSet.getString(6)),
                     preparedStatement -> {
                         preparedStatement.setInt(1, tenantId);
                         preparedStatement.setInt(2, finalLimit);
@@ -177,7 +180,8 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
                                     resultSet.getString(2),
                                     resultSet.getString(3),
                                     resultSet.getInt(4) == 1,
-                                    resultSet.getInt(5)),
+                                    resultSet.getInt(5),
+                                    resultSet.getString(6)),
                     preparedStatement -> {
                         preparedStatement.setString(1, name);
                         preparedStatement.setInt(2, tenantId);

@@ -776,6 +776,8 @@ definitions:
         type: 'string'
       description:
         type: 'string'
+      displayName:
+        type: 'string'
       sensitive:
         type: 'boolean'
 
@@ -1146,6 +1148,8 @@ definitions:
         type: 'integer'
       validity:
         type: 'string'
+      piiCategoryDisplayName:
+        type: 'string'
 
 #-----------------------------------------------------
 # The Purpose category List response object
@@ -1159,6 +1163,8 @@ definitions:
       piiCategory:
         type: 'string'
       description:
+        type: 'string'
+      displayName:
         type: 'string'
       sensitive:
         type: 'boolean'
