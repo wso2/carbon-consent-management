@@ -92,7 +92,7 @@ public class ConsentManagementServiceClient {
                     piiCategories.add(piiCategoryId.getId());
                 }
             } else {
-                PIICategory piiCategory = new PIICategory(piiCategoryDTO.getName(), null, true);
+                PIICategory piiCategory = new PIICategory(piiCategoryDTO.getName(), null, true, null);
                 PIICategory piiCategoryResponse = getConsentManager().addPIICategory(piiCategory);
                 if (!piiCategories.contains(piiCategoryResponse.getId())) {
                     piiCategories.add(piiCategoryResponse.getId());

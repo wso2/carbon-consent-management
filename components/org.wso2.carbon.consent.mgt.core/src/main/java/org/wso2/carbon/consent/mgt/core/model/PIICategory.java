@@ -22,24 +22,27 @@ public class PIICategory {
     private String name;
     private String description;
     private Boolean sensitive;
+    private String displayName;
 
     private int tenantId;
     private String tenantDomain;
 
-    public PIICategory(Integer id, String name, String description, Boolean sensitive, int tenantId) {
+    public PIICategory(Integer id, String name, String description, Boolean sensitive, int tenantId, String displayName) {
 
         this.id = id;
         this.name = name;
         this.description = description;
         this.sensitive = sensitive;
         this.tenantId = tenantId;
+        this.displayName = displayName;
     }
 
-    public PIICategory(String name, String description, Boolean sensitive) {
+    public PIICategory(String name, String description, Boolean sensitive, String displayName) {
 
         this.name = name;
         this.description = description;
         this.sensitive = sensitive;
+        this.displayName = displayName;
     }
 
     public PIICategory(String name, String description, Boolean sensitive, int tenantId) {
@@ -99,5 +102,15 @@ public class PIICategory {
 
     public void setTenantDomain(String tenantDomain) {
         this.tenantDomain = tenantDomain;
+    }
+
+    public String getDisplayName() {
+
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+
+        this.displayName = displayName;
     }
 }

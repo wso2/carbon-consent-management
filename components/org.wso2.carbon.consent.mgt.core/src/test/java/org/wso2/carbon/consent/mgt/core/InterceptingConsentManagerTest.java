@@ -52,7 +52,6 @@ import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.UserRealm;
-import org.wso2.carbon.user.api.UserRealmService;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
@@ -60,7 +59,6 @@ import org.wso2.carbon.user.core.tenant.TenantManager;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -317,7 +315,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
     @Test
     public void testAddPIICategory() throws Exception {
 
-        PIICategory piiCategory = new PIICategory("PII1", "D1", null);
+        PIICategory piiCategory = new PIICategory("PII1", "D1", null, "PII-DISPLAY");
         PIICategory result = consentManager.addPIICategory(piiCategory);
 
         Assert.assertNotNull(result.getId());
@@ -335,7 +333,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
     @Test
     public void testGetPIICategory() throws Exception {
 
-        PIICategory piiCategory = new PIICategory("PII1", "D1", true);
+        PIICategory piiCategory = new PIICategory("PII1", "D1", true, "PII-DISPlAY");
         PIICategory addPIICategory = consentManager.addPIICategory(piiCategory);
         Assert.assertNotNull(addPIICategory, "PurposeCategory cannot be null.");
 
@@ -546,7 +544,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
     private PIICategory addPIICategory(String name) throws ConsentManagementException {
 
-        PIICategory piiCategory = new PIICategory(name, "D1", true);
+        PIICategory piiCategory = new PIICategory(name, "D1", true, "PII-DISPLAY");
         PIICategory piiCategoryResult = consentManager.addPIICategory(piiCategory);
         Assert.assertNotNull(piiCategoryResult, "PIICategory cannot be null.");
 
