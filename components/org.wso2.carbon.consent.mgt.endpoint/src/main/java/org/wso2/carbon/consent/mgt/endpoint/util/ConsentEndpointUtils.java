@@ -154,6 +154,7 @@ public class ConsentEndpointUtils {
             piiCategoryListResponseDTO.setPiiCategory(piiCategory.getName());
             piiCategoryListResponseDTO.setDescription(piiCategory.getDescription());
             piiCategoryListResponseDTO.setPiiCategoryId(piiCategory.getId());
+            piiCategoryListResponseDTO.setDisplayName(piiCategory.getDisplayName());
             return piiCategoryListResponseDTO;
         }).collect(Collectors.toList()));
         return purposeListResponseDTO;
