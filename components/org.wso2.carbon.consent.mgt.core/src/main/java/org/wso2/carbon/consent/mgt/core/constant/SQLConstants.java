@@ -109,7 +109,7 @@ public class SQLConstants {
 
     public static final String INSERT_RECEIPT_SQL = "INSERT INTO CM_RECEIPT (CONSENT_RECEIPT_ID,VERSION, " +
             "JURISDICTION,CONSENT_TIMESTAMP,COLLECTION_METHOD,LANGUAGE,PII_PRINCIPAL_ID,PRINCIPAL_TENANT_ID, " +
-            "POLICY_URL,STATE) values (?,?,?,?,?,?,?,?,?,?)";
+            "POLICY_URL,STATE,PII_CONTROLLER) values (?,?,?,?,?,?,?,?,?,?,?)";
     public static final String INSERT_RECEIPT_SP_ASSOC_SQL = "INSERT INTO CM_RECEIPT_SP_ASSOC (CONSENT_RECEIPT_ID, SP_NAME," +
             "SP_TENANT_ID,SP_DISPLAY_NAME,SP_DESCRIPTION) VALUES (?,?,?,?,?)";
     public static final String INSERT_SP_TO_PURPOSE_ASSOC_SQL = "INSERT INTO CM_SP_PURPOSE_ASSOC (RECEIPT_SP_ASSOC," +
@@ -125,9 +125,9 @@ public class SQLConstants {
     public static final String INSERT_RECEIPT_PROPERTIES_SQL = "INSERT INTO CM_CONSENT_RECEIPT_PROPERTY " +
             "(CONSENT_RECEIPT_ID,NAME,VALUE) VALUES (?,?,?)";
 
-    public static final String GET_RECEIPT_SQL = "SELECT version,jurisdiction,consent_timestamp,collection_method," +
-            "language,pii_principal_id,principal_tenant_id,policy_url,state FROM cm_receipt WHERE " +
-            "consent_receipt_id =?";
+    public static final String GET_RECEIPT_SQL = "SELECT VERSION,JURISDICTION,CONSENT_TIMESTAMP,COLLECTION_METHOD," +
+            "LANGUAGE,PII_PRINCIPAL_ID,PRINCIPAL_TENANT_ID,POLICY_URL,STATE,PII_CONTROLLER FROM CM_RECEIPT WHERE " +
+            "CONSENT_RECEIPT_ID =?";
 
     public static final String GET_RECEIPT_BASIC_SQL = "SELECT PII_PRINCIPAL_ID FROM CM_RECEIPT" +
             " WHERE CONSENT_RECEIPT_ID =? AND PII_PRINCIPAL_ID =? AND PRINCIPAL_TENANT_ID = ?";

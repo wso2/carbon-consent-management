@@ -103,6 +103,22 @@ public class ReceiptDAOImplTest {
         String consentType = "EXPLICIT";
         String termination = "1 year";
         String version = "KI-CR-v1.1.0";
+        String piiControllerInput = "{\n" +
+                "      \"piiController\": \"samplePiiController\",\n" +
+                "      \"contact\": \"sample\",\n" +
+                "      \"address\": {\n" +
+                "        \"addressCountry\": \"country\",\n" +
+                "        \"addressLocality\": \"locality\",\n" +
+                "        \"addressRegion\": \"region\",\n" +
+                "        \"postOfficeBoxNumber\": \"box\",\n" +
+                "        \"postalCode\": \"code\",\n" +
+                "        \"streetAddress\": \"address\"\n" +
+                "      },\n" +
+                "      \"email\": \"mail\",\n" +
+                "      \"phone\": \"phone\",\n" +
+                "      \"onBehalf\": true,\n" +
+                "      \"piiControllerUrl\": \"sample.com\"\n" +
+                "    }";
 
         List<ReceiptServiceInput> serviceInputs = new ArrayList<>();
         List<ReceiptPurposeInput> purposeInputs = new ArrayList<>();
@@ -166,6 +182,7 @@ public class ReceiptDAOImplTest {
         receiptInput1.setTenantId(tenantId);
         receiptInput1.setState(ConsentConstants.ACTIVE_STATE);
         receiptInput1.setVersion(version);
+        receiptInput1.setPiiControllerInfo(piiControllerInput);
         receiptInput1.setProperties(properties);
 
         ReceiptInput receiptInput2 = new ReceiptInput();
@@ -179,6 +196,7 @@ public class ReceiptDAOImplTest {
         receiptInput2.setServices(serviceInputs);
         receiptInput2.setState(ConsentConstants.ACTIVE_STATE);
         receiptInput2.setVersion(version);
+        receiptInput2.setPiiControllerInfo(piiControllerInput);
         receiptInput2.setProperties(properties);
 
         receiptInputs.add(receiptInput1);

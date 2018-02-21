@@ -168,6 +168,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 receiptInfo.setTenantId(resultSet.getInt(7));
                 receiptInfo.setPolicyUrl(resultSet.getString(8));
                 receiptInfo.setState(resultSet.getString(9));
+                receiptInfo.setPiiController(resultSet.getString(10));
                 return receiptInfo;
             }, preparedStatement -> preparedStatement.setString(1, receiptId));
 
@@ -344,6 +345,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 preparedStatement.setInt(8, receiptInput.getTenantId());
                 preparedStatement.setString(9, receiptInput.getPolicyUrl());
                 preparedStatement.setString(10, ConsentConstants.ACTIVE_STATE);
+                preparedStatement.setString(11, receiptInput.getPiiControllerInfo());
 
             }), receiptInput, false);
         } catch (DataAccessException e) {
