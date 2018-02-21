@@ -21,6 +21,7 @@ package org.wso2.carbon.consent.mgt.core;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONObject;
 import org.wso2.carbon.consent.mgt.core.connector.PIIController;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
@@ -30,6 +31,7 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientExcepti
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
+import org.wso2.carbon.consent.mgt.core.model.Address;
 import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PiiController;
@@ -87,6 +89,20 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_SERVICE_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_TERMINATION_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_THIRD_PARTY_DISCLOSURE_IS_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.ADDRESS;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.ADDRESS_COUNTRY;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.ADDRESS_LOCALITY;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.ADDRESS_REGION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.CONTACT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.EMAIL;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.ON_BEHALF;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.PHONE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.PII_CONTROLLER_NAME;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.PII_CONTROLLER_URL;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.POSTAL_CODE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.POST_OFFICE_BOX_NUMBER;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.PUBLIC_KEY;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.STREET_ADDRESS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_SEARCH_LIMIT_PATH;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.getTenantDomainFromCarbonContext;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.getTenantId;
@@ -481,7 +497,9 @@ public class ConsentManagerImpl implements ConsentManager {
         validateInputParameters(receiptInput);
         receiptInput.setConsentReceiptId(generateConsentReceiptId());
         setAPIVersion(receiptInput);
+        setPIIControllerInfo(receiptInput);
         getReceiptsDAO(receiptDAOs).addReceipt(receiptInput);
+
         if (log.isDebugEnabled()) {
             log.debug("Consent stored successfully with the Id: " + receiptInput.getConsentReceiptId());
         }
@@ -713,11 +731,67 @@ public class ConsentManagerImpl implements ConsentManager {
         return consentId;
     }
 
-    private void setPIIControllerInfo(Receipt receipt) throws ConsentManagementServerException {
+    private void setPIIControllerInfo(Receipt receipt) {
+
+        JSONObject controller = new JSONObject(receipt.getPiiController());
+        Address piiAddress = getAddress(controller);
+        PiiController piiController = getPiiController(controller, piiAddress);
+        List<PiiController> piiControllers = Arrays.asList(piiController);
+        receipt.setPiiControllers(piiControllers);
+    }
+
+    private PiiController getPiiController(JSONObject controller, Address piiAddress) {
+
+        String piiControllerName = controller.optString(PII_CONTROLLER_NAME);
+        boolean piiControllerOnBehalf = controller.getBoolean(ON_BEHALF);
+        String piiControllerContact = controller.optString(CONTACT);
+        String piiControllerEmail = controller.optString(EMAIL);
+        String piiControllerPhone = controller.optString(PHONE);
+        String piiControllerURL = controller.optString(PII_CONTROLLER_URL);
+        String publicKey = controller.optString(PUBLIC_KEY);
+        return new PiiController(piiControllerName, piiControllerOnBehalf,
+                piiControllerContact, piiControllerEmail, piiControllerPhone, piiControllerURL, piiAddress, publicKey);
+    }
+
+    private Address getAddress(JSONObject controller) {
+
+        JSONObject address = controller.optJSONObject(ADDRESS);
+        String addressCountry = address.optString(ADDRESS_COUNTRY);
+        String addressLocality = address.optString(ADDRESS_LOCALITY);
+        String addressRegion = address.optString(ADDRESS_REGION);
+        String addressPostOfficeBoxNumber = address.optString(POST_OFFICE_BOX_NUMBER);
+        String addressPostCode= address.optString(POSTAL_CODE);
+        String addressStreetAddress= address.optString(STREET_ADDRESS);
+
+        return new Address(addressCountry, addressLocality, addressRegion, addressPostOfficeBoxNumber,
+                addressPostCode, addressStreetAddress);
+    }
+
+    private void setPIIControllerInfo(ReceiptInput receipt) throws ConsentManagementServerException {
 
         PiiController controllerInfo = getPIIController(piiControllers).getControllerInfo(receipt.getTenantDomain());
-        List<PiiController> piiControllers = Arrays.asList(controllerInfo);
-        receipt.setPiiControllers(piiControllers);
+        JSONObject controller = new JSONObject();
+
+        controller.put(PII_CONTROLLER_NAME, controllerInfo.getPiiController());
+        controller.put(ON_BEHALF, controllerInfo.isOnBehalf());
+        controller.put(CONTACT, controllerInfo.getContact());
+        controller.put(EMAIL, controllerInfo.getEmail());
+        controller.put(PHONE, controllerInfo.getPhone());
+        controller.put(PII_CONTROLLER_URL, controllerInfo.getPiiControllerUrl());
+        controller.put(PUBLIC_KEY, controllerInfo.getPublicKey());
+
+        Address piiAddress = controllerInfo.getAddress();
+        if (piiAddress != null) {
+            JSONObject address = new JSONObject();
+            address.put(ADDRESS_COUNTRY, piiAddress.getAddressCountry() );
+            address.put(ADDRESS_LOCALITY, piiAddress.getAddressLocality());
+            address.put(ADDRESS_REGION, piiAddress.getAddressRegion());
+            address.put(POST_OFFICE_BOX_NUMBER, piiAddress.getPostOfficeBoxNumber());
+            address.put(POSTAL_CODE, piiAddress.getPostalCode());
+            address.put(STREET_ADDRESS, piiAddress.getStreetAddress());
+            controller.put(ADDRESS, address);
+        }
+        receipt.setPiiControllerInfo(controller.toString());
     }
 
     private void validateInputParameters(ReceiptInput receiptInput) throws ConsentManagementException {

@@ -33,6 +33,7 @@ public class ReceiptInput {
     private String tenantDomain;
     private int tenantId;
     private Map<String, String> properties;
+    private String piiControllerInfo;
 
     public String getConsentReceiptId() {
 
@@ -152,5 +153,15 @@ public class ReceiptInput {
     public void setTenantId(int tenantId) {
 
         this.tenantId = tenantId;
+    }
+
+    public String getPiiControllerInfo() {
+
+        return piiControllerInfo;
+    }
+
+    public void setPiiControllerInfo(String piiControllerInfo) {
+
+        this.piiControllerInfo = piiControllerInfo;
     }
 }

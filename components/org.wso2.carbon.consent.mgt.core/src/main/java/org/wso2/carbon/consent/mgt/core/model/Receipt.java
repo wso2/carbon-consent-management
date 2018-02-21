@@ -32,6 +32,7 @@ public class Receipt {
     private String piiPrincipalId;
     private long consentTimestamp;
     private List<PiiController> piiControllers;
+    private String piiController;
     private List<ReceiptService> services;
     private String policyUrl;
     private boolean sensitive;
@@ -198,5 +199,15 @@ public class Receipt {
     public void setTenantId(int tenantId) {
 
         this.tenantId = tenantId;
+    }
+
+    public String getPiiController() {
+
+        return piiController;
+    }
+
+    public void setPiiController(String piiController) {
+
+        this.piiController = piiController;
     }
 }
