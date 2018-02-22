@@ -28,10 +28,9 @@ public class PiiController {
     private String phone;
     private String piiControllerUrl;
     private Address address;
-    private String publicKey;
 
     public PiiController(String piiController, boolean onBehalf, String contact, String email, String phone,
-                         String piiControllerUrl, Address address, String publicKey) {
+                         String piiControllerUrl, Address address) {
 
         this.piiController = piiController;
         this.onBehalf = onBehalf;
@@ -40,7 +39,6 @@ public class PiiController {
         this.phone = phone;
         this.piiControllerUrl = piiControllerUrl;
         this.address = address;
-        this.publicKey = publicKey;
     }
 
     public String getPiiController() {
@@ -111,15 +109,5 @@ public class PiiController {
     public void setAddress(Address address) {
 
         this.address = address;
-    }
-
-    public String getPublicKey() {
-
-        return publicKey;
-    }
-
-    public void setPublicKey(String publicKey) {
-
-        this.publicKey = publicKey;
     }
 }

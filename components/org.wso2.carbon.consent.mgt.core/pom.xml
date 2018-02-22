@@ -123,13 +123,13 @@
                             org.slf4j.*; version="${slf4j.version.range}",
                             org.wso2.securevault.*,
                             org.json.*; version="${org.json.wso2.version.range}",
-                            org.wso2.carbon.context.*; version="${carbon.core.version.range}"
+                            org.wso2.carbon.context.*; version="${carbon.core.version.range}",
+                            org.wso2.carbon.core.util.*; version="${carbon.core.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.consent.mgt.core.internal,
                             org.wso2.carbon.consent.mgt.core.*; version="${project.version}",
                         </Export-Package>
-                        <!--<DynamicImport-Package>*</DynamicImport-Package>-->
                     </instructions>
                 </configuration>
             </plugin>

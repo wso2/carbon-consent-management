@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.consent.mgt.core;
 
+import org.mockito.Mock;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -49,10 +51,11 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
+import org.wso2.carbon.consent.mgt.core.util.TestUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.UserRealm;
-import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
@@ -65,6 +68,7 @@ import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -80,11 +84,14 @@ import static org.wso2.carbon.consent.mgt.core.util.TestUtils.getConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.initiateH2Base;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 
-@PrepareForTest(PrivilegedCarbonContext.class)
+@PrepareForTest({PrivilegedCarbonContext.class, KeyStoreManager.class})
 public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
     private Connection connection;
     private ConsentManager consentManager;
+
+    @Mock
+    KeyStoreManager keyStoreManager;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -103,7 +110,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         prepareConfigs(jdbcTemplate);
     }
 
-    private void prepareConfigs(JdbcTemplate jdbcTemplate) throws UserStoreException {
+    private void prepareConfigs(JdbcTemplate jdbcTemplate) throws Exception {
 
         ConsentManagerConfigurationHolder configurationHolder = new ConsentManagerConfigurationHolder();
 
@@ -144,7 +151,21 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         configurationHolder.setConfigParser(configParser);
 
         mockCarbonContext();
+        mockKeyStoreManager();
+
         consentManager = new InterceptingConsentManager(configurationHolder, Collections.emptyList());
+    }
+
+    private void mockKeyStoreManager() throws Exception {
+
+        mockStatic(KeyStoreManager.class);
+        PowerMockito.when(KeyStoreManager.getInstance(SUPER_TENANT_ID)).thenReturn(keyStoreManager);
+
+        PowerMockito.when(keyStoreManager.getDefaultPublicKey())
+                .thenReturn(TestUtils.getPublicKey(TestUtils.loadKeyStoreFromFileSystem(TestUtils
+                        .getFilePathInConfDirectory("wso2carbon.jks"), "wso2carbon", "JKS"), "wso2carbon"));
+        PowerMockito.when(keyStoreManager.getKeyStore(anyString())).thenReturn(TestUtils.loadKeyStoreFromFileSystem
+                (TestUtils.getFilePathInConfDirectory("wso2carbon.jks"), "wso2carbon", "JKS"));
     }
 
     private void mockCarbonContext() {

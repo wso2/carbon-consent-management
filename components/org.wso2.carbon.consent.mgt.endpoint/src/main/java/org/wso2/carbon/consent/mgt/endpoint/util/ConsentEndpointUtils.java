@@ -305,6 +305,7 @@ public class ConsentEndpointUtils {
         consentReceiptDTO.setTenantDomain(receipt.getTenantDomain());
         consentReceiptDTO.setVersion(receipt.getVersion());
         consentReceiptDTO.setState(receipt.getState());
+        consentReceiptDTO.setPublicKey(receipt.getPublicKey());
         consentReceiptDTO.setServices(receipt.getServices().stream().map(receiptService -> {
             ServiceResponseDTO serviceResponseDTO = new ServiceResponseDTO();
             serviceResponseDTO.setService(receiptService.getService());
@@ -337,7 +338,6 @@ public class ConsentEndpointUtils {
         consentReceiptDTO.setPiiControllers(receipt.getPiiControllers().stream().map(piiController -> {
             PiiControllerDTO piiControllerDTO = new PiiControllerDTO();
             AddressDTO addressDTO = new AddressDTO();
-            consentReceiptDTO.setPublicKey(piiController.getPublicKey());
             addressDTO.setAddressCountry(piiController.getAddress().getAddressCountry());
             addressDTO.setAddressLocality(piiController.getAddress().getAddressLocality());
             addressDTO.setAddressRegion(piiController.getAddress().getAddressRegion());

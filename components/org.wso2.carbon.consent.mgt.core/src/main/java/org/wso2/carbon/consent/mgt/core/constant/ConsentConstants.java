@@ -185,7 +185,8 @@ public class ConsentConstants {
         ERROR_CODE_RETRIEVE_SP_PURPOSE_ASSOCIATED_WITH_PIICATERY("CM_00081", "Error occurred while checking usage of " +
                 "pii-category from DB for the ID: %s."),
         ERROR_CODE_PII_CATEGORY_IS_ASSOCIATED("CM_00082", "PII Category Id: %s is associated with one or more " +
-                "purpose(s) or service(s).");
+                "purpose(s) or service(s)."),
+        ERROR_CODE_GETTING_PUBLIC_CERT("CM_00083", "Error while getting public cert of tenant: %s.");
 
         private final String code;
         private final String message;
@@ -230,7 +231,6 @@ public class ConsentConstants {
         public static final String PII_CONTROLLER_EMAIL_ELEMENT = "PIIController.Email";
         public static final String PII_CONTROLLER_ON_BEHALF_ELEMENT = "PIIController.OnBehalf";
         public static final String PII_CONTROLLER_URL_ELEMENT = "PIIController.PiiControllerUrl";
-        public static final String PII_CONTROLLER_PUBLIC_KEYE_LEMENT = "PIIController.PublicKey";
 
         public static final String PII_CONTROLLER_NAME = "piiController";
         public static final String ON_BEHALF = "onBehalf";

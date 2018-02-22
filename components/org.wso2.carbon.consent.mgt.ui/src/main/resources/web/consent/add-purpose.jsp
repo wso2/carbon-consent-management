@@ -33,6 +33,7 @@
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.CLAIM_URI" %>
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DESCRIPTION" %>
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DISPLAY_NAME" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
@@ -103,9 +104,8 @@
                 var option = '<option value="">---Select Claim URI ---</option>';
 
                 <% for(int i =0 ; i< claims.size() ; i++){%>
-                option += "<option value='" + '<%=getLocalClaims(claims.get(i))%>' + "'>" +
-                    "<%=claims.get(i).getLocalClaimURI()%>" + '</option>';
-
+                option += "<option value='" + '<%=Encode.forHtmlAttribute(getLocalClaims(claims.get(i)))%>' + "'>" +
+                    "<%=Encode.forHtmlAttribute(claims.get(i).getLocalClaimURI())%>" + '</option>';
                 <%}%>
                 $("#claimrow_id_count").val(claimRowId + 1);
                 var newrow = jQuery('<tr><td><select class="claimrow_wso2" name="claimrow_name_wso2_' + claimRowId + '">' + option + '</select></td> ' +

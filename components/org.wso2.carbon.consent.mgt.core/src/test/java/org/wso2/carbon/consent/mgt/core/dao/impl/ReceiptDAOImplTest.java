@@ -166,7 +166,7 @@ public class ReceiptDAOImplTest {
 
         Address address = new Address("LK", "EN", "South", "1435", "10443", "2nd Street, Colombo 03");
         PiiController piiController = new PiiController("ACME", false, "John Wick", "johnw@acme.com",
-                                                        "+17834563445", "http://acme.com", address, null);
+                                                        "+17834563445", "http://acme.com", address);
         piiControllers.add(piiController);
 
         ReceiptInput receiptInput1 = new ReceiptInput();

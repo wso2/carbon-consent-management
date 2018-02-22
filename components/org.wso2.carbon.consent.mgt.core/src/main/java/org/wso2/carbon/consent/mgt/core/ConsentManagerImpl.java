@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.consent.mgt.core;
 
+import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,9 +46,12 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -62,6 +66,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_PURPOSE_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_SERVICE_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_TYPE_MANDATORY;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GETTING_PUBLIC_CERT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GET_DAO;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_IS_PRIMARY_PURPOSE_IS_REQUIRED;
@@ -526,6 +531,7 @@ public class ConsentManagerImpl implements ConsentManager {
         }
         populateTenantDomain(receipt);
         setPIIControllerInfo(receipt);
+        setPublicKey(receipt);
         return receipt;
     }
 
@@ -612,6 +618,12 @@ public class ConsentManagerImpl implements ConsentManager {
         } else {
             throw handleServerException(ERROR_CODE_GET_DAO, PII_CONTROLLER);
         }
+    }
+
+    private void setPublicKey(Receipt receipt) throws ConsentManagementException {
+
+        String publicKey = getPublicKey(receipt.getTenantDomain());
+        receipt.setPublicKey(publicKey);
     }
 
     private PIICategory getPiiCategoryById(int piiCategoryId) throws ConsentManagementException {
@@ -748,9 +760,8 @@ public class ConsentManagerImpl implements ConsentManager {
         String piiControllerEmail = controller.optString(EMAIL);
         String piiControllerPhone = controller.optString(PHONE);
         String piiControllerURL = controller.optString(PII_CONTROLLER_URL);
-        String publicKey = controller.optString(PUBLIC_KEY);
         return new PiiController(piiControllerName, piiControllerOnBehalf,
-                piiControllerContact, piiControllerEmail, piiControllerPhone, piiControllerURL, piiAddress, publicKey);
+                piiControllerContact, piiControllerEmail, piiControllerPhone, piiControllerURL, piiAddress);
     }
 
     private Address getAddress(JSONObject controller) {
@@ -767,7 +778,7 @@ public class ConsentManagerImpl implements ConsentManager {
                 addressPostCode, addressStreetAddress);
     }
 
-    private void setPIIControllerInfo(ReceiptInput receipt) throws ConsentManagementServerException {
+    private void setPIIControllerInfo(ReceiptInput receipt) throws ConsentManagementException {
 
         PiiController controllerInfo = getPIIController(piiControllers).getControllerInfo(receipt.getTenantDomain());
         JSONObject controller = new JSONObject();
@@ -778,7 +789,6 @@ public class ConsentManagerImpl implements ConsentManager {
         controller.put(EMAIL, controllerInfo.getEmail());
         controller.put(PHONE, controllerInfo.getPhone());
         controller.put(PII_CONTROLLER_URL, controllerInfo.getPiiControllerUrl());
-        controller.put(PUBLIC_KEY, controllerInfo.getPublicKey());
 
         Address piiAddress = controllerInfo.getAddress();
         if (piiAddress != null) {
@@ -792,6 +802,43 @@ public class ConsentManagerImpl implements ConsentManager {
             controller.put(ADDRESS, address);
         }
         receipt.setPiiControllerInfo(controller.toString());
+    }
+
+    private String getPublicKey(String tenantDomain) throws ConsentManagementException {
+
+        RSAPublicKey publicKey;
+        int tenantId = ConsentUtils.getTenantId(realmService, tenantDomain);
+        try {
+            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
+            if (isNotSuperTenant(tenantDomain)) {
+                String jksName = getJKSName(tenantDomain);
+                publicKey = getPublicKey(tenantDomain, keyStoreManager, jksName);
+            } else {
+                publicKey = (RSAPublicKey) keyStoreManager.getDefaultPublicKey();
+            }
+
+            byte[] data = publicKey.getEncoded();
+            return Base64.encode(data);
+        } catch (Exception e) {
+            throw handleServerException(ERROR_CODE_GETTING_PUBLIC_CERT, tenantDomain);
+        }
+    }
+
+    private RSAPublicKey getPublicKey(String tenantDomain, KeyStoreManager keyStoreManager, String jksName) throws
+            Exception {
+
+        return (RSAPublicKey) keyStoreManager.getKeyStore(jksName).getCertificate(tenantDomain).getPublicKey();
+    }
+
+    private String getJKSName(String tenantDomain) {
+
+        String ksName = tenantDomain.trim().replace(".", "-");
+        return ksName + ".jks";
+    }
+
+    private boolean isNotSuperTenant(String tenantDomain) {
+
+        return !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain);
     }
 
     private void validateInputParameters(ReceiptInput receiptInput) throws ConsentManagementException {
