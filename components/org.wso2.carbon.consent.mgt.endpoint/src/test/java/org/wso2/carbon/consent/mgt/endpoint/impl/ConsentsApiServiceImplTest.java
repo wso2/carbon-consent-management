@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.consent.mgt.endpoint.impl;
 
+import org.mockito.Mock;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
@@ -49,12 +51,13 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeGetResponseDTO;
-import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ServiceDTO;
 import org.wso2.carbon.consent.mgt.endpoint.exception.ConflictRequestException;
 import org.wso2.carbon.consent.mgt.endpoint.exception.NotFoundException;
+import org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -69,6 +72,7 @@ import java.util.List;
 import javax.sql.DataSource;
 import javax.ws.rs.core.Response;
 
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -84,10 +88,13 @@ import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.getConnec
 import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.initiateH2Base;
 import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.spyConnection;
 
-@PrepareForTest(PrivilegedCarbonContext.class)
+@PrepareForTest({PrivilegedCarbonContext.class, KeyStoreManager.class})
 public class ConsentsApiServiceImplTest extends PowerMockTestCase {
 
     private Connection connection;
+
+    @Mock
+    KeyStoreManager keyStoreManager;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -106,7 +113,7 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         prepareConfigs(jdbcTemplate);
     }
 
-    private void prepareConfigs(JdbcTemplate jdbcTemplate) throws UserStoreException {
+    private void prepareConfigs(JdbcTemplate jdbcTemplate) throws Exception {
 
         ConsentManagerConfigurationHolder configurationHolder = new ConsentManagerConfigurationHolder();
 
@@ -147,6 +154,7 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
 
         ConsentManager consentManager = new InterceptingConsentManager(configurationHolder, Collections.emptyList());
         mockCarbonContext(consentManager);
+        mockKeyStoreManager();
     }
 
     private void mockCarbonContext(ConsentManager consentManager) {
@@ -160,6 +168,18 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
         when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
         when(privilegedCarbonContext.getUsername()).thenReturn("admin");
+    }
+
+    private void mockKeyStoreManager() throws Exception {
+
+        mockStatic(KeyStoreManager.class);
+        PowerMockito.when(KeyStoreManager.getInstance(SUPER_TENANT_ID)).thenReturn(keyStoreManager);
+
+        PowerMockito.when(keyStoreManager.getDefaultPublicKey())
+                .thenReturn(TestUtils.getPublicKey(TestUtils.loadKeyStoreFromFileSystem(TestUtils
+                        .getFilePathInConfDirectory("wso2carbon.jks"), "wso2carbon", "JKS"), "wso2carbon"));
+        PowerMockito.when(keyStoreManager.getKeyStore(anyString())).thenReturn(TestUtils.loadKeyStoreFromFileSystem
+                (TestUtils.getFilePathInConfDirectory("wso2carbon.jks"), "wso2carbon", "JKS"));
     }
 
     @AfterMethod

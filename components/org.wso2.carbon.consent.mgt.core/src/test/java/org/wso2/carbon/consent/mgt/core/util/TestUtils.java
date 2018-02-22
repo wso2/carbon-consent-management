@@ -19,7 +19,11 @@ package org.wso2.carbon.consent.mgt.core.util;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.FileInputStream;
 import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.PublicKey;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -56,6 +60,13 @@ public class TestUtils {
         throw new IllegalArgumentException("DB Script file name cannot be empty.");
     }
 
+    public static String getFilePathInConfDirectory(String fileName) {
+        if (StringUtils.isNotBlank(fileName)) {
+            return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "conf", fileName).toString();
+        }
+        throw new IllegalArgumentException("File name cannot be empty.");
+    }
+
     public static void initiateH2Base() throws Exception {
 
         BasicDataSource dataSource = new BasicDataSource();
@@ -81,5 +92,20 @@ public class TestUtils {
             return dataSourceMap.get(DB_NAME).getConnection();
         }
         throw new RuntimeException("No data source initiated for database: " + DB_NAME);
+    }
+
+    public static KeyStore loadKeyStoreFromFileSystem(String keyStorePath, String password, String type) {
+        try (FileInputStream inputStream = new FileInputStream(keyStorePath)) {
+            KeyStore keyStore = KeyStore.getInstance(type);
+            keyStore.load(inputStream, password.toCharArray());
+            return keyStore;
+        } catch (Exception e) {
+            String errorMsg = "Error loading the key store from the given location.";
+            throw new SecurityException(errorMsg, e);
+        }
+    }
+
+    public static PublicKey getPublicKey(KeyStore keyStore, String alias) throws KeyStoreException {
+        return keyStore.getCertificate(alias).getPublicKey();
     }
 }

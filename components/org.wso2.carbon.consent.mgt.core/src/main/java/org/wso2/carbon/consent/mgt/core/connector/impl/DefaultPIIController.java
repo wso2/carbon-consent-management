@@ -30,7 +30,6 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIICont
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.PII_CONTROLLER_NAME_ELEMENT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.PII_CONTROLLER_ON_BEHALF_ELEMENT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.PII_CONTROLLER_PHONE_ELEMENT;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.PII_CONTROLLER_PUBLIC_KEYE_LEMENT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.PII_CONTROLLER_URL_ELEMENT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.POST_CODE_ELEMENT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.POST_OFFICE_BOX_NUMBER_ELEMENT;
@@ -71,13 +70,12 @@ public class DefaultPIIController implements PIIController {
         String piiControllerEmail = getConfiguration(PII_CONTROLLER_EMAIL_ELEMENT);
         boolean piiControllerOnBehalf = Boolean.parseBoolean(getConfiguration(PII_CONTROLLER_ON_BEHALF_ELEMENT));
         String piiControllerURL = getConfiguration(PII_CONTROLLER_URL_ELEMENT);
-        String publicKey = getConfiguration(PII_CONTROLLER_PUBLIC_KEYE_LEMENT);
 
         Address address = new Address(addressCountry, addressLocality, addressRegion, addressPostOfficeBoxNumber,
                 addressPostCode, addressStreetAddress);
 
         return new PiiController(piiControllerName, piiControllerOnBehalf, piiControllerContact, piiControllerEmail,
-                piiControllerPhone, piiControllerURL, address, publicKey);
+                piiControllerPhone, piiControllerURL, address);
     }
 
     private String getConfiguration(String configElement) {
