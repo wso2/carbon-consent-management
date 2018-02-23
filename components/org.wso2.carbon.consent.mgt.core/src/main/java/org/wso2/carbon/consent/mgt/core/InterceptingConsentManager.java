@@ -21,6 +21,7 @@ package org.wso2.carbon.consent.mgt.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.ConsentInterceptorTemplate;
@@ -590,13 +591,9 @@ public class InterceptingConsentManager implements ConsentManager {
 
     private void validateAuthorizationForListReceipts(String piiPrincipalId) throws ConsentManagementException {
 
-        String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(loggedInUser);
+        String tenantAwareUsername = getTenantAwareLoggedInUsername(LIST_RECEIPT);
         int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        if (isBlank(tenantAwareUsername)) {
-            throw handleClientException(ERROR_CODE_NO_USER_FOUND, LIST_RECEIPT);
-        }
         if (isNotBlank(piiPrincipalId) && piiPrincipalId.equalsIgnoreCase(tenantAwareUsername)) {
             if (log.isDebugEnabled()) {
                 log.debug("User: " + piiPrincipalId + " is authorized to perform a search on own consent receipts.");
@@ -611,13 +608,9 @@ public class InterceptingConsentManager implements ConsentManager {
     private void validateAuthorizationForGetOrRevokeReceipts(String receiptId, String operation) throws
             ConsentManagementException {
 
-        String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
-        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(loggedInUser);
+        String tenantAwareUsername = getTenantAwareLoggedInUsername(operation);
         int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        if (isBlank(tenantAwareUsername)) {
-            throw handleClientException(ERROR_CODE_NO_USER_FOUND, operation);
-        }
         if (consentManager.isReceiptExist(receiptId, tenantAwareUsername, tenantId)) {
             if (log.isDebugEnabled()) {
                 log.debug("User: " + tenantAwareUsername + " is authorized to perform a " + operation + " on own " +
@@ -628,6 +621,20 @@ public class InterceptingConsentManager implements ConsentManager {
         }
 
         handleAuthorization(operation, tenantAwareUsername, tenantId);
+    }
+
+    private void validateUsername(String username, String operation) throws ConsentManagementClientException {
+        if (isBlank(username)) {
+            throw handleClientException(ERROR_CODE_NO_USER_FOUND, operation);
+        }
+    }
+
+    private String getTenantAwareLoggedInUsername(String operation) throws ConsentManagementClientException {
+        String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        validateUsername(operation, loggedInUser);
+        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(loggedInUser);
+        validateUsername(tenantAwareUsername, operation);
+        return tenantAwareUsername;
     }
 
     private void handleAuthorization(String operation, String tenantAwareUsername, int tenantId) throws
