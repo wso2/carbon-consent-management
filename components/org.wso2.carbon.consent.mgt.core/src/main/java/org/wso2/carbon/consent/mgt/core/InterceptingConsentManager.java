@@ -503,6 +503,7 @@ public class InterceptingConsentManager implements ConsentManager {
     }
 
     public Receipt getReceipt(String receiptId) throws ConsentManagementException {
+
         validateAuthorizationForGetOrRevokeReceipts(receiptId, GET_RECEIPT);
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Receipt, ConsentManagementException>
@@ -545,6 +546,7 @@ public class InterceptingConsentManager implements ConsentManager {
     }
 
     public void revokeReceipt(String receiptId) throws ConsentManagementException {
+
         validateAuthorizationForGetOrRevokeReceipts(receiptId, REVOKE_RECEIPT);
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Void, ConsentManagementException>
@@ -591,12 +593,12 @@ public class InterceptingConsentManager implements ConsentManager {
     private void validateAuthorizationForListReceipts(String piiPrincipalId) throws ConsentManagementException {
 
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        if (isBlank(loggedInUser)) {
+            throw handleClientException(ERROR_CODE_NO_USER_FOUND, LIST_RECEIPT);
+        }
         String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(loggedInUser);
         int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        if (isBlank(tenantAwareUsername)) {
-            throw handleClientException(ERROR_CODE_NO_USER_FOUND, LIST_RECEIPT);
-        }
         if (isNotBlank(piiPrincipalId) && piiPrincipalId.equalsIgnoreCase(tenantAwareUsername)) {
             if (log.isDebugEnabled()) {
                 log.debug("User: " + piiPrincipalId + " is authorized to perform a search on own consent receipts.");
@@ -612,12 +614,12 @@ public class InterceptingConsentManager implements ConsentManager {
             ConsentManagementException {
 
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        if (isBlank(loggedInUser)) {
+            throw handleClientException(ERROR_CODE_NO_USER_FOUND, operation);
+        }
         String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(loggedInUser);
         int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        if (isBlank(tenantAwareUsername)) {
-            throw handleClientException(ERROR_CODE_NO_USER_FOUND, operation);
-        }
         if (consentManager.isReceiptExist(receiptId, tenantAwareUsername, tenantId)) {
             if (log.isDebugEnabled()) {
                 log.debug("User: " + tenantAwareUsername + " is authorized to perform a " + operation + " on own " +
