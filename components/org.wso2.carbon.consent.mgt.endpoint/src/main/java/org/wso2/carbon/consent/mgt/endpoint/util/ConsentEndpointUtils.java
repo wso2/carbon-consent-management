@@ -46,6 +46,7 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ServiceResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.exception.BadRequestException;
 import org.wso2.carbon.consent.mgt.endpoint.exception.ConflictRequestException;
+import org.wso2.carbon.consent.mgt.endpoint.exception.ForbiddenException;
 import org.wso2.carbon.consent.mgt.endpoint.exception.InternalServerErrorException;
 import org.wso2.carbon.consent.mgt.endpoint.exception.NotFoundException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -122,6 +123,21 @@ public class ConsentEndpointUtils {
         ErrorDTO errorDTO = getErrorDTO(ConsentConstants.STATUS_BAD_REQUEST_MESSAGE_DEFAULT, description, code);
         logDebug(log, e);
         return new NotFoundException(errorDTO);
+    }
+
+    /**
+     * This method is used to create a Forbidden Exception with the known errorCode and message.
+     *
+     * @param description Error Message Description.
+     * @param code        Error Code.
+     * @return ForbiddenException with the given errorCode and description.
+     */
+    public static ForbiddenException buildForbiddenException(String description, String code,
+                                                                   Log log, Throwable e) {
+
+        ErrorDTO errorDTO = getErrorDTO(ConsentConstants.STATUS_BAD_REQUEST_MESSAGE_DEFAULT, description, code);
+        logDebug(log, e);
+        return new ForbiddenException(errorDTO);
     }
 
     public static Purpose getPurposeRequest(PurposeRequestDTO purposeRequestDTO) {

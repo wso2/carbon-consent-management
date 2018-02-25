@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_NO_USER_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ALREADY_EXIST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ALREADY_EXIST;
@@ -56,6 +57,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_RECEIPT_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_USER_NOT_AUTHORIZED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY_RESOURCE_PATH;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_CATEGORY_RESOURCE_PATH;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_RESOURCE_PATH;
@@ -375,7 +377,17 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
         if (isNotFoundError(e)) {
             throw ConsentEndpointUtils.buildNotFoundRequestException(e.getMessage(), e.getErrorCode(), LOG, e);
         }
+
+        if (isForbiddenError(e)) {
+            throw ConsentEndpointUtils.buildForbiddenException(e.getMessage(), e.getErrorCode(), LOG, e);
+        }
         throw ConsentEndpointUtils.buildBadRequestException(e.getMessage(), e.getErrorCode(), LOG, e);
+    }
+
+    private boolean isForbiddenError(ConsentManagementClientException e) {
+
+        return ERROR_CODE_NO_USER_FOUND.getCode().equals(e.getErrorCode()) || ERROR_CODE_USER_NOT_AUTHORIZED.getCode()
+                .equals(e.getErrorCode());
     }
 
     private boolean isNotFoundError(ConsentManagementClientException e) {
