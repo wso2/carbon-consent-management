@@ -527,7 +527,9 @@ public class ConsentManagerImpl implements ConsentManager {
             if (log.isDebugEnabled()) {
                 log.debug("No receipt found with the Id: " + receiptId);
             }
-            throw ConsentUtils.handleClientException(ERROR_CODE_RECEIPT_ID_INVALID, receiptId);
+            String message = String.format(ERROR_CODE_RECEIPT_ID_INVALID.getMessage(), receiptId) + " in tenant: "+
+                    ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_RECEIPT_ID_INVALID.getCode());
         }
         populateTenantDomain(receipt);
         setPIIControllerInfo(receipt);

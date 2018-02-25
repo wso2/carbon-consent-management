@@ -34,7 +34,6 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptService;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -156,6 +155,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
         ReceiptContext receiptContext = new ReceiptContext();
         Receipt receipt;
+        int piiPrincipalTenantId = ConsentUtils.getTenantIdFromCarbonContext();
         try {
             receipt = jdbcTemplate.fetchSingleRecord(GET_RECEIPT_SQL, (resultSet, rowNumber) -> {
                 Receipt receiptInfo = new Receipt();
@@ -171,7 +171,10 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 receiptInfo.setState(resultSet.getString(9));
                 receiptInfo.setPiiController(resultSet.getString(10));
                 return receiptInfo;
-            }, preparedStatement -> preparedStatement.setString(1, receiptId));
+            }, preparedStatement -> {
+                preparedStatement.setString(1, receiptId);
+                preparedStatement.setInt(2, piiPrincipalTenantId);
+            });
 
             if (receipt != null) {
                 receipt.setServices(getServiceInfoOfReceipt(receiptId, receiptContext));
