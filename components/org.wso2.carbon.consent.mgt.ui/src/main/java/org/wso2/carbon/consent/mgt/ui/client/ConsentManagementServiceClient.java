@@ -57,14 +57,12 @@ public class ConsentManagementServiceClient {
 
     public Purpose[] listPurposes() throws ConsentManagementException {
 
-        handleLoggedInUserAuthorization(PERMISSION_CONSENT_MGT_LIST);
         List<Purpose> purposes = getConsentManager().listPurposes(0, 0);
         return purposes.toArray(new Purpose[purposes.size()]);
     }
 
     public Purpose getPurpose(int purposeId) throws ConsentManagementException {
 
-        handleLoggedInUserAuthorization(PERMISSION_CONSENT_MGT_VIEW);
         return getConsentManager().getPurpose(purposeId);
     }
 
