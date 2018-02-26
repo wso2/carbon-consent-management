@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +30,7 @@ public class ReceiptInput {
     private String language;
     private String piiPrincipalId;
     private List<ReceiptServiceInput> services;
+    @SerializedName("policyURL")
     private String policyUrl;
     private String state;
     private String tenantDomain;

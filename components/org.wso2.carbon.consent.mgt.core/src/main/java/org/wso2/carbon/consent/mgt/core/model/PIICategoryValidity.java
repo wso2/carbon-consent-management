@@ -16,11 +16,14 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * The model representing a PII Category Validity model.
  */
 public class PIICategoryValidity {
 
+    @SerializedName("piiCategoryId")
     private Integer id;
     private String validity;
     private String name;
