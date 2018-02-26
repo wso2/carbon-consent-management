@@ -63,7 +63,11 @@
     <carbon:breadcrumb label="add.consent"
                        resourceBundle="org.wso2.carbon.consent.mgt.ui.i18n.Resources"
                        topPage="false" request="<%=request%>"/>
-    
+    <style>
+        #claimAddTable tbody tr td{
+            border: 1px solid #cccccc!important;
+        }
+    </style>
     <script type="text/javascript">
         function doFinish() {
             document.dataForm.action = "add-finish-purpose.jsp";
@@ -136,9 +140,10 @@
                         <th><fmt:message key="enter.purpose.details"/></th>
                     </tr>
                     </thead>
+                    <tbody>
                     <tr>
                         <td class="formRaw">
-                            <table class="normal" id="mainTable">
+                            <table class="normal" id="mainTable" style="width: 100%;">
                                 <tr>
                                     <td><fmt:message key="purpose.name"/><font color="red">*</font>
                                     </td>
@@ -182,18 +187,18 @@
                                         <input type="hidden" id="claimrow_id_count" name="claimrow_name_count" value="0">
                                     </td>
                                 </tr>
-                                
-                                <tr>
-                                    <td class="buttonRow">
-                                        <input type="button" class="button" value="<fmt:message key="finish"/>"
-                                               onclick="doFinish();"/>
-                                        <input type="button" class="button" value="<fmt:message key="cancel"/>"
-                                               onclick="doCancel();"/>
-                                    </td>
-                                </tr>
                             </table>
                         </td>
                     </tr>
+                    <tr>
+                        <td class="buttonRow">
+                            <input type="button" class="button" value="<fmt:message key="finish"/>"
+                                   onclick="doFinish();"/>
+                            <input type="button" class="button" value="<fmt:message key="cancel"/>"
+                                   onclick="doCancel();"/>
+                        </td>
+                    </tr>
+                    </tbody>
                 </table>
                 
             </form>
