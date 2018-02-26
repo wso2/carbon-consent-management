@@ -122,6 +122,7 @@
                             org.apache.commons.logging.*; version="${commons.logging.version.range}",
                             org.slf4j.*; version="${slf4j.version.range}",
                             org.wso2.securevault.*,
+                            com.google.gson.*; version="${com.google.code.gson.osgi.version.range}",
                             org.json.*; version="${org.json.wso2.version.range}",
                             org.wso2.carbon.context.*; version="${carbon.core.version.range}",
                             org.wso2.carbon.core.util.*; version="${carbon.core.version.range}",
@@ -156,6 +157,10 @@
         <dependency>
             <groupId>org.json.wso2</groupId>
             <artifactId>json</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>

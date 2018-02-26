@@ -16,13 +16,17 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 public class ReceiptServiceInput {
 
     private String service;
     private String tenantDomain;
+    @SerializedName("serviceDisplayName")
     private String spDisplayName;
+    @SerializedName("serviceDescription")
     private String spDescription;
     private List<ReceiptPurposeInput> purposes;
     private int tenantId;
