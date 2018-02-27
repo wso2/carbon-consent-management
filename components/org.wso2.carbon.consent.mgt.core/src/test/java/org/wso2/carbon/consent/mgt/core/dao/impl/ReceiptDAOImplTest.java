@@ -16,11 +16,14 @@
 
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
@@ -39,11 +42,12 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,13 +56,17 @@ import javax.sql.DataSource;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.getConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.initiateH2Base;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnectionWithError;
 
-public class ReceiptDAOImplTest {
+@PrepareForTest({PrivilegedCarbonContext.class})
+public class ReceiptDAOImplTest extends PowerMockTestCase {
 
     private static List<ReceiptInput> receiptInputs = new ArrayList<>();
 
@@ -66,6 +74,10 @@ public class ReceiptDAOImplTest {
     public void setUp() throws Exception {
 
         initiateH2Base();
+
+        String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes").toString();
+        System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
+        System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
 
         DataSource dataSource = mock(DataSource.class);
         try (Connection connection = getConnection()) {
@@ -198,10 +210,12 @@ public class ReceiptDAOImplTest {
         receiptInput2.setVersion(version);
         receiptInput2.setPiiControllerInfo(piiControllerInput);
         receiptInput2.setProperties(properties);
+        receiptInput2.setTenantDomain(tenantDomain);
+        receiptInput2.setTenantId(tenantId);
 
         receiptInputs.add(receiptInput1);
         receiptInputs.add(receiptInput2);
-
+        mockCarbonContext();
     }
 
     @AfterMethod
@@ -455,5 +469,16 @@ public class ReceiptDAOImplTest {
             ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
             receiptDAO.getReceipt(receiptInputs.get(1).getConsentReceiptId());
         }
+    }
+
+    private void mockCarbonContext() {
+
+        mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
+        when(privilegedCarbonContext.getUsername()).thenReturn("admin");
     }
 }

@@ -155,6 +155,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
         ReceiptContext receiptContext = new ReceiptContext();
         Receipt receipt;
+        int piiPrincipalTenantId = ConsentUtils.getTenantIdFromCarbonContext();
         try {
             receipt = jdbcTemplate.fetchSingleRecord(GET_RECEIPT_SQL, (resultSet, rowNumber) -> {
                 Receipt receiptInfo = new Receipt();
@@ -170,7 +171,10 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 receiptInfo.setState(resultSet.getString(9));
                 receiptInfo.setPiiController(resultSet.getString(10));
                 return receiptInfo;
-            }, preparedStatement -> preparedStatement.setString(1, receiptId));
+            }, preparedStatement -> {
+                preparedStatement.setString(1, receiptId);
+                preparedStatement.setInt(2, piiPrincipalTenantId);
+            });
 
             if (receipt != null) {
                 receipt.setServices(getServiceInfoOfReceipt(receiptId, receiptContext));
@@ -223,6 +227,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
         List<ReceiptListResponse> receiptListResponses;
         try {
+            int piiPrincipalTenantId = ConsentUtils.getTenantIdFromCarbonContext();
             if (piiPrincipalId == null) {
                 piiPrincipalId = SQL_FILTER_STRING_ANY;
             } else if (piiPrincipalId.contains(QUERY_FILTER_STRING_ANY)) {
@@ -274,11 +279,12 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                                         .getString(5), resultSet.getString(6), resultSet.getString(7)),
                         preparedStatement -> {
                             preparedStatement.setString(1, finalPiiPrincipalId);
-                            preparedStatement.setString(2, finalService);
-                            preparedStatement.setInt(3, spTenantId);
-                            preparedStatement.setString(4, finalState);
-                            preparedStatement.setInt(5, finalLimit);
-                            preparedStatement.setInt(6, finalOffset);
+                            preparedStatement.setInt(2, piiPrincipalTenantId);
+                            preparedStatement.setString(3, finalService);
+                            preparedStatement.setInt(4, spTenantId);
+                            preparedStatement.setString(5, finalState);
+                            preparedStatement.setInt(6, finalLimit);
+                            preparedStatement.setInt(7, finalOffset);
                         });
             } else {
                 if (isMysqlH2PostgresDB()) {
@@ -309,10 +315,11 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         preparedStatement -> {
 
                             preparedStatement.setString(1, finalPiiPrincipalId);
-                            preparedStatement.setString(2, finalService);
-                            preparedStatement.setString(3, finalState);
-                            preparedStatement.setInt(4, finalLimit);
-                            preparedStatement.setInt(5, finalOffset);
+                            preparedStatement.setInt(2, piiPrincipalTenantId);
+                            preparedStatement.setString(3, finalService);
+                            preparedStatement.setString(4, finalState);
+                            preparedStatement.setInt(5, finalLimit);
+                            preparedStatement.setInt(6, finalOffset);
                         });
             }
         } catch (DataAccessException e) {
