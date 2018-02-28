@@ -186,7 +186,8 @@ public class ConsentConstants {
                 "pii-category from DB for the ID: %s."),
         ERROR_CODE_PII_CATEGORY_IS_ASSOCIATED("CM_00082", "PII Category Id: %s is associated with one or more " +
                 "purpose(s) or service(s)."),
-        ERROR_CODE_GETTING_PUBLIC_CERT("CM_00083", "Error while getting public cert of tenant: %s.");
+        ERROR_CODE_GETTING_PUBLIC_CERT("CM_00083", "Error while getting public cert of tenant: %s."),
+        ERROR_CODE_ADD_CONSENT_RECEIPT("CM_00084", "Could not add consent receipt for principal: %s.");
 
         private final String code;
         private final String message;

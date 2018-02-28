@@ -16,14 +16,16 @@
 
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
+import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 
 import java.sql.Connection;
@@ -36,16 +38,18 @@ import static org.mockito.Mockito.when;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.getConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.initiateH2Base;
+import static org.wso2.carbon.consent.mgt.core.util.TestUtils.mockComponentDataHolder;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnectionWithError;
 
-public class PIICategoryDAOImplTest {
+@PrepareForTest(ConsentManagerComponentDataHolder.class)
+public class PIICategoryDAOImplTest extends PowerMockTestCase {
 
     private static List<PIICategory> piiCategories = new ArrayList<>();
 
-
     @BeforeMethod
     public void setUp() throws Exception {
+
         initiateH2Base();
         PIICategory piiCategory1 = new PIICategory("PII1", "D1", true, -1234);
         PIICategory piiCategory2 = new PIICategory("PII2", "D2", false, -1234);
@@ -55,19 +59,22 @@ public class PIICategoryDAOImplTest {
 
     @AfterMethod
     public void tearDown() throws Exception {
+
         closeH2Base();
     }
 
     @DataProvider(name = "piiCategoryProvider")
     public Object[][] providePIICategoryData() throws Exception {
+
         return new Object[][]{
-                {piiCategories.get(0)},
-                {piiCategories.get(1)}
+                {0},
+                {1}
         };
     }
 
     @DataProvider(name = "piiCategoryListProvider")
     public Object[][] provideListData() throws Exception {
+
         return new Object[][]{
                 // limit, offset, tenantId, resultSize
                 {0, 0, -1234, 0},
@@ -75,16 +82,17 @@ public class PIICategoryDAOImplTest {
                 {10, 0, -1234, 2}
         };
     }
+
     @Test
     public void testAddPIICategory() throws Exception {
-        DataSource dataSource = mock(DataSource.class);
 
+        DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
         try (Connection connection = getConnection()) {
 
             when(dataSource.getConnection()).thenReturn(connection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
             PIICategory piiCategory = piiCategoryDAO.addPIICategory(piiCategories.get(0));
 
             Assert.assertEquals(piiCategory.getName(), piiCategories.get(0).getName());
@@ -97,6 +105,7 @@ public class PIICategoryDAOImplTest {
     public void testAddDuplicatePIICategory() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -104,9 +113,7 @@ public class PIICategoryDAOImplTest {
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
 
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-
-            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
             piiCategoryDAO.addPIICategory(piiCategories.get(1));
             piiCategoryDAO.addPIICategory(piiCategories.get(1));
 
@@ -115,17 +122,17 @@ public class PIICategoryDAOImplTest {
     }
 
     @Test(dataProvider = "piiCategoryProvider")
-    public void testGetPIICategoryById(PIICategory piiCategoryInput) throws Exception {
+    public void testGetPIICategoryById(int piiCategoryIndexId) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-
+        mockComponentDataHolder(dataSource);
+        PIICategory piiCategoryInput = piiCategories.get(piiCategoryIndexId);
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
             PIICategory piiCategory = piiCategoryDAO.addPIICategory(piiCategoryInput);
             Assert.assertEquals(piiCategory.getName(), piiCategoryInput.getName());
 
@@ -139,14 +146,14 @@ public class PIICategoryDAOImplTest {
     public void testGetPIICategoryByInvalidId() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
             PIICategory piiCategoryById = piiCategoryDAO.getPIICategoryById(0);
 
             Assert.assertNull(piiCategoryById);
@@ -157,14 +164,14 @@ public class PIICategoryDAOImplTest {
     public void testGetPIICategoryByIdWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnectionWithError(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
             piiCategoryDAO.getPIICategoryById(0);
 
             Assert.fail("Expected: " + ConsentManagementServerException.class.getName());
@@ -172,17 +179,18 @@ public class PIICategoryDAOImplTest {
     }
 
     @Test(dataProvider = "piiCategoryProvider")
-    public void testGetPIICategoryByName(PIICategory piiCategoryInput) throws Exception {
+    public void testGetPIICategoryByName(int piiCategoryIndexId) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
+        PIICategory piiCategoryInput = piiCategories.get(piiCategoryIndexId);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
             PIICategory piiCategory = piiCategoryDAO.addPIICategory(piiCategoryInput);
             Assert.assertEquals(piiCategory.getName(), piiCategoryInput.getName());
 
@@ -201,14 +209,14 @@ public class PIICategoryDAOImplTest {
     public void testGetPIICategoryByInvalidName() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
             PIICategory piiCategoryByName = piiCategoryDAO.getPIICategoryByName("InvalidName", -1);
 
             Assert.assertNull(piiCategoryByName);
@@ -219,14 +227,14 @@ public class PIICategoryDAOImplTest {
     public void testGetPIICategoryByNameWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnectionWithError(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
             piiCategoryDAO.getPIICategoryByName("InvalidName", -1);
 
             Assert.fail("Expected: " + ConsentManagementServerException.class.getName());
@@ -237,14 +245,14 @@ public class PIICategoryDAOImplTest {
     public void testListPIICategories(int limit, int offset, int tenantID, int resultSize) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
 
             PIICategory piiCategory1 = piiCategoryDAO.addPIICategory(piiCategories.get(0));
             Assert.assertEquals(piiCategory1.getName(), piiCategories.get(0).getName());
@@ -267,14 +275,14 @@ public class PIICategoryDAOImplTest {
     public void testListPIICategoriesWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnectionWithError(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
             piiCategoryDAO.listPIICategories(0, 0, 0);
 
             Assert.fail("Expected: " + ConsentManagementServerException.class.getName());
@@ -285,14 +293,14 @@ public class PIICategoryDAOImplTest {
     public void testDeletePIICategory() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
             PIICategory piiCategory = piiCategoryDAO.addPIICategory(piiCategories.get(0));
             Assert.assertEquals(piiCategory.getName(), piiCategories.get(0).getName());
 
@@ -306,14 +314,14 @@ public class PIICategoryDAOImplTest {
     public void testDeletePurposeWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
             Connection spyConnection = spyConnectionWithError(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
-            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
             piiCategoryDAO.deletePIICategory(0);
 
             Assert.fail("Expected: " + ConsentManagementServerException.class.getName());

@@ -31,7 +31,6 @@ import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
 import org.wso2.carbon.consent.mgt.core.connector.PIIController;
 import org.wso2.carbon.consent.mgt.core.connector.impl.DefaultPIIController;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
-import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
@@ -86,15 +85,15 @@ public class ConsentManagerComponent {
 
             ConsentConfigParser configParser = new ConsentConfigParser();
             DataSource dataSource = initDataSource(configParser);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
             initializeConsentDB(dataSource);
+            setDataSourceToDataHolder(dataSource);
 
             bundleContext.registerService(PIIController.class.getName(), new DefaultPIIController(configParser), null);
-            bundleContext.registerService(PurposeDAO.class.getName(), new PurposeDAOImpl(jdbcTemplate), null);
-            bundleContext.registerService(ReceiptDAO.class.getName(), new ReceiptDAOImpl(jdbcTemplate), null);
-            bundleContext.registerService(PIICategoryDAO.class.getName(), new PIICategoryDAOImpl(jdbcTemplate), null);
+            bundleContext.registerService(PurposeDAO.class.getName(), new PurposeDAOImpl(), null);
+            bundleContext.registerService(ReceiptDAO.class.getName(), new ReceiptDAOImpl(), null);
+            bundleContext.registerService(PIICategoryDAO.class.getName(), new PIICategoryDAOImpl(), null);
             bundleContext.registerService(PurposeCategoryDAO.class.getName(), new PurposeCategoryDAOImpl
-                    (jdbcTemplate), null);
+                    (), null);
 
             ConsentManagerConfigurationHolder configHolder = new ConsentManagerConfigurationHolder();
             configHolder.setPurposeDAOs(purposeDAOs);
@@ -326,11 +325,19 @@ public class ConsentManagerComponent {
         if (System.getProperty("setup") == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Consent Database schema initialization check was skipped since " +
-                          "\'setup\' variable was not given during startup");
+                        "\'setup\' variable was not given during startup");
             }
         } else {
             ConsentDBInitializer dbInitializer = new ConsentDBInitializer(dataSource);
             dbInitializer.createConsentDatabase();
+        }
+    }
+
+    private void setDataSourceToDataHolder(DataSource dataSource) {
+
+        ConsentManagerComponentDataHolder.getInstance().setDataSource(dataSource);
+        if (log.isDebugEnabled()) {
+            log.debug("Data Source is set to the Consent Management Service.");
         }
     }
 }

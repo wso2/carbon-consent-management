@@ -18,6 +18,7 @@ package org.wso2.carbon.consent.mgt.core.util;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
 
 import java.io.FileInputStream;
 import java.nio.file.Paths;
@@ -28,34 +29,41 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import javax.sql.DataSource;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 public class TestUtils {
 
-    public static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
     public static final String DB_NAME = "ConsentDB";
     public static final String H2_SCRIPT_NAME = "h2.sql";
+    public static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
 
     public static Connection spyConnection(Connection connection) throws SQLException {
+
         Connection spy = spy(connection);
         doNothing().when(spy).close();
         return spy;
     }
 
     public static Connection spyConnectionWithError(Connection connection) throws SQLException {
+
         Connection spy = spy(connection);
         doThrow(new SQLException("Test Exception")).when(spy).prepareStatement(anyString());
         return spy;
     }
 
     public static String getFilePath(String fileName) {
+
         if (StringUtils.isNotBlank(fileName)) {
             return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbscripts", "consent",
-                             fileName).toString();
+                    fileName).toString();
         }
         throw new IllegalArgumentException("DB Script file name cannot be empty.");
     }
@@ -81,17 +89,27 @@ public class TestUtils {
     }
 
     public static void closeH2Base() throws Exception {
-        BasicDataSource dataSource =  dataSourceMap.get(DB_NAME);
-        if(dataSource != null) {
+
+        BasicDataSource dataSource = dataSourceMap.get(DB_NAME);
+        if (dataSource != null) {
             dataSource.close();
         }
     }
 
     public static Connection getConnection() throws SQLException {
+
         if (dataSourceMap.get(DB_NAME) != null) {
             return dataSourceMap.get(DB_NAME).getConnection();
         }
         throw new RuntimeException("No data source initiated for database: " + DB_NAME);
+    }
+
+    public static void mockComponentDataHolder(DataSource dataSource) {
+
+        mockStatic(ConsentManagerComponentDataHolder.class);
+        ConsentManagerComponentDataHolder componentDataHolder = mock(ConsentManagerComponentDataHolder.class);
+        when(ConsentManagerComponentDataHolder.getInstance()).thenReturn(componentDataHolder);
+        when(componentDataHolder.getDataSource()).thenReturn(dataSource);
     }
 
     public static KeyStore loadKeyStoreFromFileSystem(String keyStorePath, String password, String type) {
