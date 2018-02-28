@@ -17,7 +17,6 @@
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
@@ -30,13 +29,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.DB2;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.H2;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.INFORMIX;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.MY_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.POSTGRE_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.S_MICROSOFT;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_NAME_SQL;
@@ -49,6 +42,10 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINA
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_MSSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_MYSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_ORACLE;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isDB2DB;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isH2MySqlOrPostgresDB;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isInformixDB;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isMSSqlDB;
 import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrowConsumer;
 
 /**
@@ -90,8 +87,8 @@ public class PurposeDAOImpl implements PurposeDAO {
                     preparedStatement.setInt(2, id);
                 }), id, false);
             } catch (DataAccessException e) {
-                throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_ADD_PURPOSE_PII_ASSOC,
-                        String.valueOf(insertedId), e);
+                throw ConsentUtils.handleServerException(ErrorMessages
+                                                     .ERROR_CODE_ADD_PURPOSE_PII_ASSOC, String.valueOf(insertedId), e);
             }
         }));
         purposeResult = new Purpose(insertedId, purpose.getName(), purpose.getDescription(), purpose.getTenantId(),
@@ -160,14 +157,14 @@ public class PurposeDAOImpl implements PurposeDAO {
         List<Purpose> purposes;
         try {
             String query;
-            if (isMysqlH2OrPostgresDB()) {
+            if (isH2MySqlOrPostgresDB()) {
                 query = LIST_PAGINATED_PURPOSE_MYSQL;
-            } else if (isDatabaseDB2()) {
+            } else if (isDB2DB()) {
                 query = LIST_PAGINATED_PURPOSE_DB2;
                 int initialOffset = offset;
                 offset = offset + limit;
                 limit = initialOffset + 1;
-            } else if (isMsSqlDB()) {
+            } else if (isMSSqlDB()) {
                 int initialOffset = offset;
                 offset = limit + offset;
                 limit = initialOffset + 1;
@@ -214,8 +211,8 @@ public class PurposeDAOImpl implements PurposeDAO {
     /**
      * Check whether the {@link Purpose} by ID is used in a receipt
      *
-     * @param id D of the {@link Purpose} to be validated
-     * @return
+     * @param id ID of the {@link Purpose} to be validated
+     * @return true if purpose is used, false otherwise.
      */
     @Override
     public boolean isPurposeUsed(int id) throws ConsentManagementServerException {
@@ -231,31 +228,5 @@ public class PurposeDAOImpl implements PurposeDAO {
                     .ERROR_CODE_RETRIEVE_RECEIPTS_ASSOCIATED_WITH_PURPOSE, String.valueOf(id), e);
         }
         return (count > 0);
-    }
-
-    private boolean isMysqlH2OrPostgresDB() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(MY_SQL) || jdbcTemplate.getDriverName().contains(H2) ||
-                jdbcTemplate.getDriverName().contains(POSTGRE_SQL);
-    }
-
-    private boolean isDatabaseDB2() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(DB2);
-    }
-
-    private boolean isMsSqlDB() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(ConsentConstants.MICROSOFT) || jdbcTemplate.getDriverName()
-                .contains(S_MICROSOFT);
-    }
-
-    private boolean isInformixDB() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(INFORMIX);
     }
 }

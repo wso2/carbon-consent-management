@@ -18,7 +18,6 @@ package org.wso2.carbon.consent.mgt.core.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
@@ -45,12 +44,9 @@ import java.util.TimeZone;
 
 import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.DB2;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.H2;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.INFORMIX;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.MY_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.POSTGRE_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.S_MICROSOFT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_ACTIVE_RECEIPTS_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_CAT_SQL;
@@ -75,6 +71,10 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECE
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_TENANT_INFORMIX;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_TENANT_MSSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_TENANT_ORACLE;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isDB2DB;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isH2MySqlOrPostgresDB;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isInformixDB;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isMSSqlDB;
 import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrowConsumer;
 
 /**
@@ -126,8 +126,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_ADD_CONSENT_RECEIPT,
-                    receiptInput.getPiiPrincipalId(), e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_CONSENT_RECEIPT,
+                                                     receiptInput.getPiiPrincipalId(), e);
         }
     }
 
@@ -158,8 +158,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_REVOKE_ACTIVE_RECEIPT,
-                    receiptInput.getPiiPrincipalId(), e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_REVOKE_ACTIVE_RECEIPT,
+                                                     receiptInput.getPiiPrincipalId(), e);
         }
     }
 
@@ -198,8 +198,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 return internalReceipt;
             });
         } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
-                    String.valueOf(receiptId), e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
+                                                     String.valueOf(receiptId), e);
         }
         return receipt;
     }
@@ -220,7 +220,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             return receipt != null;
 
         } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_EXISTENCE,
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_EXISTENCE,
                     "Receipt Id: "+ receiptId+ ", PII Principal Id: "+ piiPrincipalId+ "and Tenant Id: "+ tenantId, e);
         }
     }
@@ -232,14 +232,14 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         try {
             jdbcTemplate.withTransaction(template -> {
                 template.executeUpdate(REVOKE_RECEIPT_SQL, preparedStatement -> {
-                    preparedStatement.setString(1, ConsentConstants.REVOKE_STATE);
+                    preparedStatement.setString(1, REVOKE_STATE);
                     preparedStatement.setString(2, receiptId);
                 });
                 return null;
             });
         } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_REVOKE_RECEIPT,
-                    receiptId, e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_REVOKE_RECEIPT,
+                                                     receiptId, e);
         }
     }
 
@@ -274,14 +274,14 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
             if (spTenantId != 0) { // Tenant domain is used for search results.
 
-                if (isMysqlH2PostgresDB()) {
+                if (isH2MySqlOrPostgresDB()) {
                     query = SEARCH_RECEIPT_SQL;
-                } else if (isDatabaseDB2()) {
+                } else if (isDB2DB()) {
                     query = SEARCH_RECEIPT_SQL_DB2;
                     int initialOffset = offset;
                     offset = offset + limit;
                     limit = initialOffset + 1;
-                } else if (isMssqlDB()) {
+                } else if (isMSSqlDB()) {
                     int initialOffset = offset;
                     offset = limit + offset;
                     limit = initialOffset + 1;
@@ -310,14 +310,14 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                             preparedStatement.setInt(7, finalOffset);
                         });
             } else {
-                if (isMysqlH2PostgresDB()) {
+                if (isH2MySqlOrPostgresDB()) {
                     query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT;
-                } else if (isDB2()) {
+                } else if (isDB2DB()) {
                     query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT_DB2;
                     int initialOffset = offset;
                     offset = offset + limit;
                     limit = initialOffset + 1;
-                } else if (isMssqlDB()) {
+                } else if (isMSSqlDB()) {
                     int initialOffset = offset;
                     query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT_MSSQL;
                     offset = limit + offset;
@@ -346,8 +346,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         });
             }
         } catch (DataAccessException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_SEARCH_RECEIPTS,
-                    piiPrincipalId, e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SEARCH_RECEIPTS,
+                                                     piiPrincipalId, e);
         }
         return receiptListResponses;
     }
@@ -376,15 +376,15 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     preparedStatement.setString(7, receiptInput.getPiiPrincipalId());
                     preparedStatement.setInt(8, receiptInput.getTenantId());
                     preparedStatement.setString(9, receiptInput.getPolicyUrl());
-                    preparedStatement.setString(10, ConsentConstants.ACTIVE_STATE);
+                    preparedStatement.setString(10, ACTIVE_STATE);
                     preparedStatement.setString(11, receiptInput.getPiiControllerInfo());
 
                 }), receiptInput, false);
                 return null;
             });
         } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_ADD_RECEIPT,
-                    receiptInput.getPiiPrincipalId(), e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_RECEIPT,
+                                                     receiptInput.getPiiPrincipalId(), e);
         }
     }
 
@@ -402,8 +402,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 preparedStatement.setString(5, receiptServiceInput.getSpDescription());
             }), receiptServiceInput, true));
         } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_ADD_RECEIPT_SP_ASSOC,
-                    receiptServiceInput.getService(), e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_RECEIPT_SP_ASSOC,
+                                                     receiptServiceInput.getService(), e);
         }
         return receiptToSPAssocId;
     }
@@ -424,8 +424,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 preparedStatement.setString(7, receiptPurposeInput.getThirdPartyName());
             }), receiptPurposeInput, true));
         } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_ADD_SP_TO_PURPOSE_ASSOC,
-                    String.valueOf(receiptPurposeInput.getPurposeName()), e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_SP_TO_PURPOSE_ASSOC,
+                                                     String.valueOf(receiptPurposeInput.getPurposeName()), e);
         }
         return spToPurposeAssocId;
     }
@@ -443,7 +443,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages
+            throw ConsentUtils.handleServerException(ErrorMessages
                     .ERROR_CODE_ADD_SP_PURPOSE_TO_PURPOSE_CAT_ASSOC, null, e);
         }
     }
@@ -462,7 +462,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages
+            throw ConsentUtils.handleServerException(ErrorMessages
                     .ERROR_CODE_ADD_SP_PURPOSE_TO_PII_CAT_ASSOC, null, e);
         }
     }
@@ -485,7 +485,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages
+            throw ConsentUtils.handleServerException(ErrorMessages
                     .ERROR_CODE_ADD_RECEIPT_PROPERTIES, null, e);
         }
     }
@@ -515,8 +515,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 return internalReceiptServices;
             });
         } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
-                    consentReceiptId, e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
+                                                     consentReceiptId, e);
         }
         return receiptServices;
     }
@@ -529,7 +529,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             consentPurposes = jdbcTemplate.withTransaction(template -> {
-                List<ConsentPurpose> internalConsentPurposes = jdbcTemplate.executeQuery(GET_SP_PURPOSE_SQL, (resultSet, rowNumber) -> {
+                List<ConsentPurpose> internalConsentPurposes = jdbcTemplate.executeQuery(GET_SP_PURPOSE_SQL,
+                                                                                         (resultSet, rowNumber) -> {
                     ConsentPurpose consentPurpose = new ConsentPurpose();
                     consentPurpose.setServiceToPurposeId(resultSet.getInt(1));
                     consentPurpose.setConsentType(resultSet.getString(2));
@@ -545,17 +546,17 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
                 if (internalConsentPurposes != null) {
                     internalConsentPurposes.forEach(rethrowConsumer(consentPurpose -> {
-                        consentPurpose.setPiiCategory(getPIICategoryInfoOfPurpose(consentPurpose.getServiceToPurposeId(),
-                                consentReceiptId, receiptContext));
-                        consentPurpose.setPurposeCategory(getPurposeCategoryInfoOfPurpose(consentPurpose.getServiceToPurposeId(),
-                                consentReceiptId));
+                        consentPurpose.setPiiCategory(getPIICategoryInfoOfPurpose(
+                                consentPurpose.getServiceToPurposeId(), consentReceiptId, receiptContext));
+                        consentPurpose.setPurposeCategory(getPurposeCategoryInfoOfPurpose(
+                                consentPurpose.getServiceToPurposeId(), consentReceiptId));
                     }));
                 }
                 return internalConsentPurposes;
             });
         } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_PURPOSE_INFO,
-                    consentReceiptId, e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_PURPOSE_INFO,
+                                                     consentReceiptId, e);
         }
         return consentPurposes;
     }
@@ -579,8 +580,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         return new PIICategoryValidity(name, validity, id, displayName);
                     }), preparedStatement -> preparedStatement.setInt(1, serviceToPurposeId)));
         } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
-                    consentReceiptId, e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
+                                                     consentReceiptId, e);
         }
     }
 
@@ -594,40 +595,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     preparedStatement -> preparedStatement.setInt(1, serviceToPurposeId)
             ));
         } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
-                    consentReceiptId, e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
+                                                     consentReceiptId, e);
         }
-    }
-
-    private boolean isMysqlH2PostgresDB() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(MY_SQL) || jdbcTemplate.getDriverName().contains(H2) ||
-                jdbcTemplate.getDriverName().contains(POSTGRE_SQL);
-    }
-
-    private boolean isDatabaseDB2() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(DB2);
-    }
-
-    private boolean isDB2() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(DB2);
-    }
-
-    private boolean isMssqlDB() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(ConsentConstants.MICROSOFT) || jdbcTemplate.getDriverName()
-                .contains(S_MICROSOFT);
-    }
-
-    private boolean isInformixDB() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(INFORMIX);
     }
 }
