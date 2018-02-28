@@ -64,7 +64,7 @@
 
             <script type="text/javascript">
                 function doCancel() {
-                    location.href = '<%=Encode.forJavaScriptBlock("list-purposes.jsp")%>';
+                    location.href = '<%=Encode.forJavaScriptBlock("list-purposes.jsp?region=region1&item=list_consent_menu")%>';
                 }
             </script>
 
