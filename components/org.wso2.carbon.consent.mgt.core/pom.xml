@@ -132,7 +132,6 @@
                             !org.wso2.carbon.consent.mgt.core.internal,
                             org.wso2.carbon.consent.mgt.core.*; version="${project.version}",
                         </Export-Package>
-                        <!--<DynamicImport-Package>*</DynamicImport-Package>-->
                     </instructions>
                 </configuration>
             </plugin>

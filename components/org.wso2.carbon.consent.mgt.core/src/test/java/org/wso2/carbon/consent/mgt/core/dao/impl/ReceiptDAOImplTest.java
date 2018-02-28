@@ -25,7 +25,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
-import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
@@ -56,6 +55,7 @@ import java.util.Map;
 import java.util.UUID;
 import javax.sql.DataSource;
 
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -64,6 +64,7 @@ import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.getConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.initiateH2Base;
+import static org.wso2.carbon.consent.mgt.core.util.TestUtils.mockComponentDataHolder;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnectionWithError;
 
@@ -87,7 +88,6 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
 
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
             PurposeDAO purposeDAO = new PurposeDAOImpl();
             Purpose purpose1 = new Purpose("P1", "D1", -1234);
@@ -181,8 +181,7 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
 
         Address address = new Address("LK", "EN", "South", "1435", "10443", "2nd Street, Colombo 03");
         PiiController piiController = new PiiController("ACME", false, "John Wick", "johnw@acme.com",
-                "+17834563445", "http://acme.com", address, null);
-                                                        "+17834563445", "http://acme.com", address);
+                "+17834563445", "http://acme.com", address);
         piiControllers.add(piiController);
 
         ReceiptInput receiptInput1 = new ReceiptInput();
@@ -267,7 +266,6 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
 
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
             ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             receiptDAO.addReceipt(receiptInputs.get(0));

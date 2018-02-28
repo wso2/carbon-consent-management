@@ -89,8 +89,7 @@ import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.initiateH
 import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.mockComponentDataHolder;
 import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.spyConnection;
 
-@PrepareForTest({PrivilegedCarbonContext.class, ConsentManagerComponentDataHolder.class})
-@PrepareForTest({PrivilegedCarbonContext.class, KeyStoreManager.class})
+@PrepareForTest({PrivilegedCarbonContext.class, ConsentManagerComponentDataHolder.class, KeyStoreManager.class})
 public class ConsentsApiServiceImplTest extends PowerMockTestCase {
 
     private Connection connection;
@@ -115,7 +114,7 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         prepareConfigs();
     }
 
-    private void prepareConfigs() throws UserStoreException {
+    private void prepareConfigs() throws Exception {
 
         ConsentManagerConfigurationHolder configurationHolder = new ConsentManagerConfigurationHolder();
 

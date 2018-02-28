@@ -85,8 +85,7 @@ import static org.wso2.carbon.consent.mgt.core.util.TestUtils.initiateH2Base;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.mockComponentDataHolder;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 
-@PrepareForTest({PrivilegedCarbonContext.class, ConsentManagerComponentDataHolder.class})
-@PrepareForTest({PrivilegedCarbonContext.class, KeyStoreManager.class})
+@PrepareForTest({PrivilegedCarbonContext.class, ConsentManagerComponentDataHolder.class, KeyStoreManager.class})
 public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
     private Connection connection;
@@ -94,51 +93,6 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
     @Mock
     KeyStoreManager keyStoreManager;
-
-
-
-
-    @DataProvider(name = "listDataProvider")
-    public static Object[][] listData() {
-
-        return new Object[][]{
-                // limit, offset, resultCount
-                {0, 0, 2},
-                {0, 1, 1},
-                {0, 2, 0},
-                {1, 0, 1}
-        };
-    }
-
-    @DataProvider(name = "deleteDataProvider")
-    public static Object[][] deleteData() {
-
-        return new Object[][]{
-                // deleteId
-                {-1},
-                {100}
-        };
-    }
-
-    @DataProvider(name = "receiptListDataProvider")
-    public static Object[][] receiptListData() {
-
-        return new Object[][]{
-                // limit, offset, principalId, tenantDomain, service, state, resultCount
-                {10, 0, "subject1", "carbon.super", "foo-company", "ACTIVE", 1},
-                {10, 0, "subject1", "carbon.super", "foo-company", null, 1},
-                {10, 0, "subject1", "carbon.super", null, null, 1},
-                {10, 0, "subject1", null, null, null, 1},
-                {10, 0, null, null, null, null, 2},
-                {10, 1, null, null, null, null, 1},
-                {1, 1, null, null, null, null, 1},
-                {0, 0, null, null, null, null, 2},
-                {0, 2, null, null, null, null, 0},
-                {10, 0, "subject*", null, null, null, 2},
-                {10, 0, null, "carbon.super", null, null, 2},
-                {10, 0, null, null, "foo*", null, 2}
-        };
-    }
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -157,8 +111,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         prepareConfigs();
     }
 
-    private void prepareConfigs(JdbcTemplate jdbcTemplate) throws Exception {
-    private void prepareConfigs() throws UserStoreException {
+    private void prepareConfigs() throws Exception {
 
         ConsentManagerConfigurationHolder configurationHolder = new ConsentManagerConfigurationHolder();
 

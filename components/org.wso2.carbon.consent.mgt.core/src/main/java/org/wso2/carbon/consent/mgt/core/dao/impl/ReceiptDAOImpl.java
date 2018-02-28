@@ -19,11 +19,9 @@ package org.wso2.carbon.consent.mgt.core.dao.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
-import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
-import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
 import org.wso2.carbon.consent.mgt.core.model.ConsentPurpose;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
@@ -171,6 +169,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         ReceiptContext receiptContext = new ReceiptContext();
         Receipt receipt;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        int piiPrincipalTenantId = ConsentUtils.getTenantIdFromCarbonContext();
         try {
             receipt = jdbcTemplate.withTransaction(template -> {
                 Receipt internalReceipt = template.fetchSingleRecord(GET_RECEIPT_SQL, (resultSet, rowNumber) -> {
@@ -185,8 +184,12 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     receiptInfo.setTenantId(resultSet.getInt(7));
                     receiptInfo.setPolicyUrl(resultSet.getString(8));
                     receiptInfo.setState(resultSet.getString(9));
+                    receiptInfo.setPiiController(resultSet.getString(10));
                     return receiptInfo;
-                }, preparedStatement -> preparedStatement.setString(1, receiptId));
+                }, preparedStatement -> {
+                    preparedStatement.setString(1, receiptId);
+                    preparedStatement.setInt(2, piiPrincipalTenantId);
+                });
 
                 if (internalReceipt != null) {
                     internalReceipt.setServices(getServiceInfoOfReceipt(receiptId, receiptContext));
@@ -206,16 +209,17 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             ConsentManagementException {
 
         try {
-            String receipt = jdbcTemplate.fetchSingleRecord(GET_RECEIPT_BASIC_SQL, (resultSet, rowNumber) ->
-                            resultSet.getString(1),
-                    preparedStatement -> {
+            JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+            String receipt = jdbcTemplate.withTransaction(template -> template.fetchSingleRecord
+                    (GET_RECEIPT_BASIC_SQL, (resultSet, rowNumber) ->
+                    resultSet.getString(1), preparedStatement -> {
                         preparedStatement.setString(1, receiptId);
                         preparedStatement.setString(2, piiPrincipalId);
                         preparedStatement.setInt(3, tenantId);
-                    });
+                    }));
             return receipt != null;
 
-        } catch (DataAccessException e) {
+        } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_EXISTENCE,
                     "Receipt Id: "+ receiptId+ ", PII Principal Id: "+ piiPrincipalId+ "and Tenant Id: "+ tenantId, e);
         }
@@ -373,6 +377,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     preparedStatement.setInt(8, receiptInput.getTenantId());
                     preparedStatement.setString(9, receiptInput.getPolicyUrl());
                     preparedStatement.setString(10, ConsentConstants.ACTIVE_STATE);
+                    preparedStatement.setString(11, receiptInput.getPiiControllerInfo());
 
                 }), receiptInput, false);
                 return null;
@@ -567,10 +572,11 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         boolean isSensitive = resultSet.getInt(2) == 1;
                         String validity = resultSet.getString(3);
                         int id = resultSet.getInt(4);
+                        String displayName = resultSet.getString(5);
                         if (isSensitive) {
                             receiptContext.getSecretPIICategory().addSecretCategory(name);
                         }
-                        return new PIICategoryValidity(name, validity, id);
+                        return new PIICategoryValidity(name, validity, id, displayName);
                     }), preparedStatement -> preparedStatement.setInt(1, serviceToPurposeId)));
         } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ConsentConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,

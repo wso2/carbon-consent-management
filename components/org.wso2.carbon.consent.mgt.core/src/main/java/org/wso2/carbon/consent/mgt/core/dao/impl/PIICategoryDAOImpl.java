@@ -246,6 +246,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
 
     private boolean isAssociationExists(int id, String query) throws DataAccessException {
         int count;
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         count = jdbcTemplate.fetchSingleRecord(query, (resultSet, rowNumber) ->
                         resultSet.getInt(1),
                 preparedStatement -> preparedStatement.setInt(1, id));
