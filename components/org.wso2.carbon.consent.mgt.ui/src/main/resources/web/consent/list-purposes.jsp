@@ -37,11 +37,7 @@
                        resourceBundle="org.wso2.identity.consents.mgt.ui.i18n.Resources"
                        topPage="true" request="<%=request%>"/>
     <div id="middle">
-        
-        <h2>
-            <fmt:message key='title.list.purposes'/>
-        </h2>
-        
+        <h2><fmt:message key='title.list.purposes'/></h2>
         <div id="workArea">
             
             <script type="text/javascript">
@@ -86,13 +82,7 @@
                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
                 }
             %>
-            
-            <br/>
-            <table style="width: 100%" class="styledLeft">
-                <tbody>
-                <tr>
-                    <td style="border:none !important">
-                        <table class="styledLeft" width="100%" id="ServiceProviders">
+            <table class="styledLeft" width="100%" id="ServiceProviders">
                             <thead>
                             <tr style="white-space: nowrap">
                                 <th class="leftCol-med"><fmt:message
@@ -164,10 +154,7 @@
                             </tbody>
                             <% } %>
                         </table>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+
         </div>
     </div>
 </fmt:bundle>
