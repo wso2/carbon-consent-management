@@ -28,7 +28,6 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.consent.mgt.core.connector.PIIController;
 import org.wso2.carbon.consent.mgt.core.connector.impl.DefaultPIIController;
-import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
@@ -39,6 +38,7 @@ import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.ReceiptDAOImpl;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
@@ -82,8 +82,10 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.getConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.initiateH2Base;
+import static org.wso2.carbon.consent.mgt.core.util.TestUtils.mockComponentDataHolder;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 
+@PrepareForTest({PrivilegedCarbonContext.class, ConsentManagerComponentDataHolder.class})
 @PrepareForTest({PrivilegedCarbonContext.class, KeyStoreManager.class})
 public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
@@ -92,6 +94,51 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
     @Mock
     KeyStoreManager keyStoreManager;
+
+
+
+
+    @DataProvider(name = "listDataProvider")
+    public static Object[][] listData() {
+
+        return new Object[][]{
+                // limit, offset, resultCount
+                {0, 0, 2},
+                {0, 1, 1},
+                {0, 2, 0},
+                {1, 0, 1}
+        };
+    }
+
+    @DataProvider(name = "deleteDataProvider")
+    public static Object[][] deleteData() {
+
+        return new Object[][]{
+                // deleteId
+                {-1},
+                {100}
+        };
+    }
+
+    @DataProvider(name = "receiptListDataProvider")
+    public static Object[][] receiptListData() {
+
+        return new Object[][]{
+                // limit, offset, principalId, tenantDomain, service, state, resultCount
+                {10, 0, "subject1", "carbon.super", "foo-company", "ACTIVE", 1},
+                {10, 0, "subject1", "carbon.super", "foo-company", null, 1},
+                {10, 0, "subject1", "carbon.super", null, null, 1},
+                {10, 0, "subject1", null, null, null, 1},
+                {10, 0, null, null, null, null, 2},
+                {10, 1, null, null, null, null, 1},
+                {1, 1, null, null, null, null, 1},
+                {0, 0, null, null, null, null, 2},
+                {0, 2, null, null, null, null, 0},
+                {10, 0, "subject*", null, null, null, 2},
+                {10, 0, null, "carbon.super", null, null, 2},
+                {10, 0, null, null, "foo*", null, 2}
+        };
+    }
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -102,28 +149,29 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
 
         DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
 
         connection = getConnection();
         Connection spyConnection = spyConnection(connection);
         when(dataSource.getConnection()).thenReturn(spyConnection);
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-        prepareConfigs(jdbcTemplate);
+        prepareConfigs();
     }
 
     private void prepareConfigs(JdbcTemplate jdbcTemplate) throws Exception {
+    private void prepareConfigs() throws UserStoreException {
 
         ConsentManagerConfigurationHolder configurationHolder = new ConsentManagerConfigurationHolder();
 
-        PurposeDAO purposeDAO = new PurposeDAOImpl(jdbcTemplate);
+        PurposeDAO purposeDAO = new PurposeDAOImpl();
         configurationHolder.setPurposeDAOs(Collections.singletonList(purposeDAO));
 
-        PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl(jdbcTemplate);
+        PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
         configurationHolder.setPiiCategoryDAOs(Collections.singletonList(piiCategoryDAO));
 
-        PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl(jdbcTemplate);
+        PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
         configurationHolder.setPurposeCategoryDAOs(Collections.singletonList(purposeCategoryDAO));
 
-        ReceiptDAO receiptDAO = new ReceiptDAOImpl(jdbcTemplate);
+        ReceiptDAO receiptDAO = new ReceiptDAOImpl();
         configurationHolder.setReceiptDAOs(Collections.singletonList(receiptDAO));
 
         RealmService realmService = mock(RealmService.class);
@@ -181,6 +229,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
     @AfterMethod
     public void tearDown() throws Exception {
+
         connection.close();
         closeH2Base();
     }
@@ -323,14 +372,14 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
         PurposeCategory purposeCategory = addPurposeCategory("PC1");
         Assert.assertTrue(consentManager.isPurposeCategoryExists(purposeCategory.getName()), "PurposeCategory PC1 " +
-                                                                                             "should exist.");
+                "should exist.");
     }
 
     @Test
     public void testIsInvalidPurposeCategoryExists() throws Exception {
 
         Assert.assertTrue(!consentManager.isPurposeCategoryExists("Invalid"), "PurposeCategory Invalid " +
-                                                                                             "should not exist.");
+                "should not exist.");
     }
 
     @Test
@@ -587,7 +636,6 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         PIICategory piiCategory = addPIICategory("PII1");
         PurposeCategory purposeCategory = addPurposeCategory("PC1");
 
-
         Purpose purpose1 = addPurpose("P1", Collections.singletonList(piiCategory.getId()));
         Purpose purpose2 = addPurpose("P2", Collections.singletonList(piiCategory.getId()));
 
@@ -609,7 +657,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         Map<String, String> properties = new HashMap<>();
 
         purposeCategoryIds.add(purposeCategory.getId());
-        piiCategoryIds.add(new PIICategoryValidity(1,"45"));
+        piiCategoryIds.add(new PIICategoryValidity(1, "45"));
         properties.put("K1", "V1");
         properties.put("K2", "V2");
 
@@ -674,7 +722,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         Receipt receipt = consentManager.getReceipt(receiptResponses.get(0).getConsentReceiptId());
         Assert.assertNotNull(receipt, "Receipt should not be null.");
         Assert.assertEquals(receipt.getState(), REVOKE_STATE, "First receipt should be revoked for " +
-                                                              "duplicate receipts.");
+                "duplicate receipts.");
     }
 
     @Test
@@ -700,7 +748,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
         addReceipt("subject1", "subject2");
         List<ReceiptListResponse> receiptListResponses = consentManager.searchReceipts(limit, offset, principalId,
-                                                                                       tenantDomain, service, state);
+                tenantDomain, service, state);
         Assert.assertNotNull(receiptListResponses, "ReceiptListResponse list cannot be null");
         Assert.assertEquals(receiptListResponses.size(), resultCount);
     }

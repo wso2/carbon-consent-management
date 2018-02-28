@@ -17,13 +17,14 @@
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
-import org.wso2.carbon.consent.mgt.core.dao.JdbcTemplate;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
-import org.wso2.carbon.consent.mgt.core.exception.DataAccessException;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
+import org.wso2.carbon.consent.mgt.core.util.JdbcUtils;
+import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 
 import java.util.List;
 
@@ -49,11 +50,8 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PURP
  */
 public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
 
-    private JdbcTemplate jdbcTemplate;
+    public PurposeCategoryDAOImpl() {
 
-    public PurposeCategoryDAOImpl(JdbcTemplate jdbcTemplate) {
-
-        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
@@ -67,7 +65,7 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
 
         PurposeCategory purposeCategoryResult;
         int insertedId;
-
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             insertedId = jdbcTemplate.executeInsert(INSERT_PURPOSE_CATEGORY_SQL, (preparedStatement -> {
                 preparedStatement.setString(1, purposeCategory.getName());
@@ -87,13 +85,13 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
     public PurposeCategory getPurposeCategoryById(int id) throws ConsentManagementException {
 
         PurposeCategory purposeCategory;
-
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             purposeCategory = jdbcTemplate.fetchSingleRecord(SELECT_PURPOSE_CATEGORY_BY_ID_SQL, (resultSet, rowNumber) ->
-                                                                     new PurposeCategory(resultSet.getInt(1),
-                                                                                         resultSet.getString(2),
-                                                                                         resultSet.getString(3),
-                                                                                         resultSet.getInt(4)),
+                            new PurposeCategory(resultSet.getInt(1),
+                                    resultSet.getString(2),
+                                    resultSet.getString(3),
+                                    resultSet.getInt(4)),
                     preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_CATEGORY_BY_ID, String
@@ -107,6 +105,7 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
             ConsentManagementException {
 
         List<PurposeCategory> purposesCategories;
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             String query;
             if (isH2MySqlOrPostgresDB()) {
@@ -152,6 +151,7 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
     @Override
     public int deletePurposeCategory(int id) throws ConsentManagementException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.executeUpdate(DELETE_PURPOSE_CATEGORY_SQL,
                     preparedStatement -> preparedStatement.setInt(1, id));
@@ -166,7 +166,7 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
     public PurposeCategory getPurposeCategoryByName(String name, int tenantId) throws ConsentManagementException {
 
         PurposeCategory purposeCategory;
-
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             purposeCategory = jdbcTemplate.fetchSingleRecord(SELECT_PURPOSE_CATEGORY_BY_NAME_SQL, (resultSet, rowNumber) ->
                             new PurposeCategory(resultSet.getInt(1),
@@ -185,23 +185,27 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
 
     private boolean isH2MySqlOrPostgresDB() throws DataAccessException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         return jdbcTemplate.getDriverName().contains(MY_SQL) || jdbcTemplate.getDriverName().contains(H2) ||
                 jdbcTemplate.getDriverName().contains(POSTGRE_SQL);
     }
 
     private boolean isDB2DB() throws DataAccessException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         return jdbcTemplate.getDriverName().contains(DB2);
     }
 
     private boolean isMssqlDB() throws DataAccessException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         return jdbcTemplate.getDriverName().contains(ConsentConstants.MICROSOFT) || jdbcTemplate.getDriverName()
                 .contains(S_MICROSOFT);
     }
 
     private boolean isInformixDB() throws DataAccessException {
 
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         return jdbcTemplate.getDriverName().contains(INFORMIX);
     }
 }

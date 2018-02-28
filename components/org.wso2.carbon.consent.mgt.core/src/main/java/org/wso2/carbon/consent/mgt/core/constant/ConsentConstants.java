@@ -186,7 +186,8 @@ public class ConsentConstants {
                 "pii-category from DB for the ID: %s."),
         ERROR_CODE_PII_CATEGORY_IS_ASSOCIATED("CM_00082", "PII Category Id: %s is associated with one or more " +
                 "purpose(s) or service(s)."),
-        ERROR_CODE_GETTING_PUBLIC_CERT("CM_00083", "Error while getting public cert of tenant: %s.");
+        ERROR_CODE_GETTING_PUBLIC_CERT("CM_00083", "Error while getting public cert of tenant: %s."),
+        ERROR_CODE_ADD_CONSENT_RECEIPT("CM_0075", "Could not add consent receipt for principal: %s.");
 
         private final String code;
         private final String message;
@@ -219,33 +220,19 @@ public class ConsentConstants {
      */
     public static class PIIControllerElements {
 
-        public static final String COUNTRY_ELEMENT = "PIIController.Address.Country";
-        public static final String LOCALITY_ELEMENT = "PIIController.Address.Locality";
-        public static final String REGION_ELEMENT = "PIIController.Address.Region";
-        public static final String POST_OFFICE_BOX_NUMBER_ELEMENT = "PIIController.Address.PostOfficeBoxNumber";
-        public static final String POST_CODE_ELEMENT = "PIIController.Address.PostalCode";
-        public static final String STREET_ADDRESS_ELEMENT = "PIIController.Address.StreetAddress";
-        public static final String PII_CONTROLLER_NAME_ELEMENT = "PIIController.PiiController";
-        public static final String PII_CONTROLLER_CONTACT_ELEMENT = "PIIController.Contact";
-        public static final String PII_CONTROLLER_PHONE_ELEMENT = "PIIController.Phone";
-        public static final String PII_CONTROLLER_EMAIL_ELEMENT = "PIIController.Email";
-        public static final String PII_CONTROLLER_ON_BEHALF_ELEMENT = "PIIController.OnBehalf";
-        public static final String PII_CONTROLLER_URL_ELEMENT = "PIIController.PiiControllerUrl";
-
-        public static final String PII_CONTROLLER_NAME = "piiController";
-        public static final String ON_BEHALF = "onBehalf";
-        public static final String CONTACT = "contact";
-        public static final String EMAIL = "email";
-        public static final String PHONE = "phone";
-        public static final String PII_CONTROLLER_URL = "piiControllerUrl";
-        public static final String PUBLIC_KEY = "publicKey";
-        public static final String ADDRESS_COUNTRY = "addressCountry";
-        public static final String ADDRESS_LOCALITY = "addressLocality";
-        public static final String ADDRESS_REGION = "addressRegion";
-        public static final String POST_OFFICE_BOX_NUMBER = "postOfficeBoxNumber";
-        public static final String POSTAL_CODE = "postalCode";
-        public static final String STREET_ADDRESS = "streetAddress";
-        public static final String ADDRESS = "Address";
+        public static final String countryElement = "PIIController.Address.Country";
+        public static final String localityElement = "PIIController.Address.Locality";
+        public static final String regionElement = "PIIController.Address.Region";
+        public static final String postOfficeBoxNumberElement = "PIIController.Address.PostOfficeBoxNumber";
+        public static final String postCodeElement = "PIIController.Address.PostalCode";
+        public static final String streetAddressElement = "PIIController.Address.StreetAddress";
+        public static final String piiControllerNameElement = "PIIController.PiiController";
+        public static final String piiControllerContactElement = "PIIController.Contact";
+        public static final String piiControllerPhoneElement = "PIIController.Phone";
+        public static final String piiControllerEmailElement = "PIIController.Email";
+        public static final String piiControllerOnBehalfElement = "PIIController.OnBehalf";
+        public static final String piiControllerUrlElement = "PIIController.PiiControllerUrl";
+        public static final String piiControllerPublicKeyElement = "PIIController.PublicKey";
     }
 
     /**

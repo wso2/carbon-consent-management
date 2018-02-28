@@ -49,6 +49,12 @@
             <version>${project.version}</version>
             <type>war</type>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.utils</groupId>
+            <artifactId>org.wso2.carbon.database.utils.feature</artifactId>
+            <version>${org.wso2.carbon.database.utils.version}</version>
+            <type>zip</type>
+        </dependency>
     </dependencies>
 
     <build>
@@ -103,6 +109,9 @@
                                 <bundleDef>org.wso2.carbon.consent.mgt:org.wso2.carbon.consent.mgt.ui</bundleDef>
                             </bundles>
                             <importFeatures>
+                                <importFeatureDef>
+                                    org.wso2.carbon.database.utils:compatible:${org.wso2.carbon.database.utils.version}
+                                </importFeatureDef>
                             </importFeatures>
                         </configuration>
                     </execution>
