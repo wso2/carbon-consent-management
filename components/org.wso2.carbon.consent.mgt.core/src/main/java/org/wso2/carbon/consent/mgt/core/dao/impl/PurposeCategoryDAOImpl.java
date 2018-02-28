@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
-import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
@@ -28,13 +27,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 
 import java.util.List;
 
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.DB2;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.H2;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.INFORMIX;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.MY_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.POSTGRE_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.S_MICROSOFT;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_CATEGORY_DB2;
@@ -44,6 +37,10 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINA
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_CATEGORY_ORACLE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PURPOSE_CATEGORY_BY_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PURPOSE_CATEGORY_BY_NAME_SQL;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isDB2DB;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isH2MySqlOrPostgresDB;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isInformixDB;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isMSSqlDB;
 
 /**
  * Default implementation of {@link PurposeCategoryDAO}. This handles {@link PurposeCategory} related DB operations.
@@ -87,7 +84,8 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
         PurposeCategory purposeCategory;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            purposeCategory = jdbcTemplate.fetchSingleRecord(SELECT_PURPOSE_CATEGORY_BY_ID_SQL, (resultSet, rowNumber) ->
+            purposeCategory = jdbcTemplate.fetchSingleRecord(SELECT_PURPOSE_CATEGORY_BY_ID_SQL, (resultSet,
+                                                                                                 rowNumber) ->
                             new PurposeCategory(resultSet.getInt(1),
                                     resultSet.getString(2),
                                     resultSet.getString(3),
@@ -115,7 +113,7 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
                 int initialOffset = offset;
                 offset = offset + limit;
                 limit = initialOffset + 1;
-            } else if (isMssqlDB()) {
+            } else if (isMSSqlDB()) {
                 query = LIST_PAGINATED_PURPOSE_CATEGORY_MSSQL;
                 int initialOffset = offset;
                 offset = limit + offset;
@@ -168,7 +166,8 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
         PurposeCategory purposeCategory;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            purposeCategory = jdbcTemplate.fetchSingleRecord(SELECT_PURPOSE_CATEGORY_BY_NAME_SQL, (resultSet, rowNumber) ->
+            purposeCategory = jdbcTemplate.fetchSingleRecord(SELECT_PURPOSE_CATEGORY_BY_NAME_SQL, (resultSet,
+                                                                                                   rowNumber) ->
                             new PurposeCategory(resultSet.getInt(1),
                                     resultSet.getString(2),
                                     resultSet.getString(3),
@@ -181,31 +180,5 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_CATEGORY_BY_NAME, name, e);
         }
         return purposeCategory;
-    }
-
-    private boolean isH2MySqlOrPostgresDB() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(MY_SQL) || jdbcTemplate.getDriverName().contains(H2) ||
-                jdbcTemplate.getDriverName().contains(POSTGRE_SQL);
-    }
-
-    private boolean isDB2DB() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(DB2);
-    }
-
-    private boolean isMssqlDB() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(ConsentConstants.MICROSOFT) || jdbcTemplate.getDriverName()
-                .contains(S_MICROSOFT);
-    }
-
-    private boolean isInformixDB() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(INFORMIX);
     }
 }

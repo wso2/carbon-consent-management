@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
-import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
@@ -28,13 +27,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 
 import java.util.List;
 
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.DB2;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.H2;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.INFORMIX;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.MY_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.POSTGRE_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.S_MICROSOFT;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PII_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_COUNT_ASSOCIATED_WITH_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_SP_PURPOSE_COUNT_ASSOCIATED_WITH_PII_CATEGORY;
@@ -46,6 +39,10 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINA
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_ORACLE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PII_CATEGORY_BY_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PII_CATEGORY_BY_NAME_SQL;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isDB2DB;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isH2MySqlOrPostgresDB;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isInformixDB;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isMSSqlDB;
 
 /**
  * Default implementation of {@link PIICategoryDAO}. This handles {@link PIICategory} related DB operations.
@@ -77,7 +74,8 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
                 preparedStatement.setString(5, piiCategory.getDisplayName());
             }), piiCategory, true);
         } catch (DataAccessException e) {
-            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PII_CATEGORY, piiCategory.getName(), e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PII_CATEGORY,
+                                                     piiCategory.getName(), e);
         }
         purposeResult = new PIICategory(insertedId, piiCategory.getName(), piiCategory.getDescription(),
                 piiCategory.getSensitive(), piiCategory.getTenantId(), piiCategory.getDisplayName());
@@ -115,14 +113,14 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
 
         try {
             String query;
-            if (isMysqlH2OrPostgresDB()) {
+            if (isH2MySqlOrPostgresDB()) {
                 query = LIST_PAGINATED_PII_CATEGORY_MYSQL;
-            } else if (isDB2Database()) {
+            } else if (isDB2DB()) {
                 query = LIST_PAGINATED_PII_CATEGORY_DB2;
                 int initialOffset = offset;
                 offset = offset + limit;
                 limit = initialOffset + 1;
-            } else if (isMsSqlDB()) {
+            } else if (isMSSqlDB()) {
                 query = LIST_PAGINATED_PII_CATEGORY_MSSQL;
                 int initialOffset = offset;
                 offset = limit + offset;
@@ -197,8 +195,8 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     /**
      * Check whether the {@link PIICategory} by ID is used in a purpose or service
      *
-     * @param id D of the {@link PIICategory} to be validated
-     * @return
+     * @param id ID of the {@link PIICategory} to be validated
+     * @return true if PII category is used, false otherwise.
      */
     @Override
     public boolean isPIICategoryUsed(int id) throws ConsentManagementException {
@@ -208,32 +206,6 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
             throw ConsentUtils.handleServerException(ErrorMessages
                     .ERROR_CODE_RETRIEVE_SP_PURPOSE_ASSOCIATED_WITH_PIICATERY, String.valueOf(id), e);
         }
-    }
-
-    private boolean isMysqlH2OrPostgresDB() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(MY_SQL) || jdbcTemplate.getDriverName().contains(H2) ||
-                jdbcTemplate.getDriverName().contains(POSTGRE_SQL);
-    }
-
-    private boolean isDB2Database() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(DB2);
-    }
-
-    private boolean isMsSqlDB() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(ConsentConstants.MICROSOFT) || jdbcTemplate.getDriverName()
-                .contains(S_MICROSOFT);
-    }
-
-    private boolean isInformixDB() throws DataAccessException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        return jdbcTemplate.getDriverName().contains(INFORMIX);
     }
 
     private boolean isPiiCategoryUsedInPurpose(int id) throws DataAccessException {
