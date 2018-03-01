@@ -20,6 +20,10 @@
 <%@ page import="org.wso2.carbon.consent.mgt.ui.client.ConsentManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException" %>
+<%@ page import="org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException" %>
+<%@ page
+        import="static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_IS_ASSOCIATED" %>
 <%! public static final String LOGGED_USER = "logged-user";
     public static final String PURPOSE_NAME = "purposeName";
 %>
@@ -51,6 +55,13 @@
                     String currentUser = (String) session.getAttribute(LOGGED_USER);
                     ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
                     serviceClient.deletePurposeByName(purposeName);
+                    forwardTo = "list-purposes.jsp";
+                } catch (ConsentManagementException e) {
+                    String message = resourceBundle.getString("error.while.delete.purpose");
+                    if (ERROR_CODE_PURPOSE_IS_ASSOCIATED.getCode().equals(e.getErrorCode())) {
+                        message = resourceBundle.getString("error.while.delete.purpose.used");
+                    }
+                    CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
                     forwardTo = "list-purposes.jsp";
                 } catch (Exception e) {
                     String message = resourceBundle.getString("error.while.delete.purpose");
