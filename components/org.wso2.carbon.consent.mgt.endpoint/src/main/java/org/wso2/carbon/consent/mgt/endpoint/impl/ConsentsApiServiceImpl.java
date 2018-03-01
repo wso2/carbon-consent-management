@@ -147,7 +147,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
         try {
             PiiCategoryListResponseDTO response = addPIICategory(piiCategory);
-            return Response.ok()
+            return Response.created(getPiiCategoryLocationURI(response))
                     .entity(response)
                     .location(getPiiCategoryLocationURI(response))
                     .build();
