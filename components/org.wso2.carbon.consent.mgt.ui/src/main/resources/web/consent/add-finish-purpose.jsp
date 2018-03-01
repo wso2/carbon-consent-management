@@ -30,6 +30,8 @@
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.CLAIM_URI" %>
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DISPLAY_NAME" %>
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DESCRIPTION" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.consent.mgt.core.constant.ConsentConstants" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
@@ -84,11 +86,15 @@
         
         String message = MessageFormat.format(resourceBundle.getString("purpose.add.success"), name);
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
-        forwardTo = "list-purposes.jsp";
     } catch (Exception e) {
         String message = MessageFormat.format(resourceBundle.getString("purpose.cannot.add"), name);
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+    }
+
+    if (CarbonUIUtil.isUserAuthorized(request, ConsentConstants.PERMISSION_CONSENT_MGT_LIST)) {
         forwardTo = "list-purposes.jsp";
+    } else {
+        forwardTo = "add-purpose.jsp";
     }
 %>
 

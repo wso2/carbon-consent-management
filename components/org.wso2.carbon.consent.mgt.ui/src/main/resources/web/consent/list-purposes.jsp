@@ -20,6 +20,8 @@
 <%@ page import="org.wso2.carbon.consent.mgt.ui.client.ConsentManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.consent.mgt.core.constant.ConsentConstants" %>
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
@@ -129,7 +131,9 @@
                                         class="icon-link"
                                         style="background-image: url(../admin/images/edit.gif)"><fmt:message
                                         key='view.pii.cat'/></a>
-        
+                                    <%
+                                        if (CarbonUIUtil.isUserAuthorized(request, ConsentConstants.PERMISSION_CONSENT_MGT_DELETE)) {
+                                    %>
                                     <a title="Delete Purpose"
                                        onclick="removeItem('<%=Encode.forJavaScriptAttribute(purpose.getName())%>');return
                                                false;" href="#"
@@ -137,6 +141,9 @@
                                        style="background-image: url(../admin/images/delete.gif)"><fmt:message
                                             key='delete'/>
                                     </a>
+                                    <%
+                                        }
+                                    %>
                                 </td>
                                 <%
             
