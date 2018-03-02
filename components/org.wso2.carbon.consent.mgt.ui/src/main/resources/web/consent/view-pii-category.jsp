@@ -31,50 +31,44 @@
 %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
+<%
+    String BUNDLE = "org.wso2.carbon.consent.mgt.ui.i18n.Resources";
+    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+
+    int purposeId = Integer.parseInt(request.getParameter(PURPOSE_ID));
+    String purposeName = request.getParameter(PURPOSE_NAME);
+
+    Purpose purpose = null;
+    List<PIICategory> piiCategories = new ArrayList<PIICategory>();
+
+    try {
+        String currentUser = (String) session.getAttribute(LOGGED_USER);
+        ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
+        purpose = serviceClient.getPurpose(purposeId);
+        piiCategories = purpose.getPiiCategories();
+    } catch (Exception e) {
+        String message = resourceBundle.getString("error.while.reading.pii.info") + " : " + e.getMessage();
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
+    }
+%>
+
 <fmt:bundle
         basename="org.wso2.carbon.consent.mgt.ui.i18n.Resources">
-    <carbon:breadcrumb label="consent.mgt"
-                       resourceBundle="org.wso2.carbon.consents.mgt.ui.i18n.Resources"
+    <carbon:breadcrumb label="consent.mgt.pii.categories"
+                       resourceBundle="org.wso2.carbon.consent.mgt.ui.i18n.Resources"
                        topPage="true" request="<%=request%>"/>
-    
+
     <div id="middle">
+        <h2><fmt:message key="title.list.pii.categories"/> <%=Encode.forHtml(purposeName)%></h2>
         <div id="workArea">
-            
-            <%
-                String BUNDLE = "org.wso2.carbon.consent.mgt.ui.i18n.Resources";
-                ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
-                
-                int purposeId = Integer.parseInt(request.getParameter(PURPOSE_ID));
-                String purposeName = request.getParameter(PURPOSE_NAME);
-                
-                Purpose purpose = null;
-                List<PIICategory> piiCategories = new ArrayList<PIICategory>();
-                
-                try {
-                    String currentUser = (String) session.getAttribute(LOGGED_USER);
-                    ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
-                    purpose = serviceClient.getPurpose(purposeId);
-                    piiCategories = purpose.getPiiCategories();
-                } catch (Exception e) {
-                    String message = resourceBundle.getString("error.while.reading.pii.info") + " : " + e.getMessage();
-                    CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
-                }
-            %>
-            
+
             <script type="text/javascript">
                 function doCancel() {
-                    location.href = '<%=Encode.forJavaScriptBlock("list-purposes.jsp")%>';
+                    location.href = '<%=Encode.forJavaScriptBlock("list-purposes.jsp?region=region1&item=list_consent_menu")%>';
                 }
             </script>
-            
-            <br/>
-            <h2><fmt:message key="title.list.pii.categories"/> <%=Encode.forHtml(purposeName)%>
-            </h2>
-            <table style="width: 100%" class="styledLeft">
-                <tbody>
-                <tr>
-                    <td style="border:none !important">
-                        <table class="styledLeft" width="100%" id="piiCategories">
+
+            <table class="styledLeft" width="100%" id="piiCategories">
                             <thead>
                             <tr style="white-space: nowrap">
                                 <th class="leftCol-med"><fmt:message key="field.pii.consent.id"/></th>
@@ -108,19 +102,15 @@
                             </tr>
                             </tbody>
                             <% } %>
-                        </table>
-                    </td>
-                </tr>
+        </table>
+            <table class="styledLeft noBorders" style="margin-top: 10px">
+                <tbody>
+                    <tr>
+                        <td class="buttonRow">
+                            <input class="button" type="button" value="<fmt:message key="back"/>" onclick="doCancel()"/>
+                        </td>
+                    </tr>
                 </tbody>
-            
-            </table>
-            
-            <table class="backButton">
-                <tr>
-                    <td class="buttonRow">
-                        <input class="button" type="button" value="<fmt:message key="back"/>" onclick="doCancel()"/>
-                    </td>
-                </tr>
             </table>
         </div>
     </div>

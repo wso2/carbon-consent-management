@@ -87,7 +87,7 @@
         }
 
         function doCancel() {
-            location.href = 'list-purposes.jsp';
+            location.href = 'list-purposes.jsp?region=region1&item=list_consent_menu';
         }
 
         var deleteClaimRows = [];
