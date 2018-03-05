@@ -236,6 +236,14 @@ public interface ConsentManager {
     void revokeReceipt(String receiptId) throws ConsentManagementException;
 
     /**
+     * This API is used to delete a given receipt.
+     *
+     * @param receiptId Receipt Id.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    void deleteReceipt(String receiptId) throws ConsentManagementException;
+
+    /**
      * This API is used to check whether a receipt exists for the user identified by the tenantAwareUser name in the
      * provided tenant.
      * @param receiptId Consent Receipt ID

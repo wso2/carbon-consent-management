@@ -586,6 +586,20 @@ public class ConsentManagerImpl implements ConsentManager {
     }
 
     /**
+     * This API is used to delete a given receipt.
+     *
+     * @param receiptId Receipt Id.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    public void deleteReceipt(String receiptId) throws ConsentManagementException {
+
+        getReceiptsDAO(receiptDAOs).deleteReceipt(receiptId);
+        if (log.isDebugEnabled()) {
+            log.debug("Receipt deleted successfully with the Id: " + receiptId);
+        }
+    }
+
+    /**
      * This API is used to check whether a receipt exists for the user identified by the tenantAwareUser name in the
      * provided tenant
      *

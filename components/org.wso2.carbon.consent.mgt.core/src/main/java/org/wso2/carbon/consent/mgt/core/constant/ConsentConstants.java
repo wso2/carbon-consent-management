@@ -187,7 +187,10 @@ public class ConsentConstants {
         ERROR_CODE_PII_CATEGORY_IS_ASSOCIATED("CM_00082", "PII Category Id: %s is associated with one or more " +
                 "purpose(s) or service(s)."),
         ERROR_CODE_GETTING_PUBLIC_CERT("CM_00083", "Error while getting public cert of tenant: %s."),
-        ERROR_CODE_ADD_CONSENT_RECEIPT("CM_00084", "Could not add consent receipt for principal: %s.");
+        ERROR_CODE_ADD_CONSENT_RECEIPT("CM_00084", "Could not add consent receipt for principal: %s."),
+
+        ERROR_CODE_DELETE_RECEIPT("CM_00085", "Error occurred while deleting receipt from DB for " +
+                                                   "the ID: %s.");
 
         private final String code;
         private final String message;
@@ -299,6 +302,8 @@ public class ConsentConstants {
         public static final String POST_GET_RECEIPT = "POST_GET_RECEIPT";
         public static final String PRE_REVOKE_RECEIPT = "PRE_REVOKE_RECEIPT";
         public static final String POST_REVOKE_RECEIPT = "POST_REVOKE_RECEIPT";
+        public static final String PRE_DELETE_RECEIPT = "PRE_DELETE_RECEIPT";
+        public static final String POST_DELETE_RECEIPT = "POST_DELETE_RECEIPT";
         public static final String PRE_LIST_RECEIPTS = "PRE_LIST_RECEIPTS";
         public static final String POST_LIST_RECEIPTS = "POST_LIST_RECEIPTS";
     }

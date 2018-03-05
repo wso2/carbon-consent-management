@@ -47,6 +47,12 @@ import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_STATE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_RECEIPT_PROPERTIES_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_RECEIPT_SP_ASSOC_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_RECEIPT_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_SP_PURPOSE_TO_PII_CAT_ASSOC_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_SP_PURPOSE_TO_PURPOSE_CAT_ASSOC_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_SP_TO_PURPOSE_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_ACTIVE_RECEIPTS_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_CAT_SQL;
@@ -597,6 +603,133 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
                                                      consentReceiptId, e);
+        }
+    }
+
+    public void deleteReceipt(String receiptID) throws ConsentManagementException {
+
+        Receipt receipt = getReceipt(receiptID);
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+
+                receipt.getServices().forEach(rethrowConsumer(receiptService -> {
+                    int receiptToServiceId = receiptService.getReceiptToServiceId();
+                    receiptService.getPurposes().forEach(rethrowConsumer(consentPurpose -> {
+                        int serviceToPurposeId = consentPurpose.getServiceToPurposeId();
+                        deleteSpPurposeToPiiCategoryAssociation(serviceToPurposeId);
+                        deleteSpPurposeToPurposeCategoryAssociation(serviceToPurposeId);
+                    }));
+                    deleteSpToPurposeAssociation(receiptToServiceId);
+                }));
+
+                deleteReceiptSPAssociation(receiptID);
+                deleteReceiptProperties(receiptID);
+                deleteReceiptOnly(receiptID);
+
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_RECEIPT,
+                    receiptID, e);
+        }
+    }
+
+    protected void deleteReceiptOnly(String receiptID) throws ConsentManagementServerException {
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Deleting receipt with ID: %s", receiptID));
+        }
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(DELETE_RECEIPT_SQL,
+                    preparedStatement -> preparedStatement.setString(1, receiptID));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_RECEIPT, String
+                    .valueOf(receiptID), e);
+        }
+    }
+
+    protected void deleteReceiptProperties(String consentReceiptId) throws
+            ConsentManagementServerException {
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Deleting receipt properties for receipt ID : %s", consentReceiptId));
+        }
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(DELETE_RECEIPT_PROPERTIES_SQL,
+                    preparedStatement -> preparedStatement.setString(1, consentReceiptId));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_RECEIPT, String
+                    .valueOf(consentReceiptId), e);
+        }
+    }
+
+    protected void deleteSpPurposeToPiiCategoryAssociation(int spToPurposeAssocId) throws
+            ConsentManagementServerException {
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Deleting SP, Purpose and Pii Category association with ID: %d",
+                    spToPurposeAssocId));
+        }
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(DELETE_SP_PURPOSE_TO_PII_CAT_ASSOC_SQL,
+                    preparedStatement -> preparedStatement.setInt(1, spToPurposeAssocId));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_RECEIPT, String
+                    .valueOf(spToPurposeAssocId), e);
+        }
+    }
+
+    protected void deleteSpPurposeToPurposeCategoryAssociation(int spToPurposeAssocId) throws
+            ConsentManagementServerException {
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Deleting SP, Purpose and Purpose Category association with ID: %d",
+                    spToPurposeAssocId));
+        }
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(DELETE_SP_PURPOSE_TO_PURPOSE_CAT_ASSOC_SQL,
+                    preparedStatement -> preparedStatement.setInt(1, spToPurposeAssocId));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_RECEIPT, String
+                    .valueOf(spToPurposeAssocId), e);
+        }
+    }
+
+    protected void deleteReceiptSPAssociation(String receiptID) throws
+            ConsentManagementServerException {
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Deleting Receipt and SP association with ID: %s", receiptID));
+        }
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(DELETE_RECEIPT_SP_ASSOC_SQL,
+                    preparedStatement -> preparedStatement.setString(1, receiptID));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_RECEIPT, String
+                    .valueOf(receiptID), e);
+        }
+    }
+
+    protected void deleteSpToPurposeAssociation(int receiptToSPAssocId) throws
+            ConsentManagementServerException {
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Deleting SP to Purpose Association with id %d", receiptToSPAssocId));
+        }
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(DELETE_SP_TO_PURPOSE_ASSOC_SQL,
+                    preparedStatement -> preparedStatement.setInt(1, receiptToSPAssocId));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_RECEIPT, String
+                    .valueOf(receiptToSPAssocId), e);
         }
     }
 }

@@ -56,6 +56,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.Interce
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_DELETE_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_DELETE_PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_DELETE_PURPOSE_CATEGORY;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_DELETE_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_GET_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_GET_PII_CATEGORY_BY_NAME;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_GET_PII_CATEGORY_LIST;
@@ -78,6 +79,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.Interce
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_DELETE_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_DELETE_PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_DELETE_PURPOSE_CATEGORY;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_DELETE_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_GET_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_GET_PII_CATEGORY_BY_NAME;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_GET_PII_CATEGORY_LIST;
@@ -562,6 +564,24 @@ public class InterceptingConsentManager implements ConsentManager {
                     }
                 })
                 .intercept(POST_REVOKE_RECEIPT, properties -> properties.put(RECEIPT_ID, receiptId));
+    }
+
+    public void deleteReceipt(String receiptId) throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<Void, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        template.intercept(PRE_DELETE_RECEIPT, properties -> properties.put(RECEIPT_ID, receiptId))
+                .executeWith(new OperationDelegate<Void>() {
+                    @Override
+                    public Void execute() throws ConsentManagementException {
+
+                        consentManager.deleteReceipt(receiptId);
+                        return null;
+                    }
+                })
+                .intercept(POST_DELETE_RECEIPT, properties -> properties.put(RECEIPT_ID, receiptId));
     }
 
     /**
