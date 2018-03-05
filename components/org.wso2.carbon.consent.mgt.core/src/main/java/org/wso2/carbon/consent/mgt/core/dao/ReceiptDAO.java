@@ -63,6 +63,14 @@ public interface ReceiptDAO {
     void revokeReceipt(String receiptId) throws ConsentManagementException;
 
     /**
+     * Delete a {@link Receipt} by ID.
+     *
+     * @param receiptID
+     * @throws ConsentManagementException
+     */
+    public void deleteReceipt(String receiptID) throws ConsentManagementException;
+
+    /**
      *  Search {@link Receipt} items for a given criteria.
      *
      * @param limit Maximum number of results expected.
