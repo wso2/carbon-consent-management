@@ -140,6 +140,12 @@
             <groupId>io.swagger</groupId>
             <artifactId>swagger-jaxrs</artifactId>
             <version>${swagger.jaxrs.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.dataformat</groupId>
+                    <artifactId>jackson-dataformat-xml</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>
