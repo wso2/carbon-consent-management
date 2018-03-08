@@ -21,19 +21,19 @@
         <Name>jdbc/WSO2CarbonDB</Name>
     </DataSource>
     <PIIController>
-        <PiiController>sample</PiiController>
-        <Contact>sample</Contact>
-        <Email>sample@abc.com</Email>
-        <Phone>+01433444333</Phone>
+        <PiiController>change-me</PiiController>
+        <Contact>change-me</Contact>
+        <Email>change-me</Email>
+        <Phone>change-me</Phone>
         <OnBehalf>false</OnBehalf>
-        <PiiControllerUrl>https://sample.piicontroller.url</PiiControllerUrl>
+        <PiiControllerUrl>change-me</PiiControllerUrl>
         <Address>
-            <Country>USA</Country>
-            <Locality>Mountain View</Locality>
-            <Region>CA</Region>
-            <PostOfficeBoxNumber>233</PostOfficeBoxNumber>
-            <PostalCode>94043</PostalCode>
-            <StreetAddress>1600 Amphitheatre Pkwy</StreetAddress>
+            <Country>change-me</Country>
+            <Locality>change-me</Locality>
+            <Region>change-me</Region>
+            <PostOfficeBoxNumber>change-me</PostOfficeBoxNumber>
+            <PostalCode>change-me</PostalCode>
+            <StreetAddress>change-me</StreetAddress>
         </Address>
     </PIIController>
     <SearchLimits>
