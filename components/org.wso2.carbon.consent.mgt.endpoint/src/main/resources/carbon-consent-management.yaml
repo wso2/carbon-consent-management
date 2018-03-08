@@ -54,25 +54,26 @@ consumes:
 produces:
   - application/json
 paths:
-  # Endpoint uses to add user consents
+  # Endpoint used to add user consents
   "/consents":
     post:
       description: |
-         This API is used to storing consent information given by the users.
-
+         This API is used to store consent information given by the user.
       x-wso2-request: |
-        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"services\": [ { \"service\": \"foo-service\", \"tenantDomain\": \"carbon.super\", \"purposes\": [ { \"purposeId\": 1, \"purposeCategoryId\": [ 1 ], \"consentType\": \"EXPLICIT\", \"piiCategory\": [ { \"piiCategoryId\": 1, \"validity\": \"days:30\" }, { \"piiCategoryId\": 2, \"validity\": \"days:30\" } ], \"primaryPurpose\": true, \"termination\": \"days:30\", \"thirdPartyDisclosure\": false, \"thirdPartyName\": \"\" } ] } ], \"collectionMethod\": \"Sign-Up\", \"jurisdiction\": \"CA\", \"language\": \"EN\", \"policyURL\": \"https://foo.com/privacy\", \"properties\": [ { \"key\": \"k1\", \"value\": \"v1\" } ]}"
+        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"services\": [ { \"service\": \"<Service_Name>\", \"tenantDomain\": \"<Tenant_Domain_Name>\", \"purposes\": [ { \"purposeId\": <Purpose_ID>, \"purposeCategoryId\": [ <Purpose_Category_ID> ], \"consentType\": \"<Consent_Type>\", \"piiCategory\": [ { \"piiCategoryId\": <PII_Category_ID>, \"validity\": \"days:<Number_Of_Days>\" }, { \"piiCategoryId\": <PII_Category_ID>, \"validity\": \"days:<Number_Of_Days>\" } ], \"primaryPurpose\": true, \"termination\": \"days:<Number_Of_Days>\", \"thirdPartyDisclosure\": false, \"thirdPartyName\": \"\" } ] } ], \"collectionMethod\": \"<Collection_Method>\", \"jurisdiction\": \"<Jurisdiction>\", \"language\": \"<Language_Abbreviation>\", \"policyURL\": \"<Service_Policy_URL>", \"properties\": [ { \"key\": \"<PII_Controller's_Public_Key>\", \"value\": \"v1\" } ]}"
+      x-wso2-curl: |
+        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"services\": [ { \"service\": \"foo-service\", \"tenantDomain\": \"carbon.super\", \"purposes\": [ { \"purposeId\": 1, \"purposeCategoryId\": [ 1 ], \"consentType\": \"EXPLICIT\", \"piiCategory\": [ { \"piiCategoryId\": 1, \"validity\": \"days:30\" }, { \"piiCategoryId\": 2, \"validity\": \"days:30\" } ], \"primaryPurpose\": true, \"termination\": \"days:30\", \"thirdPartyDisclosure\": false, \"thirdPartyName\": \"\" } ] } ], \"collectionMethod\": \"Sign-Up\", \"jurisdiction\": \"CA\", \"language\": \"EN\", \"policyURL\": \"https://foo.com/privacy\", \"properties\": [ { \"key\": \"k1\", \"value\": \"v1\" } ]}"
       x-wso2-response: |
-        {"consentReceiptId":"7a6886ab-b02f-424f-9cd4-adf5e92f0798","collectionMethod":"Sign-Up","language":"EN","piiPrincipalId":"testuser","tenantDomain":"carbon.super"}
+        {"consentReceiptId":"38279263-f385-4252-8966-40998faa95ae","collectionMethod":"Sign-Up","language":"EN","piiPrincipalId":"admin","tenantDomain":"carbon.super"}
       summary: |
-        Add Consents
+        Add consent
 
       # post parameters:
       parameters:
         -
           name: consent
           in: body
-          description:  This represents the consent element need to be stored
+          description:  This represents the consent element that needs to be stored.
           required: true
           schema:
             $ref: '#/definitions/ConsentRequest'
@@ -84,7 +85,7 @@ paths:
           headers:
             Location:
               type: 'string'
-              description: 'Location to the newly created consent'
+              description: 'Location of the newly created consent.'
         400:
           description: Bad Request
           schema:
@@ -106,9 +107,11 @@ paths:
 
     get:
       description: |
-       This API is used to list consents elements based on the filetered attributes.
+        This API is used to list consent elements based on the filtered attributes.
       x-wso2-request: |
-        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents?limit=10&offset=0&piiPrincipalId=testuser&spTenantDomain=carbon.super&service=foo*&state=ACTIVE" -H "accept: application/json"
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents?limit=<Limit_Number>&offset=<Offset_Number>&piiPrincipalId=<PII_Principal_Name>&spTenantDomain=<Tenant_Domain>&service=<Service_Name>*&state=<ACTIVE/REVOKED>" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents?limit=10&offset=0&piiPrincipalId=testuser&spTenantDomain=carbon.super&service=foo*&state=ACTIVE" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
       x-wso2-response: |
         [{"consentReceiptID":"7a6886ab-b02f-424f-9cd4-adf5e92f0798","language":"EN","piiPrincipalId":"testuser","tenantDomain":"carbon.super","state":"ACTIVE"}]
       summary: |
@@ -129,7 +132,7 @@ paths:
           headers:
             Location:
               type: 'string'
-              description: 'Location to retireve the consent element'
+              description: 'Location to retireve the consent element to.'
         400:
           description: Bad Request
           schema:
@@ -148,18 +151,20 @@ paths:
   "/consents/receipts/{receiptId}":
     delete:
       description: |
-       This API is used to revoke consent.
+        This API is used to revoke consent.
       x-wso2-request: |
-        curl -k -X DELETE "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/receipts/7a6886ab-b02f-424f-9cd4-adf5e92f0798" -H "accept: application/json"
+        curl -k -X DELETE "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/receipts/<Consent_Receipt_ID>" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json"
+      x-wso2-curl: |
+        curl -k -X DELETE "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/receipts/7a6886ab-b02f-424f-9cd4-adf5e92f0798" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
       x-wso2-response: |
         "HTTP/1.1 200 Ok"
       summary: |
-        Revoke Consents
+        Revoke consent
       parameters:
         -
           name: receiptId
           in: path
-          description:  This represents the Revoke Receipt Id.
+          description:  This represents the Revoke Receipt ID.
           required: true
           type: 'string'
       responses:
@@ -185,13 +190,15 @@ paths:
         - Consent
     get:
       description: |
-       This API is used to get consent from the conset receipt Id.
+        This API is used to retrieve consent using the conset receipt ID.
       x-wso2-request: |
-        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/receipts/7a6886ab-b02f-424f-9cd4-adf5e92f0798" -H "accept: application/json"
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/receipts/<Consent_Receipt_ID>" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/receipts/7a6886ab-b02f-424f-9cd4-adf5e92f0798" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
       x-wso2-response: |
         {"version":"KI-CR-v1.1.0","jurisdiction":"CA","consentTimestamp":1517742624682,"collectionMethod":"Sign-Up","consentReceiptID":"7a6886ab-b02f-424f-9cd4-adf5e92f0798","publicKey":null,"language":"EN","piiPrincipalId":"testuser","tenantDomain":"carbon.super","state":"ACTIVE","piiControllers":[{"piiController":"sample","contact":"sample","address":{"addressCountry":"USA","addressLocality":"Mountain View","addressRegion":"CA","postOfficeBoxNumber":"233","postalCode":"94043","streetAddress":"1600 Amphitheatre Pkwy"},"email":"sample@abc.com","phone":"+01433444333","onBehalf":false,"piiControllerUrl":"https://sample.piicontroller.url"}],"policyUrl":"https://foo.com/privacy","services":[{"service":"foo-service","tenantDomain":"carbon.super","purposes":[{"purpose":"Contact","purposeCategory":["Legal"],"consentType":"EXPLICIT","piiCategory":[{"piiCategory":"email","validity":"days:30"},{"piiCategory":"username","validity":"days:30"}],"primaryPurpose":true,"termination":"days:30","thirdPartyDisclosure":false,"thirdPartyName":""}]}],"sensitive":false,"spiCat":null}
       summary: |
-        Retrieve a consent Receipt
+        Retrieve a consent receipt
       parameters:
         - $ref: '#/parameters/receiptId'
       responses:
@@ -221,21 +228,21 @@ paths:
   "/consents/purposes":
     post:
       description: |
-         This API is used to add new purposes for the consent management.
-
+        This API is used to add a new purpose for consent management.
       x-wso2-request: |
-        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purpose\": \"Contact\", \"description\": \"Contact the user\", \"piiCategories\": [1, 2]}"
+        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purpose\": \"<Purpose_Name>\", \"description\": \"<Purpose_Description>\", \"piiCategories\": <PII_Category_IDs>}"
+      x-wso2-curl: |
+        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purpose\": \"Contact\", \"description\": \"Contact the user\", \"piiCategories\": [1, 2]}"
       x-wso2-response: |
         {"purposeId":1,"purpose":"Contact","description":"Contact the user","piiCategories":[{"piiCategoryId":1,"piiCategory":"email","description":"user email","sensitive":false},{"piiCategoryId":2,"piiCategory":"username","description":"user name","sensitive":false}]}
       summary: |
-        Add Purpose
-
+        Add purpose
       # post parameters:
       parameters:
         -
           name: purpose
           in: body
-          description:  This represents the purpose element need to be stored
+          description:  This represents the purpose element that needs to be stored.
           required: true
           schema:
             $ref: '#/definitions/PurposeRequest'
@@ -247,7 +254,7 @@ paths:
           headers:
             Location:
               type: 'string'
-              description: 'Location to the newly created purpose'
+              description: 'Location of the newly created purpose.'
         400:
           description: Bad Request
           schema:
@@ -269,9 +276,11 @@ paths:
 
     get:
       description: |
-       This API is used to get  all Purposes.
+        This API is used to retrieve all purposes.
       x-wso2-request: |
-        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes?limit=10&offset=0" -H "accept: application/json" -H "Content-Type: application/json"
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes?limit=<Limit_Number>&offset=<Offset_Number>" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json" -H "Content-Type: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes?limit=10&offset=0" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json" -H "Content-Type: application/json"
       x-wso2-response: |
         [{"purposeId":1,"purpose":"Contact","description":"Contact the user","piiCategories":[]},{"purposeId":2,"purpose":"Marketing","description":"Sending marketing materials","piiCategories":[]}]
       summary: |
@@ -306,9 +315,11 @@ paths:
   "/consents/purposes/{purposeId}":
     get:
       description: |
-       This API is used to get Purpose from the purpose Id.
+        This API is used to retrieve a specific purpose using the purpose ID.
       x-wso2-request: |
-        Omindu$ curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes/1" -H "accept: application/json" -H "Content-Type: application/json"
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes/<Purpose_ID>" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json" -H "Content-Type: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes/1" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json" -H "Content-Type: application/json"
       x-wso2-response: |
         {"purposeId":1,"purpose":"Contact","description":"Contact the user","piiCategories":[]}
       summary: |
@@ -346,19 +357,21 @@ paths:
 
     delete:
       description: |
-       This API is used to delete a purpose.
+        This API is used to delete a purpose.
       x-wso2-request: |
-        curl -k -X DELETE "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes/1" -H "accept: application/json"
+        curl -k -X DELETE "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes/<Purpose_ID>" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json"
+      x-wso2-curl: |
+        curl -k -X DELETE "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes/1" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
       x-wso2-response: |
         "HTTP/1.1 200 Ok"
       summary: |
-        Delete Purpose
+        Delete a purpose
       parameters:
         -
           name: purposeId
           type: 'string'
           in: path
-          description:  Id of the purpose
+          description:  Unique ID of the purpose
           required: true
       responses:
         200:
@@ -384,21 +397,21 @@ paths:
   "/consents/purpose-categories":
     post:
       description: |
-         This API is used to add new purpose category for the consent management.
-
+        This API is used to add a new purpose category for consent management.
       x-wso2-request: |
-        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purposeCategory\": \"Marketing\", \"description\": \"For marketing related activities\"}"
+        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purposeCategory\": \"<Category_Name>\", \"description\": \"<Category_Description>\"}"
+      x-wso2-curl: |
+        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purposeCategory\": \"Marketing\", \"description\": \"For marketing related activities\"}"
       x-wso2-response: |
         {"purposeCategoryId":1,"purposeCategory":"Marketing","description":"For marketing related activities"}
       summary: |
-        Add Purpose category
-
+        Add purpose category
       # post parameters:
       parameters:
         -
           name: purposeCategory
           in: body
-          description:  This represents the purpose catogory element need to be stored
+          description:  This represents the purpose category name. 
           required: true
           schema:
             $ref: '#/definitions/PurposeCategoryRequest'
@@ -410,7 +423,7 @@ paths:
           headers:
             Location:
               type: 'string'
-              description: 'Location to the newly created purpose category'
+              description: 'Location of the newly created purpose category.'
         400:
           description: Bad Request
           schema:
@@ -432,13 +445,15 @@ paths:
 
     get:
       description: |
-       This API is used to get  all purposes categories.
+        This API is used to retrieve  all purpose categories.
       x-wso2-request: |
-        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories?limit=10&offset=0" -H "accept: application/json"
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories?limit=<LimitNumber>&offset=<OffsetNumber>" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories?limit=10&offset=0" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
       x-wso2-response: |
         [{"purposeCategoryId":1,"purposeCategory":"Marketing","description":"For marketing related activities"},{"purposeCategoryId":2,"purposeCategory":"Legal","description":"For legal requirements"}]
       summary: |
-        Retrieve all purposes categories
+        Retrieve all purpose categories
       parameters:
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
@@ -469,9 +484,11 @@ paths:
   "/consents/purpose-categories/{purposeCategoryId}":
     get:
       description: |
-       This API is used to get Purpose category from the purpose category Id.
+        This API is used to retrieve a purpose category using the purpose category ID.
       x-wso2-request: |
-        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories/1" -H "accept: application/json"
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories/<Purpose_Category_ID>" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories/1" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
       x-wso2-response: |
         {"purposeCategoryId":1,"purposeCategory":"Marketing","description":"For marketing related activities"}
       summary: |
@@ -481,7 +498,7 @@ paths:
           name: purposeCategoryId
           type: 'string'
           in: path
-          description:  Id of the purpose category
+          description:  Unique ID of the purpose category
           required: true
       responses:
         200:
@@ -508,9 +525,11 @@ paths:
         - Purpose Category
     delete:
       description: |
-       This API is used to delete a purpose category.
+        This API is used to delete a purpose category.
       x-wso2-request: |
-        curl -k -X DELETE "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories/1" -H "accept: application/json"
+        curl -k -X DELETE "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories/<Purpose_Category_ID>" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json"
+      x-wso2-curl: |
+        curl -k -X DELETE "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purpose-categories/1" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
       x-wso2-response: |
         "HTTP/1.1 200 Ok"
       summary: |
@@ -520,7 +539,7 @@ paths:
           name: purposeCategoryId
           type: 'string'
           in: path
-          description:  Id of the purpose category
+          description:  Unique ID of the purpose category
           required: true
       responses:
         200:
@@ -547,21 +566,21 @@ paths:
   "/consents/pii-categories":
     post:
       description: |
-         This API is used to add new PII category for the consent management.
-
+        This API is used to add a new PII category for consent management.
       x-wso2-request: |
-        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/pii-categories" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"piiCategory\": \"email\", \"description\": \"user email\", \"sensitive\": false}"
+        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/pii-categories" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"<PII_Category_Name>\": <Attributes>}"
+      x-wso2-curl: |
+        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/pii-categories" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"piiCategory\": \"email\", \"description\": \"user email\", \"sensitive\": false}"
       x-wso2-response: |
         {"piiCategoryId":1,"piiCategory":"email","description":"user email","sensitive":false}
       summary: |
         Add PII category
-
       # post parameters:
       parameters:
         -
           name: piiCategory
           in: body
-          description:  This represents the PII catogory element need to be stored
+          description:  This represents the PII catogory name.
           required: true
           schema:
             $ref: '#/definitions/PIIcategoryRequest'
@@ -573,7 +592,7 @@ paths:
           headers:
             Location:
               type: 'string'
-              description: 'Location to the newly created pii category'
+              description: 'Location of the newly created PII category'
         400:
           description: Bad Request
           schema:
@@ -595,9 +614,11 @@ paths:
 
     get:
       description: |
-       This API is used to get  all PII categories.
+        This API is used to retrieve all PII categories.
       x-wso2-request: |
-        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/pii-categories?limit=10&offset=0" -H "accept: application/json"
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/pii-categories?limit=<Limit_Number>&offset=<Offset_Number>" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/pii-categories?limit=10&offset=0" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
       x-wso2-response: |
         [{"piiCategoryId":1,"piiCategory":"email","description":"user email","sensitive":false},{"piiCategoryId":2, "piiCategory":"username","description":"user name","sensitive":false}]
       summary: |
@@ -632,19 +653,21 @@ paths:
   "/consents/pii-categories/{piiCategoryId}":
     get:
       description: |
-       This API is used to get PII category from the pii category Id.
+        This API is used to retrieve a specific PII category using the PII category ID.
       x-wso2-request: |
-        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/pii-categories/1" -H "accept: application/json"
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/pii-categories/<PII_Category_ID>" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/pii-categories/1" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
       x-wso2-response: |
         {"piiCategoryId":1,"piiCategory":"email","description":"user email","sensitive":false}
       summary: |
-        Retrieve a pii category
+        Retrieve a PII category
       parameters:
         -
           name: piiCategoryId
           type: 'string'
           in: path
-          description:  Id of the pii category
+          description:  Unique ID of the PII category
           required: true
       responses:
         200:
@@ -672,9 +695,11 @@ paths:
 
     delete:
       description: |
-       This API is used to delete a PII  category.
+        This API is used to delete a PII category.
       x-wso2-request: |
-        curl -k -X DELETE "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/pii-categories/1" -H "accept: application/json"
+        curl -k -X DELETE "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/pii-categories/<PII_Category_ID>" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json"
+      x-wso2-curl: |
+        curl -k -X DELETE "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/pii-categories/1" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
       x-wso2-response: |
         "HTTP/1.1 200 Ok"
       summary: |
@@ -684,7 +709,7 @@ paths:
           name: piiCategoryId
           type: 'string'
           in: path
-          description:  Id of the pii category
+          description:  Unique ID of the PII category
           required: true
       responses:
         200:
@@ -1228,21 +1253,21 @@ parameters:
   receiptId:
     name: receiptId
     in: path
-    description: The unique identifier of an receipt.
+    description: The unique identifier of a receipt
     type: string
     required: true
 
   limit:
     name: limit
     in: query
-    description: Number of search results.
+    description: Number of search results
     required: false
     type: integer
 
   offset:
     name: offset
     in: query
-    description: Start index of the search.
+    description: Start index of the search
     required: false
     type: integer
 
@@ -1256,7 +1281,7 @@ parameters:
   state:
     name: state
     in: query
-    description: State Ex. ACTIVE/REVOKED
+    description: State (ACTIVE/REVOKED)
     required: false
     type: string
 
@@ -1277,34 +1302,34 @@ parameters:
   consentIdQuery:
     name: consent-id
     in: query
-    description: The unique identifier of a consent id.
+    description: The unique identifier of a consent
     type: string
     required: false
 
   collectionMethod:
     name: collectionMethod
     in: query
-    description: Collection method of the consent.
+    description: Collection method of the consent
     type: string
     required: false
 
   piiCategoryId:
     name: piiCategoryId
     in: query
-    description: ID of PII Category that will be shared as understood by the PII Principal.
+    description: ID of PII Category that will be shared as understood by the PII Principal
     type: string
     required: false
 
   next:
     name: next
     in: query
-    description: next result set
+    description: Next result set
     type: string
     required: false
 
   previous:
     name: previous
     in: query
-    description: previous result set
+    description: Previous result set
     type: string
     required: false
