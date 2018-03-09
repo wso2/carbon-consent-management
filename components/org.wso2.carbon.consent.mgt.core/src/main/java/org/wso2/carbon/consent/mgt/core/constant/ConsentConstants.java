@@ -54,6 +54,7 @@ public class ConsentConstants {
     public static final String OFFSET = "OFFSET";
     public static final String PII_PRINCIPAL_ID = "PII_PRINCIPAL_ID";
     public static final String SP_TENANT_DOMAIN = "SP_TENANT_DOMAIN";
+    public static final String PRINCIPAL_TENANT_DOMAIN = "PRINCIPAL_TENANT_DOMAIN";
     public static final String SERVICE = "SERVICE";
     public static final String STATE = "STATE";
     public static final String RECEIPT_INPUT = "RECEIPT_INPUT";
