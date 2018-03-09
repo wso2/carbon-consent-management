@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.consent.mgt.core;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.ConsentInterceptorTemplate;
@@ -33,6 +35,7 @@ import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
+import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -46,6 +49,7 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.wso2.carbon.CarbonConstants.UI_PERMISSION_ACTION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_NO_USER_FOUND;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_RECEIPT_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_USER_NOT_AUTHORIZED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GET_RECEIPT;
@@ -691,6 +695,26 @@ public class InterceptingConsentManager implements ConsentManager {
         }
 
         handleAuthorization(operation, tenantAwareUsername, tenantId);
+        // If the receipt owners tenant domain is different from the authenticated users tenant domain, it should
+        // fail irrespective of permission.
+        handleCrossDomainPermission(receiptId);
+    }
+
+    private void handleCrossDomainPermission(String receiptId) throws ConsentManagementException {
+
+        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+        Receipt receipt = consentManager.getReceipt(receiptId);
+        if (receipt != null) {
+            if (StringUtils.equals(receipt.getTenantDomain(), tenantDomain)) {
+                return;
+            } else if (receipt.getServices().stream().anyMatch(service -> StringUtils.equals(service.getTenantDomain(),
+                    tenantDomain))) {
+                return;
+            }
+        }
+        String message = String.format(ERROR_CODE_RECEIPT_ID_INVALID.getMessage(), receiptId) + " in tenant: " +
+                tenantDomain;
+        throw new ConsentManagementClientException(message, ERROR_CODE_RECEIPT_ID_INVALID.getCode());
     }
 
     private void handleAuthorization(String operation, String tenantAwareUsername, int tenantId) throws
