@@ -105,6 +105,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CAT
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY_NAME;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_PRINCIPAL_ID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PRINCIPAL_TENANT_DOMAIN;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_CATEGORY_ID;
@@ -547,6 +548,34 @@ public class InterceptingConsentManager implements ConsentManager {
                 .getResult();
     }
 
+    @Override
+    public List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String spTenantDomain,
+                                                    String service, String state, String principalTenantDomain)
+            throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<List<ReceiptListResponse>, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_LIST_RECEIPTS, properties -> {
+            populateProperties(limit, offset, piiPrincipalId, spTenantDomain, service, state, principalTenantDomain,
+                    properties);
+        })
+                .executeWith(new OperationDelegate<List<ReceiptListResponse>>() {
+                    @Override
+                    public List<ReceiptListResponse> execute() throws ConsentManagementException {
+
+                        return consentManager.searchReceipts(limit, offset, piiPrincipalId, spTenantDomain, service,
+                                state, principalTenantDomain);
+                    }
+                })
+                .intercept(POST_LIST_RECEIPTS, properties -> {
+                    populateProperties(limit, offset, piiPrincipalId, spTenantDomain, service, state,
+                            principalTenantDomain, properties);
+                })
+                .getResult();
+    }
+
     public void revokeReceipt(String receiptId) throws ConsentManagementException {
 
         validateAuthorizationForGetOrRevokeReceipts(receiptId, REVOKE_RECEIPT);
@@ -608,6 +637,18 @@ public class InterceptingConsentManager implements ConsentManager {
         properties.put(SP_TENANT_DOMAIN, spTenantDomain);
         properties.put(SERVICE, service);
         properties.put(STATE, state);
+    }
+
+    private void populateProperties(int limit, int offset, String piiPrincipalId, String spTenantDomain, String
+            service, String state, String principalTenantDomain, Map<String, Object> properties) {
+
+        properties.put(LIMIT, limit);
+        properties.put(OFFSET, offset);
+        properties.put(PII_PRINCIPAL_ID, piiPrincipalId);
+        properties.put(SP_TENANT_DOMAIN, spTenantDomain);
+        properties.put(SERVICE, service);
+        properties.put(STATE, state);
+        properties.put(PRINCIPAL_TENANT_DOMAIN, principalTenantDomain);
     }
 
     private void validateAuthorizationForListReceipts(String piiPrincipalId) throws ConsentManagementException {

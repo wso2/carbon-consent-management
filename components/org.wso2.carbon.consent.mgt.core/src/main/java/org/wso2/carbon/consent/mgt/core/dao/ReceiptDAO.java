@@ -68,7 +68,7 @@ public interface ReceiptDAO {
      * @param receiptID
      * @throws ConsentManagementException
      */
-    public void deleteReceipt(String receiptID) throws ConsentManagementException;
+    void deleteReceipt(String receiptID) throws ConsentManagementException;
 
     /**
      *  Search {@link Receipt} items for a given criteria.
@@ -79,11 +79,13 @@ public interface ReceiptDAO {
      * @param spTenantId Tenant domain of the service.
      * @param service Service name.
      * @param state State of the {@link Receipt}.
+     * @param principalTenantId Tenant ID of the principal.
      * @return A list of {@link ReceiptListResponse}
      * @throws ConsentManagementException If error occurs while searching {@link Receipt} items.
      */
     List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, int spTenantId,
-                                             String service, String state) throws ConsentManagementException;
+                                             String service, String state, int principalTenantId)
+            throws ConsentManagementException;
 
     /**
      * Check whether a receipt exists with the given criteria.

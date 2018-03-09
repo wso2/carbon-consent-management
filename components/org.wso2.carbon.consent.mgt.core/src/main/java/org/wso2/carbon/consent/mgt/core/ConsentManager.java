@@ -228,6 +228,22 @@ public interface ConsentManager {
                                              String service, String state) throws ConsentManagementException;
 
     /**
+     * This API is used to search receipts.
+     *
+     * @param limit          No of search results.
+     * @param offset         start index of the search.
+     * @param piiPrincipalId PII principal Id.
+     * @param spTenantDomain SP tenant domain.
+     * @param service        Service name.
+     * @param principalTenantDomain Tenant domain of the principal.
+     * @return List of Receipts details.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String spTenantDomain,
+                                             String service, String state, String principalTenantDomain) throws
+            ConsentManagementException;
+
+    /**
      * This API is used to revoke a given receipt.
      *
      * @param receiptId Receipt Id.

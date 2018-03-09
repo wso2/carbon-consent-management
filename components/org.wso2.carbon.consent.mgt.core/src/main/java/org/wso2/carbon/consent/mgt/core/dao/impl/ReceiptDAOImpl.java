@@ -72,11 +72,21 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECE
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_INFORMIX;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_MSSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_ORACLE;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_TENANT;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_TENANT_DB2;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_TENANT_INFORMIX;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_TENANT_MSSQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_TENANT_ORACLE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_PRINCIPLE_TENANT;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_PRINCIPLE_TENANT_DB2;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_PRINCIPLE_TENANT_INFORMIX;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_PRINCIPLE_TENANT_MSSQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_PRINCIPLE_TENANT_ORACLE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_AND_PRINCIPLE_TENANT;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_AND_PRINCIPLE_TENANT_DB2;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_AND_PRINCIPLE_TENANT_INFORMIX;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_AND_PRINCIPLE_TENANT_MSSQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_AND_PRINCIPLE_TENANT_ORACLE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_DB2;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_INFORMIX;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_MSSQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_ORACLE;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isDB2DB;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isH2MySqlOrPostgresDB;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isInformixDB;
@@ -251,7 +261,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
     @Override
     public List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, int
-            spTenantId, String service, String state) throws ConsentManagementException {
+            spTenantId, String service, String state, int principalTenantId) throws ConsentManagementException {
 
         List<ReceiptListResponse> receiptListResponses;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
@@ -278,83 +288,199 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             String finalState = state;
             String query;
 
-            if (spTenantId != 0) { // Tenant domain is used for search results.
-
-                if (isH2MySqlOrPostgresDB()) {
-                    query = SEARCH_RECEIPT_SQL;
-                } else if (isDB2DB()) {
-                    query = SEARCH_RECEIPT_SQL_DB2;
-                    int initialOffset = offset;
-                    offset = offset + limit;
-                    limit = initialOffset + 1;
-                } else if (isMSSqlDB()) {
-                    int initialOffset = offset;
-                    offset = limit + offset;
-                    limit = initialOffset + 1;
-                    query = SEARCH_RECEIPT_SQL_MSSQL;
-                } else if (isInformixDB()) {
-                    query = SEARCH_RECEIPT_SQL_INFORMIX;
-                } else {
-                    //oracle
-                    query = SEARCH_RECEIPT_SQL_ORACLE;
-                    limit = offset + limit;
-                }
-
-                int finalLimit = limit;
-                int finalOffset = offset;
-                receiptListResponses = jdbcTemplate.executeQuery(query, (resultSet, rowNumber) ->
-                                new ReceiptListResponse(resultSet.getString(1), resultSet
-                                        .getString(2), resultSet.getString(3), resultSet.getInt(4), resultSet
-                                        .getString(5), resultSet.getString(6), resultSet.getString(7)),
-                        preparedStatement -> {
-                            preparedStatement.setString(1, finalPiiPrincipalId);
-                            preparedStatement.setInt(2, piiPrincipalTenantId);
-                            preparedStatement.setString(3, finalService);
-                            preparedStatement.setInt(4, spTenantId);
-                            preparedStatement.setString(5, finalState);
-                            preparedStatement.setInt(6, finalLimit);
-                            preparedStatement.setInt(7, finalOffset);
-                        });
+            if (spTenantId != 0 && principalTenantId != 0) { // Tenant domain is used for search results.
+                receiptListResponses = searchReceipt(limit, offset, spTenantId, jdbcTemplate, piiPrincipalTenantId,
+                        finalPiiPrincipalId, finalService, finalState);
+            } else if (spTenantId == 0 && principalTenantId != 0) {
+                receiptListResponses = searchWithoutSpTenant(limit, offset, jdbcTemplate, piiPrincipalTenantId,
+                        finalPiiPrincipalId, finalService, finalState);
+            } else if (spTenantId != 0 && principalTenantId == 0) {
+                receiptListResponses = searchReceiptWithoutPrincipleTenant(limit, offset, spTenantId, jdbcTemplate,
+                        finalPiiPrincipalId, finalService, finalState);
             } else {
-                if (isH2MySqlOrPostgresDB()) {
-                    query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT;
-                } else if (isDB2DB()) {
-                    query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT_DB2;
-                    int initialOffset = offset;
-                    offset = offset + limit;
-                    limit = initialOffset + 1;
-                } else if (isMSSqlDB()) {
-                    int initialOffset = offset;
-                    query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT_MSSQL;
-                    offset = limit + offset;
-                    limit = initialOffset + 1;
-                } else if (isInformixDB()) {
-                    query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT_INFORMIX;
-                } else {
-                    //oracle
-                    query = SEARCH_RECEIPT_SQL_WITHOUT_TENANT_ORACLE;
-                    limit = offset + limit;
-                }
-                int finalLimit = limit;
-                int finalOffset = offset;
-                receiptListResponses = jdbcTemplate.executeQuery(query, (resultSet, rowNumber) ->
-                                new ReceiptListResponse(resultSet.getString(1), resultSet
-                                        .getString(2), resultSet.getString(3), resultSet.getInt(4), resultSet
-                                        .getString(5), resultSet.getString(6), resultSet.getString(7)),
-                        preparedStatement -> {
-
-                            preparedStatement.setString(1, finalPiiPrincipalId);
-                            preparedStatement.setInt(2, piiPrincipalTenantId);
-                            preparedStatement.setString(3, finalService);
-                            preparedStatement.setString(4, finalState);
-                            preparedStatement.setInt(5, finalLimit);
-                            preparedStatement.setInt(6, finalOffset);
-                        });
+                receiptListResponses = searchWithoutPrincipleAndSPTenantDomain(limit, offset, jdbcTemplate,
+                        finalPiiPrincipalId, finalService, finalState);
             }
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SEARCH_RECEIPTS,
                                                      piiPrincipalId, e);
         }
+        return receiptListResponses;
+    }
+
+    protected List<ReceiptListResponse> searchReceipt(int limit, int offset, int spTenantId,
+                                                    JdbcTemplate jdbcTemplate, int piiPrincipalTenantId,
+                                                    String finalPiiPrincipalId, String finalService,
+                                                    String finalState) throws DataAccessException {
+
+        String query;
+        List<ReceiptListResponse> receiptListResponses;
+        if (isH2MySqlOrPostgresDB()) {
+            query = SEARCH_RECEIPT_SQL;
+        } else if (isDB2DB()) {
+            query = SEARCH_RECEIPT_SQL_DB2;
+            int initialOffset = offset;
+            offset = offset + limit;
+            limit = initialOffset + 1;
+        } else if (isMSSqlDB()) {
+            int initialOffset = offset;
+            offset = limit + offset;
+            limit = initialOffset + 1;
+            query = SEARCH_RECEIPT_SQL_MSSQL;
+        } else if (isInformixDB()) {
+            query = SEARCH_RECEIPT_SQL_INFORMIX;
+        } else {
+            //oracle
+            query = SEARCH_RECEIPT_SQL_ORACLE;
+            limit = offset + limit;
+        }
+
+        int finalLimit = limit;
+        int finalOffset = offset;
+        receiptListResponses = jdbcTemplate.executeQuery(query, (resultSet, rowNumber) ->
+                        new ReceiptListResponse(resultSet.getString(1), resultSet
+                                .getString(2), resultSet.getString(3), resultSet.getInt(4), resultSet
+                                .getString(5), resultSet.getString(6), resultSet.getString(7)),
+                preparedStatement -> {
+                    preparedStatement.setString(1, finalPiiPrincipalId);
+                    preparedStatement.setInt(2, piiPrincipalTenantId);
+                    preparedStatement.setString(3, finalService);
+                    preparedStatement.setInt(4, spTenantId);
+                    preparedStatement.setString(5, finalState);
+                    preparedStatement.setInt(6, finalLimit);
+                    preparedStatement.setInt(7, finalOffset);
+                });
+        return receiptListResponses;
+    }
+
+    protected List<ReceiptListResponse> searchWithoutSpTenant(int limit, int offset, JdbcTemplate jdbcTemplate,
+                                                              int piiPrincipalTenantId, String finalPiiPrincipalId,
+                                                              String finalService, String finalState)
+            throws DataAccessException {
+
+        String query;
+        List<ReceiptListResponse> receiptListResponses;
+        if (isH2MySqlOrPostgresDB()) {
+            query = SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT;
+        } else if (isDB2DB()) {
+            query = SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_DB2;
+            int initialOffset = offset;
+            offset = offset + limit;
+            limit = initialOffset + 1;
+        } else if (isMSSqlDB()) {
+            int initialOffset = offset;
+            query = SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_MSSQL;
+            offset = limit + offset;
+            limit = initialOffset + 1;
+        } else if (isInformixDB()) {
+            query = SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_INFORMIX;
+        } else {
+            //oracle
+            query = SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_ORACLE;
+            limit = offset + limit;
+        }
+        int finalLimit = limit;
+        int finalOffset = offset;
+        receiptListResponses = jdbcTemplate.executeQuery(query, (resultSet, rowNumber) ->
+                        new ReceiptListResponse(resultSet.getString(1), resultSet
+                                .getString(2), resultSet.getString(3), resultSet.getInt(4), resultSet
+                                .getString(5), resultSet.getString(6), resultSet.getString(7)),
+                preparedStatement -> {
+
+                    preparedStatement.setString(1, finalPiiPrincipalId);
+                    preparedStatement.setInt(2, piiPrincipalTenantId);
+                    preparedStatement.setString(3, finalService);
+                    preparedStatement.setString(4, finalState);
+                    preparedStatement.setInt(5, finalLimit);
+                    preparedStatement.setInt(6, finalOffset);
+                });
+        return receiptListResponses;
+    }
+
+    protected List<ReceiptListResponse> searchReceiptWithoutPrincipleTenant(int limit, int offset, int spTenantId,
+                                                    JdbcTemplate jdbcTemplate, String finalPiiPrincipalId,
+                                                                          String finalService, String finalState)
+            throws DataAccessException {
+
+        String query;
+        List<ReceiptListResponse> receiptListResponses;
+        if (isH2MySqlOrPostgresDB()) {
+            query = SEARCH_RECEIPT_SQL_WITHOUT_PRINCIPLE_TENANT;
+        } else if (isDB2DB()) {
+            query = SEARCH_RECEIPT_SQL_WITHOUT_PRINCIPLE_TENANT_DB2;
+            int initialOffset = offset;
+            offset = offset + limit;
+            limit = initialOffset + 1;
+        } else if (isMSSqlDB()) {
+            int initialOffset = offset;
+            offset = limit + offset;
+            limit = initialOffset + 1;
+            query = SEARCH_RECEIPT_SQL_WITHOUT_PRINCIPLE_TENANT_MSSQL;
+        } else if (isInformixDB()) {
+            query = SEARCH_RECEIPT_SQL_WITHOUT_PRINCIPLE_TENANT_INFORMIX;
+        } else {
+            //oracle
+            query = SEARCH_RECEIPT_SQL_WITHOUT_PRINCIPLE_TENANT_ORACLE;
+            limit = offset + limit;
+        }
+
+        int finalLimit = limit;
+        int finalOffset = offset;
+        receiptListResponses = jdbcTemplate.executeQuery(query, (resultSet, rowNumber) ->
+                        new ReceiptListResponse(resultSet.getString(1), resultSet
+                                .getString(2), resultSet.getString(3), resultSet.getInt(4), resultSet
+                                .getString(5), resultSet.getString(6), resultSet.getString(7)),
+                preparedStatement -> {
+                    preparedStatement.setString(1, finalPiiPrincipalId);
+                    preparedStatement.setString(2, finalService);
+                    preparedStatement.setInt(3, spTenantId);
+                    preparedStatement.setString(4, finalState);
+                    preparedStatement.setInt(5, finalLimit);
+                    preparedStatement.setInt(6, finalOffset);
+                });
+        return receiptListResponses;
+    }
+
+    protected List<ReceiptListResponse> searchWithoutPrincipleAndSPTenantDomain(int limit, int offset,
+                                                         JdbcTemplate jdbcTemplate,
+                                                         String finalPiiPrincipalId, String finalService,
+                                                         String finalState) throws DataAccessException {
+
+        String query;
+        List<ReceiptListResponse> receiptListResponses;
+        if (isH2MySqlOrPostgresDB()) {
+            query = SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_AND_PRINCIPLE_TENANT;
+        } else if (isDB2DB()) {
+            query = SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_AND_PRINCIPLE_TENANT_DB2;
+            int initialOffset = offset;
+            offset = offset + limit;
+            limit = initialOffset + 1;
+        } else if (isMSSqlDB()) {
+            int initialOffset = offset;
+            offset = limit + offset;
+            limit = initialOffset + 1;
+            query = SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_AND_PRINCIPLE_TENANT_MSSQL;
+        } else if (isInformixDB()) {
+            query = SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_AND_PRINCIPLE_TENANT_INFORMIX;
+        } else {
+            //oracle
+            query = SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_AND_PRINCIPLE_TENANT_ORACLE;
+            limit = offset + limit;
+        }
+
+        int finalLimit = limit;
+        int finalOffset = offset;
+        receiptListResponses = jdbcTemplate.executeQuery(query, (resultSet, rowNumber) ->
+                        new ReceiptListResponse(resultSet.getString(1), resultSet
+                                .getString(2), resultSet.getString(3), resultSet.getInt(4), resultSet
+                                .getString(5), resultSet.getString(6), resultSet.getString(7)),
+                preparedStatement -> {
+                    preparedStatement.setString(1, finalPiiPrincipalId);
+                    preparedStatement.setString(2, finalService);
+                    preparedStatement.setString(3, finalState);
+                    preparedStatement.setInt(4, finalLimit);
+                    preparedStatement.setInt(5, finalOffset);
+                });
         return receiptListResponses;
     }
 

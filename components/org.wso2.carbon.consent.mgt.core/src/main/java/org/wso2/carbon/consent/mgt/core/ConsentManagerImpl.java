@@ -551,9 +551,33 @@ public class ConsentManagerImpl implements ConsentManager {
     public List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String spTenantDomain,
                                                     String service, String state) throws ConsentManagementException {
 
+        validatePaginationParameters(limit, offset);
+        if (limit == 0) {
+            limit = getDefaultLimitFromConfig();
+            if (log.isDebugEnabled()) {
+                log.debug("Limit is not defied the request, default to: " + limit);
+            }
+        }
+        String piiPrincipalTenantId = ConsentUtils.getTenantDomainFromCarbonContext();
+        List<ReceiptListResponse> receiptListResponses = searchReceipts(limit, offset, piiPrincipalId, spTenantDomain,
+                                                                        service, state, piiPrincipalTenantId);
+        receiptListResponses.forEach(rethrowConsumer(receiptListResponse -> receiptListResponse.setTenantDomain
+                (ConsentUtils.getTenantDomain(realmService, receiptListResponse.getTenantId()))));
+
+        return receiptListResponses;
+    }
+
+    public List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String spTenantDomain,
+                                                    String service, String state, String principleTenantDomain) throws
+            ConsentManagementException {
+
         int spTenantId = 0;
+        int principalTenantId = 0;
         if (StringUtils.isNotBlank(spTenantDomain)) {
             spTenantId = ConsentUtils.getTenantId(realmService, spTenantDomain);
+        }
+        if(StringUtils.isNotBlank(principleTenantDomain)) {
+            principalTenantId = ConsentUtils.getTenantId(realmService, principleTenantDomain);
         }
         validatePaginationParameters(limit, offset);
         if (limit == 0) {
@@ -563,7 +587,7 @@ public class ConsentManagerImpl implements ConsentManager {
             }
         }
         List<ReceiptListResponse> receiptListResponses = getReceiptsDAO(receiptDAOs).searchReceipts(limit, offset,
-                piiPrincipalId, spTenantId, service, state);
+                piiPrincipalId, spTenantId, service, state, principalTenantId);
         receiptListResponses.forEach(rethrowConsumer(receiptListResponse -> receiptListResponse.setTenantDomain
                 (ConsentUtils.getTenantDomain(realmService, receiptListResponse
                         .getTenantId()))));

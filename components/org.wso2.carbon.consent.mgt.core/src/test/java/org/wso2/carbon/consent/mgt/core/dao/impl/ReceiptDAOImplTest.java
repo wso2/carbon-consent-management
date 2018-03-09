@@ -334,7 +334,7 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
             receiptDAO.addReceipt(receiptInputs.get(1));
 
             List<ReceiptListResponse> receiptResponses = receiptDAO.searchReceipts(limit, offset, principalId,
-                    tenantId, service, state);
+                    tenantId, service, state, tenantId);
             Assert.assertNotNull(receiptResponses);
             Assert.assertEquals(receiptResponses.size(), resultCount);
         }
@@ -351,7 +351,7 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
             when(dataSource.getConnection()).thenReturn(spy);
 
             ReceiptDAO receiptDAO = new ReceiptDAOImpl();
-            receiptDAO.searchReceipts(1, 0, "subject1", -1234, "foo*", "ACTIVE");
+            receiptDAO.searchReceipts(1, 0, "subject1", -1234, "foo*", "ACTIVE", -1234);
         }
     }
 
