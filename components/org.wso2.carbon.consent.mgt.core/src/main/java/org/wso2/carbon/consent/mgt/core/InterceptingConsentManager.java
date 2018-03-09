@@ -558,7 +558,8 @@ public class InterceptingConsentManager implements ConsentManager {
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         return template.intercept(PRE_LIST_RECEIPTS, properties -> {
-            populateProperties(limit, offset, piiPrincipalId, spTenantDomain, service, state, properties);
+            populateProperties(limit, offset, piiPrincipalId, spTenantDomain, service, state, principalTenantDomain,
+                    properties);
         })
                 .executeWith(new OperationDelegate<List<ReceiptListResponse>>() {
                     @Override
