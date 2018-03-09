@@ -185,7 +185,6 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         ReceiptContext receiptContext = new ReceiptContext();
         Receipt receipt;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        int piiPrincipalTenantId = ConsentUtils.getTenantIdFromCarbonContext();
         try {
             receipt = jdbcTemplate.withTransaction(template -> {
                 Receipt internalReceipt = template.fetchSingleRecord(GET_RECEIPT_SQL, (resultSet, rowNumber) -> {
@@ -204,7 +203,6 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     return receiptInfo;
                 }, preparedStatement -> {
                     preparedStatement.setString(1, receiptId);
-                    preparedStatement.setInt(2, piiPrincipalTenantId);
                 });
 
                 if (internalReceipt != null) {
@@ -735,7 +733,10 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     public void deleteReceipt(String receiptID) throws ConsentManagementException {
 
         Receipt receipt = getReceipt(receiptID);
-
+        if (receipt == null) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_RECEIPT, String
+                    .valueOf(receiptID));
+        }
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
