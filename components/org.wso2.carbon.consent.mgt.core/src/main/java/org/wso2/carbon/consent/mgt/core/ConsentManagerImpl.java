@@ -51,7 +51,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import java.security.interfaces.RSAPublicKey;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -846,7 +846,7 @@ public class ConsentManagerImpl implements ConsentManager {
 
     private String getPublicKey(String tenantDomain) throws ConsentManagementException {
 
-        RSAPublicKey publicKey;
+        PublicKey publicKey;
         int tenantId = ConsentUtils.getTenantId(realmService, tenantDomain);
         try {
             KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
@@ -854,7 +854,7 @@ public class ConsentManagerImpl implements ConsentManager {
                 String jksName = getJKSName(tenantDomain);
                 publicKey = getPublicKey(tenantDomain, keyStoreManager, jksName);
             } else {
-                publicKey = (RSAPublicKey) keyStoreManager.getDefaultPublicKey();
+                publicKey = keyStoreManager.getDefaultPublicKey();
             }
 
             byte[] data = publicKey.getEncoded();
@@ -864,10 +864,10 @@ public class ConsentManagerImpl implements ConsentManager {
         }
     }
 
-    private RSAPublicKey getPublicKey(String tenantDomain, KeyStoreManager keyStoreManager, String jksName) throws
+    private PublicKey getPublicKey(String tenantDomain, KeyStoreManager keyStoreManager, String jksName) throws
             Exception {
 
-        return (RSAPublicKey) keyStoreManager.getKeyStore(jksName).getCertificate(tenantDomain).getPublicKey();
+        return keyStoreManager.getKeyStore(jksName).getCertificate(tenantDomain).getPublicKey();
     }
 
     private String getJKSName(String tenantDomain) {
