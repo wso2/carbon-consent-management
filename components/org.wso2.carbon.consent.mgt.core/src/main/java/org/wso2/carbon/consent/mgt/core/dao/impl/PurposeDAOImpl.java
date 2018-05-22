@@ -88,7 +88,7 @@ public class PurposeDAOImpl implements PurposeDAO {
                 }), id, false);
             } catch (DataAccessException e) {
                 throw ConsentUtils.handleServerException(ErrorMessages
-                                                     .ERROR_CODE_ADD_PURPOSE_PII_ASSOC, String.valueOf(insertedId), e);
+                        .ERROR_CODE_ADD_PURPOSE_PII_ASSOC, String.valueOf(insertedId), e);
             }
         }));
         purposeResult = new Purpose(insertedId, purpose.getName(), purpose.getDescription(), purpose.getTenantId(),
@@ -217,12 +217,15 @@ public class PurposeDAOImpl implements PurposeDAO {
     @Override
     public boolean isPurposeUsed(int id) throws ConsentManagementServerException {
 
-        int count;
+        Integer count;
         try {
             JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
             count = jdbcTemplate.fetchSingleRecord(GET_RECEIPT_COUNT_ASSOCIATED_WITH_PURPOSE, (resultSet, rowNumber) ->
                             resultSet.getInt(1),
                     preparedStatement -> preparedStatement.setInt(1, id));
+            if (count == null) {
+                return false;
+            }
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages
                     .ERROR_CODE_RETRIEVE_RECEIPTS_ASSOCIATED_WITH_PURPOSE, String.valueOf(id), e);
