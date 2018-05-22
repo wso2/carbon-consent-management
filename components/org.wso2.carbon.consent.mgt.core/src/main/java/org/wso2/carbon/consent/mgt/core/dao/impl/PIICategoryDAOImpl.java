@@ -75,7 +75,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
             }), piiCategory, true);
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PII_CATEGORY,
-                                                     piiCategory.getName(), e);
+                    piiCategory.getName(), e);
         }
         purposeResult = new PIICategory(insertedId, piiCategory.getName(), piiCategory.getDescription(),
                 piiCategory.getSensitive(), piiCategory.getTenantId(), piiCategory.getDisplayName());
@@ -217,11 +217,14 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     }
 
     private boolean isAssociationExists(int id, String query) throws DataAccessException {
-        int count;
+        Integer count;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         count = jdbcTemplate.fetchSingleRecord(query, (resultSet, rowNumber) ->
                         resultSet.getInt(1),
                 preparedStatement -> preparedStatement.setInt(1, id));
+        if (count == null) {
+            return false;
+        }
         return (count > 0);
     }
 }
