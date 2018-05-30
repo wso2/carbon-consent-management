@@ -885,8 +885,7 @@ public class ConsentManagerImpl implements ConsentManager {
 
         //Set authenticated user.
         if (isBlank(receiptInput.getPiiPrincipalId())) {
-            receiptInput.setPiiPrincipalId(MultitenantUtils.getTenantAwareUsername(PrivilegedCarbonContext
-                    .getThreadLocalCarbonContext().getUsername()));
+            receiptInput.setPiiPrincipalId(PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername());
         }
         // Set authenticated user's tenant id if it is not set.
         if (isBlank(receiptInput.getTenantDomain())) {
