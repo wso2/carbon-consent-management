@@ -661,10 +661,9 @@ public class InterceptingConsentManager implements ConsentManager {
         if (isBlank(loggedInUser)) {
             throw handleClientException(ERROR_CODE_NO_USER_FOUND, LIST_RECEIPT);
         }
-        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(loggedInUser);
         int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        if (isNotBlank(piiPrincipalId) && piiPrincipalId.equalsIgnoreCase(tenantAwareUsername)) {
+        if (isNotBlank(piiPrincipalId) && piiPrincipalId.equalsIgnoreCase(loggedInUser)) {
             if (log.isDebugEnabled()) {
                 log.debug("User: " + piiPrincipalId + " is authorized to perform a search on own consent receipts.");
             }
@@ -672,7 +671,7 @@ public class InterceptingConsentManager implements ConsentManager {
             return;
         }
 
-        handleAuthorization(LIST_RECEIPT, tenantAwareUsername, tenantId);
+        handleAuthorization(LIST_RECEIPT, loggedInUser, tenantId);
     }
 
     private void validateAuthorizationForGetOrRevokeReceipts(String receiptId, String operation) throws
@@ -682,19 +681,18 @@ public class InterceptingConsentManager implements ConsentManager {
         if (isBlank(loggedInUser)) {
             throw handleClientException(ERROR_CODE_NO_USER_FOUND, operation);
         }
-        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(loggedInUser);
         int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        if (consentManager.isReceiptExist(receiptId, tenantAwareUsername, tenantId)) {
+        if (consentManager.isReceiptExist(receiptId, loggedInUser, tenantId)) {
             if (log.isDebugEnabled()) {
-                log.debug("User: " + tenantAwareUsername + " is authorized to perform a " + operation + " on own " +
+                log.debug("User: " + loggedInUser + " is authorized to perform a " + operation + " on own " +
                         "consent receipt.");
             }
             //Returns here since same user is trying to get/revoke own receipts.
             return;
         }
 
-        handleAuthorization(operation, tenantAwareUsername, tenantId);
+        handleAuthorization(operation, loggedInUser, tenantId);
         // If the receipt owners tenant domain is different from the authenticated users tenant domain, it should
         // fail irrespective of permission.
         handleCrossDomainPermission(receiptId);

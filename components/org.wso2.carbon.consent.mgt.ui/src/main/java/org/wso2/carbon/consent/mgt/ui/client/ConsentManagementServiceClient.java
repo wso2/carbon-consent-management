@@ -119,11 +119,10 @@ public class ConsentManagementServiceClient {
                 throw new ConsentManagementException(ERROR_CODE_NO_AUTH_USER_FOUND.getMessage(),
                         ERROR_CODE_NO_AUTH_USER_FOUND.getCode());
             }
-            String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(loggedInUser);
             AuthorizationManager authorizationManager = ConsentManagementUIServiceDataHolder.getInstance().getRealmService()
                     .getTenantUserRealm(tenantId)
                     .getAuthorizationManager();
-            if (!authorizationManager.isUserAuthorized(tenantAwareUsername, permission, UI_PERMISSION_ACTION)) {
+            if (!authorizationManager.isUserAuthorized(loggedInUser, permission, UI_PERMISSION_ACTION)) {
                 throw new ConsentManagementException(ERROR_CODE_USER_NOT_AUTHORIZED.getMessage(),
                         ERROR_CODE_USER_NOT_AUTHORIZED.getCode());
             }
