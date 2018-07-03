@@ -2,6 +2,7 @@ package org.wso2.carbon.consent.mgt.endpoint.dto;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposePiiCategoryRequestDTO;
 
 import io.swagger.annotations.*;
 import com.fasterxml.jackson.annotation.*;
@@ -23,7 +24,7 @@ public class PurposeRequestDTO  {
   private String description = null;
   
   
-  private List<Integer> piiCategories = new ArrayList<Integer>();
+  private List<PurposePiiCategoryRequestDTO> piiCategories = new ArrayList<PurposePiiCategoryRequestDTO>();
 
   
   /**
@@ -54,10 +55,10 @@ public class PurposeRequestDTO  {
    **/
   @ApiModelProperty(value = "")
   @JsonProperty("piiCategories")
-  public List<Integer> getPiiCategories() {
+  public List<PurposePiiCategoryRequestDTO> getPiiCategories() {
     return piiCategories;
   }
-  public void setPiiCategories(List<Integer> piiCategories) {
+  public void setPiiCategories(List<PurposePiiCategoryRequestDTO> piiCategories) {
     this.piiCategories = piiCategories;
   }
 

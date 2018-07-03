@@ -38,6 +38,7 @@ import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PiiController;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
+import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
@@ -177,7 +178,10 @@ public class ConsentManagerImpl implements ConsentManager {
             }
             throw ConsentUtils.handleClientException(ERROR_CODE_PURPOSE_ID_INVALID, String.valueOf(purposeId));
         }
-        purpose.getPiiCategoryIds().forEach(rethrowConsumer(id -> purpose.getPiiCategories().add(getPiiCategoryById(id))));
+        List<PurposePIICategory> purposePIICategories = new ArrayList<>();
+        purpose.getPurposePIICategories().forEach(rethrowConsumer(piiCategory -> purposePIICategories.add
+                (getPurposePIICategory(piiCategory))));
+        purpose.setPurposePIICategories(purposePIICategories);
         return purpose;
     }
 
@@ -1059,8 +1063,9 @@ public class ConsentManagerImpl implements ConsentManager {
             purpose.setTenantId(getTenantId(realmService, purpose.getTenantDomain()));
         }
 
-        if (isNotEmpty(purpose.getPiiCategoryIds())) {
-            purpose.getPiiCategoryIds().forEach(rethrowConsumer(id -> {
+        if (isNotEmpty(purpose.getPurposePIICategories())) {
+            purpose.getPurposePIICategories().forEach(rethrowConsumer(purposePIICategory -> {
+                int id = purposePIICategory.getId();
                 if (getPiiCategoryById(id) == null) {
                     throw handleClientException(ERROR_CODE_PII_CATEGORY_ID_INVALID, String.valueOf(id));
                 }
@@ -1114,14 +1119,28 @@ public class ConsentManagerImpl implements ConsentManager {
 
     private Purpose populatePiiCategories(Purpose purposeResponse) {
 
-        List<PIICategory> piiCategories = new ArrayList<>();
-        purposeResponse.getPiiCategoryIds().forEach(rethrowConsumer(id -> piiCategories.add(getPiiCategoryById(id))));
-        purposeResponse.setPiiCategories(piiCategories);
+        List<PurposePIICategory> purposePIICategories = new ArrayList<>();
+        purposeResponse.getPurposePIICategories().forEach(rethrowConsumer(
+                piiCategory -> purposePIICategories.add(getPurposePIICategory(piiCategory))));
+        purposeResponse.setPurposePIICategories(purposePIICategories);
 
         if (log.isDebugEnabled()) {
             log.debug("Purpose created successfully with the name: " + purposeResponse.getName());
         }
 
         return purposeResponse;
+    }
+
+    private PurposePIICategory getPurposePIICategory(PurposePIICategory purposePIICategory) throws ConsentManagementException {
+
+        PIICategory piiCategory = getPiiCategoryById(purposePIICategory.getId());
+
+        PurposePIICategory purposePIICategoryResult = new PurposePIICategory(piiCategory.getId(),
+                                                                             piiCategory.getName(),
+                                                                             piiCategory.getDescription(),
+                                                                             piiCategory.getSensitive(),
+                                                                             piiCategory.getDisplayName(),
+                                                                             purposePIICategory.getMandatory());
+        return purposePIICategoryResult;
     }
 }

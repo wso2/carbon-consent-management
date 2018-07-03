@@ -786,8 +786,18 @@ definitions:
       piiCategories:
         type: 'array'
         items:
-          type: 'integer'
+          $ref: '#/definitions/purposePiiCategoryRequest'
 
+#-----------------------------------------------------
+# Purpose PII Category request object
+#-----------------------------------------------------
+  purposePiiCategoryRequest:
+    type: object
+    properties:
+      piiCategoryId:
+        type: 'integer'
+      mandatory:
+        type: 'boolean'
 
 #-----------------------------------------------------
 # PII category request object
@@ -1132,7 +1142,7 @@ definitions:
       piiCategories:
         type: 'array'
         items:
-          $ref: '#/definitions/piiCategoryListResponse'
+          $ref: '#/definitions/purposePiiCategoryListResponse'
 
 #-----------------------------------------------------
 # The Purpose category List response object
@@ -1192,6 +1202,26 @@ definitions:
       displayName:
         type: 'string'
       sensitive:
+        type: 'boolean'
+
+#-----------------------------------------------------
+# The Purpose PII category List response object
+#-----------------------------------------------------
+
+  purposePiiCategoryListResponse:
+    type: object
+    properties:
+      piiCategoryId:
+        type: 'integer'
+      piiCategory:
+        type: 'string'
+      description:
+        type: 'string'
+      displayName:
+        type: 'string'
+      sensitive:
+        type: 'boolean'
+      mandatory:
         type: 'boolean'
 #-----------------------------------------------------
 # The address  object

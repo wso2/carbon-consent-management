@@ -2,7 +2,7 @@ package org.wso2.carbon.consent.mgt.endpoint.dto;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.wso2.carbon.consent.mgt.endpoint.dto.PiiCategoryListResponseDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposePiiCategoryListResponseDTO;
 
 import io.swagger.annotations.*;
 import com.fasterxml.jackson.annotation.*;
@@ -27,7 +27,7 @@ public class PurposeGetResponseDTO  {
   private String description = null;
   
   
-  private List<PiiCategoryListResponseDTO> piiCategories = new ArrayList<PiiCategoryListResponseDTO>();
+  private List<PurposePiiCategoryListResponseDTO> piiCategories = new ArrayList<PurposePiiCategoryListResponseDTO>();
 
   
   /**
@@ -70,10 +70,10 @@ public class PurposeGetResponseDTO  {
    **/
   @ApiModelProperty(value = "")
   @JsonProperty("piiCategories")
-  public List<PiiCategoryListResponseDTO> getPiiCategories() {
+  public List<PurposePiiCategoryListResponseDTO> getPiiCategories() {
     return piiCategories;
   }
-  public void setPiiCategories(List<PiiCategoryListResponseDTO> piiCategories) {
+  public void setPiiCategories(List<PurposePiiCategoryListResponseDTO> piiCategories) {
     this.piiCategories = piiCategories;
   }
 

@@ -27,8 +27,8 @@ public class Purpose {
     private Integer id;
     private String name;
     private String description;
-    private List<Integer> piiCategoryIds = new ArrayList<>();
     private List<PIICategory> piiCategories =  new ArrayList<>();
+    private List<PurposePIICategory> purposePIICategories = new ArrayList<>();
     private int tenantId;
     private String tenantDomain;
 
@@ -56,11 +56,11 @@ public class Purpose {
         this.description = description;
     }
 
-    public Purpose(String name, String description, List<Integer> piiCategoryIds) {
+    public Purpose(String name, String description, List<PurposePIICategory> purposePIICategories) {
 
         this.name = name;
         this.description = description;
-        this.piiCategoryIds = piiCategoryIds;
+        this.purposePIICategories = purposePIICategories;
     }
 
     public Purpose(String name, String description, int tenantId) {
@@ -70,13 +70,14 @@ public class Purpose {
         this.tenantId = tenantId;
     }
 
-    public Purpose(Integer id, String name, String description, int tenantId, List<Integer> piiCategoryIds) {
+    public Purpose(Integer id, String name, String description, int tenantId, List<PurposePIICategory>
+            purposePIICategories) {
 
         this.id = id;
         this.name = name;
         this.description = description;
         this.tenantId = tenantId;
-        this.piiCategoryIds = piiCategoryIds;
+        this.purposePIICategories = purposePIICategories;
     }
 
     public Purpose(Integer id, String name, String description, int tenantId) {
@@ -132,16 +133,6 @@ public class Purpose {
         this.tenantDomain = tenantDomain;
     }
 
-    public List<Integer> getPiiCategoryIds() {
-
-        return piiCategoryIds;
-    }
-
-    public void setPiiCategoryIds(List<Integer> piiCategoryIds) {
-
-        this.piiCategoryIds = piiCategoryIds;
-    }
-
     public List<PIICategory> getPiiCategories() {
 
         return piiCategories;
@@ -150,5 +141,15 @@ public class Purpose {
     public void setPiiCategories(List<PIICategory> piiCategories) {
 
         this.piiCategories = piiCategories;
+    }
+
+    public List<PurposePIICategory> getPurposePIICategories() {
+
+        return purposePIICategories;
+    }
+
+    public void setPurposePIICategories(List<PurposePIICategory> purposePIICategories) {
+
+        this.purposePIICategories = purposePIICategories;
     }
 }

@@ -22,6 +22,7 @@ public class PiiCategoryDTO {
     private String name;
     private String displayName;
     private String description;
+    private boolean mandatory;
 
     public PiiCategoryDTO(String name) {
 
@@ -84,5 +85,13 @@ public class PiiCategoryDTO {
     public void setDescription(String description) {
 
         this.description = description;
+    }
+
+    public boolean isMandatory() {
+        return mandatory;
+    }
+
+    public void setMandatory(boolean mandatory) {
+        this.mandatory = mandatory;
     }
 }

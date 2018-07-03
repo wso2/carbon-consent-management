@@ -45,6 +45,7 @@ import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
+import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
@@ -556,9 +557,10 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         return purposeResult;
     }
 
-    private Purpose addPurpose(String name, List<Integer> piiCategoryList) throws ConsentManagementException {
+    private Purpose addPurpose(String name, List<PurposePIICategory> purposePIICategory) throws
+            ConsentManagementException {
 
-        Purpose purpose = new Purpose(name, "D1", piiCategoryList);
+        Purpose purpose = new Purpose(name, "D1", purposePIICategory);
         Purpose purposeResult = consentManager.addPurpose(purpose);
         Assert.assertNotNull(purposeResult, "Purpose cannot be null.");
 
@@ -588,9 +590,10 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
         PIICategory piiCategory = addPIICategory("PII1");
         PurposeCategory purposeCategory = addPurposeCategory("PC1");
+        PurposePIICategory purposePIICategory = new PurposePIICategory(piiCategory.getId(), true);
 
-        Purpose purpose1 = addPurpose("P1", Collections.singletonList(piiCategory.getId()));
-        Purpose purpose2 = addPurpose("P2", Collections.singletonList(piiCategory.getId()));
+        Purpose purpose1 = addPurpose("P1", Collections.singletonList(purposePIICategory));
+        Purpose purpose2 = addPurpose("P2", Collections.singletonList(purposePIICategory));
 
         String collectionMethod = "Sign-up";
         String jurisdiction = "LK";
@@ -722,8 +725,10 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
         PIICategory piiCategory = addPIICategory("PII1");
         PurposeCategory purposeCategory = addPurposeCategory("PC1");
-        Purpose purpose1 = addPurpose("P1", Collections.singletonList(piiCategory.getId()));
-        Purpose purpose2 = addPurpose("P2", Collections.singletonList(piiCategory.getId()));
+        PurposePIICategory purposePIICategory = new PurposePIICategory(piiCategory.getId(), true);
+
+        Purpose purpose1 = addPurpose("P1", Collections.singletonList(purposePIICategory));
+        Purpose purpose2 = addPurpose("P2", Collections.singletonList(purposePIICategory));
 
         String collectionMethod = "Sign-up";
         String jurisdiction = "LK";
