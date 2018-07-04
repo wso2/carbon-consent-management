@@ -27,6 +27,12 @@ public class PurposeGetResponseDTO  {
   private String description = null;
   
   
+  private String group = null;
+  
+  
+  private String groupType = null;
+  
+  
   private List<PurposePiiCategoryListResponseDTO> piiCategories = new ArrayList<PurposePiiCategoryListResponseDTO>();
 
   
@@ -69,6 +75,30 @@ public class PurposeGetResponseDTO  {
   /**
    **/
   @ApiModelProperty(value = "")
+  @JsonProperty("group")
+  public String getGroup() {
+    return group;
+  }
+  public void setGroup(String group) {
+    this.group = group;
+  }
+
+  
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("groupType")
+  public String getGroupType() {
+    return groupType;
+  }
+  public void setGroupType(String groupType) {
+    this.groupType = groupType;
+  }
+
+  
+  /**
+   **/
+  @ApiModelProperty(value = "")
   @JsonProperty("piiCategories")
   public List<PurposePiiCategoryListResponseDTO> getPiiCategories() {
     return piiCategories;
@@ -87,6 +117,8 @@ public class PurposeGetResponseDTO  {
     sb.append("  purposeId: ").append(purposeId).append("\n");
     sb.append("  purpose: ").append(purpose).append("\n");
     sb.append("  description: ").append(description).append("\n");
+    sb.append("  group: ").append(group).append("\n");
+    sb.append("  groupType: ").append(groupType).append("\n");
     sb.append("  piiCategories: ").append(piiCategories).append("\n");
     sb.append("}\n");
     return sb.toString();

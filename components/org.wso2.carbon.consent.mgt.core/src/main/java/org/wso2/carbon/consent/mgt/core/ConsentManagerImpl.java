@@ -1140,7 +1140,8 @@ public class ConsentManagerImpl implements ConsentManager {
                                                                              piiCategory.getDescription(),
                                                                              piiCategory.getSensitive(),
                                                                              piiCategory.getDisplayName(),
-                                                                             purposePIICategory.getMandatory());
+                                                                             purposePIICategory.getMandatory(),
+                                                                             piiCategory.getTenantId());
         return purposePIICategoryResult;
     }
 }

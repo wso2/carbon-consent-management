@@ -23,6 +23,8 @@ public class PurposeRequestDTO {
 
     private String purpose = null;
     private String description = null;
+    private String group = null;
+    private String groupType = null;
     private List<PiiCategoryDTO> piiCategories = new ArrayList<PiiCategoryDTO>();
 
     public String getPurpose() {
@@ -53,6 +55,26 @@ public class PurposeRequestDTO {
     public void setPiiCategories(List<PiiCategoryDTO> piiCategories) {
 
         this.piiCategories = piiCategories;
+    }
+
+    public String getGroup() {
+
+        return group;
+    }
+
+    public void setGroup(String group) {
+
+        this.group = group;
+    }
+
+    public String getGroupType() {
+
+        return groupType;
+    }
+
+    public void setGroupType(String groupType) {
+
+        this.groupType = groupType;
     }
 
 }

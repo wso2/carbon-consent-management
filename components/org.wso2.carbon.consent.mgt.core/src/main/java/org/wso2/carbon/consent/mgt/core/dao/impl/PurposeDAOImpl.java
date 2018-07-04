@@ -75,7 +75,9 @@ public class PurposeDAOImpl implements PurposeDAO {
             insertedId = jdbcTemplate.executeInsert(INSERT_PURPOSE_SQL, (preparedStatement -> {
                 preparedStatement.setString(1, purpose.getName());
                 preparedStatement.setString(2, purpose.getDescription());
-                preparedStatement.setInt(3, purpose.getTenantId());
+                preparedStatement.setString(3, purpose.getGroup());
+                preparedStatement.setString(4, purpose.getGroupType());
+                preparedStatement.setInt(5, purpose.getTenantId());
             }), purpose, true);
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE, purpose.getName(), e);
@@ -93,8 +95,8 @@ public class PurposeDAOImpl implements PurposeDAO {
                                                      .ERROR_CODE_ADD_PURPOSE_PII_ASSOC, String.valueOf(insertedId), e);
             }
         }));
-        purposeResult = new Purpose(insertedId, purpose.getName(), purpose.getDescription(), purpose.getTenantId(),
-                purpose.getPurposePIICategories());
+        purposeResult = new Purpose(insertedId, purpose.getName(), purpose.getDescription(), purpose.getGroup(),
+                                    purpose.getGroupType(), purpose.getTenantId(), purpose.getPurposePIICategories());
         return purposeResult;
     }
 
@@ -110,7 +112,7 @@ public class PurposeDAOImpl implements PurposeDAO {
         try {
             purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_ID_SQL, (resultSet, rowNumber) ->
                             new Purpose(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
-                                    resultSet.getInt(4)),
+                                        resultSet.getString(4), resultSet.getString(5), resultSet.getInt(6)),
                     preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_ID, String.valueOf(id), e);
@@ -143,7 +145,12 @@ public class PurposeDAOImpl implements PurposeDAO {
 
         try {
             purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_NAME_SQL, (resultSet, rowNumber) ->
-                            new Purpose(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3)),
+                                                             new Purpose(resultSet.getInt(1),
+                                                                         resultSet.getString(2),
+                                                                         resultSet.getString(3),
+                                                                         resultSet.getString(4),
+                                                                         resultSet.getString(5),
+                                                                         resultSet.getInt(6)),
                     preparedStatement -> {
                         preparedStatement.setString(1, name);
                         preparedStatement.setInt(2, tenantId);
@@ -186,7 +193,8 @@ public class PurposeDAOImpl implements PurposeDAO {
             purposes = jdbcTemplate.executeQuery(query,
                     (resultSet, rowNumber) -> new Purpose(resultSet.getInt(1),
                             resultSet.getString(2),
-                            resultSet.getString(3)),
+                            resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet
+                                                                  .getInt(6)),
                     preparedStatement -> {
                         preparedStatement.setInt(1, tenantId);
                         preparedStatement.setInt(2, finalLimit);

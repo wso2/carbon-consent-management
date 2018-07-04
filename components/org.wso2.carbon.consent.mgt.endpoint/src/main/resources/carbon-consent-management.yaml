@@ -230,11 +230,11 @@ paths:
       description: |
         This API is used to add a new purpose for consent management.
       x-wso2-request: |
-        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purpose\": \"<Purpose_Name>\", \"description\": \"<Purpose_Description>\", \"piiCategories\": <PII_Category_IDs>}"
+        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purpose\": \"<Purpose_Name>\", \"description\": \"<Purpose_Description>\", \"group\": \"<Purpose_Group>\", \"groupType\": \"<Purpose_Group_Type\", \"piiCategories\": [{\"id\": <PII_Category_Id>, \"mandatory\": <Is_Mandatory>}]}"
       x-wso2-curl: |
-        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purpose\": \"Contact\", \"description\": \"Contact the user\", \"piiCategories\": [1, 2]}"
+        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purpose\": \"Contact\", \"description\": \"Contact the user\", \"piiCategories\": {\"id\": 1, \"mandatory\": true}}"
       x-wso2-response: |
-        {"purposeId":1,"purpose":"Contact","description":"Contact the user","piiCategories":[{"piiCategoryId":1,"piiCategory":"email","description":"user email","sensitive":false},{"piiCategoryId":2,"piiCategory":"username","description":"user name","sensitive":false}]}
+        {"purposeId":1,"purpose":"Contact","description":"Contact the user","piiCategories":[{"piiCategoryId":1,"piiCategory":"email","description":"user email","sensitive":false, "mandatory":true},{"piiCategoryId":2,"piiCategory":"username","description":"user name","sensitive":false, "mandatory":false}]}
       summary: |
         Add purpose
       # post parameters:
@@ -282,7 +282,7 @@ paths:
       x-wso2-curl: |
         curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes?limit=10&offset=0" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json" -H "Content-Type: application/json"
       x-wso2-response: |
-        [{"purposeId":1,"purpose":"Contact","description":"Contact the user","piiCategories":[]},{"purposeId":2,"purpose":"Marketing","description":"Sending marketing materials","piiCategories":[]}]
+        [{"purposeId":1,"purpose":"Contact","description":"Contact the user","piiCategories":[]},{"purposeId":2,"purpose":"Marketing","description":"Sending marketing materials"}]
       summary: |
         Retrieve all purposes
       parameters:
@@ -321,7 +321,7 @@ paths:
       x-wso2-curl: |
         curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes/1" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json" -H "Content-Type: application/json"
       x-wso2-response: |
-        {"purposeId":1,"purpose":"Contact","description":"Contact the user","piiCategories":[]}
+        {"purposeId":1,"purpose":"Contact","description":"Contact the user","piiCategories":[{"piiCategoryId":1,"piiCategory":"email","description":"user email","sensitive":false, "mandatory":true},{"piiCategoryId":2,"piiCategory":"username","description":"user name","sensitive":false, "mandatory":false}]}
       summary: |
         Retrieve a purpose
       parameters:
@@ -783,6 +783,10 @@ definitions:
         type: 'string'
       description:
         type: 'string'
+      group:
+        type: 'string'
+      groupType:
+        type: 'string'
       piiCategories:
         type: 'array'
         items:
@@ -1125,6 +1129,10 @@ definitions:
         type: 'string'
       description:
         type: 'string'
+      group:
+        type: 'string'
+      groupType:
+        type: 'string'
 
 #-----------------------------------------------------
 # The Purpose GET response object
@@ -1138,6 +1146,10 @@ definitions:
       purpose:
         type: 'string'
       description:
+        type: 'string'
+      group:
+        type: 'string'
+      groupType:
         type: 'string'
       piiCategories:
         type: 'array'
@@ -1228,7 +1240,7 @@ definitions:
 #-----------------------------------------------------
   address:
     type: 'object'
-    description: 'The physical address of PII controller. Postal address for contacting the PII Controller. This is complient with the schema https://schema.org/PostalAddress.'
+    description: 'The physical address of PII controller. Postal address for contacting the PII Controller. This is compliant with the schema https://schema.org/PostalAddress.'
     properties:
       addressCountry:
         type: 'string'

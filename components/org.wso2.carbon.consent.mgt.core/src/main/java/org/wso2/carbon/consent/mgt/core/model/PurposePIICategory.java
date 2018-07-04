@@ -19,77 +19,31 @@ package org.wso2.carbon.consent.mgt.core.model;
 /**
  * Model class for PIICategory entries in a Purpose.
  */
-public class PurposePIICategory {
+public class PurposePIICategory extends PIICategory {
 
-    private Integer id;
-    private String name;
-    private String description;
-    private Boolean sensitive;
-    private String displayName;
     private Boolean mandatory;
 
     public PurposePIICategory(Integer id, String name, String description, Boolean sensitive, String displayName,
-                              Boolean mandatory) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.sensitive = sensitive;
+                              Boolean mandatory, Integer tenantId) {
 
-        this.displayName = displayName;
+        super(id, name, description, sensitive, tenantId, displayName);
         this.mandatory = mandatory;
+
     }
 
     public PurposePIICategory(Integer id, Boolean mandatory) {
-        this.id = id;
+
+        super(id);
         this.mandatory = mandatory;
     }
 
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Boolean getSensitive() {
-        return sensitive;
-    }
-
-    public void setSensitive(Boolean sensitive) {
-        this.sensitive = sensitive;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
     public Boolean getMandatory() {
+
         return mandatory;
     }
 
     public void setMandatory(Boolean mandatory) {
+
         this.mandatory = mandatory;
     }
 }

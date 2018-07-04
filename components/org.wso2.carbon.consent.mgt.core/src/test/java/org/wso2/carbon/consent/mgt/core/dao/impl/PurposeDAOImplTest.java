@@ -52,8 +52,8 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void setUp() throws Exception {
 
         initiateH2Base();
-        Purpose purpose1 = new Purpose("P1", "D1", -1234);
-        Purpose purpose2 = new Purpose("P2", "D2", -1234);
+        Purpose purpose1 = new Purpose("P1", "D1", "SIGNUP", "RESIDENT", -1234);
+        Purpose purpose2 = new Purpose("P2", "D2", "JIT", "IDP", -1234);
         purposes.add(purpose1);
         purposes.add(purpose2);
     }

@@ -27,6 +27,9 @@ public class Purpose {
     private Integer id;
     private String name;
     private String description;
+    private String group;
+    private String groupType;
+
     private List<PIICategory> piiCategories =  new ArrayList<>();
     private List<PurposePIICategory> purposePIICategories = new ArrayList<>();
     private int tenantId;
@@ -37,11 +40,14 @@ public class Purpose {
         this.id = id;
     }
 
-    public Purpose(Integer id, String name, String description) {
+    public Purpose(Integer id, String name, String description, String group, String groupType, int tenantId) {
 
         this.id = id;
         this.name = name;
         this.description = description;
+        this.group = group;
+        this.groupType = groupType;
+        this.tenantId = tenantId;
     }
 
     public Purpose(Integer id, String name) {
@@ -50,32 +56,41 @@ public class Purpose {
         this.name = name;
     }
 
-    public Purpose(String name, String description) {
+    public Purpose(String name, String description, String group, String groupType) {
 
         this.name = name;
         this.description = description;
+        this.group = group;
+        this.groupType = groupType;
     }
 
-    public Purpose(String name, String description, List<PurposePIICategory> purposePIICategories) {
+    public Purpose(String name, String description, String group, String groupType, List<PurposePIICategory>
+            purposePIICategories) {
 
         this.name = name;
         this.description = description;
+        this.group = group;
+        this.groupType = groupType;
         this.purposePIICategories = purposePIICategories;
     }
 
-    public Purpose(String name, String description, int tenantId) {
+    public Purpose(String name, String description, String group, String groupType, int tenantId) {
 
         this.name = name;
         this.description = description;
+        this.group = group;
+        this.groupType = groupType;
         this.tenantId = tenantId;
     }
 
-    public Purpose(Integer id, String name, String description, int tenantId, List<PurposePIICategory>
-            purposePIICategories) {
+    public Purpose(Integer id, String name, String description, String group,
+                   String groupType, int tenantId, List<PurposePIICategory> purposePIICategories) {
 
         this.id = id;
         this.name = name;
         this.description = description;
+        this.group = group;
+        this.groupType = groupType;
         this.tenantId = tenantId;
         this.purposePIICategories = purposePIICategories;
     }
@@ -151,5 +166,21 @@ public class Purpose {
     public void setPurposePIICategories(List<PurposePIICategory> purposePIICategories) {
 
         this.purposePIICategories = purposePIICategories;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
+    public String getGroupType() {
+        return groupType;
+    }
+
+    public void setGroupType(String groupType) {
+        this.groupType = groupType;
     }
 }

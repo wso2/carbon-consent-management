@@ -27,6 +27,11 @@ public class PIICategory {
     private int tenantId;
     private String tenantDomain;
 
+    public PIICategory(Integer id) {
+
+        this.id = id;
+    }
+
     public PIICategory(Integer id, String name, String description, Boolean sensitive, int tenantId, String displayName) {
 
         this.id = id;

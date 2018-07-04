@@ -18,7 +18,7 @@
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
 <%@ taglib uri="http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld" prefix="csrf" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.consent.mgt.core.model.PIICategory" %>
+<%@ page import="org.wso2.carbon.consent.mgt.core.model.PurposePIICategory" %>
 <%@ page import="org.wso2.carbon.consent.mgt.core.model.Purpose" %>
 <%@ page import="org.wso2.carbon.consent.mgt.ui.client.ConsentManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
@@ -39,13 +39,13 @@
     String purposeName = request.getParameter(PURPOSE_NAME);
 
     Purpose purpose = null;
-    List<PIICategory> piiCategories = new ArrayList<PIICategory>();
+    List<PurposePIICategory> piiCategories = new ArrayList<PurposePIICategory>();
 
     try {
         String currentUser = (String) session.getAttribute(LOGGED_USER);
         ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
         purpose = serviceClient.getPurpose(purposeId);
-        piiCategories = purpose.getPiiCategories();
+        piiCategories = purpose.getPurposePIICategories();
     } catch (Exception e) {
         String message = resourceBundle.getString("error.while.reading.pii.info") + " : " + e.getMessage();
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
@@ -81,7 +81,7 @@
                             %>
                             <tbody>
                             <%
-                                for (PIICategory piiCategory : piiCategories) {
+                                for (PurposePIICategory piiCategory : piiCategories) {
                             %>
                             <tr>
                                 <td><%=Encode.forHtml(piiCategory.getName())%>

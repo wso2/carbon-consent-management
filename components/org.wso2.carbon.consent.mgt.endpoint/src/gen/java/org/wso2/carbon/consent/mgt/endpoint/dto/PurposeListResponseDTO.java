@@ -22,6 +22,12 @@ public class PurposeListResponseDTO  {
   
   
   private String description = null;
+  
+  
+  private String group = null;
+  
+  
+  private String groupType = null;
 
   
   /**
@@ -60,6 +66,30 @@ public class PurposeListResponseDTO  {
   }
 
   
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("group")
+  public String getGroup() {
+    return group;
+  }
+  public void setGroup(String group) {
+    this.group = group;
+  }
+
+  
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("groupType")
+  public String getGroupType() {
+    return groupType;
+  }
+  public void setGroupType(String groupType) {
+    this.groupType = groupType;
+  }
+
+  
 
   @Override
   public String toString()  {
@@ -69,6 +99,8 @@ public class PurposeListResponseDTO  {
     sb.append("  purposeId: ").append(purposeId).append("\n");
     sb.append("  purpose: ").append(purpose).append("\n");
     sb.append("  description: ").append(description).append("\n");
+    sb.append("  group: ").append(group).append("\n");
+    sb.append("  groupType: ").append(groupType).append("\n");
     sb.append("}\n");
     return sb.toString();
   }
