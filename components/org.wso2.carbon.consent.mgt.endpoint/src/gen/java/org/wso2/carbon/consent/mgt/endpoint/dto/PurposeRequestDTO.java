@@ -30,6 +30,9 @@ public class PurposeRequestDTO  {
   private String groupType = null;
   
   
+  private Boolean mandatory = null;
+  
+  
   private List<PurposePiiCategoryRequestDTO> piiCategories = new ArrayList<PurposePiiCategoryRequestDTO>();
 
   
@@ -84,6 +87,18 @@ public class PurposeRequestDTO  {
   /**
    **/
   @ApiModelProperty(value = "")
+  @JsonProperty("mandatory")
+  public Boolean getMandatory() {
+    return mandatory;
+  }
+  public void setMandatory(Boolean mandatory) {
+    this.mandatory = mandatory;
+  }
+
+  
+  /**
+   **/
+  @ApiModelProperty(value = "")
   @JsonProperty("piiCategories")
   public List<PurposePiiCategoryRequestDTO> getPiiCategories() {
     return piiCategories;
@@ -103,6 +118,7 @@ public class PurposeRequestDTO  {
     sb.append("  description: ").append(description).append("\n");
     sb.append("  group: ").append(group).append("\n");
     sb.append("  groupType: ").append(groupType).append("\n");
+    sb.append("  mandatory: ").append(mandatory).append("\n");
     sb.append("  piiCategories: ").append(piiCategories).append("\n");
     sb.append("}\n");
     return sb.toString();

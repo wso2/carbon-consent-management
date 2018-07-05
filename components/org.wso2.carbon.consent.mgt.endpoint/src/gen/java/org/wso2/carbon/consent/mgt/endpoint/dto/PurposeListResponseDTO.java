@@ -28,6 +28,9 @@ public class PurposeListResponseDTO  {
   
   
   private String groupType = null;
+  
+  
+  private Boolean mandatory = null;
 
   
   /**
@@ -90,6 +93,18 @@ public class PurposeListResponseDTO  {
   }
 
   
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("mandatory")
+  public Boolean getMandatory() {
+    return mandatory;
+  }
+  public void setMandatory(Boolean mandatory) {
+    this.mandatory = mandatory;
+  }
+
+  
 
   @Override
   public String toString()  {
@@ -101,6 +116,7 @@ public class PurposeListResponseDTO  {
     sb.append("  description: ").append(description).append("\n");
     sb.append("  group: ").append(group).append("\n");
     sb.append("  groupType: ").append(groupType).append("\n");
+    sb.append("  mandatory: ").append(mandatory).append("\n");
     sb.append("}\n");
     return sb.toString();
   }

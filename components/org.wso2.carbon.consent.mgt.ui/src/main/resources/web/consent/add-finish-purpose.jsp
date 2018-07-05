@@ -85,6 +85,7 @@
         purposeRequestDTO.setDescription(description == null ? "" : description);
         purposeRequestDTO.setGroup(defaultConsentGroup);
         purposeRequestDTO.setGroupType(defaultConsentGroupType);
+        purposeRequestDTO.setMandatory(false);
         purposeRequestDTO.setPiiCategories(categories);
         serviceClient.addPurpose(purposeRequestDTO);
         

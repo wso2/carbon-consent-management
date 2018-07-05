@@ -23,12 +23,11 @@ public class PurposePIICategory extends PIICategory {
 
     private Boolean mandatory;
 
-    public PurposePIICategory(Integer id, String name, String description, Boolean sensitive, String displayName,
-                              Boolean mandatory, Integer tenantId) {
+    public PurposePIICategory(PIICategory piiCategory, Boolean mandatory) {
 
-        super(id, name, description, sensitive, tenantId, displayName);
+        super(piiCategory.getId(), piiCategory.getName(), piiCategory.getDescription(), piiCategory.getSensitive(),
+              piiCategory.getTenantId(), piiCategory.getDisplayName());
         this.mandatory = mandatory;
-
     }
 
     public PurposePIICategory(Integer id, Boolean mandatory) {

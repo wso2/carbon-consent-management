@@ -85,7 +85,8 @@ public class ConsentManagementServiceClient {
 
         handleLoggedInUserAuthorization(PERMISSION_CONSENT_MGT_ADD);
         Purpose purpose = new Purpose(purposeRequestDTO.getPurpose(), purposeRequestDTO.getDescription(),
-                                      purposeRequestDTO.getGroup(), purposeRequestDTO.getGroupType());
+                                      purposeRequestDTO.getGroup(), purposeRequestDTO.getGroupType(),
+                                      purposeRequestDTO.isMandatory());
         List<PurposePIICategory> piiCategories = new ArrayList<>();
         purposeRequestDTO.getPiiCategories().forEach(LambdaExceptionUtils.rethrowConsumer(piiCategoryDTO -> {
             if (getConsentManager().isPIICategoryExists(piiCategoryDTO.getName())) {

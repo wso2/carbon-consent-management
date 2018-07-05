@@ -90,8 +90,8 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
             when(dataSource.getConnection()).thenReturn(spy);
 
             PurposeDAO purposeDAO = new PurposeDAOImpl();
-            Purpose purpose1 = new Purpose("P1", "D1", "SIGNUP", "RESIDENT", -1234);
-            Purpose purpose2 = new Purpose("P2", "D3", "JIT", "IDP", -1234);
+            Purpose purpose1 = new Purpose("P1", "D1", "SIGNUP", "RESIDENT", true, -1234);
+            Purpose purpose2 = new Purpose("P2", "D3", "JIT", "IDP", false, -1234);
             purposeDAO.addPurpose(purpose1);
             purposeDAO.addPurpose(purpose2);
 

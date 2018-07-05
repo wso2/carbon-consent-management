@@ -52,8 +52,8 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void setUp() throws Exception {
 
         initiateH2Base();
-        Purpose purpose1 = new Purpose("P1", "D1", "SIGNUP", "RESIDENT", -1234);
-        Purpose purpose2 = new Purpose("P2", "D2", "JIT", "IDP", -1234);
+        Purpose purpose1 = new Purpose("P1", "D1", "SIGNUP", "RESIDENT", true, -1234);
+        Purpose purpose2 = new Purpose("P2", "D2", "JIT", "IDP", false, -1234);
         purposes.add(purpose1);
         purposes.add(purpose2);
     }
@@ -90,6 +90,9 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
 
             Assert.assertEquals(purposeResult.getName(), purposes.get(0).getName());
             Assert.assertEquals(purposeResult.getDescription(), purposes.get(0).getDescription());
+            Assert.assertEquals(purposeResult.getGroup(), purposes.get(0).getGroup());
+            Assert.assertEquals(purposeResult.getGroupType(), purposes.get(0).getGroupType());
+            Assert.assertEquals(purposeResult.getMandatory(), purposes.get(0).getMandatory());
             Assert.assertEquals(purposeResult.getTenantId(), purposes.get(0).getTenantId());
         }
     }

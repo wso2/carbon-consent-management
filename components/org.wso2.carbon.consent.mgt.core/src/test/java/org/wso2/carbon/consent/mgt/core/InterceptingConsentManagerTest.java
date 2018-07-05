@@ -443,7 +443,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
     @Test
     public void testAddPurpose() throws Exception {
 
-        Purpose purpose = new Purpose("P1", "D1", "SIGNUP", "SYSTEM");
+        Purpose purpose = new Purpose("P1", "D1", "SIGNUP", "SYSTEM", true);
         Purpose result = consentManager.addPurpose(purpose);
 
         Assert.assertNotNull(result, "Purpose cannot be null.");
@@ -461,7 +461,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
     @Test
     public void testGetPurpose() throws Exception {
 
-        Purpose purpose = new Purpose("P1", "D1", "SIGNUP", "SYSTEM", -1234);
+        Purpose purpose = new Purpose("P1", "D1", "SIGNUP", "SYSTEM", true, -1234);
         Purpose addPurpose = consentManager.addPurpose(purpose);
         Assert.assertNotNull(addPurpose, "Purpose cannot be null.");
 
@@ -550,7 +550,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
     private Purpose addPurpose(String name) throws ConsentManagementException {
 
-        Purpose purpose = new Purpose(name, "D1", "SIGNUP", "SYSTEM");
+        Purpose purpose = new Purpose(name, "D1", "SIGNUP", "SYSTEM", true);
         Purpose purposeResult = consentManager.addPurpose(purpose);
         Assert.assertNotNull(purposeResult, "Purpose cannot be null.");
 
@@ -560,7 +560,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
     private Purpose addPurpose(String name, List<PurposePIICategory> purposePIICategory) throws
             ConsentManagementException {
 
-        Purpose purpose = new Purpose(name, "D1", "JIT", "RESIDENT", purposePIICategory);
+        Purpose purpose = new Purpose(name, "D1", "JIT", "RESIDENT", true, purposePIICategory);
         Purpose purposeResult = consentManager.addPurpose(purpose);
         Assert.assertNotNull(purposeResult, "Purpose cannot be null.");
 

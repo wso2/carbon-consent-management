@@ -85,12 +85,19 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CAT_NAME_INVALID;
+
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages
+        .ERROR_CODE_PURPOSE_GROUP_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages
+        .ERROR_CODE_PURPOSE_GROUP_TYPE_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_MANDATORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_IS_ASSOCIATED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages
+        .ERROR_CODE_PURPOSE_PII_CONSTRAINT_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_RECEIPT_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_SERVICE_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_TERMINATION_IS_REQUIRED;
@@ -107,7 +114,6 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIICont
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.PII_CONTROLLER_URL;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.POSTAL_CODE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.POST_OFFICE_BOX_NUMBER;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.PUBLIC_KEY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.STREET_ADDRESS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_SEARCH_LIMIT_PATH;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.getTenantDomainFromCarbonContext;
@@ -1055,6 +1061,20 @@ public class ConsentManagerImpl implements ConsentManager {
             throw handleClientException(ERROR_CODE_PURPOSE_ALREADY_EXIST, purpose.getName());
         }
 
+        if (isBlank(purpose.getGroup())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Purpose group is empty for: " + purpose.getName());
+            }
+            throw handleClientException(ERROR_CODE_PURPOSE_GROUP_REQUIRED, null);
+        }
+
+        if (isBlank(purpose.getGroupType())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Purpose group type is empty for: " + purpose.getName());
+            }
+            throw handleClientException(ERROR_CODE_PURPOSE_GROUP_TYPE_REQUIRED, null);
+        }
+
         // Set authenticated user's tenant id if it is not set.
         if (isBlank(purpose.getTenantDomain())) {
             purpose.setTenantId(getTenantIdFromCarbonContext());
@@ -1068,6 +1088,9 @@ public class ConsentManagerImpl implements ConsentManager {
                 int id = purposePIICategory.getId();
                 if (getPiiCategoryById(id) == null) {
                     throw handleClientException(ERROR_CODE_PII_CATEGORY_ID_INVALID, String.valueOf(id));
+                }
+                if (purposePIICategory.getMandatory() == null) {
+                    throw handleClientException(ERROR_CODE_PURPOSE_PII_CONSTRAINT_REQUIRED, String.valueOf(id));
                 }
             }));
         }
@@ -1135,13 +1158,8 @@ public class ConsentManagerImpl implements ConsentManager {
 
         PIICategory piiCategory = getPiiCategoryById(purposePIICategory.getId());
 
-        PurposePIICategory purposePIICategoryResult = new PurposePIICategory(piiCategory.getId(),
-                                                                             piiCategory.getName(),
-                                                                             piiCategory.getDescription(),
-                                                                             piiCategory.getSensitive(),
-                                                                             piiCategory.getDisplayName(),
-                                                                             purposePIICategory.getMandatory(),
-                                                                             piiCategory.getTenantId());
+        PurposePIICategory purposePIICategoryResult = new PurposePIICategory(piiCategory,
+                                                                             purposePIICategory.getMandatory());
         return purposePIICategoryResult;
     }
 }

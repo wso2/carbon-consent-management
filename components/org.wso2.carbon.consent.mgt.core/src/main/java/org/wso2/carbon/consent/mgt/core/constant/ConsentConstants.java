@@ -191,7 +191,11 @@ public class ConsentConstants {
         ERROR_CODE_ADD_CONSENT_RECEIPT("CM_00084", "Could not add consent receipt for principal: %s."),
 
         ERROR_CODE_DELETE_RECEIPT("CM_00085", "Error occurred while deleting receipt from DB for " +
-                                                   "the ID: %s.");
+                                                   "the ID: %s."),
+        ERROR_CODE_PURPOSE_GROUP_REQUIRED("CM_00086", "Purpose group is required."),
+        ERROR_CODE_PURPOSE_GROUP_TYPE_REQUIRED("CM_00087", "Purpose group type is required."),
+        ERROR_CODE_PURPOSE_PII_CONSTRAINT_REQUIRED("CM_00088", "Purpose PII category should be specified mandatory or" +
+                                                               " not for PII category ID: %s.");
 
         private final String code;
         private final String message;
