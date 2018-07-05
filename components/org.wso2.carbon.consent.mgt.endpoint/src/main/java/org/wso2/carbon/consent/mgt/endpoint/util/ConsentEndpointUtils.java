@@ -24,6 +24,7 @@ import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
+import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
@@ -41,6 +42,7 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeGetResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeListResponseDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposePiiCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ServiceResponseDTO;
@@ -142,8 +144,13 @@ public class ConsentEndpointUtils {
 
     public static Purpose getPurposeRequest(PurposeRequestDTO purposeRequestDTO) {
 
-        return new Purpose(purposeRequestDTO.getPurpose(), purposeRequestDTO.getDescription(), purposeRequestDTO
-                .getPiiCategories());
+        return new Purpose(purposeRequestDTO.getPurpose(), purposeRequestDTO.getDescription(),
+                           purposeRequestDTO.getGroup(), purposeRequestDTO.getGroupType(),
+                           purposeRequestDTO.getMandatory(),
+                           purposeRequestDTO.getPiiCategories().stream().map(
+                                   purposePiiCategoryRequestDTO -> new PurposePIICategory(
+                                           purposePiiCategoryRequestDTO.getPiiCategoryId(),
+                                           purposePiiCategoryRequestDTO.getMandatory())).collect(Collectors.toList()));
     }
 
     public static PurposeCategory getPurposeCategoryRequest(PurposeCategoryRequestDTO purposeCategoryRequestDTO) {
@@ -164,14 +171,20 @@ public class ConsentEndpointUtils {
         purposeListResponseDTO.setPurposeId(purposeResponse.getId());
         purposeListResponseDTO.setPurpose(purposeResponse.getName());
         purposeListResponseDTO.setDescription(purposeResponse.getDescription());
-        purposeListResponseDTO.setPiiCategories(purposeResponse.getPiiCategories().stream().map(piiCategory -> {
-            PiiCategoryListResponseDTO piiCategoryListResponseDTO = new PiiCategoryListResponseDTO();
-            piiCategoryListResponseDTO.setSensitive(piiCategory.getSensitive());
-            piiCategoryListResponseDTO.setPiiCategory(piiCategory.getName());
-            piiCategoryListResponseDTO.setDescription(piiCategory.getDescription());
-            piiCategoryListResponseDTO.setPiiCategoryId(piiCategory.getId());
-            piiCategoryListResponseDTO.setDisplayName(piiCategory.getDisplayName());
-            return piiCategoryListResponseDTO;
+        purposeListResponseDTO.setGroup(purposeResponse.getGroup());
+        purposeListResponseDTO.setGroupType(purposeResponse.getGroupType());
+        purposeListResponseDTO.setMandatory(purposeResponse.getMandatory());
+        purposeListResponseDTO.setPiiCategories(purposeResponse.getPurposePIICategories().stream().map(piiCategory -> {
+
+            PurposePiiCategoryListResponseDTO purposePiiCategoryListResponseDTO = new
+                    PurposePiiCategoryListResponseDTO();
+            purposePiiCategoryListResponseDTO.setSensitive(piiCategory.getSensitive());
+            purposePiiCategoryListResponseDTO.setMandatory(piiCategory.getMandatory());
+            purposePiiCategoryListResponseDTO.setPiiCategory(piiCategory.getName());
+            purposePiiCategoryListResponseDTO.setDescription(piiCategory.getDescription());
+            purposePiiCategoryListResponseDTO.setPiiCategoryId(piiCategory.getId());
+            purposePiiCategoryListResponseDTO.setDisplayName(piiCategory.getDisplayName());
+            return purposePiiCategoryListResponseDTO;
         }).collect(Collectors.toList()));
         return purposeListResponseDTO;
     }
@@ -225,6 +238,9 @@ public class ConsentEndpointUtils {
                     purposeListResponseDTO.setPurpose(purpose.getName());
                     purposeListResponseDTO.setDescription(purpose.getDescription());
                     purposeListResponseDTO.setPurposeId(purpose.getId());
+                    purposeListResponseDTO.setGroup(purpose.getGroup());
+                    purposeListResponseDTO.setGroupType(purpose.getGroupType());
+                    purposeListResponseDTO.setMandatory(purpose.getMandatory());
                     return purposeListResponseDTO;
                 })
                 .collect(Collectors.toList());

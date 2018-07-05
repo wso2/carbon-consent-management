@@ -42,7 +42,7 @@ public class ConsentsApi  {
     
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "List Consents\n", notes = "This API is used to list consents elements based on the filetered attributes.\n", response = ConsentResponseDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "List Consents\n", notes = "This API is used to list consent elements based on the filtered attributes.\n", response = ConsentResponseDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         
@@ -52,12 +52,12 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsGet(@ApiParam(value = "Number of search results.") @QueryParam("limit")  Integer limit,
-    @ApiParam(value = "Start index of the search.") @QueryParam("offset")  Integer offset,
+    public Response consentsGet(@ApiParam(value = "Number of search results") @QueryParam("limit")  Integer limit,
+    @ApiParam(value = "Start index of the search") @QueryParam("offset")  Integer offset,
     @ApiParam(value = "Subject identifier") @QueryParam("piiPrincipalId")  String piiPrincipalId,
     @ApiParam(value = "Service provider tenant domain") @QueryParam("spTenantDomain")  String spTenantDomain,
     @ApiParam(value = "Service name") @QueryParam("service")  String service,
-    @ApiParam(value = "State Ex. ACTIVE/REVOKED") @QueryParam("state")  String state)
+    @ApiParam(value = "State (ACTIVE/REVOKED)") @QueryParam("state")  String state)
     {
     return delegate.consentsGet(limit,offset,piiPrincipalId,spTenantDomain,service,state);
     }
@@ -65,7 +65,7 @@ public class ConsentsApi  {
     @Path("/pii-categories")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieve all PII categories\n", notes = "This API is used to get  all PII categories.\n", response = PiiCategoriesDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Retrieve all PII categories\n", notes = "This API is used to retrieve all PII categories.\n", response = PiiCategoriesDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         
@@ -77,8 +77,8 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsPiiCategoriesGet(@ApiParam(value = "Number of search results.") @QueryParam("limit")  Integer limit,
-    @ApiParam(value = "Start index of the search.") @QueryParam("offset")  Integer offset)
+    public Response consentsPiiCategoriesGet(@ApiParam(value = "Number of search results") @QueryParam("limit")  Integer limit,
+    @ApiParam(value = "Start index of the search") @QueryParam("offset")  Integer offset)
     {
     return delegate.consentsPiiCategoriesGet(limit,offset);
     }
@@ -86,7 +86,7 @@ public class ConsentsApi  {
     @Path("/pii-categories/{piiCategoryId}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Delete PII category\n", notes = "This API is used to delete a PII  category.\n", response = void.class)
+    @io.swagger.annotations.ApiOperation(value = "Delete PII category\n", notes = "This API is used to delete a PII category.\n", response = void.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         
@@ -98,7 +98,7 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsPiiCategoriesPiiCategoryIdDelete(@ApiParam(value = "Id of the pii category",required=true ) @PathParam("piiCategoryId")  String piiCategoryId)
+    public Response consentsPiiCategoriesPiiCategoryIdDelete(@ApiParam(value = "Unique ID of the PII category",required=true ) @PathParam("piiCategoryId")  String piiCategoryId)
     {
     return delegate.consentsPiiCategoriesPiiCategoryIdDelete(piiCategoryId);
     }
@@ -106,7 +106,7 @@ public class ConsentsApi  {
     @Path("/pii-categories/{piiCategoryId}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieve a pii category\n", notes = "This API is used to get PII category from the pii category Id.\n", response = PiiCategoryListResponseDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Retrieve a PII category\n", notes = "This API is used to retrieve a specific PII category using the PII category ID.\n", response = PiiCategoryListResponseDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         
@@ -118,7 +118,7 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsPiiCategoriesPiiCategoryIdGet(@ApiParam(value = "Id of the pii category",required=true ) @PathParam("piiCategoryId")  String piiCategoryId)
+    public Response consentsPiiCategoriesPiiCategoryIdGet(@ApiParam(value = "Unique ID of the PII category",required=true ) @PathParam("piiCategoryId")  String piiCategoryId)
     {
     return delegate.consentsPiiCategoriesPiiCategoryIdGet(piiCategoryId);
     }
@@ -126,7 +126,7 @@ public class ConsentsApi  {
     @Path("/pii-categories")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Add PII category\n", notes = "This API is used to add new PII category for the consent management.\n", response = PiiCategoryListResponseDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Add PII category\n", notes = "This API is used to add a new PII category for consent management.\n", response = PiiCategoryListResponseDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 201, message = "Successful response"),
         
@@ -138,7 +138,7 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsPiiCategoriesPost(@ApiParam(value = "This represents the PII catogory element need to be stored" ,required=true ) PIIcategoryRequestDTO piiCategory)
+    public Response consentsPiiCategoriesPost(@ApiParam(value = "This represents the PII catogory name." ,required=true ) PIIcategoryRequestDTO piiCategory)
     {
     return delegate.consentsPiiCategoriesPost(piiCategory);
     }
@@ -146,7 +146,7 @@ public class ConsentsApi  {
     
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Add Consents\n", notes = "This API is used to storing consent information given by the users.\n", response = ConsentAddResponseDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Add consent\n", notes = "This API is used to store consent information given by the user.\n", response = ConsentAddResponseDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 201, message = "Successful response"),
         
@@ -158,7 +158,7 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsPost(@ApiParam(value = "This represents the consent element need to be stored" ,required=true ) ConsentRequestDTO consent)
+    public Response consentsPost(@ApiParam(value = "This represents the consent element that needs to be stored." ,required=true ) ConsentRequestDTO consent)
     {
     return delegate.consentsPost(consent);
     }
@@ -166,7 +166,7 @@ public class ConsentsApi  {
     @Path("/purpose-categories")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieve all purposes categories\n", notes = "This API is used to get  all purposes categories.\n", response = PurpseCategoriesDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Retrieve all purpose categories\n", notes = "This API is used to retrieve  all purpose categories.\n", response = PurpseCategoriesDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         
@@ -178,8 +178,8 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsPurposeCategoriesGet(@ApiParam(value = "Number of search results.") @QueryParam("limit")  Integer limit,
-    @ApiParam(value = "Start index of the search.") @QueryParam("offset")  Integer offset)
+    public Response consentsPurposeCategoriesGet(@ApiParam(value = "Number of search results") @QueryParam("limit")  Integer limit,
+    @ApiParam(value = "Start index of the search") @QueryParam("offset")  Integer offset)
     {
     return delegate.consentsPurposeCategoriesGet(limit,offset);
     }
@@ -187,7 +187,7 @@ public class ConsentsApi  {
     @Path("/purpose-categories")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Add Purpose category\n", notes = "This API is used to add new purpose category for the consent management.\n", response = PurposeCategoryListResponseDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Add purpose category\n", notes = "This API is used to add a new purpose category for consent management.\n", response = PurposeCategoryListResponseDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 201, message = "Successful response"),
         
@@ -199,7 +199,7 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsPurposeCategoriesPost(@ApiParam(value = "This represents the purpose catogory element need to be stored" ,required=true ) PurposeCategoryRequestDTO purposeCategory)
+    public Response consentsPurposeCategoriesPost(@ApiParam(value = "This represents the purpose category name." ,required=true ) PurposeCategoryRequestDTO purposeCategory)
     {
     return delegate.consentsPurposeCategoriesPost(purposeCategory);
     }
@@ -219,7 +219,7 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsPurposeCategoriesPurposeCategoryIdDelete(@ApiParam(value = "Id of the purpose category",required=true ) @PathParam("purposeCategoryId")  String purposeCategoryId)
+    public Response consentsPurposeCategoriesPurposeCategoryIdDelete(@ApiParam(value = "Unique ID of the purpose category",required=true ) @PathParam("purposeCategoryId")  String purposeCategoryId)
     {
     return delegate.consentsPurposeCategoriesPurposeCategoryIdDelete(purposeCategoryId);
     }
@@ -227,7 +227,7 @@ public class ConsentsApi  {
     @Path("/purpose-categories/{purposeCategoryId}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieve a purpose category\n", notes = "This API is used to get Purpose category from the purpose category Id.\n", response = PurposeCategoryListResponseDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Retrieve a purpose category\n", notes = "This API is used to retrieve a purpose category using the purpose category ID.\n", response = PurposeCategoryListResponseDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         
@@ -239,7 +239,7 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsPurposeCategoriesPurposeCategoryIdGet(@ApiParam(value = "Id of the purpose category",required=true ) @PathParam("purposeCategoryId")  String purposeCategoryId)
+    public Response consentsPurposeCategoriesPurposeCategoryIdGet(@ApiParam(value = "Unique ID of the purpose category",required=true ) @PathParam("purposeCategoryId")  String purposeCategoryId)
     {
     return delegate.consentsPurposeCategoriesPurposeCategoryIdGet(purposeCategoryId);
     }
@@ -247,7 +247,7 @@ public class ConsentsApi  {
     @Path("/purposes")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieve all purposes\n", notes = "This API is used to get  all Purposes.\n", response = PurposesDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Retrieve all purposes\n", notes = "This API is used to retrieve all purposes.\n", response = PurposesDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         
@@ -259,8 +259,8 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsPurposesGet(@ApiParam(value = "Number of search results.") @QueryParam("limit")  Integer limit,
-    @ApiParam(value = "Start index of the search.") @QueryParam("offset")  Integer offset)
+    public Response consentsPurposesGet(@ApiParam(value = "Number of search results") @QueryParam("limit")  Integer limit,
+    @ApiParam(value = "Start index of the search") @QueryParam("offset")  Integer offset)
     {
     return delegate.consentsPurposesGet(limit,offset);
     }
@@ -268,7 +268,7 @@ public class ConsentsApi  {
     @Path("/purposes")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Add Purpose\n", notes = "This API is used to add new purposes for the consent management.\n", response = PurposeGetResponseDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Add purpose\n", notes = "This API is used to add a new purpose for consent management.\n", response = PurposeGetResponseDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 201, message = "Successful response"),
         
@@ -280,7 +280,7 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsPurposesPost(@ApiParam(value = "This represents the purpose element need to be stored" ,required=true ) PurposeRequestDTO purpose)
+    public Response consentsPurposesPost(@ApiParam(value = "This represents the purpose element that needs to be stored." ,required=true ) PurposeRequestDTO purpose)
     {
     return delegate.consentsPurposesPost(purpose);
     }
@@ -288,7 +288,7 @@ public class ConsentsApi  {
     @Path("/purposes/{purposeId}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Delete Purpose\n", notes = "This API is used to delete a purpose.\n", response = void.class)
+    @io.swagger.annotations.ApiOperation(value = "Delete a purpose\n", notes = "This API is used to delete a purpose.\n", response = void.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         
@@ -300,7 +300,7 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsPurposesPurposeIdDelete(@ApiParam(value = "Id of the purpose",required=true ) @PathParam("purposeId")  String purposeId)
+    public Response consentsPurposesPurposeIdDelete(@ApiParam(value = "Unique ID of the purpose",required=true ) @PathParam("purposeId")  String purposeId)
     {
     return delegate.consentsPurposesPurposeIdDelete(purposeId);
     }
@@ -308,7 +308,7 @@ public class ConsentsApi  {
     @Path("/purposes/{purposeId}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieve a purpose\n", notes = "This API is used to get Purpose from the purpose Id.\n", response = PurposeGetResponseDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Retrieve a purpose\n", notes = "This API is used to retrieve a specific purpose using the purpose ID.\n", response = PurposeGetResponseDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         
@@ -328,7 +328,7 @@ public class ConsentsApi  {
     @Path("/receipts/{receiptId}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Revoke Consents\n", notes = "This API is used to revoke consent.\n", response = void.class)
+    @io.swagger.annotations.ApiOperation(value = "Revoke consent\n", notes = "This API is used to revoke consent.\n", response = void.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         
@@ -340,7 +340,7 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsReceiptsReceiptIdDelete(@ApiParam(value = "This represents the Revoke Receipt Id.",required=true ) @PathParam("receiptId")  String receiptId)
+    public Response consentsReceiptsReceiptIdDelete(@ApiParam(value = "This represents the Revoke Receipt ID.",required=true ) @PathParam("receiptId")  String receiptId)
     {
     return delegate.consentsReceiptsReceiptIdDelete(receiptId);
     }
@@ -348,7 +348,7 @@ public class ConsentsApi  {
     @Path("/receipts/{receiptId}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieve a consent Receipt\n", notes = "This API is used to get consent from the conset receipt Id.\n", response = ConsentReceiptDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Retrieve a consent receipt\n", notes = "This API is used to retrieve consent using the conset receipt ID.\n", response = ConsentReceiptDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
         
@@ -360,7 +360,7 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsReceiptsReceiptIdGet(@ApiParam(value = "The unique identifier of an receipt.",required=true ) @PathParam("receiptId")  String receiptId)
+    public Response consentsReceiptsReceiptIdGet(@ApiParam(value = "The unique identifier of a receipt",required=true ) @PathParam("receiptId")  String receiptId)
     {
     return delegate.consentsReceiptsReceiptIdGet(receiptId);
     }

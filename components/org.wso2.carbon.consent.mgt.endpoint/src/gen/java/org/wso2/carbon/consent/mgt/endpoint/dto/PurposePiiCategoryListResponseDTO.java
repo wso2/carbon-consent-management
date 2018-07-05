@@ -11,23 +11,23 @@ import javax.validation.constraints.NotNull;
 
 
 @ApiModel(description = "")
-public class PurposeListResponseDTO  {
+public class PurposePiiCategoryListResponseDTO  {
   
   
   
-  private Integer purposeId = null;
+  private Integer piiCategoryId = null;
   
   
-  private String purpose = null;
+  private String piiCategory = null;
   
   
   private String description = null;
   
   
-  private String group = null;
+  private String displayName = null;
   
   
-  private String groupType = null;
+  private Boolean sensitive = null;
   
   
   private Boolean mandatory = null;
@@ -36,24 +36,24 @@ public class PurposeListResponseDTO  {
   /**
    **/
   @ApiModelProperty(value = "")
-  @JsonProperty("purposeId")
-  public Integer getPurposeId() {
-    return purposeId;
+  @JsonProperty("piiCategoryId")
+  public Integer getPiiCategoryId() {
+    return piiCategoryId;
   }
-  public void setPurposeId(Integer purposeId) {
-    this.purposeId = purposeId;
+  public void setPiiCategoryId(Integer piiCategoryId) {
+    this.piiCategoryId = piiCategoryId;
   }
 
   
   /**
    **/
   @ApiModelProperty(value = "")
-  @JsonProperty("purpose")
-  public String getPurpose() {
-    return purpose;
+  @JsonProperty("piiCategory")
+  public String getPiiCategory() {
+    return piiCategory;
   }
-  public void setPurpose(String purpose) {
-    this.purpose = purpose;
+  public void setPiiCategory(String piiCategory) {
+    this.piiCategory = piiCategory;
   }
 
   
@@ -72,24 +72,24 @@ public class PurposeListResponseDTO  {
   /**
    **/
   @ApiModelProperty(value = "")
-  @JsonProperty("group")
-  public String getGroup() {
-    return group;
+  @JsonProperty("displayName")
+  public String getDisplayName() {
+    return displayName;
   }
-  public void setGroup(String group) {
-    this.group = group;
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
   }
 
   
   /**
    **/
   @ApiModelProperty(value = "")
-  @JsonProperty("groupType")
-  public String getGroupType() {
-    return groupType;
+  @JsonProperty("sensitive")
+  public Boolean getSensitive() {
+    return sensitive;
   }
-  public void setGroupType(String groupType) {
-    this.groupType = groupType;
+  public void setSensitive(Boolean sensitive) {
+    this.sensitive = sensitive;
   }
 
   
@@ -109,13 +109,13 @@ public class PurposeListResponseDTO  {
   @Override
   public String toString()  {
     StringBuilder sb = new StringBuilder();
-    sb.append("class PurposeListResponseDTO {\n");
+    sb.append("class PurposePiiCategoryListResponseDTO {\n");
     
-    sb.append("  purposeId: ").append(purposeId).append("\n");
-    sb.append("  purpose: ").append(purpose).append("\n");
+    sb.append("  piiCategoryId: ").append(piiCategoryId).append("\n");
+    sb.append("  piiCategory: ").append(piiCategory).append("\n");
     sb.append("  description: ").append(description).append("\n");
-    sb.append("  group: ").append(group).append("\n");
-    sb.append("  groupType: ").append(groupType).append("\n");
+    sb.append("  displayName: ").append(displayName).append("\n");
+    sb.append("  sensitive: ").append(sensitive).append("\n");
     sb.append("  mandatory: ").append(mandatory).append("\n");
     sb.append("}\n");
     return sb.toString();

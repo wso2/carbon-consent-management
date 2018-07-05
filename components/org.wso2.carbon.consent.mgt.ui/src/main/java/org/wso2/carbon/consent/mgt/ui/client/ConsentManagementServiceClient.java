@@ -24,6 +24,7 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
 import org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.consent.mgt.ui.dto.PurposeRequestDTO;
 import org.wso2.carbon.consent.mgt.ui.internal.ConsentManagementUIServiceDataHolder;
@@ -34,6 +35,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.wso2.carbon.CarbonConstants.UI_PERMISSION_ACTION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_NO_AUTH_USER_FOUND;
@@ -82,24 +84,41 @@ public class ConsentManagementServiceClient {
     public void addPurpose(PurposeRequestDTO purposeRequestDTO) throws ConsentManagementException {
 
         handleLoggedInUserAuthorization(PERMISSION_CONSENT_MGT_ADD);
-        Purpose purpose = new Purpose(purposeRequestDTO.getPurpose(), purposeRequestDTO.getDescription());
-        List<Integer> piiCategories = new ArrayList<>();
+        Purpose purpose = new Purpose(purposeRequestDTO.getPurpose(), purposeRequestDTO.getDescription(),
+                                      purposeRequestDTO.getGroup(), purposeRequestDTO.getGroupType(),
+                                      purposeRequestDTO.isMandatory());
+        List<PurposePIICategory> piiCategories = new ArrayList<>();
         purposeRequestDTO.getPiiCategories().forEach(LambdaExceptionUtils.rethrowConsumer(piiCategoryDTO -> {
             if (getConsentManager().isPIICategoryExists(piiCategoryDTO.getName())) {
                 PIICategory piiCategoryId = getConsentManager().getPIICategoryByName(piiCategoryDTO.getName());
-                if (!piiCategories.contains(piiCategoryId.getId())) {
-                    piiCategories.add(piiCategoryId.getId());
+
+                boolean isPiiCategoryAdded = false;
+                for (PurposePIICategory purposePIICategory : piiCategories) {
+                    if (purposePIICategory.getId().equals(piiCategoryId.getId())) {
+                        isPiiCategoryAdded = true;
+                        break;
+                    }
+                }
+                if (!isPiiCategoryAdded) {
+                    piiCategories.add(new PurposePIICategory(piiCategoryId.getId(), piiCategoryDTO.isMandatory()));
                 }
             } else {
                 PIICategory piiCategory = new PIICategory(piiCategoryDTO.getName(), piiCategoryDTO.getDescription(),
                         true, piiCategoryDTO.getDisplayName());
                 PIICategory piiCategoryResponse = getConsentManager().addPIICategory(piiCategory);
-                if (!piiCategories.contains(piiCategoryResponse.getId())) {
-                    piiCategories.add(piiCategoryResponse.getId());
+                boolean isPiiCategoryAdded = false;
+                for (PurposePIICategory purposePIICategory : piiCategories) {
+                    if (purposePIICategory.getId().equals(piiCategoryResponse.getId())) {
+                        isPiiCategoryAdded = true;
+                        break;
+                    }
+                }
+                if (!isPiiCategoryAdded) {
+                    piiCategories.add(new PurposePIICategory(piiCategoryResponse.getId(), piiCategoryDTO.isMandatory()));
                 }
             }
         }));
-        purpose.setPiiCategoryIds(piiCategories);
+        purpose.setPurposePIICategories(piiCategories);
         getConsentManager().addPurpose(purpose);
     }
 

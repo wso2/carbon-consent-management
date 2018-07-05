@@ -21,38 +21,46 @@ package org.wso2.carbon.consent.mgt.core.constant;
  */
 public class SQLConstants {
 
-    public static final String INSERT_PURPOSE_SQL = "INSERT INTO CM_PURPOSE (NAME, DESCRIPTION, TENANT_ID) values (?," +
-            " ?, ?)";
-    public static final String GET_PURPOSE_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM CM_PURPOSE WHERE" +
-            " ID = ?";
-    public static final String GET_PURPOSE_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM CM_PURPOSE " +
-            "WHERE NAME = ? AND TENANT_ID = ?";
-    public static final String LIST_PAGINATED_PURPOSE_MYSQL = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM " +
-            "CM_PURPOSE WHERE TENANT_ID = ? ORDER BY ID ASC LIMIT ?" +
-            " OFFSET ?";
+    public static final String INSERT_PURPOSE_SQL = "INSERT INTO CM_PURPOSE (NAME, DESCRIPTION, PURPOSE_GROUP, " +
+                                                    "GROUP_TYPE, IS_MANDATORY, TENANT_ID) values (?, ?, ?, ?, ?, ?)";
+    public static final String GET_PURPOSE_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, " +
+                                                       "IS_MANDATORY, TENANT_ID FROM CM_PURPOSE WHERE ID = ?";
+    public static final String GET_PURPOSE_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, " +
+                                                         "IS_MANDATORY, TENANT_ID FROM CM_PURPOSE WHERE NAME = ? AND " +
+                                                         "TENANT_ID = ?";
+    public static final String LIST_PAGINATED_PURPOSE_MYSQL = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
+                                                              "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM CM_PURPOSE " +
+                                                              "WHERE TENANT_ID = ? ORDER BY ID ASC LIMIT ? OFFSET ?";
 
-    public static final String LIST_PAGINATED_PURPOSE_DB2 = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM " +
-            "(SELECT ROW_NUMBER() OVER (ORDER BY ID) AS rn, p.*  FROM CM_PURPOSE AS" +
-            " p) WHERE TENANT_ID =? AND rn BETWEEN ? AND ?";
+    public static final String LIST_PAGINATED_PURPOSE_DB2 = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE," +
+                                                            " IS_MANDATORY, TENANT_ID FROM (SELECT ROW_NUMBER() OVER " +
+                                                            "(ORDER BY ID) AS rn, p.*  FROM CM_PURPOSE AS p) WHERE " +
+                                                            "TENANT_ID =? AND rn BETWEEN ? AND ?";
 
-    public static final String LIST_PAGINATED_PURPOSE_ORACLE = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM " +
-            "(SELECT ID, NAME, DESCRIPTION, TENANT_ID, rownum AS rnum " +
-            "FROM (SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM CM_PURPOSE ORDER BY ID) WHERE " +
-            "TENANT_ID =? AND rownum <= ?) WHERE  rnum > ?";
+    public static final String LIST_PAGINATED_PURPOSE_ORACLE = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
+                                                               "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM (SELECT ID, " +
+                                                               "NAME, DESCRIPTION, TENANT_ID, rownum AS rnum FROM " +
+                                                               "(SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
+                                                               "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM CM_PURPOSE " +
+                                                               "ORDER BY ID) WHERE TENANT_ID =? AND rownum <= ?) " +
+                                                               "WHERE  rnum > ?";
 
-    public static final String LIST_PAGINATED_PURPOSE_MSSQL = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM " +
-            "(SELECT ID, NAME, DESCRIPTION, TENANT_ID, ROW_NUMBER() OVER (ORDER BY ID) AS RowNum FROM " +
-            "CM_PURPOSE) AS P WHERE P.TENANT_ID = ? AND P.RowNum BETWEEN ? AND ?";
+    public static final String LIST_PAGINATED_PURPOSE_MSSQL = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
+                                                              "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM (SELECT ID, " +
+                                                              "NAME, DESCRIPTION, TENANT_ID, ROW_NUMBER() OVER (ORDER" +
+                                                              " BY ID) AS RowNum FROM CM_PURPOSE) AS P WHERE P" +
+                                                              ".TENANT_ID = ? AND P.RowNum BETWEEN ? AND ?";
 
-    public static final String LIST_PAGINATED_PURPOSE_INFORMIX = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM " +
-            "CM_PURPOSE WHERE TENANT_ID = ? ORDER BY ID ASC LIMIT ?" +
-            " OFFSET ?";
+    public static final String LIST_PAGINATED_PURPOSE_INFORMIX = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
+                                                                 "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM CM_PURPOSE" +
+                                                                 " WHERE TENANT_ID = ? ORDER BY ID ASC LIMIT ? OFFSET" +
+                                                                 " ?";
 
     public static final String DELETE_PURPOSE_SQL = "DELETE FROM CM_PURPOSE WHERE ID = ?";
     public static final String INSERT_PII_CATEGORY_SQL = "INSERT INTO CM_PII_CATEGORY (NAME, DESCRIPTION," +
             "IS_SENSITIVE, TENANT_ID, DISPLAY_NAME) VALUES (?,?,?,?,?)";
     public static final String SELECT_PII_CATEGORY_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
-            "TENANT_ID,DISPLAY_NAME FROM CM_PII_CATEGORY WHERE ID = ?";
+            "TENANT_ID, DISPLAY_NAME FROM CM_PII_CATEGORY WHERE ID = ?";
     public static final String LIST_PAGINATED_PII_CATEGORY_MYSQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
             "TENANT_ID,DISPLAY_NAME FROM CM_PII_CATEGORY WHERE TENANT_ID = " +
             "? ORDER BY ID ASC LIMIT ? OFFSET ?";
@@ -312,12 +320,12 @@ public class SQLConstants {
             "AND STATE LIKE ?) AS RES WHERE RES.ROWNUM BETWEEN ? AND ?";
 
     public static final String INSERT_RECEIPT_PURPOSE_PII_ASSOC_SQL = "INSERT INTO CM_PURPOSE_PII_CAT_ASSOC " +
-            "(PURPOSE_ID, CM_PII_CATEGORY_ID) VALUES (?,?)";
+            "(PURPOSE_ID, CM_PII_CATEGORY_ID, IS_MANDATORY) VALUES (?,?,?)";
 
     public static final String REVOKE_RECEIPT_SQL = "UPDATE CM_RECEIPT SET STATE = ? WHERE CONSENT_RECEIPT_ID = ?";
 
-    public static final String GET_PURPOSE_PII_CAT_SQL = "SELECT CM_PII_CATEGORY_ID FROM CM_PURPOSE_PII_CAT_ASSOC " +
-            "WHERE PURPOSE_ID = ?";
+    public static final String GET_PURPOSE_PII_CAT_SQL = "SELECT CM_PII_CATEGORY_ID, IS_MANDATORY FROM " +
+                                                         "CM_PURPOSE_PII_CAT_ASSOC WHERE PURPOSE_ID = ?";
     public static final String GET_ACTIVE_RECEIPTS_SQL = "SELECT R.CONSENT_RECEIPT_ID FROM CM_RECEIPT R INNER JOIN " +
             "CM_RECEIPT_SP_ASSOC RA ON R.CONSENT_RECEIPT_ID=RA.CONSENT_RECEIPT_ID WHERE R.PII_PRINCIPAL_ID= ? AND RA" +
             ".SP_NAME=? AND R.PRINCIPAL_TENANT_ID=? AND RA.SP_TENANT_ID=? AND R.STATE='ACTIVE'";

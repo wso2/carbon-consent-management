@@ -21,6 +21,7 @@ import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.consent.mgt.core.util.JdbcUtils;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
@@ -74,25 +75,30 @@ public class PurposeDAOImpl implements PurposeDAO {
             insertedId = jdbcTemplate.executeInsert(INSERT_PURPOSE_SQL, (preparedStatement -> {
                 preparedStatement.setString(1, purpose.getName());
                 preparedStatement.setString(2, purpose.getDescription());
-                preparedStatement.setInt(3, purpose.getTenantId());
+                preparedStatement.setString(3, purpose.getGroup());
+                preparedStatement.setString(4, purpose.getGroupType());
+                preparedStatement.setInt(5, purpose.getMandatory() ? 1 : 0);
+                preparedStatement.setInt(6, purpose.getTenantId());
             }), purpose, true);
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE, purpose.getName(), e);
         }
 
-        purpose.getPiiCategoryIds().forEach(rethrowConsumer(id -> {
+        purpose.getPurposePIICategories().forEach(rethrowConsumer(piiCategory -> {
             try {
                 jdbcTemplate.executeInsert(INSERT_RECEIPT_PURPOSE_PII_ASSOC_SQL, (preparedStatement -> {
                     preparedStatement.setInt(1, insertedId);
-                    preparedStatement.setInt(2, id);
-                }), id, false);
+                    preparedStatement.setInt(2, piiCategory.getId());
+                    preparedStatement.setInt(3, piiCategory.getMandatory() ? 1 : 0);
+                }), piiCategory, false);
             } catch (DataAccessException e) {
                 throw ConsentUtils.handleServerException(ErrorMessages
                                                      .ERROR_CODE_ADD_PURPOSE_PII_ASSOC, String.valueOf(insertedId), e);
             }
         }));
-        purposeResult = new Purpose(insertedId, purpose.getName(), purpose.getDescription(), purpose.getTenantId(),
-                purpose.getPiiCategoryIds());
+        purposeResult = new Purpose(insertedId, purpose.getName(), purpose.getDescription(), purpose.getGroup(),
+                                    purpose.getGroupType(), purpose.getMandatory(), purpose.getTenantId(), purpose
+                                            .getPurposePIICategories());
         return purposeResult;
     }
 
@@ -108,7 +114,8 @@ public class PurposeDAOImpl implements PurposeDAO {
         try {
             purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_ID_SQL, (resultSet, rowNumber) ->
                             new Purpose(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
-                                    resultSet.getInt(4)),
+                                        resultSet.getString(4), resultSet.getString(5), resultSet.getInt(6) == 1,
+                                        resultSet.getInt(7)),
                     preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_ID, String.valueOf(id), e);
@@ -116,11 +123,13 @@ public class PurposeDAOImpl implements PurposeDAO {
 
         if (purpose != null) {
             try {
-                List<Integer> piiCategories = new ArrayList<>();
+                List<PurposePIICategory> piiCategories = new ArrayList<>();
                 jdbcTemplate.executeQuery(GET_PURPOSE_PII_CAT_SQL, (resultSet, rowNumber) ->
-                                piiCategories.add(resultSet.getInt(1)),
+                                                  piiCategories.add(new PurposePIICategory(
+                                                          resultSet.getInt(1),
+                                                          resultSet.getInt(2) == 1)),
                         preparedStatement -> preparedStatement.setInt(1, purpose.getId()));
-                purpose.setPiiCategoryIds(piiCategories);
+                purpose.setPurposePIICategories(piiCategories);
             } catch (DataAccessException e) {
                 throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_ID, String.valueOf(id), e);
             }
@@ -139,7 +148,13 @@ public class PurposeDAOImpl implements PurposeDAO {
 
         try {
             purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_NAME_SQL, (resultSet, rowNumber) ->
-                            new Purpose(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3)),
+                                                             new Purpose(resultSet.getInt(1),
+                                                                         resultSet.getString(2),
+                                                                         resultSet.getString(3),
+                                                                         resultSet.getString(4),
+                                                                         resultSet.getString(5),
+                                                                         resultSet.getInt(6) == 1,
+                                                                         resultSet.getInt(7)),
                     preparedStatement -> {
                         preparedStatement.setString(1, name);
                         preparedStatement.setInt(2, tenantId);
@@ -182,7 +197,8 @@ public class PurposeDAOImpl implements PurposeDAO {
             purposes = jdbcTemplate.executeQuery(query,
                     (resultSet, rowNumber) -> new Purpose(resultSet.getInt(1),
                             resultSet.getString(2),
-                            resultSet.getString(3)),
+                            resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet
+                                                                  .getInt(6) == 1, resultSet.getInt(7)),
                     preparedStatement -> {
                         preparedStatement.setInt(1, tenantId);
                         preparedStatement.setInt(2, finalLimit);

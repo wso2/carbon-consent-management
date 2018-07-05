@@ -10,11 +10,11 @@ import javax.validation.constraints.NotNull;
 
 
 /**
- * The physical address of PII controller. Postal address for contacting the PII Controller. This is complient with the schema https://schema.org/PostalAddress.
+ * The physical address of PII controller. Postal address for contacting the PII Controller. This is compliant with the schema https://schema.org/PostalAddress.
  **/
 
 
-@ApiModel(description = "The physical address of PII controller. Postal address for contacting the PII Controller. This is complient with the schema https://schema.org/PostalAddress.")
+@ApiModel(description = "The physical address of PII controller. Postal address for contacting the PII Controller. This is compliant with the schema https://schema.org/PostalAddress.")
 public class AddressDTO  {
   
   

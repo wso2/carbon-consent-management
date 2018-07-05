@@ -45,6 +45,8 @@
     String BUNDLE = "org.wso2.carbon.consent.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     String forwardTo = null;
+    String defaultConsentGroup = "DEFAULT";
+    String defaultConsentGroupType = "SP";
     
     try {
         String currentUser = (String) session.getAttribute("logged-user");
@@ -81,6 +83,9 @@
         purposeRequestDTO.setPurpose(name);
     
         purposeRequestDTO.setDescription(description == null ? "" : description);
+        purposeRequestDTO.setGroup(defaultConsentGroup);
+        purposeRequestDTO.setGroupType(defaultConsentGroupType);
+        purposeRequestDTO.setMandatory(false);
         purposeRequestDTO.setPiiCategories(categories);
         serviceClient.addPurpose(purposeRequestDTO);
         
