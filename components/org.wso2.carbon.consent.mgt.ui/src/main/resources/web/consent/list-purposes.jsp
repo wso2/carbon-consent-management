@@ -89,6 +89,10 @@
                                         key="field.consent.id"/></th>
                                 <th class="leftCol-big"><fmt:message
                                         key="consent.mgt.description"/></th>
+                                <th class="leftCol-med"><fmt:message
+                                        key="consent.mgt.group"/></th>
+                                <th class="leftCol-med"><fmt:message
+                                        key="consent.mgt.group.type"/></th>
                                 <th style="width: 30%"><fmt:message
                                         key="consent.action"/></th>
                             </tr>
@@ -105,6 +109,10 @@
                                 <td><%=Encode.forHtml(purpose.getName())%>
                                 </td>
                                 <td><%=purpose.getDescription() != null ? Encode.forHtml(purpose.getDescription()) : ""%>
+                                </td>
+                                <td><%=purpose.getGroup() != null ? Encode.forHtml(purpose.getGroup()) : ""%>
+                                </td>
+                                <td><%=purpose.getGroupType() != null ? Encode.forHtml(purpose.getGroupType()) : ""%>
                                 </td>
                                 <%
                                     if (DEFAULT.equals(purpose.getName())) {

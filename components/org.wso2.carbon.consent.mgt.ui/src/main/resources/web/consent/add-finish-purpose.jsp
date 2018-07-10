@@ -55,6 +55,8 @@
         List<PiiCategoryDTO> categories = new ArrayList<PiiCategoryDTO>();
         name = request.getParameter("purposeName");
         String description = request.getParameter("purpose.description");
+        String group = request.getParameter("group");
+        String groupType = request.getParameter("groupType");
         int categoryCount = Integer.parseInt(request.getParameter("claimrow_name_count"));
         for (int i = 0; i < categoryCount; i++) {
             String claimInfo = request.getParameter("claimrow_name_wso2_" + i);
@@ -83,8 +85,8 @@
         purposeRequestDTO.setPurpose(name);
     
         purposeRequestDTO.setDescription(description == null ? "" : description);
-        purposeRequestDTO.setGroup(defaultConsentGroup);
-        purposeRequestDTO.setGroupType(defaultConsentGroupType);
+        purposeRequestDTO.setGroup(group);
+        purposeRequestDTO.setGroupType(groupType);
         purposeRequestDTO.setMandatory(false);
         purposeRequestDTO.setPiiCategories(categories);
         serviceClient.addPurpose(purposeRequestDTO);
