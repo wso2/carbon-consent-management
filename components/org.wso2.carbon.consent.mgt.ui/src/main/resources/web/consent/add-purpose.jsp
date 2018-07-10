@@ -83,6 +83,21 @@
                 CARBON.showWarningDialog("Purpose name cannot be empty");
                 return false;
             }
+            
+            reason = validateEmpty("group");
+            
+            if (reason != "") {
+                CARBON.showWarningDialog("Purpose group cannot be empty");
+                return false;
+            }
+
+            reason = validateEmpty("groupType");
+            
+            if (reason != "") {
+                CARBON.showWarningDialog("Purpose group type cannot be empty");
+                return false;
+            }
+
             return true
         }
 
@@ -159,7 +174,23 @@
                                                   style="width:300px"></textarea>
                                     </td>
                                 </tr>
-                                
+                                <tr>
+                                    <td>Group<font color="red">*</font></td>
+                                    <td><input type="text" name="group" id="group"
+                                                value=""
+                                                style="width:150px"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Group Type<font color="red">*</font>
+                                    </td>
+                                    <td><input type="text" name="groupType" id="groupType"
+                                                value=""
+                                                style="width:150px"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Mandatory</td>
+                                    <td><input type="checkbox" id="isPurposeMandatory" name="isPurposeMandatory"/></td>
+                                </tr>
                                 <tr>
                                     <td class="leftCol-med labelField customClaim"><fmt:message key='pii.categories'/>:</td>
                                     <td class="customClaim">
