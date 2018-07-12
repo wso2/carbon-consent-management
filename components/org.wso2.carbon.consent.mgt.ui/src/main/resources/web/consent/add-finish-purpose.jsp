@@ -32,6 +32,7 @@
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DESCRIPTION" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.consent.mgt.core.constant.ConsentConstants" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
@@ -47,6 +48,27 @@
     String forwardTo = null;
     String defaultConsentGroup = "DEFAULT";
     String defaultConsentGroupType = "SP";
+    String PURPOSE_GROUP = "purposeGroup";
+    String PURPOSE_GROUP_TYPE = "purposeGroupType";
+    String CALLBACK = "callback";
+    String purposeGroup = request.getParameter(PURPOSE_GROUP);
+    String purposeGroupType = request.getParameter(PURPOSE_GROUP_TYPE);
+    String callback = request.getParameter(CALLBACK);
+    String listPurposesPage = "list-purposes.jsp?";
+    String addPurposesPage = "add-purpose.jsp?";
+    
+    if (StringUtils.isNotEmpty(purposeGroup)) {
+        listPurposesPage = listPurposesPage + PURPOSE_GROUP + "=" + purposeGroup;
+        addPurposesPage = addPurposesPage + PURPOSE_GROUP + "=" + purposeGroup;
+    }
+    if (StringUtils.isNotEmpty(purposeGroupType)) {
+        listPurposesPage = listPurposesPage + "&" + PURPOSE_GROUP_TYPE + "=" + purposeGroupType;
+        addPurposesPage = addPurposesPage + "&" + PURPOSE_GROUP_TYPE + "=" + purposeGroupType;
+    }
+    if (StringUtils.isNotEmpty(callback)) {
+        listPurposesPage = listPurposesPage + "&" + CALLBACK + "=" + callback;
+        addPurposesPage = addPurposesPage + "&" + CALLBACK + "=" + callback;
+    }
     
     try {
         String currentUser = (String) session.getAttribute("logged-user");
@@ -99,15 +121,15 @@
     }
 
     if (CarbonUIUtil.isUserAuthorized(request, ConsentConstants.PERMISSION_CONSENT_MGT_LIST)) {
-        forwardTo = "list-purposes.jsp";
+        forwardTo = listPurposesPage;
     } else {
-        forwardTo = "add-purpose.jsp";
+        forwardTo = addPurposesPage;
     }
 %>
 
 <script type="text/javascript">
     function forward() {
-        location.href = "<%=forwardTo%>";
+        location.href = "<%=Encode.forJavaScript(forwardTo)%>";
     }
 
     forward();

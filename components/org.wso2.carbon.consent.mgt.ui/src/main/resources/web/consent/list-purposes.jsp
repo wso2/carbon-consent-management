@@ -37,6 +37,9 @@
                        resourceBundle="org.wso2.identity.consents.mgt.ui.i18n.Resources"
                        topPage="true" request="<%=request%>"/>
     <div id="middle">
+        <%
+            String callback = request.getParameter("callback");
+        %>
         <h2><fmt:message key='title.list.purposes'/></h2>
         <div id="workArea">
             
@@ -64,6 +67,10 @@
                     CARBON.showConfirmationDialog('Are you sure you want to delete "' + pName +
                         '" Purpose information?',
                         doDelete, null);
+                }
+
+                function doFinish() {
+                    location.href = "<%=Encode.forJavaScript(callback)%>";
                 }
             </script>
             
@@ -153,6 +160,12 @@
                                     }
                                 }
                             %>
+                            <tr>
+                                <td colspan="5" class="buttonRow">
+                                    <input type="button" class="button" value="<fmt:message key="finish"/>"
+                                           onclick="doFinish();"/>
+                                </td>
+                            </tr>
                             </tbody>
                             <% } else { %>
                             <tbody>

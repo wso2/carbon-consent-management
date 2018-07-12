@@ -34,6 +34,7 @@
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DESCRIPTION" %>
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DISPLAY_NAME" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
@@ -41,6 +42,25 @@
     String BUNDLE = "org.wso2.carbon.consent.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     List<LocalClaimDTO> claims = new ArrayList<LocalClaimDTO>();
+    String purposeGroup = request.getParameter("purposeGroup");
+    String purposeGroupType = request.getParameter("purposeGroupType");
+    boolean isPurposeGroupPresent = false;
+    boolean isPurposeGroupTypePresent = false;
+    String callback = request.getParameter("callback");
+    String addFinishPurposePage = "add-finish-purpose.jsp";
+    
+    if (StringUtils.isNotEmpty(callback)) {
+        addFinishPurposePage = addFinishPurposePage + "?callback=" + callback;
+    }
+    if (StringUtils.isNotEmpty(purposeGroup)) {
+        isPurposeGroupPresent = true;
+        addFinishPurposePage = addFinishPurposePage + "&purposeGroup=" + purposeGroup;
+    }
+    if (StringUtils.isNotEmpty(purposeGroupType)) {
+        isPurposeGroupTypePresent = true;
+        addFinishPurposePage = addFinishPurposePage + "&purposeGroupType=" + purposeGroupType;
+    }
+    
     try {
         String serverURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         ConfigurationContext configContext = (ConfigurationContext)
@@ -70,7 +90,7 @@
     </style>
     <script type="text/javascript">
         function doFinish() {
-            document.dataForm.action = "add-finish-purpose.jsp";
+            document.dataForm.action = "<%=Encode.forJavaScript(addFinishPurposePage)%>";
             if (doValidation() === true) {
                 document.dataForm.submit();
             }
@@ -102,7 +122,11 @@
         }
 
         function doCancel() {
+            <% if(StringUtils.isNotEmpty(callback)) {%>
+            location.href = '<%=Encode.forHtmlAttribute(callback)%>';
+            <%} else {%>
             location.href = 'list-purposes.jsp?region=region1&item=list_consent_menu';
+            <%}%>
         }
 
         var deleteClaimRows = [];
@@ -147,7 +171,8 @@
         <h2><fmt:message key="add.new.purpose"/></h2>
         
         <div id="workArea">
-            <form method="post" action="add-finish-purpose.jsp" name="dataForm" onsubmit="return doValidation();">
+            <form method="post" action="<%=Encode.forHtmlAttribute(addFinishPurposePage)%>" name="dataForm" onsubmit="return
+            doValidation();">
                 
                 <table class="styledLeft" id="purposeAdd" width="60%">
                     <thead>
@@ -175,17 +200,29 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>Group<font color="red">*</font></td>
-                                    <td><input type="text" name="group" id="group"
-                                                value=""
-                                                style="width:150px"/></td>
+                                    <td>Group<%if(!isPurposeGroupPresent) {%><font color="red">*</font> <%}%></td>
+                                    <td><% if (isPurposeGroupPresent) {%>
+                                        <input type="text" name="group" id="group" readOnly="true"
+                                               value="<%=Encode.forHtmlAttribute(purposeGroup)%>" style="width:150px;
+                                               border-style: none;"/>
+                                    <%} else { %>
+                                        <input type="text" name="group" id="group"
+                                               value="" style="width:150px"/>
+                                        <%}%>
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td>Group Type<font color="red">*</font>
+                                    <td>Group Type<%if(!isPurposeGroupTypePresent){%><font color="red">*</font> <%}%>
                                     </td>
-                                    <td><input type="text" name="groupType" id="groupType"
-                                                value=""
-                                                style="width:150px"/></td>
+                                    <td><% if (isPurposeGroupTypePresent) {%>
+                                        <input type="text" name="groupType" id="groupType" readOnly="true"
+                                               value="<%=Encode.forHtmlAttribute(purposeGroupType)%>" style="width:150px ;
+                                               border-style: none"/>
+                                        <%} else { %>
+                                        <input type="text" name="groupType" id="groupType"
+                                               value="" style="width:150px"/>
+                                        <%}%>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Mandatory</td>
