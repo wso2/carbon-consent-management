@@ -250,7 +250,7 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setMandatory(false);
         service.consentsPurposesPost(purposeRequestDTO);
 
-        Response getResponse = service.consentsPurposesGet(2, 0);
+        Response getResponse = service.consentsPurposesGet("*", "*", 2, 0);
         Assert.assertNotNull(getResponse);
     }
 

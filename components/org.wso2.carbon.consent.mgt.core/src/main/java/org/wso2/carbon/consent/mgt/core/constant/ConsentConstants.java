@@ -59,6 +59,8 @@ public class ConsentConstants {
     public static final String STATE = "STATE";
     public static final String RECEIPT_INPUT = "RECEIPT_INPUT";
     public static final String RESULT = "RESULT";
+    public static final String GROUP = "GROUP";
+    public static final String GROUP_TYPE = "GROUP_TYPE";
 
     public static final String MY_SQL = "MySQL";
     public static final String POSTGRE_SQL = "PostgreSQL";

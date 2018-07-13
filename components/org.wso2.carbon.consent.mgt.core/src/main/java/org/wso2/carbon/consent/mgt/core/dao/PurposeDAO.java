@@ -76,6 +76,18 @@ public interface PurposeDAO {
     List<Purpose> listPurposes(int limit, int offset, int tenantId) throws ConsentManagementException;
 
     /**
+     * List {@link Purpose} items for a given search criteria.
+     *
+     * @param limit Maximum number of results expected.
+     * @param offset Result offset.
+     * @param tenantId Tenant domain to be searched.
+     * @return List of {@link Purpose} entries.
+     * @throws ConsentManagementException If error occurs while searching the {@link Purpose}.
+     */
+    List<Purpose> listPurposes(String group, String groupType, int limit, int offset, int tenantId) throws
+            ConsentManagementException;
+
+    /**
      * Delete {@link Purpose} for a given ID.
      *
      * @param id ID of the {@link Purpose} to be deleted.

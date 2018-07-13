@@ -36,7 +36,7 @@ public abstract class ConsentsApiService {
     public abstract Response consentsPurposeCategoriesPost(PurposeCategoryRequestDTO purposeCategory);
     public abstract Response consentsPurposeCategoriesPurposeCategoryIdDelete(String purposeCategoryId);
     public abstract Response consentsPurposeCategoriesPurposeCategoryIdGet(String purposeCategoryId);
-    public abstract Response consentsPurposesGet(Integer limit,Integer offset);
+    public abstract Response consentsPurposesGet(String group,String groupType,Integer limit,Integer offset);
     public abstract Response consentsPurposesPost(PurposeRequestDTO purpose);
     public abstract Response consentsPurposesPurposeIdDelete(String purposeId);
     public abstract Response consentsPurposesPurposeIdGet(String purposeId);
