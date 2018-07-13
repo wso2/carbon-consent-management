@@ -50,7 +50,11 @@
     String addFinishPurposePage = "add-finish-purpose.jsp";
     
     if (StringUtils.isNotEmpty(callback)) {
-        addFinishPurposePage = addFinishPurposePage + "?callback=" + callback;
+        if (!callback.startsWith("/")) {
+            callback = "";
+        } else {
+            addFinishPurposePage = addFinishPurposePage + "?callback=" + callback;
+        }
     }
     if (StringUtils.isNotEmpty(purposeGroup)) {
         isPurposeGroupPresent = true;

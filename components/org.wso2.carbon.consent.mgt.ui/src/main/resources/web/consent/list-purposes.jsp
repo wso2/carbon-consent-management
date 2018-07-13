@@ -22,6 +22,7 @@
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.consent.mgt.core.constant.ConsentConstants" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
@@ -39,6 +40,22 @@
     <div id="middle">
         <%
             String callback = request.getParameter("callback");
+            String purposeGroup = request.getParameter("purposeGroup");
+            String purposeGroupType = request.getParameter("purposeGroupType");
+            String addPurposeLocation = "add-purpose.jsp?";
+            boolean callbackPresent = false;
+            if (StringUtils.isNotEmpty(callback)) {
+                if (!callback.startsWith("/")) {
+                    callback = "";
+                } else {
+                    callbackPresent = true;
+                }
+            }
+    
+            if (StringUtils.isNotEmpty(purposeGroup) && StringUtils.isNotEmpty(purposeGroupType) && callbackPresent) {
+                addPurposeLocation = addPurposeLocation + "purposeGroup=" + purposeGroup + "&purposeGroupType=" +
+                        purposeGroupType + "&callback=" + callback;
+            }
         %>
         <h2><fmt:message key='title.list.purposes'/></h2>
         <div id="workArea">
@@ -71,6 +88,9 @@
 
                 function doFinish() {
                     location.href = "<%=Encode.forJavaScript(callback)%>";
+                }
+                function addPurpose() {
+                    location.href = "<%=Encode.forJavaScript(addPurposeLocation)%>";
                 }
             </script>
             
@@ -160,12 +180,17 @@
                                     }
                                 }
                             %>
+                            <%if (callbackPresent) {%>
                             <tr>
                                 <td colspan="5" class="buttonRow">
                                     <input type="button" class="button" value="<fmt:message key="finish"/>"
                                            onclick="doFinish();"/>
+                                    <input type="button" class="button" value="<fmt:message key="add.new.purpose"/>"
+                                           onclick="addPurpose();"/>
                                 </td>
                             </tr>
+                            <%}%>
+                            
                             </tbody>
                             <% } else { %>
                             <tbody>

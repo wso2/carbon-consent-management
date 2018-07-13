@@ -66,8 +66,12 @@
         addPurposesPage = addPurposesPage + "&" + PURPOSE_GROUP_TYPE + "=" + purposeGroupType;
     }
     if (StringUtils.isNotEmpty(callback)) {
-        listPurposesPage = listPurposesPage + "&" + CALLBACK + "=" + callback;
-        addPurposesPage = addPurposesPage + "&" + CALLBACK + "=" + callback;
+        if (!callback.startsWith("/")) {
+            callback = "";
+        } else {
+            listPurposesPage = listPurposesPage + "&" + CALLBACK + "=" + callback;
+            addPurposesPage = addPurposesPage + "&" + CALLBACK + "=" + callback;
+        }
     }
     
     try {
