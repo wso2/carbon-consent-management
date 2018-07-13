@@ -21,6 +21,7 @@ package org.wso2.carbon.consent.mgt.core;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.service.component.annotations.Deactivate;
 import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
@@ -53,6 +54,8 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_USER_NOT_AUTHORIZED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GET_RECEIPT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GROUP;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GROUP_TYPE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE_CATEGORY;
@@ -198,6 +201,7 @@ public class InterceptingConsentManager implements ConsentManager {
                 .getResult();
     }
 
+    @Deactivate
     public List<Purpose> listPurposes(int limit, int offset) throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
@@ -220,6 +224,33 @@ public class InterceptingConsentManager implements ConsentManager {
                     properties.put(OFFSET, offset);
                 })
                 .getResult();
+    }
+
+    public List<Purpose> listPurposes(String group, String groupType, int limit, int offset) throws
+            ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<List<Purpose>, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_GET_PURPOSE_LIST, properties -> {
+            properties.put(GROUP, group);
+            properties.put(GROUP_TYPE, groupType);
+            properties.put(LIMIT, limit);
+            properties.put(OFFSET, offset);
+        })
+                       .executeWith(new OperationDelegate<List<Purpose>>() {
+                           @Override
+                           public List<Purpose> execute() throws ConsentManagementException {
+
+                               return consentManager.listPurposes(group, groupType, limit, offset);
+                           }
+                       })
+                       .intercept(POST_GET_PURPOSE_LIST, properties -> {
+                           properties.put(LIMIT, limit);
+                           properties.put(OFFSET, offset);
+                       })
+                       .getResult();
     }
 
     public void deletePurpose(int purposeId) throws ConsentManagementException {

@@ -54,6 +54,10 @@ import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrow
  */
 public class PurposeDAOImpl implements PurposeDAO {
 
+    private static final String SQL_FILTER_STRING_ANY = "%";
+    private static final String QUERY_FILTER_STRING_ANY = "*";
+    private static final String QUERY_FILTER_STRING_ANY_ESCAPED = "\\*";
+
     public PurposeDAOImpl() {
 
     }
@@ -170,6 +174,8 @@ public class PurposeDAOImpl implements PurposeDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         List<Purpose> purposes;
+        String group = SQL_FILTER_STRING_ANY;
+        String groupType = SQL_FILTER_STRING_ANY;
         try {
             String query;
             if (isH2MySqlOrPostgresDB()) {
@@ -201,12 +207,81 @@ public class PurposeDAOImpl implements PurposeDAO {
                                                                   .getInt(6) == 1, resultSet.getInt(7)),
                     preparedStatement -> {
                         preparedStatement.setInt(1, tenantId);
-                        preparedStatement.setInt(2, finalLimit);
-                        preparedStatement.setInt(3, finalOffset);
+                        preparedStatement.setString(2, group);
+                        preparedStatement.setString(3, groupType);
+                        preparedStatement.setInt(4, finalLimit);
+                        preparedStatement.setInt(5, finalOffset);
                     });
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_PURPOSE.getMessage(),
                     limit, offset), ErrorMessages.ERROR_CODE_LIST_PURPOSE.getCode(), e);
+        }
+        return purposes;
+    }
+
+    @Override
+    public List<Purpose> listPurposes(String group, String groupType, int limit, int offset, int tenantId) throws
+            ConsentManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        List<Purpose> purposes;
+        try {
+
+            if (StringUtils.isEmpty(group)) {
+                group = SQL_FILTER_STRING_ANY;
+            } else if (group.contains(QUERY_FILTER_STRING_ANY)) {
+                group = group.replaceAll(QUERY_FILTER_STRING_ANY_ESCAPED, SQL_FILTER_STRING_ANY);
+            }
+
+            if (StringUtils.isEmpty(groupType)) {
+                groupType = SQL_FILTER_STRING_ANY;
+            } else if (groupType.contains(QUERY_FILTER_STRING_ANY)) {
+                groupType = groupType.replaceAll(QUERY_FILTER_STRING_ANY_ESCAPED, SQL_FILTER_STRING_ANY);
+            }
+
+            String query;
+            if (isH2MySqlOrPostgresDB()) {
+                query = LIST_PAGINATED_PURPOSE_MYSQL;
+            } else if (isDB2DB()) {
+                query = LIST_PAGINATED_PURPOSE_DB2;
+                int initialOffset = offset;
+                offset = offset + limit;
+                limit = initialOffset + 1;
+            } else if (isMSSqlDB()) {
+                int initialOffset = offset;
+                offset = limit + offset;
+                limit = initialOffset + 1;
+                query = LIST_PAGINATED_PURPOSE_MSSQL;
+            } else if (isInformixDB()) {
+                query = LIST_PAGINATED_PURPOSE_INFORMIX;
+            } else {
+                //oracle
+                query = LIST_PAGINATED_PURPOSE_ORACLE;
+                limit = offset + limit;
+            }
+            int finalLimit = limit;
+            int finalOffset = offset;
+            String finalGroup = group;
+            String finalGroupType = groupType;
+
+            purposes = jdbcTemplate.executeQuery(query,
+                                                 (resultSet, rowNumber) -> new Purpose(resultSet.getInt(1),
+                                                                                       resultSet.getString(2),
+                                                                                       resultSet.getString(3),
+                                                                                       resultSet.getString(4),
+                                                                                       resultSet.getString(5),
+                                                                                       resultSet.getInt(6) == 1,
+                                                                                       resultSet.getInt(7)),
+                                                 preparedStatement -> {
+                                                     preparedStatement.setInt(1, tenantId);
+                                                     preparedStatement.setString(2, finalGroup);
+                                                     preparedStatement.setString(3, finalGroupType);
+                                                     preparedStatement.setInt(4, finalLimit);
+                                                     preparedStatement.setInt(5, finalOffset);
+                                                 });
+        } catch (DataAccessException e) {
+            throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_PURPOSE.getMessage(),
+                                                                     limit, offset), ErrorMessages.ERROR_CODE_LIST_PURPOSE.getCode(), e);
         }
         return purposes;
     }

@@ -245,10 +245,11 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
     }
 
     @Override
-    public Response consentsPurposesGet(Integer limit, Integer offset) {
+    public Response consentsPurposesGet(String group,String groupType,Integer limit,Integer offset) {
 
         try {
-            List<PurposeListResponseDTO> purposeListResponseDTOS = getPurposeListResponseDTO(limit, offset);
+            List<PurposeListResponseDTO> purposeListResponseDTOS = getPurposeListResponseDTO(group, groupType, limit,
+                                                                                             offset);
             return Response.ok().entity(purposeListResponseDTOS).build();
         } catch (ConsentManagementClientException e) {
             return handleBadRequestResponse(e);
@@ -405,7 +406,8 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
                 ERROR_CODE_PII_CATEGORY_ALREADY_EXIST.getCode().equals(e.getErrorCode());
     }
 
-    private List<PurposeListResponseDTO> getPurposeListResponseDTO(Integer limit, Integer offset)
+    private List<PurposeListResponseDTO> getPurposeListResponseDTO(String group, String groupType, Integer limit,
+                                                                   Integer offset)
             throws ConsentManagementException {
 
         if (limit == null) {
@@ -415,7 +417,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
         if (offset == null) {
             offset = 0;
         }
-        List<Purpose> purposes = getConsentManager().listPurposes(limit, offset);
+        List<Purpose> purposes = getConsentManager().listPurposes(group, groupType, limit, offset);
         return getPurposeResponseDTOList(purposes);
     }
 

@@ -259,10 +259,12 @@ public class ConsentsApi  {
         
         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
 
-    public Response consentsPurposesGet(@ApiParam(value = "Number of search results") @QueryParam("limit")  Integer limit,
+    public Response consentsPurposesGet(@ApiParam(value = "Purpose group") @QueryParam("group")  String group,
+    @ApiParam(value = "Type of the purpose group") @QueryParam("groupType")  String groupType,
+    @ApiParam(value = "Number of search results") @QueryParam("limit")  Integer limit,
     @ApiParam(value = "Start index of the search") @QueryParam("offset")  Integer offset)
     {
-    return delegate.consentsPurposesGet(limit,offset);
+    return delegate.consentsPurposesGet(group,groupType,limit,offset);
     }
     @POST
     @Path("/purposes")
