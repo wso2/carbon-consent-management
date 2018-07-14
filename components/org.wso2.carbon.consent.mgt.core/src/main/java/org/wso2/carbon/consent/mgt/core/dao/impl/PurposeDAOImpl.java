@@ -172,51 +172,7 @@ public class PurposeDAOImpl implements PurposeDAO {
     @Override
     public List<Purpose> listPurposes(int limit, int offset, int tenantId) throws ConsentManagementException {
 
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        List<Purpose> purposes;
-        String group = SQL_FILTER_STRING_ANY;
-        String groupType = SQL_FILTER_STRING_ANY;
-        try {
-            String query;
-            if (isH2MySqlOrPostgresDB()) {
-                query = LIST_PAGINATED_PURPOSE_MYSQL;
-            } else if (isDB2DB()) {
-                query = LIST_PAGINATED_PURPOSE_DB2;
-                int initialOffset = offset;
-                offset = offset + limit;
-                limit = initialOffset + 1;
-            } else if (isMSSqlDB()) {
-                int initialOffset = offset;
-                offset = limit + offset;
-                limit = initialOffset + 1;
-                query = LIST_PAGINATED_PURPOSE_MSSQL;
-            } else if (isInformixDB()) {
-                query = LIST_PAGINATED_PURPOSE_INFORMIX;
-            } else {
-                //oracle
-                query = LIST_PAGINATED_PURPOSE_ORACLE;
-                limit = offset + limit;
-            }
-            int finalLimit = limit;
-            int finalOffset = offset;
-
-            purposes = jdbcTemplate.executeQuery(query,
-                    (resultSet, rowNumber) -> new Purpose(resultSet.getInt(1),
-                            resultSet.getString(2),
-                            resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet
-                                                                  .getInt(6) == 1, resultSet.getInt(7)),
-                    preparedStatement -> {
-                        preparedStatement.setInt(1, tenantId);
-                        preparedStatement.setString(2, group);
-                        preparedStatement.setString(3, groupType);
-                        preparedStatement.setInt(4, finalLimit);
-                        preparedStatement.setInt(5, finalOffset);
-                    });
-        } catch (DataAccessException e) {
-            throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_PURPOSE.getMessage(),
-                    limit, offset), ErrorMessages.ERROR_CODE_LIST_PURPOSE.getCode(), e);
-        }
-        return purposes;
+        return listPurposes(QUERY_FILTER_STRING_ANY, QUERY_FILTER_STRING_ANY, limit, offset, tenantId);
     }
 
     @Override
@@ -281,7 +237,7 @@ public class PurposeDAOImpl implements PurposeDAO {
                                                  });
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_PURPOSE.getMessage(),
-                                                                     limit, offset), ErrorMessages.ERROR_CODE_LIST_PURPOSE.getCode(), e);
+                                 group, groupType, limit, offset), ErrorMessages.ERROR_CODE_LIST_PURPOSE.getCode(), e);
         }
         return purposes;
     }

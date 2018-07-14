@@ -90,8 +90,8 @@ public class ConsentConstants {
         ERROR_CODE_ADD_PURPOSE("CM_00007", "Error occurred while adding the purpose: %s"),
         ERROR_CODE_SELECT_PURPOSE_BY_ID("CM_00008", "Error occurred while retrieving purpose from DB for the ID: %s."),
         ERROR_CODE_DELETE_PURPOSE("CM_00009", "Error occurred while deleting purpose from DB for the ID: %s."),
-        ERROR_CODE_LIST_PURPOSE("CM_00010", "Error occurred while listing purpose from DB for limit: %s and offset: " +
-                "%s."),
+        ERROR_CODE_LIST_PURPOSE("CM_00010", "Error occurred while listing purpose from DB for group: %s, groupType: " +
+                                            "%s limit: %s and offset: %s."),
         ERROR_CODE_ADD_PII_CATEGORY("CM_00011", "Error occurred while adding the PII category: %s to DB."),
         ERROR_CODE_SELECT_PII_CATEGORY_BY_ID("CM_00012", "Error occurred while retrieving PII category from DB for " +
                 "the ID: %s."),
