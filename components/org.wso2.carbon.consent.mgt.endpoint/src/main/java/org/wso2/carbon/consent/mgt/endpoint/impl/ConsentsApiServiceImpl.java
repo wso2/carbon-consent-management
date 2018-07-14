@@ -245,7 +245,7 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
     }
 
     @Override
-    public Response consentsPurposesGet(String group,String groupType,Integer limit,Integer offset) {
+    public Response consentsPurposesGet(String group, String groupType, Integer limit, Integer offset) {
 
         try {
             List<PurposeListResponseDTO> purposeListResponseDTOS = getPurposeListResponseDTO(group, groupType, limit,
