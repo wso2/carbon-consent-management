@@ -30,31 +30,35 @@ public class SQLConstants {
                                                          "TENANT_ID = ?";
     public static final String LIST_PAGINATED_PURPOSE_MYSQL = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
                                                               "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM CM_PURPOSE " +
-                                                              "WHERE TENANT_ID = ? ORDER BY ID ASC LIMIT ? OFFSET ?";
+                                                              "WHERE TENANT_ID = ? AND PURPOSE_GROUP LIKE ? AND " +
+                                                              "GROUP_TYPE LIKE ? ORDER BY ID ASC LIMIT ? OFFSET ?";
 
     public static final String LIST_PAGINATED_PURPOSE_DB2 = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE," +
                                                             " IS_MANDATORY, TENANT_ID FROM (SELECT ROW_NUMBER() OVER " +
-                                                            "(ORDER BY ID) AS rn, p.*  FROM CM_PURPOSE AS p) WHERE " +
-                                                            "TENANT_ID =? AND rn BETWEEN ? AND ?";
+                                                            "(ORDER BY ID) AS rn, p.* FROM CM_PURPOSE AS p) WHERE " +
+                                                            "TENANT_ID =? AND PURPOSE_GROUP LIKE ? AND GROUP_TYPE " +
+                                                            "LIKE ? rn BETWEEN ? AND ?";
 
     public static final String LIST_PAGINATED_PURPOSE_ORACLE = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
                                                                "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM (SELECT ID, " +
                                                                "NAME, DESCRIPTION, TENANT_ID, rownum AS rnum FROM " +
                                                                "(SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
                                                                "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM CM_PURPOSE " +
-                                                               "ORDER BY ID) WHERE TENANT_ID =? AND rownum <= ?) " +
-                                                               "WHERE  rnum > ?";
+                                                               "ORDER BY ID) WHERE TENANT_ID =? AND PURPOSE_GROUP" +
+                                                               " LIKE ? AND GROUP_TYPE LIKE ? AND rownum <= ?) WHERE " +
+                                                               "rnum > ?";
 
     public static final String LIST_PAGINATED_PURPOSE_MSSQL = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
                                                               "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM (SELECT ID, " +
                                                               "NAME, DESCRIPTION, TENANT_ID, ROW_NUMBER() OVER (ORDER" +
                                                               " BY ID) AS RowNum FROM CM_PURPOSE) AS P WHERE P" +
-                                                              ".TENANT_ID = ? AND P.RowNum BETWEEN ? AND ?";
+                                                              ".TENANT_ID = ? AND PURPOSE_GROUP LIKE ? AND GROUP_TYPE" +
+                                                              " LIKE ? AND P.RowNum BETWEEN ? AND ?";
 
     public static final String LIST_PAGINATED_PURPOSE_INFORMIX = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
                                                                  "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM CM_PURPOSE" +
-                                                                 " WHERE TENANT_ID = ? ORDER BY ID ASC LIMIT ? OFFSET" +
-                                                                 " ?";
+                                                                 " WHERE TENANT_ID = ? AND PURPOSE_GROUP LIKE ? AND " +
+                                                                 "GROUP_TYPE LIKE ? ORDER BY ID ASC LIMIT ? OFFSET ?";
 
     public static final String DELETE_PURPOSE_SQL = "DELETE FROM CM_PURPOSE WHERE ID = ?";
     public static final String INSERT_PII_CATEGORY_SQL = "INSERT INTO CM_PII_CATEGORY (NAME, DESCRIPTION," +

@@ -63,6 +63,12 @@ public class ConsentManagementServiceClient {
         return purposes.toArray(new Purpose[purposes.size()]);
     }
 
+
+    public Purpose[] listPurposes(String purposeGroupName , String purposeGroupType) throws ConsentManagementException {
+
+        List<Purpose> purposes = getConsentManager().listPurposes(purposeGroupName, purposeGroupType, 0, 0);
+        return purposes.toArray(new Purpose[purposes.size()]);
+    }
     public Purpose getPurpose(int purposeId) throws ConsentManagementException {
 
         return getConsentManager().getPurpose(purposeId);

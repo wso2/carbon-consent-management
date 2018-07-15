@@ -63,13 +63,27 @@ public interface ConsentManager {
 
     /**
      * This API is used to get all or filtered existing purposes.
+     * This method is deprecated. Use listPurposes(group, groupType, limit, offset) instead.
      *
      * @param limit  Number of search results.
      * @param offset Start index of the search.
      * @return 200 OK with Filtered list of Purpose elements
      * @throws ConsentManagementException Consent Management Exception.
      */
+    @Deprecated
     List<Purpose> listPurposes(int limit, int offset) throws ConsentManagementException;
+
+    /**
+     * This API is used to get all or filtered existing purposes.
+     *
+     * @param group Name of the purpose group.
+     * @param groupType Type of the purpose group
+     * @param limit  Number of search results.
+     * @param offset Start index of the search.
+     * @return Filtered list of Purpose elements
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    List<Purpose> listPurposes(String group, String groupType, int limit, int offset) throws ConsentManagementException;
 
     /**
      * This api is used to delete existing purpose by purpose Id.

@@ -22,6 +22,8 @@
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.consent.mgt.core.constant.ConsentConstants" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="java.text.MessageFormat" %>
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
@@ -37,7 +39,37 @@
                        resourceBundle="org.wso2.identity.consents.mgt.ui.i18n.Resources"
                        topPage="true" request="<%=request%>"/>
     <div id="middle">
-        <h2><fmt:message key='title.list.purposes'/></h2>
+        <%
+            String BUNDLE = "org.wso2.carbon.consent.mgt.ui.i18n.Resources";
+            ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+            String callback = request.getParameter("callback");
+            String purposeGroup = request.getParameter("purposeGroup");
+            String purposeGroupType = request.getParameter("purposeGroupType");
+            String addPurposeLocation = "add-purpose.jsp?";
+            String listPurposeLocation = "list-purposes.jsp?";
+            String urlAppender = null;
+            boolean isPurposeGroupPresent = StringUtils.isNotEmpty(purposeGroup);
+            boolean isPurposeGroupTypePresent = StringUtils.isNotEmpty(purposeGroupType);
+            boolean callbackPresent = false;
+            if (StringUtils.isNotEmpty(callback)) {
+                if (!callback.startsWith("/")) {
+                    callback = "";
+                } else {
+                    callbackPresent = true;
+                }
+            }
+    
+            if (isPurposeGroupPresent && isPurposeGroupTypePresent && callbackPresent) {
+                urlAppender = "purposeGroup=" + purposeGroup + "&purposeGroupType=" +
+                        purposeGroupType + "&callback=" + callback;
+                addPurposeLocation = addPurposeLocation + urlAppender;
+                listPurposeLocation = listPurposeLocation + urlAppender;
+            } else {
+                purposeGroupType = "";
+            }
+        %>
+        <h2><%=Encode.forHtmlContent(MessageFormat.format(resourceBundle.getString("title.list.purposes"), purposeGroupType))%></h2>
+        
         <div id="workArea">
             
             <script type="text/javascript">
@@ -55,7 +87,7 @@
                             async: false,
                             success: function (responseText, status) {
                                 if (status == "success") {
-                                    location.assign("list-purposes.jsp");
+                                    location.assign("<%=listPurposeLocation%>");
                                 }
                             }
                         });
@@ -65,18 +97,26 @@
                         '" Purpose information?',
                         doDelete, null);
                 }
+
+                function doFinish() {
+                    location.href = "<%=Encode.forJavaScript(callback)%>";
+                }
+                function addPurpose() {
+                    location.href = "<%=Encode.forJavaScript(addPurposeLocation)%>";
+                }
             </script>
             
             <%
                 Purpose[] purposes = null;
                 
-                String BUNDLE = "org.wso2.carbon.consent.mgt.ui.i18n.Resources";
-                ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
-                
                 try {
                     String currentUser = (String) session.getAttribute(LOGGED_USER);
                     ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
-                    purposes = serviceClient.listPurposes();
+                    if (isPurposeGroupPresent && isPurposeGroupTypePresent) {
+                        purposes = serviceClient.listPurposes(purposeGroup, purposeGroupType);
+                    } else {
+                        purposes = serviceClient.listPurposes();
+                    }
                 } catch (Exception e) {
                     String message = resourceBundle.getString("error.while.listing.purpose");
                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
@@ -89,6 +129,16 @@
                                         key="field.consent.id"/></th>
                                 <th class="leftCol-big"><fmt:message
                                         key="consent.mgt.description"/></th>
+                                <% if (!isPurposeGroupPresent) {%>
+                                <th class="leftCol-med"><fmt:message
+                                        key="consent.mgt.group"/></th>
+                                <%}%>
+                                <%if (!isPurposeGroupTypePresent) { %>
+                                <th class="leftCol-med"><fmt:message
+                                        key="consent.mgt.group.type"/></th>
+                                <%}%>
+                                <th class="leftCol-med"><fmt:message
+                                        key="mandatory"/></th>
                                 <th style="width: 30%"><fmt:message
                                         key="consent.action"/></th>
                             </tr>
@@ -106,6 +156,21 @@
                                 </td>
                                 <td><%=purpose.getDescription() != null ? Encode.forHtml(purpose.getDescription()) : ""%>
                                 </td>
+                                <% if (!isPurposeGroupPresent) { %>
+                                <td><%=purpose.getGroup() != null ? Encode.forHtml(purpose.getGroup()) : ""%>
+                                </td>
+                                <%}%>
+                                <% if (!isPurposeGroupTypePresent) {%>
+                                <td><%=purpose.getGroupType() != null ? Encode.forHtml(purpose.getGroupType()) : ""%>
+                                </td>
+                                <%}%>
+                                <td>
+                                <%if (purpose.getMandatory()) { %>
+                                    <input type="checkbox" disabled="disabled" checked="checked">
+                                <%} else {%>
+                                    <input type="checkbox" disabled="disabled">
+                                <%}%>
+                                </td>
                                 <%
                                     if (DEFAULT.equals(purpose.getName())) {
                                 %>
@@ -117,7 +182,15 @@
     
                                 <td style="width: 100px; white-space: nowrap;"><a
                                         title="View PII Categories"
-                                        href="view-pii-category.jsp?purposeId=<%=Encode.forUriComponent(String.valueOf(purpose.getId()))%>&purposeName=<%=Encode.forUriComponent(purpose.getName())%>"
+                                        <% if(callbackPresent) { %>
+                                        href="view-pii-category.jsp?purposeId=<%=Encode.forHtmlAttribute(
+                                                String.valueOf(purpose.getId()))%>&purposeName=<%=Encode.forHtmlAttribute(
+                                                        purpose.getName() + "&" + urlAppender)%>"
+                                        <%} else {%>
+                                        href="view-pii-category.jsp?purposeId=<%=Encode.forHtmlAttribute(
+                                                String.valueOf(purpose.getId()))%>&purposeName=<%=Encode.forHtmlAttribute(
+                                                        purpose.getName())%>"
+                                        <%}%>
                                         class="icon-link"
                                         style="background-image: url(../admin/images/edit.gif)"><fmt:message
                                         key='view.pii.cat'/></a>
@@ -145,12 +218,33 @@
                                     }
                                 }
                             %>
+                            <%if (callbackPresent) {%>
+                            <tr>
+                                <td colspan="5" class="buttonRow">
+                                    <input type="button" class="button" value="<fmt:message key="finish"/>"
+                                           onclick="doFinish();"/>
+                                    <input type="button" class="button" value="<fmt:message key="add.new.purpose"/>"
+                                           onclick="addPurpose();"/>
+                                </td>
+                            </tr>
+                            <%}%>
+                            
                             </tbody>
                             <% } else { %>
                             <tbody>
                             <tr>
-                                <td colspan="3"><i><fmt:message key='no.purpose.registered'/></i></td>
+                                <td colspan="5"><i><fmt:message key='no.purpose.registered'/></i></td>
                             </tr>
+                            <%if (callbackPresent) {%>
+                            <tr>
+                                <td colspan="5" class="buttonRow">
+                                    <input type="button" class="button" value="<fmt:message key="finish"/>"
+                                           onclick="doFinish();"/>
+                                    <input type="button" class="button" value="<fmt:message key="add.new.purpose"/>"
+                                           onclick="addPurpose();"/>
+                                </td>
+                            </tr>
+                            <%}%>
                             </tbody>
                             <% } %>
                         </table>

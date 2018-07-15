@@ -25,6 +25,7 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%! private static final String LOGGED_USER = "logged-user";
     private static final String PURPOSE_ID = "purposeId";
     private static final String PURPOSE_NAME = "purposeName";
@@ -40,6 +41,17 @@
 
     Purpose purpose = null;
     List<PurposePIICategory> piiCategories = new ArrayList<PurposePIICategory>();
+    
+    String callback = request.getParameter("callback");
+    String purposeGroup = request.getParameter("purposeGroup");
+    String purposeGroupType = request.getParameter("purposeGroupType");
+    String listPurposePage = "list-purposes.jsp?region=region1&item=list_consent_menu";
+    
+    if (StringUtils.isNotEmpty(callback) && StringUtils.isNotEmpty(purposeGroup) &&
+            StringUtils.isNotEmpty(purposeGroupType) && callback.startsWith("/")) {
+        listPurposePage = listPurposePage + "&purposeGroup=" + purposeGroup + "&purposeGroupType=" + purposeGroupType
+                + "&callback=" + callback;
+    }
 
     try {
         String currentUser = (String) session.getAttribute(LOGGED_USER);
@@ -64,7 +76,7 @@
 
             <script type="text/javascript">
                 function doCancel() {
-                    location.href = '<%=Encode.forJavaScriptBlock("list-purposes.jsp?region=region1&item=list_consent_menu")%>';
+                    location.href = '<%=Encode.forJavaScriptBlock(listPurposePage)%>';
                 }
             </script>
 
@@ -74,6 +86,7 @@
                                 <th class="leftCol-med"><fmt:message key="field.pii.consent.id"/></th>
                                 <th class="leftCol-big"><fmt:message key="consent.mgt.displayname"/></th>
                                 <th class="leftCol-big"><fmt:message key="consent.mgt.description"/></th>
+                                <th class="leftCol-big"><fmt:message key="mandatory"/></th>
                             </tr>
                             </thead>
                             <%
@@ -90,6 +103,13 @@
                                 </td>
                                 <td><%=piiCategory.getDescription() != null ? Encode.forHtml(piiCategory.getDescription()) : ""%>
                                 </td>
+                                <td>  
+                                <%if (piiCategory.getMandatory()) { %>
+                                    <input type="checkbox" disabled="disabled" checked="checked">
+                                <%} else {%>
+                                    <input type="checkbox" disabled="disabled">
+                                <%}%>    
+                                </td>
                             </tr>
                             <%
                                 }
@@ -98,7 +118,7 @@
                             <% } else { %>
                             <tbody>
                             <tr>
-                                <td colspan="3"><i><fmt:message key="no.pii.cat.registered"/></i></td>
+                                <td colspan="4"><i><fmt:message key="no.pii.cat.registered"/></i></td>
                             </tr>
                             </tbody>
                             <% } %>

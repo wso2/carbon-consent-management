@@ -51,6 +51,7 @@ import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeCategoryRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeGetResponseDTO;
+import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeListResponseDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.PurposeRequestDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ServiceDTO;
 import org.wso2.carbon.consent.mgt.endpoint.exception.ConflictRequestException;
@@ -250,10 +251,63 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setMandatory(false);
         service.consentsPurposesPost(purposeRequestDTO);
 
-        Response getResponse = service.consentsPurposesGet(2, 0);
+        Response getResponse = service.consentsPurposesGet("*", "*", 2, 0);
         Assert.assertNotNull(getResponse);
     }
 
+    @Test
+    public void testConsentsPurposesWithGroupFilter() throws Exception {
+
+        ConsentsApiServiceImpl service = new ConsentsApiServiceImpl();
+
+        PurposeRequestDTO purposeRequestDTO = new PurposeRequestDTO();
+        purposeRequestDTO.setPurpose("P1");
+        purposeRequestDTO.setDescription("D1");
+        purposeRequestDTO.setGroup("SIGNUP");
+        purposeRequestDTO.setGroupType("SYSTEM");
+        purposeRequestDTO.setMandatory(true);
+        service.consentsPurposesPost(purposeRequestDTO);
+
+        purposeRequestDTO.setPurpose("P2");
+        purposeRequestDTO.setDescription("D2");
+        purposeRequestDTO.setGroup("JIT");
+        purposeRequestDTO.setGroupType("SYSTEM");
+        purposeRequestDTO.setMandatory(false);
+        service.consentsPurposesPost(purposeRequestDTO);
+
+        Response getResponse = service.consentsPurposesGet("JI*", "*", 2, 0);
+        Assert.assertNotNull(getResponse);
+
+        List<PurposeListResponseDTO> purposeList = (List<PurposeListResponseDTO>) getResponse.getEntity();
+        Assert.assertEquals(purposeList.size(), 1, "Purposes list should have 1 entry.");
+    }
+
+    @Test
+    public void testConsentsPurposesWithGroupTypeFilter() throws Exception {
+
+        ConsentsApiServiceImpl service = new ConsentsApiServiceImpl();
+
+        PurposeRequestDTO purposeRequestDTO = new PurposeRequestDTO();
+        purposeRequestDTO.setPurpose("P1");
+        purposeRequestDTO.setDescription("D1");
+        purposeRequestDTO.setGroup("SIGNUP");
+        purposeRequestDTO.setGroupType("SYSTEM");
+        purposeRequestDTO.setMandatory(true);
+        service.consentsPurposesPost(purposeRequestDTO);
+
+        purposeRequestDTO.setPurpose("P2");
+        purposeRequestDTO.setDescription("D2");
+        purposeRequestDTO.setGroup("JIT");
+        purposeRequestDTO.setGroupType("SP");
+        purposeRequestDTO.setMandatory(false);
+        service.consentsPurposesPost(purposeRequestDTO);
+
+        Response getResponse = service.consentsPurposesGet("*", "SYS*", 2, 0);
+        Assert.assertNotNull(getResponse);
+
+        List<PurposeListResponseDTO> purposeList = (List<PurposeListResponseDTO>) getResponse.getEntity();
+        Assert.assertEquals(purposeList.size(), 1, "Purposes list should have 1 entry.");
+    }
     @Test
     public void testConsentsPurposesPurposeIdDelete() throws Exception {
 
