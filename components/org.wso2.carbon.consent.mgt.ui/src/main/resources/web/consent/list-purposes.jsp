@@ -45,9 +45,11 @@
             String callback = request.getParameter("callback");
             String purposeGroup = request.getParameter("purposeGroup");
             String purposeGroupType = request.getParameter("purposeGroupType");
+            String addPurposeLocation = "add-purpose.jsp?";
+            String listPurposeLocation = "list-purposes.jsp?";
+            String urlAppender = null;
             boolean isPurposeGroupPresent = StringUtils.isNotEmpty(purposeGroup);
             boolean isPurposeGroupTypePresent = StringUtils.isNotEmpty(purposeGroupType);
-            String addPurposeLocation = "add-purpose.jsp?";
             boolean callbackPresent = false;
             if (StringUtils.isNotEmpty(callback)) {
                 if (!callback.startsWith("/")) {
@@ -58,8 +60,10 @@
             }
     
             if (isPurposeGroupPresent && isPurposeGroupTypePresent && callbackPresent) {
-                addPurposeLocation = addPurposeLocation + "purposeGroup=" + purposeGroup + "&purposeGroupType=" +
+                urlAppender = "purposeGroup=" + purposeGroup + "&purposeGroupType=" +
                         purposeGroupType + "&callback=" + callback;
+                addPurposeLocation = addPurposeLocation + urlAppender;
+                listPurposeLocation = listPurposeLocation + urlAppender;
             } else {
                 purposeGroupType = "";
             }
@@ -83,7 +87,7 @@
                             async: false,
                             success: function (responseText, status) {
                                 if (status == "success") {
-                                    location.assign("list-purposes.jsp");
+                                    location.assign("<%=listPurposeLocation%>");
                                 }
                             }
                         });
@@ -178,7 +182,15 @@
     
                                 <td style="width: 100px; white-space: nowrap;"><a
                                         title="View PII Categories"
-                                        href="view-pii-category.jsp?purposeId=<%=Encode.forUriComponent(String.valueOf(purpose.getId()))%>&purposeName=<%=Encode.forUriComponent(purpose.getName())%>"
+                                        <% if(callbackPresent) { %>
+                                        href="view-pii-category.jsp?purposeId=<%=Encode.forHtmlAttribute(
+                                                String.valueOf(purpose.getId()))%>&purposeName=<%=Encode.forHtmlAttribute(
+                                                        purpose.getName() + "&" + urlAppender)%>"
+                                        <%} else {%>
+                                        href="view-pii-category.jsp?purposeId=<%=Encode.forHtmlAttribute(
+                                                String.valueOf(purpose.getId()))%>&purposeName=<%=Encode.forHtmlAttribute(
+                                                        purpose.getName())%>"
+                                        <%}%>
                                         class="icon-link"
                                         style="background-image: url(../admin/images/edit.gif)"><fmt:message
                                         key='view.pii.cat'/></a>
@@ -221,8 +233,18 @@
                             <% } else { %>
                             <tbody>
                             <tr>
-                                <td colspan="3"><i><fmt:message key='no.purpose.registered'/></i></td>
+                                <td colspan="5"><i><fmt:message key='no.purpose.registered'/></i></td>
                             </tr>
+                            <%if (callbackPresent) {%>
+                            <tr>
+                                <td colspan="5" class="buttonRow">
+                                    <input type="button" class="button" value="<fmt:message key="finish"/>"
+                                           onclick="doFinish();"/>
+                                    <input type="button" class="button" value="<fmt:message key="add.new.purpose"/>"
+                                           onclick="addPurpose();"/>
+                                </td>
+                            </tr>
+                            <%}%>
                             </tbody>
                             <% } %>
                         </table>

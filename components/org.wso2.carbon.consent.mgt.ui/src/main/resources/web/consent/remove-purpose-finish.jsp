@@ -24,6 +24,7 @@
 <%@ page import="org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException" %>
 <%@ page
         import="static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_IS_ASSOCIATED" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%! public static final String LOGGED_USER = "logged-user";
     public static final String PURPOSE_NAME = "purposeName";
 %>
@@ -50,23 +51,34 @@
                 ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
                 
                 String purposeName = request.getParameter(PURPOSE_NAME);
+    
+                String callback = request.getParameter("callback");
+                String purposeGroup = request.getParameter("purposeGroup");
+                String purposeGroupType = request.getParameter("purposeGroupType");
+                String listPurposePage = "list-purposes.jsp";
+    
+                if (StringUtils.isNotEmpty(callback) && StringUtils.isNotEmpty(purposeGroup) &&
+                        StringUtils.isNotEmpty(purposeGroupType) && callback.startsWith("/")) {
+                    listPurposePage = listPurposePage + "?purposeGroup=" + purposeGroup + "&purposeGroupType=" +
+                            purposeGroupType + "&callback=" + callback;
+                }
                 
                 try {
                     String currentUser = (String) session.getAttribute(LOGGED_USER);
                     ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
                     serviceClient.deletePurposeByName(purposeName);
-                    forwardTo = "list-purposes.jsp";
+                    forwardTo = listPurposePage;
                 } catch (ConsentManagementException e) {
                     String message = resourceBundle.getString("error.while.delete.purpose");
                     if (ERROR_CODE_PURPOSE_IS_ASSOCIATED.getCode().equals(e.getErrorCode())) {
                         message = resourceBundle.getString("error.while.delete.purpose.used");
                     }
                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
-                    forwardTo = "list-purposes.jsp";
+                    forwardTo = listPurposePage;
                 } catch (Exception e) {
                     String message = resourceBundle.getString("error.while.delete.purpose");
                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
-                    forwardTo = "list-purposes.jsp";
+                    forwardTo = listPurposePage;
                 }
             %>
             
