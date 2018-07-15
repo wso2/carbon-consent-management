@@ -29,11 +29,12 @@ public class PiiCategoryDTO {
         this.name = name;
     }
 
-    public PiiCategoryDTO(String name, String displayName, String description) {
+    public PiiCategoryDTO(String name, String displayName, String description, boolean mandatory) {
 
         this.name = name;
         this.displayName = displayName;
         this.description = description;
+        this.mandatory = mandatory;
     }
 
     public PiiCategoryDTO(int id) {

@@ -74,6 +74,7 @@
                                 <th class="leftCol-med"><fmt:message key="field.pii.consent.id"/></th>
                                 <th class="leftCol-big"><fmt:message key="consent.mgt.displayname"/></th>
                                 <th class="leftCol-big"><fmt:message key="consent.mgt.description"/></th>
+                                <th class="leftCol-big"><fmt:message key="mandatory"/></th>
                             </tr>
                             </thead>
                             <%
@@ -89,6 +90,13 @@
                                 <td><%=piiCategory.getDisplayName() != null ? Encode.forHtml(piiCategory.getDisplayName()) : ""%>
                                 </td>
                                 <td><%=piiCategory.getDescription() != null ? Encode.forHtml(piiCategory.getDescription()) : ""%>
+                                </td>
+                                <td>  
+                                <%if (piiCategory.getMandatory()) { %>
+                                    <input type="checkbox" disabled="disabled" checked="checked">
+                                <%} else {%>
+                                    <input type="checkbox" disabled="disabled">
+                                <%}%>    
                                 </td>
                             </tr>
                             <%

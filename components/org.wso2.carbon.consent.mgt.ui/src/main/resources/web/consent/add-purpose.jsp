@@ -156,7 +156,8 @@
                 <%}%>
                 $("#claimrow_id_count").val(claimRowId + 1);
                 var newrow = jQuery('<tr><td><select class="claimrow_wso2" name="claimrow_name_wso2_' + claimRowId + '">' + option + '</select></td> ' +
-                    '<td><a onclick="deleteClaimRow(this)" class="icon-link" ' +
+                    '<td><input type="checkbox" name="claimrow_mandatory_'+ claimRowId + '">' +
+                    '</td><td><a onclick="deleteClaimRow(this)" class="icon-link" ' +
                     'style="background-image: url(images/delete.gif)">' +
                     'Delete' +
                     '</a></td></tr>');
@@ -247,6 +248,7 @@
                                             <thead>
                                             <tr>
                                                 <th><fmt:message key='wso2.pii.cat'/></th>
+                                                <th><fmt:message key='mandatory'/></th>
                                                 <th><fmt:message key='actions'/></th>
                                             </tr>
                                             </thead>
