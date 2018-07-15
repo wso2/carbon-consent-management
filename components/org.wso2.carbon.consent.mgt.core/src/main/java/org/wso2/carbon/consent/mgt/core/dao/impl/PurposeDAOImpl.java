@@ -159,10 +159,10 @@ public class PurposeDAOImpl implements PurposeDAO {
                                                                          resultSet.getString(5),
                                                                          resultSet.getInt(6) == 1,
                                                                          resultSet.getInt(7)),
-                    preparedStatement -> {
-                        preparedStatement.setString(1, name);
-                        preparedStatement.setInt(2, tenantId);
-                    });
+                                                     preparedStatement -> {
+                                                         preparedStatement.setString(1, name);
+                                                         preparedStatement.setInt(2, tenantId);
+                                                     });
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_NAME, name, e);
         }
