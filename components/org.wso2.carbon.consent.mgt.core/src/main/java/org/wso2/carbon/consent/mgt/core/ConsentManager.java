@@ -80,7 +80,7 @@ public interface ConsentManager {
      * @param groupType Type of the purpose group
      * @param limit  Number of search results.
      * @param offset Start index of the search.
-     * @return 200 OK with Filtered list of Purpose elements
+     * @return Filtered list of Purpose elements
      * @throws ConsentManagementException Consent Management Exception.
      */
     List<Purpose> listPurposes(String group, String groupType, int limit, int offset) throws ConsentManagementException;
