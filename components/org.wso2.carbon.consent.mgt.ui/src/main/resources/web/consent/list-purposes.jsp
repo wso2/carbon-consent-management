@@ -23,6 +23,7 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.consent.mgt.core.constant.ConsentConstants" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="java.text.MessageFormat" %>
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
@@ -39,9 +40,13 @@
                        topPage="true" request="<%=request%>"/>
     <div id="middle">
         <%
+            String BUNDLE = "org.wso2.carbon.consent.mgt.ui.i18n.Resources";
+            ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
             String callback = request.getParameter("callback");
             String purposeGroup = request.getParameter("purposeGroup");
             String purposeGroupType = request.getParameter("purposeGroupType");
+            boolean isPurposeGroupPresent = StringUtils.isNotEmpty(purposeGroup);
+            boolean isPurposeGroupTypePresent = StringUtils.isNotEmpty(purposeGroupType);
             String addPurposeLocation = "add-purpose.jsp?";
             boolean callbackPresent = false;
             if (StringUtils.isNotEmpty(callback)) {
@@ -52,12 +57,15 @@
                 }
             }
     
-            if (StringUtils.isNotEmpty(purposeGroup) && StringUtils.isNotEmpty(purposeGroupType) && callbackPresent) {
+            if (isPurposeGroupPresent && isPurposeGroupTypePresent && callbackPresent) {
                 addPurposeLocation = addPurposeLocation + "purposeGroup=" + purposeGroup + "&purposeGroupType=" +
                         purposeGroupType + "&callback=" + callback;
+            } else {
+                purposeGroupType = "";
             }
         %>
-        <h2><fmt:message key='title.list.purposes'/></h2>
+        <h2><%=Encode.forHtmlContent(MessageFormat.format(resourceBundle.getString("title.list.purposes"), purposeGroupType))%></h2>
+        
         <div id="workArea">
             
             <script type="text/javascript">
@@ -97,13 +105,14 @@
             <%
                 Purpose[] purposes = null;
                 
-                String BUNDLE = "org.wso2.carbon.consent.mgt.ui.i18n.Resources";
-                ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
-                
                 try {
                     String currentUser = (String) session.getAttribute(LOGGED_USER);
                     ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
-                    purposes = serviceClient.listPurposes();
+                    if (isPurposeGroupPresent && isPurposeGroupTypePresent) {
+                        purposes = serviceClient.listPurposes(purposeGroup, purposeGroupType);
+                    } else {
+                        purposes = serviceClient.listPurposes();
+                    }
                 } catch (Exception e) {
                     String message = resourceBundle.getString("error.while.listing.purpose");
                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
@@ -116,10 +125,14 @@
                                         key="field.consent.id"/></th>
                                 <th class="leftCol-big"><fmt:message
                                         key="consent.mgt.description"/></th>
+                                <% if (!isPurposeGroupPresent) {%>
                                 <th class="leftCol-med"><fmt:message
                                         key="consent.mgt.group"/></th>
+                                <%}%>
+                                <%if (!isPurposeGroupTypePresent) { %>
                                 <th class="leftCol-med"><fmt:message
                                         key="consent.mgt.group.type"/></th>
+                                <%}%>
                                 <th style="width: 30%"><fmt:message
                                         key="consent.action"/></th>
                             </tr>
@@ -137,10 +150,14 @@
                                 </td>
                                 <td><%=purpose.getDescription() != null ? Encode.forHtml(purpose.getDescription()) : ""%>
                                 </td>
+                                <% if (!isPurposeGroupPresent) { %>
                                 <td><%=purpose.getGroup() != null ? Encode.forHtml(purpose.getGroup()) : ""%>
                                 </td>
+                                <%}%>
+                                <% if (!isPurposeGroupTypePresent) {%>
                                 <td><%=purpose.getGroupType() != null ? Encode.forHtml(purpose.getGroupType()) : ""%>
                                 </td>
+                                <%}%>
                                 <%
                                     if (DEFAULT.equals(purpose.getName())) {
                                 %>
