@@ -151,18 +151,18 @@ public class PurposeDAOImpl implements PurposeDAO {
         Purpose purpose;
 
         try {
-            purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_NAME_SQL, (resultSet, rowNumber) ->
-                                                             new Purpose(resultSet.getInt(1),
-                                                                         resultSet.getString(2),
-                                                                         resultSet.getString(3),
-                                                                         resultSet.getString(4),
-                                                                         resultSet.getString(5),
-                                                                         resultSet.getInt(6) == 1,
-                                                                         resultSet.getInt(7)),
-                                                     preparedStatement -> {
-                                                         preparedStatement.setString(1, name);
-                                                         preparedStatement.setInt(2, tenantId);
-                                                     });
+            purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_NAME_SQL,
+                    (resultSet, rowNumber) -> new Purpose(resultSet.getInt(1),
+                            resultSet.getString(2),
+                            resultSet.getString(3),
+                            resultSet.getString(4),
+                            resultSet.getString(5),
+                            resultSet.getInt(6) == 1,
+                            resultSet.getInt(7)),
+                    preparedStatement -> {
+                         preparedStatement.setString(1, name);
+                         preparedStatement.setInt(2, tenantId);
+                    });
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_NAME, name, e);
         }
@@ -221,20 +221,20 @@ public class PurposeDAOImpl implements PurposeDAO {
             String finalGroupType = groupType;
 
             purposes = jdbcTemplate.executeQuery(query,
-                                                 (resultSet, rowNumber) -> new Purpose(resultSet.getInt(1),
-                                                                                       resultSet.getString(2),
-                                                                                       resultSet.getString(3),
-                                                                                       resultSet.getString(4),
-                                                                                       resultSet.getString(5),
-                                                                                       resultSet.getInt(6) == 1,
-                                                                                       resultSet.getInt(7)),
-                                                 preparedStatement -> {
-                                                     preparedStatement.setInt(1, tenantId);
-                                                     preparedStatement.setString(2, finalGroup);
-                                                     preparedStatement.setString(3, finalGroupType);
-                                                     preparedStatement.setInt(4, finalLimit);
-                                                     preparedStatement.setInt(5, finalOffset);
-                                                 });
+                    (resultSet, rowNumber) -> new Purpose(resultSet.getInt(1),
+                            resultSet.getString(2),
+                            resultSet.getString(3),
+                            resultSet.getString(4),
+                            resultSet.getString(5),
+                            resultSet.getInt(6) == 1,
+                            resultSet.getInt(7)),
+                    preparedStatement -> {
+                         preparedStatement.setInt(1, tenantId);
+                         preparedStatement.setString(2, finalGroup);
+                         preparedStatement.setString(3, finalGroupType);
+                         preparedStatement.setInt(4, finalLimit);
+                         preparedStatement.setInt(5, finalOffset);
+                    });
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_PURPOSE.getMessage(),
                                  group, groupType, limit, offset), ErrorMessages.ERROR_CODE_LIST_PURPOSE.getCode(), e);
