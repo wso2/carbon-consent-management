@@ -57,9 +57,9 @@ public class ConsentManagementServiceClient {
         this.loggedInUser = loggedInUser;
     }
 
-    public Purpose[] listPurposes() throws ConsentManagementException {
+    public Purpose[] listPurposes(String group, String groupType) throws ConsentManagementException {
 
-        List<Purpose> purposes = getConsentManager().listPurposes(0, 0);
+        List<Purpose> purposes = getConsentManager().listPurposes(group, groupType, 0, 0);
         return purposes.toArray(new Purpose[purposes.size()]);
     }
 
