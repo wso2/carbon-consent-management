@@ -103,7 +103,7 @@
                 try {
                     String currentUser = (String) session.getAttribute(LOGGED_USER);
                     ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
-                    purposes = serviceClient.listPurposes(purposeGroup, purposeGroupType);
+                    purposes = serviceClient.listPurposes();
                 } catch (Exception e) {
                     String message = resourceBundle.getString("error.while.listing.purpose");
                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
