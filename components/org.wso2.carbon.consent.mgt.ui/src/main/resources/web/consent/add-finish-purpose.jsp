@@ -83,9 +83,12 @@
         String description = request.getParameter("purpose.description");
         String group = request.getParameter("group");
         String groupType = request.getParameter("groupType");
+        boolean isPurposeMandatory = request.getParameter("isPurposeMandatory") != null;
         int categoryCount = Integer.parseInt(request.getParameter("claimrow_name_count"));
         for (int i = 0; i < categoryCount; i++) {
             String claimInfo = request.getParameter("claimrow_name_wso2_" + i);
+            boolean isPIICategoryMandatory = request.getParameter("claimrow_mandatory_" + i) != null;
+
             if (StringUtils.isNotBlank(claimInfo)) {
                 JSONObject jsonObject = new JSONObject(claimInfo);
                 String piiCatName = null;
@@ -104,7 +107,8 @@
                     piiCatDescription = (String) jsonObject.get(DESCRIPTION);
                 }
                 if (StringUtils.isNotBlank(piiCatName)) {
-                    categories.add(new PiiCategoryDTO(piiCatName, displayName, piiCatDescription));
+                    categories.add(new PiiCategoryDTO(piiCatName, displayName, piiCatDescription,
+                    isPIICategoryMandatory));
                 }
             }
         }
@@ -113,7 +117,7 @@
         purposeRequestDTO.setDescription(description == null ? "" : description);
         purposeRequestDTO.setGroup(group);
         purposeRequestDTO.setGroupType(groupType);
-        purposeRequestDTO.setMandatory(false);
+        purposeRequestDTO.setMandatory(isPurposeMandatory);
         purposeRequestDTO.setPiiCategories(categories);
         serviceClient.addPurpose(purposeRequestDTO);
         

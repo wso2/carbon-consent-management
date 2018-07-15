@@ -133,6 +133,8 @@
                                 <th class="leftCol-med"><fmt:message
                                         key="consent.mgt.group.type"/></th>
                                 <%}%>
+                                <th class="leftCol-med"><fmt:message
+                                        key="mandatory"/></th>
                                 <th style="width: 30%"><fmt:message
                                         key="consent.action"/></th>
                             </tr>
@@ -158,6 +160,13 @@
                                 <td><%=purpose.getGroupType() != null ? Encode.forHtml(purpose.getGroupType()) : ""%>
                                 </td>
                                 <%}%>
+                                <td>
+                                <%if (purpose.getMandatory()) { %>
+                                    <input type="checkbox" disabled="disabled" checked="checked">
+                                <%} else {%>
+                                    <input type="checkbox" disabled="disabled">
+                                <%}%>
+                                </td>
                                 <%
                                     if (DEFAULT.equals(purpose.getName())) {
                                 %>
