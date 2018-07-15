@@ -97,12 +97,12 @@ public class PurposeDAOImpl implements PurposeDAO {
                 }), piiCategory, false);
             } catch (DataAccessException e) {
                 throw ConsentUtils.handleServerException(ErrorMessages
-                                                     .ERROR_CODE_ADD_PURPOSE_PII_ASSOC, String.valueOf(insertedId), e);
+                        .ERROR_CODE_ADD_PURPOSE_PII_ASSOC, String.valueOf(insertedId), e);
             }
         }));
         purposeResult = new Purpose(insertedId, purpose.getName(), purpose.getDescription(), purpose.getGroup(),
-                                    purpose.getGroupType(), purpose.getMandatory(), purpose.getTenantId(), purpose
-                                            .getPurposePIICategories());
+                purpose.getGroupType(), purpose.getMandatory(), purpose.getTenantId(), purpose
+                .getPurposePIICategories());
         return purposeResult;
     }
 
@@ -118,8 +118,8 @@ public class PurposeDAOImpl implements PurposeDAO {
         try {
             purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_ID_SQL, (resultSet, rowNumber) ->
                             new Purpose(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
-                                        resultSet.getString(4), resultSet.getString(5), resultSet.getInt(6) == 1,
-                                        resultSet.getInt(7)),
+                                    resultSet.getString(4), resultSet.getString(5), resultSet.getInt(6) == 1,
+                                    resultSet.getInt(7)),
                     preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_ID, String.valueOf(id), e);
@@ -129,9 +129,9 @@ public class PurposeDAOImpl implements PurposeDAO {
             try {
                 List<PurposePIICategory> piiCategories = new ArrayList<>();
                 jdbcTemplate.executeQuery(GET_PURPOSE_PII_CAT_SQL, (resultSet, rowNumber) ->
-                                                  piiCategories.add(new PurposePIICategory(
-                                                          resultSet.getInt(1),
-                                                          resultSet.getInt(2) == 1)),
+                                piiCategories.add(new PurposePIICategory(
+                                        resultSet.getInt(1),
+                                        resultSet.getInt(2) == 1)),
                         preparedStatement -> preparedStatement.setInt(1, purpose.getId()));
                 purpose.setPurposePIICategories(piiCategories);
             } catch (DataAccessException e) {
@@ -160,8 +160,8 @@ public class PurposeDAOImpl implements PurposeDAO {
                             resultSet.getInt(6) == 1,
                             resultSet.getInt(7)),
                     preparedStatement -> {
-                         preparedStatement.setString(1, name);
-                         preparedStatement.setInt(2, tenantId);
+                        preparedStatement.setString(1, name);
+                        preparedStatement.setInt(2, tenantId);
                     });
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_NAME, name, e);
@@ -229,15 +229,15 @@ public class PurposeDAOImpl implements PurposeDAO {
                             resultSet.getInt(6) == 1,
                             resultSet.getInt(7)),
                     preparedStatement -> {
-                         preparedStatement.setInt(1, tenantId);
-                         preparedStatement.setString(2, finalGroup);
-                         preparedStatement.setString(3, finalGroupType);
-                         preparedStatement.setInt(4, finalLimit);
-                         preparedStatement.setInt(5, finalOffset);
+                        preparedStatement.setInt(1, tenantId);
+                        preparedStatement.setString(2, finalGroup);
+                        preparedStatement.setString(3, finalGroupType);
+                        preparedStatement.setInt(4, finalLimit);
+                        preparedStatement.setInt(5, finalOffset);
                     });
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_PURPOSE.getMessage(),
-                                 group, groupType, limit, offset), ErrorMessages.ERROR_CODE_LIST_PURPOSE.getCode(), e);
+                    group, groupType, limit, offset), ErrorMessages.ERROR_CODE_LIST_PURPOSE.getCode(), e);
         }
         return purposes;
     }
