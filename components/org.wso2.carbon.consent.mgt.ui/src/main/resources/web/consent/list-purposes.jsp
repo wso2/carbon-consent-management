@@ -60,8 +60,8 @@
             }
     
             if (isPurposeGroupPresent && isPurposeGroupTypePresent && callbackPresent) {
-                urlAppender = "purposeGroup=" + purposeGroup + "&purposeGroupType=" +
-                        purposeGroupType + "&callback=" + callback;
+                urlAppender = "purposeGroup=" + Encode.forUriComponent(purposeGroup) + "&purposeGroupType=" +
+                        Encode.forUriComponent(purposeGroupType) + "&callback=" + Encode.forUri(callback);
                 addPurposeLocation = addPurposeLocation + urlAppender;
                 listPurposeLocation = listPurposeLocation + urlAppender;
             } else {
@@ -87,7 +87,7 @@
                             async: false,
                             success: function (responseText, status) {
                                 if (status == "success") {
-                                    location.assign("<%=listPurposeLocation%>");
+                                    location.assign("<%=Encode.forJavaScript(listPurposeLocation)%>");
                                 }
                             }
                         });

@@ -54,25 +54,18 @@
     String purposeGroup = request.getParameter(PURPOSE_GROUP);
     String purposeGroupType = request.getParameter(PURPOSE_GROUP_TYPE);
     String callback = request.getParameter(CALLBACK);
-    String listPurposesPage = "list-purposes.jsp?";
-    String addPurposesPage = "add-purpose.jsp?";
+    String listPurposesPage = "list-purposes.jsp";
+    String addPurposesPage = "add-purpose.jsp";
     
-    if (StringUtils.isNotEmpty(purposeGroup)) {
-        listPurposesPage = listPurposesPage + PURPOSE_GROUP + "=" + purposeGroup;
-        addPurposesPage = addPurposesPage + PURPOSE_GROUP + "=" + purposeGroup;
+    if (StringUtils.isNotEmpty(callback) && callback.startsWith("/") && StringUtils.isNotEmpty(purposeGroup) &&
+            StringUtils.isNotEmpty(purposeGroupType)) {
+        
+        listPurposesPage = listPurposesPage + "?" + PURPOSE_GROUP + "=" + purposeGroup + "&" + PURPOSE_GROUP_TYPE +
+                "=" + purposeGroupType + "&" + CALLBACK + "=" + callback;
+        addPurposesPage = addPurposesPage + "?" + PURPOSE_GROUP + "=" + purposeGroup + "&" + PURPOSE_GROUP_TYPE +
+                "=" + purposeGroupType + "&" + CALLBACK + "=" + callback;
     }
-    if (StringUtils.isNotEmpty(purposeGroupType)) {
-        listPurposesPage = listPurposesPage + "&" + PURPOSE_GROUP_TYPE + "=" + purposeGroupType;
-        addPurposesPage = addPurposesPage + "&" + PURPOSE_GROUP_TYPE + "=" + purposeGroupType;
-    }
-    if (StringUtils.isNotEmpty(callback)) {
-        if (!callback.startsWith("/")) {
-            callback = "";
-        } else {
-            listPurposesPage = listPurposesPage + "&" + CALLBACK + "=" + callback;
-            addPurposesPage = addPurposesPage + "&" + CALLBACK + "=" + callback;
-        }
-    }
+    
     
     try {
         String currentUser = (String) session.getAttribute("logged-user");
