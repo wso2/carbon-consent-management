@@ -195,12 +195,14 @@ public class ConsentManagerImpl implements ConsentManager {
      * This API is used to get the purpose by purpose name.
      *
      * @param name Name of the purpose.
-     * @return 200 Ok with purpose element.
+     * @param group Name of the purpose group.
+     * @param groupType Type of the purpose group.
+     * @return Purpose matching the input criteria.
      * @throws ConsentManagementException Consent Management Exception.
      */
-    public Purpose getPurposeByName(String name) throws ConsentManagementException {
+    public Purpose getPurposeByName(String name, String group, String groupType) throws ConsentManagementException {
 
-        Purpose purposeByName = getPurposeFromName(name);
+        Purpose purposeByName = getPurposeFromName(name, group, groupType);
         if (purposeByName == null) {
             if (log.isDebugEnabled()) {
                 log.debug("No purpose found as the name: " + name + " in tenant domain: " +
@@ -285,15 +287,17 @@ public class ConsentManagerImpl implements ConsentManager {
     }
 
     /**
-     * This API is used to check whether a purpose exists with given name.
+     * This API is used to check whether a purpose exists with given name, group and groupType.
      *
      * @param name Name of the purpose.
+     * @param group Purpose group.
+     * @param groupType Purpose group type.
      * @return true, if an element is found.
      * @throws ConsentManagementException Consent Management Exception.
      */
-    public boolean isPurposeExists(String name) throws ConsentManagementException {
+    public boolean isPurposeExists(String name, String group, String groupType) throws ConsentManagementException {
 
-        return getPurposeFromName(name) != null;
+        return getPurposeFromName(name, group, groupType) != null;
     }
 
     /**
@@ -672,9 +676,9 @@ public class ConsentManagerImpl implements ConsentManager {
         return getReceiptsDAO(receiptDAOs).isReceiptExist(receiptId, tenantAwareUsername, tenantId);
     }
 
-    private Purpose getPurposeFromName(String name) throws ConsentManagementException {
+    private Purpose getPurposeFromName(String name, String group, String groupType) throws ConsentManagementException {
 
-        return getPurposeDAO(purposeDAOs).getPurposeByName(name, getTenantIdFromCarbonContext());
+        return getPurposeDAO(purposeDAOs).getPurposeByName(name, group, groupType, getTenantIdFromCarbonContext());
     }
 
     /**
@@ -1078,7 +1082,7 @@ public class ConsentManagerImpl implements ConsentManager {
             throw handleClientException(ERROR_CODE_PURPOSE_NAME_REQUIRED, null);
         }
 
-        if (isPurposeExists(purpose.getName())) {
+        if (isPurposeExists(purpose.getName(), purpose.getGroup(), purpose.getGroupType())) {
             if (log.isDebugEnabled()) {
                 log.debug("A purpose already exists with name: " + purpose.getName());
             }

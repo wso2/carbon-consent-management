@@ -56,10 +56,12 @@ public interface ConsentManager {
      * This API is used to get the purpose by purpose name.
      *
      * @param name Name of the purpose.
-     * @return 200 Ok with purpose element.
+     * @param group Name of the purpose group.
+     * @param groupType Type of the purpose group.
+     * @return Purpose matching the input criteria.
      * @throws ConsentManagementException Consent Management Exception.
      */
-    Purpose getPurposeByName(String name) throws ConsentManagementException;
+    Purpose getPurposeByName(String name, String group, String groupType) throws ConsentManagementException;
 
     /**
      * This API is used to get all or filtered existing purposes.
@@ -94,13 +96,15 @@ public interface ConsentManager {
     void deletePurpose(int purposeId) throws ConsentManagementException;
 
     /**
-     * This API is used to check whether a purpose exists with given name.
+     * This API is used to check whether a purpose exists with given name, group and groupType.
      *
      * @param name Name of the purpose.
+     * @param group Purpose group.
+     * @param groupType Purpose group type.
      * @return true, if an element is found.
      * @throws ConsentManagementException Consent Management Exception.
      */
-    boolean isPurposeExists(String name) throws ConsentManagementException;
+    boolean isPurposeExists(String name, String group, String groupType) throws ConsentManagementException;
 
     /**
      * This API is used to add a new purpose category.

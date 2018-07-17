@@ -66,7 +66,7 @@
                 try {
                     String currentUser = (String) session.getAttribute(LOGGED_USER);
                     ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
-                    serviceClient.deletePurposeByName(purposeName);
+                    serviceClient.deletePurposeByName(purposeName, purposeGroup, purposeGroupType);
                     forwardTo = listPurposePage;
                 } catch (ConsentManagementException e) {
                     String message = resourceBundle.getString("error.while.delete.purpose");

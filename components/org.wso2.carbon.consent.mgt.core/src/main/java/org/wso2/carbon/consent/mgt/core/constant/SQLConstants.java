@@ -27,7 +27,7 @@ public class SQLConstants {
                                                        "IS_MANDATORY, TENANT_ID FROM CM_PURPOSE WHERE ID = ?";
     public static final String GET_PURPOSE_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, " +
                                                          "IS_MANDATORY, TENANT_ID FROM CM_PURPOSE WHERE NAME = ? AND " +
-                                                         "TENANT_ID = ?";
+                                                         "PURPOSE_GROUP = ? AND GROUP_TYPE = ? AND TENANT_ID = ?";
     public static final String LIST_PAGINATED_PURPOSE_MYSQL = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
                                                               "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM CM_PURPOSE " +
                                                               "WHERE TENANT_ID = ? AND PURPOSE_GROUP LIKE ? AND " +
