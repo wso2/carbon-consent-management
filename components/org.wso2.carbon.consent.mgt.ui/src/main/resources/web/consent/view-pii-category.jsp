@@ -105,9 +105,9 @@
                                 </td>
                                 <td>  
                                 <%if (piiCategory.getMandatory()) { %>
-                                    <input type="checkbox" disabled="disabled" checked="checked">
+                                    <input type="checkbox" disabled="disabled" checked="checked" style="margin:0px;">
                                 <%} else {%>
-                                    <input type="checkbox" disabled="disabled">
+                                    <input type="checkbox" disabled="disabled" style="margin:0px;">
                                 <%}%>    
                                 </td>
                             </tr>
