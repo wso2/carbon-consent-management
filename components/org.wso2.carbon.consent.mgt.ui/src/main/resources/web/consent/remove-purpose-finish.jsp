@@ -25,6 +25,9 @@
 <%@ page
         import="static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_IS_ASSOCIATED" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="java.nio.charset.StandardCharsets" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <%! public static final String LOGGED_USER = "logged-user";
     public static final String PURPOSE_NAME = "purposeName";
 %>
@@ -60,7 +63,8 @@
                 if (StringUtils.isNotEmpty(callback) && StringUtils.isNotEmpty(purposeGroup) &&
                         StringUtils.isNotEmpty(purposeGroupType) && callback.startsWith("/")) {
                     listPurposePage = listPurposePage + "?purposeGroup=" + purposeGroup + "&purposeGroupType=" +
-                            purposeGroupType + "&callback=" + callback;
+                            purposeGroupType + "&callback=" + URLEncoder.encode(callback,
+                            StandardCharsets.UTF_8.name());
                 }
                 
                 try {
@@ -81,15 +85,15 @@
                     forwardTo = listPurposePage;
                 }
             %>
-            
+    
             <script type="text/javascript">
                 function forward() {
-                    location.href = "<%=forwardTo%>";
+                    location.href = "<%=Encode.forJavaScript(forwardTo)%>";
                 }
 
                 forward();
             </script>
-        
+
         </div>
     </div>
 </fmt:bundle>

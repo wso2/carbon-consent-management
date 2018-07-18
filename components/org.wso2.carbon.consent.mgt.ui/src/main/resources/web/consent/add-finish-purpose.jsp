@@ -33,6 +33,8 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.consent.mgt.core.constant.ConsentConstants" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="java.nio.charset.StandardCharsets" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
@@ -46,8 +48,6 @@
     String BUNDLE = "org.wso2.carbon.consent.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     String forwardTo = null;
-    String defaultConsentGroup = "DEFAULT";
-    String defaultConsentGroupType = "SP";
     String PURPOSE_GROUP = "purposeGroup";
     String PURPOSE_GROUP_TYPE = "purposeGroupType";
     String CALLBACK = "callback";
@@ -61,9 +61,11 @@
             StringUtils.isNotEmpty(purposeGroupType)) {
         
         listPurposesPage = listPurposesPage + "?" + PURPOSE_GROUP + "=" + purposeGroup + "&" + PURPOSE_GROUP_TYPE +
-                "=" + purposeGroupType + "&" + CALLBACK + "=" + callback;
+                "=" + purposeGroupType + "&" + CALLBACK + "=" + URLEncoder.encode(callback,
+                StandardCharsets.UTF_8.name());
         addPurposesPage = addPurposesPage + "?" + PURPOSE_GROUP + "=" + purposeGroup + "&" + PURPOSE_GROUP_TYPE +
-                "=" + purposeGroupType + "&" + CALLBACK + "=" + callback;
+                "=" + purposeGroupType + "&" + CALLBACK + "=" + URLEncoder.encode(callback,
+                StandardCharsets.UTF_8.name());
     }
     
     
