@@ -24,6 +24,8 @@
 <%@ page import="org.wso2.carbon.consent.mgt.core.constant.ConsentConstants" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="java.text.MessageFormat" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="java.nio.charset.StandardCharsets" %>
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
@@ -58,12 +60,13 @@
                     callbackPresent = true;
                 }
             }
-    
             if (isPurposeGroupPresent && isPurposeGroupTypePresent && callbackPresent) {
                 urlAppender = "purposeGroup=" + Encode.forUriComponent(purposeGroup) + "&purposeGroupType=" +
-                        Encode.forUriComponent(purposeGroupType) + "&callback=" + Encode.forUri(callback);
-                addPurposeLocation = addPurposeLocation + urlAppender;
-                listPurposeLocation = listPurposeLocation + urlAppender;
+                        Encode.forUriComponent(purposeGroupType);
+                addPurposeLocation = addPurposeLocation + urlAppender + "&callback=" + URLEncoder.encode(callback,
+                        StandardCharsets.UTF_8.name());
+                listPurposeLocation = listPurposeLocation + urlAppender + "&callback=" + URLEncoder.encode(callback,
+                        StandardCharsets.UTF_8.name());
             } else {
                 purposeGroupType = "";
             }
@@ -185,7 +188,9 @@
                                         <% if(callbackPresent) { %>
                                         href="view-pii-category.jsp?purposeId=<%=Encode.forHtmlAttribute(
                                                 String.valueOf(purpose.getId()))%>&purposeName=<%=Encode.forHtmlAttribute(
-                                                        purpose.getName() + "&" + urlAppender)%>"
+                                                        purpose.getName() + "&" + urlAppender + "&callback=" +
+                                                        Encode.forHtmlAttribute(URLEncoder.encode(callback,
+                                                        StandardCharsets.UTF_8.name())))%>"
                                         <%} else {%>
                                         href="view-pii-category.jsp?purposeId=<%=Encode.forHtmlAttribute(
                                                 String.valueOf(purpose.getId()))%>&purposeName=<%=Encode.forHtmlAttribute(

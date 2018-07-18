@@ -35,6 +35,8 @@
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DISPLAY_NAME" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="java.nio.charset.StandardCharsets" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
@@ -53,7 +55,8 @@
         if (!callback.startsWith("/")) {
             callback = "";
         } else {
-            addFinishPurposePage = addFinishPurposePage + "?callback=" + callback;
+            addFinishPurposePage = addFinishPurposePage + "?callback=" + URLEncoder.encode(callback,
+                    StandardCharsets.UTF_8.name());
         }
     }
     if (StringUtils.isNotEmpty(purposeGroup)) {
@@ -127,7 +130,7 @@
 
         function doCancel() {
             <% if(StringUtils.isNotEmpty(callback)) {%>
-            location.href = '<%=Encode.forHtmlAttribute(callback)%>';
+            location.href = '<%=Encode.forJavaScript(callback)%>';
             <%} else {%>
             location.href = 'list-purposes.jsp?region=region1&item=list_consent_menu';
             <%}%>

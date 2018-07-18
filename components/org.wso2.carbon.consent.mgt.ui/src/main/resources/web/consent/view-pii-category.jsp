@@ -26,6 +26,8 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="java.nio.charset.StandardCharsets" %>
 <%! private static final String LOGGED_USER = "logged-user";
     private static final String PURPOSE_ID = "purposeId";
     private static final String PURPOSE_NAME = "purposeName";
@@ -50,7 +52,8 @@
     if (StringUtils.isNotEmpty(callback) && StringUtils.isNotEmpty(purposeGroup) &&
             StringUtils.isNotEmpty(purposeGroupType) && callback.startsWith("/")) {
         listPurposePage = listPurposePage + "&purposeGroup=" + purposeGroup + "&purposeGroupType=" + purposeGroupType
-                + "&callback=" + callback;
+                + "&callback=" + URLEncoder.encode(callback,
+                StandardCharsets.UTF_8.name());
     }
 
     try {
