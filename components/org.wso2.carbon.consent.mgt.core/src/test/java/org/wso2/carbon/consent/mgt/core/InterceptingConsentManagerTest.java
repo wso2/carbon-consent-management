@@ -483,7 +483,7 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
     @Test(expectedExceptions = ConsentManagementClientException.class)
     public void testGetPurposeByInvalidName() throws Exception {
 
-        consentManager.getPurposeByName("Invalid");
+        consentManager.getPurposeByName("Invalid", "Invalid group", "Invalid group type");
         Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
     }
 
@@ -492,7 +492,8 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
         String name = "P1";
         Purpose purpose = addPurpose(name);
-        Purpose purposeByName = consentManager.getPurposeByName(purpose.getName());
+        Purpose purposeByName = consentManager.getPurposeByName(purpose.getName(), purpose.getGroup(), purpose
+                .getGroupType());
 
         Assert.assertNotNull(purposeByName, "Purpose cannot be null.");
         Assert.assertEquals(purposeByName.getId(), purpose.getId());
@@ -533,19 +534,21 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
     public void testIsPurposeExists() throws Exception {
 
         Purpose purpose = addPurpose("P1");
-        Assert.assertTrue(consentManager.isPurposeExists(purpose.getName()), "Purpose 'P1' should exist.");
+        Assert.assertTrue(consentManager.isPurposeExists(purpose.getName(), purpose.getGroup(), purpose.getGroupType()),
+                          "Purpose 'P1' should exist.");
     }
 
     @Test
     public void testIsInvalidPurposeExists() throws Exception {
 
-        Assert.assertTrue(!consentManager.isPurposeExists("Invalid"), "Purpose should not exist.");
+        Assert.assertTrue(!consentManager.isPurposeExists("Invalid", "Invalid group", "Invalid group type"),
+                          "Purpose should not exist.");
     }
 
     @Test(expectedExceptions = ConsentManagementClientException.class)
     public void testIsNullPurposeExists() throws Exception {
 
-        consentManager.isPurposeExists(null);
+        consentManager.isPurposeExists(null, null, null);
     }
 
     private Purpose addPurpose(String name) throws ConsentManagementException {

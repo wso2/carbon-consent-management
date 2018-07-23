@@ -183,18 +183,22 @@ public class InterceptingConsentManager implements ConsentManager {
                 .getResult();
     }
 
-    public Purpose getPurposeByName(String name) throws ConsentManagementException {
+    public Purpose getPurposeByName(String name, String group, String groupType) throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Purpose, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
-        return template.intercept(PRE_GET_PURPOSE_BY_NAME, properties -> properties.put(PURPOSE_NAME, name))
+        return template.intercept(PRE_GET_PURPOSE_BY_NAME, properties -> {
+            properties.put(PURPOSE_NAME, name);
+            properties.put(GROUP, group);
+            properties.put(GROUP_TYPE, groupType);
+        })
                 .executeWith(new OperationDelegate<Purpose>() {
                     @Override
                     public Purpose execute() throws ConsentManagementException {
 
-                        return consentManager.getPurposeByName(name);
+                        return consentManager.getPurposeByName(name, group, groupType);
                     }
                 })
                 .intercept(POST_GET_PURPOSE_BY_NAME, properties -> properties.put(PURPOSE_NAME, name))
@@ -271,18 +275,22 @@ public class InterceptingConsentManager implements ConsentManager {
                 .intercept(POST_DELETE_PURPOSE, properties -> properties.put(PURPOSE_ID, purposeId));
     }
 
-    public boolean isPurposeExists(String name) throws ConsentManagementException {
+    public boolean isPurposeExists(String name, String group, String groupType) throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Boolean, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
-        return template.intercept(PRE_IS_PURPOSE_EXIST, properties -> properties.put(PURPOSE_NAME, name))
+        return template.intercept(PRE_IS_PURPOSE_EXIST, properties -> {
+            properties.put(PURPOSE_NAME, name);
+            properties.put(GROUP, group);
+            properties.put(GROUP_TYPE, groupType);
+        })
                 .executeWith(new OperationDelegate<Boolean>() {
                     @Override
                     public Boolean execute() throws ConsentManagementException {
 
-                        return consentManager.isPurposeExists(name);
+                        return consentManager.isPurposeExists(name, group, groupType);
                     }
                 })
                 .intercept(POST_IS_PURPOSE_EXIST, properties -> properties.put(PURPOSE_NAME, name))

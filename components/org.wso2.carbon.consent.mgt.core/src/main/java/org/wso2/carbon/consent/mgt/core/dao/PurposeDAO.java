@@ -58,11 +58,14 @@ public interface PurposeDAO {
      * Get the {@link Purpose} corresponding to the input name.
      *
      * @param name Name of the {@link Purpose}.
+     * @param group Purpose group
+     * @param groupType Purpose group type
      * @param tenantId Tenant domain of the {@link Purpose}.
      * @return Purpose for the input criteria.
      * @throws ConsentManagementException If error occurs while retrieving the {@link Purpose}.
      */
-    Purpose getPurposeByName(String name, int tenantId) throws ConsentManagementException;
+    Purpose getPurposeByName(String name, String group, String groupType, int tenantId) throws
+            ConsentManagementException;
 
     /**
      * List {@link Purpose} items for a given search criteria.
@@ -78,6 +81,8 @@ public interface PurposeDAO {
     /**
      * List {@link Purpose} items for a given search criteria.
      *
+     * @param group Purpose group
+     * @param groupType Purpose group type
      * @param limit Maximum number of results expected.
      * @param offset Result offset.
      * @param tenantId Tenant domain to be searched.

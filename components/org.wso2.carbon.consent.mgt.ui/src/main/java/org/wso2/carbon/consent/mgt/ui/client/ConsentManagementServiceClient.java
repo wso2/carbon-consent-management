@@ -80,10 +80,11 @@ public class ConsentManagementServiceClient {
         getConsentManager().deletePurpose(purposeId);
     }
 
-    public void deletePurposeByName(String purposeName) throws ConsentManagementException {
+    public void deletePurposeByName(String purposeName, String group, String groupType) throws
+            ConsentManagementException {
 
         handleLoggedInUserAuthorization(PERMISSION_CONSENT_MGT_DELETE);
-        Purpose purposeByName = getConsentManager().getPurposeByName(purposeName);
+        Purpose purposeByName = getConsentManager().getPurposeByName(purposeName, group, groupType);
         deletePurpose(purposeByName.getId());
     }
 

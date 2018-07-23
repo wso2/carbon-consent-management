@@ -187,10 +187,13 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
             when(dataSource.getConnection()).thenReturn(spyConnection);
 
             PurposeDAO purposeDAO = new PurposeDAOImpl();
-            Purpose purposeResult = purposeDAO.addPurpose(purposes.get(0));
-            Assert.assertEquals(purposeResult.getName(), purposes.get(0).getName());
+            Purpose purpose = purposes.get(0);
+            Purpose purposeResult = purposeDAO.addPurpose(purpose);
+            Assert.assertEquals(purposeResult.getName(), purpose.getName());
 
-            Purpose purposeByName = purposeDAO.getPurposeByName(purposeResult.getName(), purposeResult.getTenantId());
+            Purpose purposeByName = purposeDAO.getPurposeByName(purposeResult.getName(), purposeResult.getGroup(),
+                                                                purposeResult.getGroupType(), purposeResult
+                                                                        .getTenantId());
 
             Assert.assertEquals(purposeByName.getId(), purposeResult.getId());
             Assert.assertEquals(purposeByName.getName(), purposeResult.getName());
@@ -210,7 +213,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
             when(dataSource.getConnection()).thenReturn(spyConnection);
 
             PurposeDAO purposeDAO = new PurposeDAOImpl();
-            purposeDAO.getPurposeByName(null, -1);
+            purposeDAO.getPurposeByName(null, null, null, -1);
 
             Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
         }
@@ -229,7 +232,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
 
             PurposeDAO purposeDAO = new PurposeDAOImpl();
 
-            Purpose purposeByName = purposeDAO.getPurposeByName("InvalidName", -1);
+            Purpose purposeByName = purposeDAO.getPurposeByName("InvalidName", "InvalidGroup", "InvalidGroupType", -1);
 
             Assert.assertNull(purposeByName, "Result should be null for invalid purpose name.");
         }
@@ -247,14 +250,14 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
             when(dataSource.getConnection()).thenReturn(spyConnection);
 
             PurposeDAO purposeDAO = new PurposeDAOImpl();
-            purposeDAO.getPurposeByName("Invalid Purpose", -1);
+            purposeDAO.getPurposeByName("Invalid Purpose", "InvalidGroup", "InvalidGroupType", -1);
 
             Assert.fail("Expected: " + ConsentManagementServerException.class.getName());
         }
     }
 
     @Test(dataProvider = "purposeListProvider")
-    public void testListPurposes(int limit, int offset, int teanantId, int resultSize) throws Exception {
+    public void testListPurposes(int limit, int offset, int tenantId, int resultSize) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
         mockComponentDataHolder(dataSource);
@@ -272,7 +275,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
             Purpose purposeResult2 = purposeDAO.addPurpose(purposes.get(1));
             Assert.assertEquals(purposeResult2.getName(), purposes.get(1).getName());
 
-            List<Purpose> purposeList = purposeDAO.listPurposes(limit, offset, teanantId);
+            List<Purpose> purposeList = purposeDAO.listPurposes(limit, offset, tenantId);
 
             Assert.assertEquals(purposeList.size(), resultSize);
 

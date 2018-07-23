@@ -142,11 +142,21 @@ public class PurposeDAOImpl implements PurposeDAO {
     }
 
     @Override
-    public Purpose getPurposeByName(String name, int tenantId) throws ConsentManagementException {
+    public Purpose getPurposeByName(String name, String group, String groupType, int tenantId) throws
+            ConsentManagementException {
 
         if (StringUtils.isBlank(name)) {
             throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_PURPOSE_NAME_REQUIRED, null);
         }
+
+        if (StringUtils.isBlank(group)) {
+            throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_PURPOSE_GROUP_REQUIRED, null);
+        }
+
+        if (StringUtils.isBlank(groupType)) {
+            throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_PURPOSE_GROUP_TYPE_REQUIRED, null);
+        }
+
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         Purpose purpose;
 
@@ -161,7 +171,9 @@ public class PurposeDAOImpl implements PurposeDAO {
                             resultSet.getInt(7)),
                     preparedStatement -> {
                         preparedStatement.setString(1, name);
-                        preparedStatement.setInt(2, tenantId);
+                        preparedStatement.setString(2, group);
+                        preparedStatement.setString(3, groupType);
+                        preparedStatement.setInt(4, tenantId);
                     });
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_NAME, name, e);
