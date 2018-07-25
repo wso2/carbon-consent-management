@@ -77,16 +77,19 @@
             
             <script type="text/javascript">
 
-                function removeItem(pName) {
+                function removeItem(pName, pGroup, pGroupType) {
                     function doDelete() {
                         var purposeName = pName;
+                        var purposeGroup = pGroup;
+                        var purposeGroupType = pGroupType;
                         $.ajax({
                             type: 'POST',
                             url: 'remove-purpose-finish.jsp',
                             headers: {
                                 Accept: "text/html"
                             },
-                            data: 'purposeName=' + purposeName,
+                            data: 'purposeName=' + purposeName + '&purposeGroup=' + purposeGroup +
+                            '&purposeGroupType=' + purposeGroupType,
                             async: false,
                             success: function (responseText, status) {
                                 if (status == "success") {
@@ -203,7 +206,10 @@
                                         if (CarbonUIUtil.isUserAuthorized(request, ConsentConstants.PERMISSION_CONSENT_MGT_DELETE)) {
                                     %>
                                     <a title="Delete Purpose"
-                                       onclick="removeItem('<%=Encode.forJavaScriptAttribute(purpose.getName())%>');return
+                                       onclick="removeItem('<%=Encode.forJavaScriptAttribute(purpose.getName())%>',
+                                       '<%=Encode.forJavaScriptAttribute(purpose.getGroup())%>',
+                                       '<%=Encode.forJavaScriptAttribute(purpose.getGroupType())%>');
+                                       return
                                                false;" href="#"
                                        class="icon-link"
                                        style="background-image: url(../admin/images/delete.gif)"><fmt:message
