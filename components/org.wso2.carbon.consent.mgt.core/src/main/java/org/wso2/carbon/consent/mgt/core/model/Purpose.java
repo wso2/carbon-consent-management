@@ -154,11 +154,19 @@ public class Purpose {
         this.tenantDomain = tenantDomain;
     }
 
+    /**
+     * This method is deprecated, use 'getPurposePIICategories' instead.
+     */
+    @Deprecated
     public List<PIICategory> getPiiCategories() {
 
         return piiCategories;
     }
 
+    /**
+     * This method is deprecated, use 'setPurposePIICategories' instead.
+     */
+    @Deprecated
     public void setPiiCategories(List<PIICategory> piiCategories) {
 
         this.piiCategories = piiCategories;
