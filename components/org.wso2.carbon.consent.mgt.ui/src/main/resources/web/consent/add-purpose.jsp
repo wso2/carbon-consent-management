@@ -176,7 +176,14 @@
     </script>
     
     <div id="middle">
-        <h2><fmt:message key="add.new.purpose"/></h2>
+        <% if (StringUtils.isNotEmpty(purposeGroup)) {%>
+        <h2><%=Encode.forHtmlContent(MessageFormat.format(resourceBundle.getString("add.new.purpose.for"),
+                StringUtils.isEmpty(purposeGroup) ? "" : purposeGroup))%>
+        </h2>
+        <%} else {%>
+        <h2><%=Encode.forHtmlContent(resourceBundle.getString("add.new.purpose"))%>
+        </h2>
+        <%}%>
         
         <div id="workArea">
             <form method="post" action="<%=Encode.forHtmlAttribute(addFinishPurposePage)%>" name="dataForm" onsubmit="return
@@ -234,10 +241,6 @@
                                                value="" style="width:150px"/>
                                         <%}%>
                                     </td>
-                                </tr>
-                                <tr>
-                                    <td>Mandatory</td>
-                                    <td><input type="checkbox" id="isPurposeMandatory" name="isPurposeMandatory"/></td>
                                 </tr>
                                 <tr>
                                     <td class="leftCol-med labelField customClaim"><fmt:message key='pii.categories'/>:</td>

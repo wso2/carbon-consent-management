@@ -22,41 +22,44 @@ package org.wso2.carbon.consent.mgt.core.constant;
 public class SQLConstants {
 
     public static final String INSERT_PURPOSE_SQL = "INSERT INTO CM_PURPOSE (NAME, DESCRIPTION, PURPOSE_GROUP, " +
-                                                    "GROUP_TYPE, IS_MANDATORY, TENANT_ID) values (?, ?, ?, ?, ?, ?)";
+                                                    "GROUP_TYPE, TENANT_ID) values (?, ?, ?, ?, ?)";
+
     public static final String GET_PURPOSE_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, " +
-                                                       "IS_MANDATORY, TENANT_ID FROM CM_PURPOSE WHERE ID = ?";
+                                                       "TENANT_ID FROM CM_PURPOSE WHERE ID = ?";
+
     public static final String GET_PURPOSE_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, " +
-                                                         "IS_MANDATORY, TENANT_ID FROM CM_PURPOSE WHERE NAME = ? AND " +
+                                                         "TENANT_ID FROM CM_PURPOSE WHERE NAME = ? AND " +
                                                          "PURPOSE_GROUP = ? AND GROUP_TYPE = ? AND TENANT_ID = ?";
+
     public static final String LIST_PAGINATED_PURPOSE_MYSQL = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
-                                                              "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM CM_PURPOSE " +
+                                                              "GROUP_TYPE, TENANT_ID FROM CM_PURPOSE " +
                                                               "WHERE TENANT_ID = ? AND PURPOSE_GROUP LIKE ? AND " +
                                                               "GROUP_TYPE LIKE ? ORDER BY ID ASC LIMIT ? OFFSET ?";
 
     public static final String LIST_PAGINATED_PURPOSE_DB2 = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE," +
-                                                            " IS_MANDATORY, TENANT_ID FROM (SELECT ROW_NUMBER() OVER " +
+                                                            " TENANT_ID FROM (SELECT ROW_NUMBER() OVER " +
                                                             "(ORDER BY ID) AS rn, p.* FROM CM_PURPOSE AS p) WHERE " +
                                                             "TENANT_ID =? AND PURPOSE_GROUP LIKE ? AND GROUP_TYPE " +
                                                             "LIKE ? rn BETWEEN ? AND ?";
 
     public static final String LIST_PAGINATED_PURPOSE_ORACLE = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
-                                                               "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM (SELECT ID, " +
+                                                               "GROUP_TYPE, TENANT_ID FROM (SELECT ID, " +
                                                                "NAME, DESCRIPTION, TENANT_ID, rownum AS rnum FROM " +
                                                                "(SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
-                                                               "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM CM_PURPOSE " +
+                                                               "GROUP_TYPE, TENANT_ID FROM CM_PURPOSE " +
                                                                "ORDER BY ID) WHERE TENANT_ID =? AND PURPOSE_GROUP" +
                                                                " LIKE ? AND GROUP_TYPE LIKE ? AND rownum <= ?) WHERE " +
                                                                "rnum > ?";
 
     public static final String LIST_PAGINATED_PURPOSE_MSSQL = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
-                                                              "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM (SELECT ID, " +
+                                                              "GROUP_TYPE, TENANT_ID FROM (SELECT ID, " +
                                                               "NAME, DESCRIPTION, TENANT_ID, ROW_NUMBER() OVER (ORDER" +
                                                               " BY ID) AS RowNum FROM CM_PURPOSE) AS P WHERE P" +
                                                               ".TENANT_ID = ? AND PURPOSE_GROUP LIKE ? AND GROUP_TYPE" +
                                                               " LIKE ? AND P.RowNum BETWEEN ? AND ?";
 
     public static final String LIST_PAGINATED_PURPOSE_INFORMIX = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
-                                                                 "GROUP_TYPE, IS_MANDATORY, TENANT_ID FROM CM_PURPOSE" +
+                                                                 "GROUP_TYPE, TENANT_ID FROM CM_PURPOSE" +
                                                                  " WHERE TENANT_ID = ? AND PURPOSE_GROUP LIKE ? AND " +
                                                                  "GROUP_TYPE LIKE ? ORDER BY ID ASC LIMIT ? OFFSET ?";
 

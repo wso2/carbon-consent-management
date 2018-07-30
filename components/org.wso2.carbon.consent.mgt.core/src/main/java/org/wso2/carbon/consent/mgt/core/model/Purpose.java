@@ -33,22 +33,19 @@ public class Purpose {
     private List<PurposePIICategory> purposePIICategories = new ArrayList<>();
     private int tenantId;
     private String tenantDomain;
-    private Boolean mandatory;
 
     public void setId(Integer id) {
 
         this.id = id;
     }
 
-    public Purpose(Integer id, String name, String description, String group, String groupType, Boolean mandatory, int
-                   tenantId) {
+    public Purpose(Integer id, String name, String description, String group, String groupType, int tenantId) {
 
         this.id = id;
         this.name = name;
         this.description = description;
         this.group = group;
         this.groupType = groupType;
-        this.mandatory = mandatory;
         this.tenantId = tenantId;
     }
 
@@ -58,45 +55,41 @@ public class Purpose {
         this.name = name;
     }
 
-    public Purpose(String name, String description, String group, String groupType, Boolean mandatory) {
+    public Purpose(String name, String description, String group, String groupType) {
 
         this.name = name;
         this.description = description;
         this.group = group;
         this.groupType = groupType;
-        this.mandatory = mandatory;
     }
 
-    public Purpose(String name, String description, String group, String groupType, Boolean mandatory,
+    public Purpose(String name, String description, String group, String groupType,
                    List<PurposePIICategory> purposePIICategories) {
 
         this.name = name;
         this.description = description;
         this.group = group;
         this.groupType = groupType;
-        this.mandatory = mandatory;
         this.purposePIICategories = purposePIICategories;
     }
 
-    public Purpose(String name, String description, String group, String groupType, Boolean mandatory, int tenantId) {
+    public Purpose(String name, String description, String group, String groupType, int tenantId) {
 
         this.name = name;
         this.description = description;
         this.group = group;
         this.groupType = groupType;
-        this.mandatory = mandatory;
         this.tenantId = tenantId;
     }
 
     public Purpose(Integer id, String name, String description, String group,
-                   String groupType, Boolean mandatory, int tenantId, List<PurposePIICategory> purposePIICategories) {
+                   String groupType, int tenantId, List<PurposePIICategory> purposePIICategories) {
 
         this.id = id;
         this.name = name;
         this.description = description;
         this.group = group;
         this.groupType = groupType;
-        this.mandatory = mandatory;
         this.tenantId = tenantId;
         this.purposePIICategories = purposePIICategories;
     }
@@ -200,15 +193,5 @@ public class Purpose {
     public void setGroupType(String groupType) {
 
         this.groupType = groupType;
-    }
-
-    public Boolean getMandatory() {
-
-        return mandatory;
-    }
-
-    public void setMandatory(Boolean mandatory) {
-
-        this.mandatory = mandatory;
     }
 }
