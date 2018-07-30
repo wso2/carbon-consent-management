@@ -208,7 +208,8 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>Group<%if(!isPurposeGroupPresent) {%><font color="red">*</font> <%}%></td>
+                                    <td><fmt:message key="purpose.flow"/><%if(!isPurposeGroupPresent) {%><font color="red">*
+                                    </font> <%}%></td>
                                     <td><% if (isPurposeGroupPresent) {%>
                                         <input type="text" name="group" id="group" readOnly="true"
                                                value="<%=Encode.forHtmlAttribute(purposeGroup)%>" style="width:150px;
@@ -219,8 +220,10 @@
                                         <%}%>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td>Group Type<%if(!isPurposeGroupTypePresent){%><font color="red">*</font> <%}%>
+                                
+                                <tr<%if (isPurposeGroupTypePresent) {%> style="display:none" <%}%>>
+                                    <td><fmt:message key="purpose.group.type"/><%if(!isPurposeGroupTypePresent){%>
+                                        <font color="red">*</font> <%}%>
                                     </td>
                                     <td><% if (isPurposeGroupTypePresent) {%>
                                         <input type="text" name="groupType" id="groupType" readOnly="true"
