@@ -146,7 +146,6 @@ public class ConsentEndpointUtils {
 
         return new Purpose(purposeRequestDTO.getPurpose(), purposeRequestDTO.getDescription(),
                            purposeRequestDTO.getGroup(), purposeRequestDTO.getGroupType(),
-                           purposeRequestDTO.getMandatory(),
                            purposeRequestDTO.getPiiCategories().stream().map(
                                    purposePiiCategoryRequestDTO -> new PurposePIICategory(
                                            purposePiiCategoryRequestDTO.getPiiCategoryId(),
@@ -173,7 +172,6 @@ public class ConsentEndpointUtils {
         purposeListResponseDTO.setDescription(purposeResponse.getDescription());
         purposeListResponseDTO.setGroup(purposeResponse.getGroup());
         purposeListResponseDTO.setGroupType(purposeResponse.getGroupType());
-        purposeListResponseDTO.setMandatory(purposeResponse.getMandatory());
         purposeListResponseDTO.setPiiCategories(purposeResponse.getPurposePIICategories().stream().map(piiCategory -> {
 
             PurposePiiCategoryListResponseDTO purposePiiCategoryListResponseDTO = new
@@ -240,7 +238,6 @@ public class ConsentEndpointUtils {
                     purposeListResponseDTO.setPurposeId(purpose.getId());
                     purposeListResponseDTO.setGroup(purpose.getGroup());
                     purposeListResponseDTO.setGroupType(purpose.getGroupType());
-                    purposeListResponseDTO.setMandatory(purpose.getMandatory());
                     return purposeListResponseDTO;
                 })
                 .collect(Collectors.toList());

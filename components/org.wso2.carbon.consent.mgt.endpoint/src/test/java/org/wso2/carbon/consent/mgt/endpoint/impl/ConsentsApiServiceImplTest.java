@@ -201,7 +201,6 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setDescription("D1");
         purposeRequestDTO.setGroup("SIGNUP");
         purposeRequestDTO.setGroupType("SYSTEM");
-        purposeRequestDTO.setMandatory(true);
         Response response = service.consentsPurposesPost(purposeRequestDTO);
 
         PurposeGetResponseDTO responseDTO = (PurposeGetResponseDTO) response.getEntity();
@@ -221,7 +220,6 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
             purposeRequestDTO.setDescription("D1");
             purposeRequestDTO.setGroup("SIGNUP");
             purposeRequestDTO.setGroupType("SYSTEM");
-            purposeRequestDTO.setMandatory(true);
 
             service.consentsPurposesPost(purposeRequestDTO);
             service.consentsPurposesPost(purposeRequestDTO);
@@ -241,14 +239,12 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setDescription("D1");
         purposeRequestDTO.setGroup("SIGNUP");
         purposeRequestDTO.setGroupType("SYSTEM");
-        purposeRequestDTO.setMandatory(true);
         service.consentsPurposesPost(purposeRequestDTO);
 
         purposeRequestDTO.setPurpose("P2");
         purposeRequestDTO.setDescription("D2");
         purposeRequestDTO.setGroup("SIGNUP");
         purposeRequestDTO.setGroupType("SYSTEM");
-        purposeRequestDTO.setMandatory(false);
         service.consentsPurposesPost(purposeRequestDTO);
 
         Response getResponse = service.consentsPurposesGet("*", "*", 2, 0);
@@ -265,14 +261,12 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setDescription("D1");
         purposeRequestDTO.setGroup("SIGNUP");
         purposeRequestDTO.setGroupType("SYSTEM");
-        purposeRequestDTO.setMandatory(true);
         service.consentsPurposesPost(purposeRequestDTO);
 
         purposeRequestDTO.setPurpose("P2");
         purposeRequestDTO.setDescription("D2");
         purposeRequestDTO.setGroup("JIT");
         purposeRequestDTO.setGroupType("SYSTEM");
-        purposeRequestDTO.setMandatory(false);
         service.consentsPurposesPost(purposeRequestDTO);
 
         Response getResponse = service.consentsPurposesGet("JI*", "*", 2, 0);
@@ -292,14 +286,12 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setDescription("D1");
         purposeRequestDTO.setGroup("SIGNUP");
         purposeRequestDTO.setGroupType("SYSTEM");
-        purposeRequestDTO.setMandatory(true);
         service.consentsPurposesPost(purposeRequestDTO);
 
         purposeRequestDTO.setPurpose("P2");
         purposeRequestDTO.setDescription("D2");
         purposeRequestDTO.setGroup("JIT");
         purposeRequestDTO.setGroupType("SP");
-        purposeRequestDTO.setMandatory(false);
         service.consentsPurposesPost(purposeRequestDTO);
 
         Response getResponse = service.consentsPurposesGet("*", "SYS*", 2, 0);
@@ -318,7 +310,6 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setDescription("D1");
         purposeRequestDTO.setGroup("SIGNUP");
         purposeRequestDTO.setGroupType("SYSTEM");
-        purposeRequestDTO.setMandatory(true);
         Response response = service.consentsPurposesPost(purposeRequestDTO);
         PurposeGetResponseDTO responseDTO = (PurposeGetResponseDTO) response.getEntity();
         Response response1 = service.consentsPurposesPurposeIdDelete(Integer.toString(responseDTO.getPurposeId()));
@@ -349,7 +340,6 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setDescription("D1");
         purposeRequestDTO.setGroup("SIGNUP");
         purposeRequestDTO.setGroupType("SYSTEM");
-        purposeRequestDTO.setMandatory(true);
         Response response = service.consentsPurposesPost(purposeRequestDTO);
         PurposeGetResponseDTO responseDTO = (PurposeGetResponseDTO) response.getEntity();
 
@@ -658,7 +648,6 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         purposeRequestDTO.setDescription("D1");
         purposeRequestDTO.setGroup("SIGNUP");
         purposeRequestDTO.setGroupType("SYSTEM");
-        purposeRequestDTO.setMandatory(true);
         Response response = service.consentsPurposesPost(purposeRequestDTO);
         PurposeGetResponseDTO responseDTO = (PurposeGetResponseDTO) response.getEntity();
 

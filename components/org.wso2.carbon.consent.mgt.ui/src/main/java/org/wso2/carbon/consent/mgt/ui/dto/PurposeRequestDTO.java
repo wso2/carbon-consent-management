@@ -25,7 +25,6 @@ public class PurposeRequestDTO {
     private String description = null;
     private String group = null;
     private String groupType = null;
-    private boolean mandatory = false;
     private List<PiiCategoryDTO> piiCategories = new ArrayList<PiiCategoryDTO>();
 
     public String getPurpose() {
@@ -76,13 +75,5 @@ public class PurposeRequestDTO {
     public void setGroupType(String groupType) {
 
         this.groupType = groupType;
-    }
-
-    public boolean isMandatory() {
-        return mandatory;
-    }
-
-    public void setMandatory(boolean mandatory) {
-        this.mandatory = mandatory;
     }
 }
