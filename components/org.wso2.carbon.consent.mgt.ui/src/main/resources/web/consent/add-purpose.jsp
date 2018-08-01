@@ -204,7 +204,11 @@
                                     </td>
                                     <td><input type="text" name="purposeName" id="purposeName"
                                                value=""
-                                               style="width:150px"/></td>
+                                               style="width:150px"/>
+                                        <div class="sectionHelp" style="margin-top: 5px;">
+                                            <fmt:message key='purpose.name.help'/>
+                                        </div>
+                                    </td>
                                 </tr>
     
                                 <tr id="descripiton">
@@ -212,6 +216,9 @@
                                     <td>
                                         <textarea type="text" name="purpose.description" id="purpose.description"
                                                   style="width:300px"></textarea>
+                                        <div class="sectionHelp" style="margin-top: 5px;">
+                                            <fmt:message key='purpose.desc.help'/>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr>
@@ -225,6 +232,9 @@
                                         <input type="text" name="group" id="group"
                                                value="" style="width:150px"/>
                                         <%}%>
+                                        <div class="sectionHelp" style="margin-top: 5px;">
+                                            <fmt:message key='associated.flow.help'/>
+                                        </div>
                                     </td>
                                 </tr>
                                 
@@ -240,10 +250,14 @@
                                         <input type="text" name="groupType" id="groupType"
                                                value="" style="width:150px"/>
                                         <%}%>
+                                        <div class="sectionHelp" style="margin-top: 5px;">
+                                            <fmt:message key='group.type.help'/>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="leftCol-med labelField customClaim"><fmt:message key='pii.categories'/>:</td>
+                                    <td class="leftCol-med labelField customClaim" style="vertical-align:top!important;">
+                                    <fmt:message key='pii.categories'/>:</td>
                                     <td class="customClaim">
                                         <a id="claimAddLink" class="icon-link"
                                            style="margin-left:0;background-image:url(images/add.gif);"><fmt:message
