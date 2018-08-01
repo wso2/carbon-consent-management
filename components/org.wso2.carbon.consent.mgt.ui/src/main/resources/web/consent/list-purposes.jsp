@@ -71,7 +71,14 @@
                 purposeGroupType = "";
             }
         %>
-        <h2><%=Encode.forHtmlContent(MessageFormat.format(resourceBundle.getString("title.list.purposes"), purposeGroupType))%></h2>
+        <%if (StringUtils.isNotEmpty(purposeGroup)) {%>
+        <h2><%=Encode.forHtmlContent(MessageFormat.format(resourceBundle.getString("title.list.purposes.for"),
+                purposeGroup))%>
+        </h2>
+        <%} else {%>
+        <h2><%=Encode.forHtmlContent(resourceBundle.getString("title.list.purposes"))%>
+        </h2>
+        <%}%>
         
         <div id="workArea">
             
@@ -143,8 +150,6 @@
                                 <th class="leftCol-med"><fmt:message
                                         key="consent.mgt.group.type"/></th>
                                 <%}%>
-                                <th class="leftCol-med"><fmt:message
-                                        key="mandatory"/></th>
                                 <th style="width: 30%"><fmt:message
                                         key="consent.action"/></th>
                             </tr>
@@ -170,13 +175,6 @@
                                 <td><%=purpose.getGroupType() != null ? Encode.forHtml(purpose.getGroupType()) : ""%>
                                 </td>
                                 <%}%>
-                                <td>
-                                <%if (purpose.getMandatory()) { %>
-                                    <input type="checkbox" disabled="disabled" checked="checked" style="margin:0px;">
-                                <%} else {%>
-                                    <input type="checkbox" disabled="disabled" style="margin:0px;">
-                                <%}%>
-                                </td>
                                 <%
                                     if (DEFAULT.equals(purpose.getName())) {
                                 %>

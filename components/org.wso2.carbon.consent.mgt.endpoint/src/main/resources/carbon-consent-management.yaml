@@ -232,7 +232,7 @@ paths:
       x-wso2-request: |
         curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purpose\": \"<Purpose_Name>\", \"description\": \"<Purpose_Description>\", \"group\": \"<Purpose_Group>\", \"groupType\": \"<Purpose_Group_Type\", \"piiCategories\": [{\"piiCategoryId\": <PII_Category_Id>, \"mandatory\": <Is_Mandatory>}]}"
       x-wso2-curl: |
-        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purpose\": \"Contact\", \"description\": \"Contact the user\", \"group\": \"SIGNIN\", \"groupType\": \"SYSTEM\",  \"mandatory\": true\, "piiCategories\": {\"piiCategoryId\": 1, \"mandatory\": true}}"
+        curl -k -X POST "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"purpose\": \"Contact\", \"description\": \"Contact the user\", \"group\": \"SIGNIN\", \"groupType\": \"SYSTEM\", "piiCategories\": {\"piiCategoryId\": 1, \"mandatory\": true}}"
       x-wso2-response: |
         {"purposeId":1,"purpose":"Contact","description":"Contact the user","piiCategories":[{"piiCategoryId":1,"piiCategory":"email","description":"user email","sensitive":false, "mandatory":true},{"piiCategoryId":2,"piiCategory":"username","description":"user name","sensitive":false, "mandatory":false}]}
       summary: |
@@ -323,7 +323,7 @@ paths:
       x-wso2-curl: |
         curl -k -X GET "https://localhost:9443/api/identity/consent-mgt/v1.0/consents/purposes/1" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json" -H "Content-Type: application/json"
       x-wso2-response: |
-        {"purposeId":1,"purpose":"Contact","description":"Contact the user","piiCategories":[{"piiCategoryId":1,"piiCategory":"email","description":"user email","sensitive":false, "mandatory":true},{"piiCategoryId":2,"piiCategory":"username","description":"user name","sensitive":false, "mandatory":false}]}
+        {"purposeId":1,"purpose":"Contact","description":"Contact the user","piiCategories":[{"piiCategoryId":1,"piiCategory":"email","description":"user email","sensitive":false},{"piiCategoryId":2,"piiCategory":"username","description":"user name","sensitive":false, "mandatory":false}]}
       summary: |
         Retrieve a purpose
       parameters:
@@ -789,8 +789,6 @@ definitions:
         type: 'string'
       groupType:
         type: 'string'
-      mandatory:
-        type: 'boolean'
       piiCategories:
         type: 'array'
         items:
@@ -1137,8 +1135,6 @@ definitions:
         type: 'string'
       groupType:
         type: 'string'
-      mandatory:
-        type: 'boolean'
 
 #-----------------------------------------------------
 # The Purpose GET response object
@@ -1157,8 +1153,6 @@ definitions:
         type: 'string'
       groupType:
         type: 'string'
-      mandatory:
-        type: 'boolean'
       piiCategories:
         type: 'array'
         items:

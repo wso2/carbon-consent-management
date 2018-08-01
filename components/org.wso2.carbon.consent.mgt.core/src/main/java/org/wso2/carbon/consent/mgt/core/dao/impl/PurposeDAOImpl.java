@@ -81,8 +81,7 @@ public class PurposeDAOImpl implements PurposeDAO {
                 preparedStatement.setString(2, purpose.getDescription());
                 preparedStatement.setString(3, purpose.getGroup());
                 preparedStatement.setString(4, purpose.getGroupType());
-                preparedStatement.setInt(5, purpose.getMandatory() ? 1 : 0);
-                preparedStatement.setInt(6, purpose.getTenantId());
+                preparedStatement.setInt(5, purpose.getTenantId());
             }), purpose, true);
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE, purpose.getName(), e);
@@ -101,7 +100,7 @@ public class PurposeDAOImpl implements PurposeDAO {
             }
         }));
         purposeResult = new Purpose(insertedId, purpose.getName(), purpose.getDescription(), purpose.getGroup(),
-                purpose.getGroupType(), purpose.getMandatory(), purpose.getTenantId(), purpose
+                purpose.getGroupType(), purpose.getTenantId(), purpose
                 .getPurposePIICategories());
         return purposeResult;
     }
@@ -118,8 +117,8 @@ public class PurposeDAOImpl implements PurposeDAO {
         try {
             purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_ID_SQL, (resultSet, rowNumber) ->
                             new Purpose(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
-                                    resultSet.getString(4), resultSet.getString(5), resultSet.getInt(6) == 1,
-                                    resultSet.getInt(7)),
+                                    resultSet.getString(4), resultSet.getString(5),
+                                    resultSet.getInt(6)),
                     preparedStatement -> preparedStatement.setInt(1, id));
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_ID, String.valueOf(id), e);
@@ -167,8 +166,7 @@ public class PurposeDAOImpl implements PurposeDAO {
                             resultSet.getString(3),
                             resultSet.getString(4),
                             resultSet.getString(5),
-                            resultSet.getInt(6) == 1,
-                            resultSet.getInt(7)),
+                            resultSet.getInt(6)),
                     preparedStatement -> {
                         preparedStatement.setString(1, name);
                         preparedStatement.setString(2, group);
@@ -238,8 +236,7 @@ public class PurposeDAOImpl implements PurposeDAO {
                             resultSet.getString(3),
                             resultSet.getString(4),
                             resultSet.getString(5),
-                            resultSet.getInt(6) == 1,
-                            resultSet.getInt(7)),
+                            resultSet.getInt(6)),
                     preparedStatement -> {
                         preparedStatement.setInt(1, tenantId);
                         preparedStatement.setString(2, finalGroup);
