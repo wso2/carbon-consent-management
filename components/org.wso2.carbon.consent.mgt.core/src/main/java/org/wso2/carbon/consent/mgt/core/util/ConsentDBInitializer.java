@@ -208,8 +208,8 @@ public class ConsentDBInitializer {
     private void executeSQLScript() {
 
         String databaseType;
-        try {
-            databaseType = ConsentDBInitializer.getDatabaseType(dataSource.getConnection());
+        try (Connection connection = dataSource.getConnection()) {
+            databaseType = ConsentDBInitializer.getDatabaseType(connection);
             if (log.isDebugEnabled()) {
                 log.debug("Identified database type from data source as: " + databaseType);
             }
