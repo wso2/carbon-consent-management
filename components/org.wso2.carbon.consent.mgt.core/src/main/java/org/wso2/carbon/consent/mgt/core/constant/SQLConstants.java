@@ -44,16 +44,18 @@ public class SQLConstants {
 
     public static final String LIST_PAGINATED_PURPOSE_ORACLE = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
                                                                "GROUP_TYPE, TENANT_ID FROM (SELECT ID, " +
-                                                               "NAME, DESCRIPTION, TENANT_ID, rownum AS rnum FROM " +
+                                                               "NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, " +
+                                                               "TENANT_ID, rownum AS rnum FROM " +
                                                                "(SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
                                                                "GROUP_TYPE, TENANT_ID FROM CM_PURPOSE " +
                                                                "ORDER BY ID) WHERE TENANT_ID =? AND PURPOSE_GROUP" +
                                                                " LIKE ? AND GROUP_TYPE LIKE ? AND rownum <= ?) WHERE " +
                                                                "rnum > ?";
 
-    public static final String LIST_PAGINATED_PURPOSE_MSSQL = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
-                                                              "GROUP_TYPE, TENANT_ID FROM (SELECT ID, " +
-                                                              "NAME, DESCRIPTION, TENANT_ID, ROW_NUMBER() OVER (ORDER" +
+    public static final String LIST_PAGINATED_PURPOSE_MSSQL = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP," +
+                                                              " GROUP_TYPE, TENANT_ID FROM (SELECT ID, NAME," +
+                                                              " DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, TENANT_ID," +
+                                                              " ROW_NUMBER() OVER (ORDER" +
                                                               " BY ID) AS RowNum FROM CM_PURPOSE) AS P WHERE P" +
                                                               ".TENANT_ID = ? AND PURPOSE_GROUP LIKE ? AND GROUP_TYPE" +
                                                               " LIKE ? AND P.RowNum BETWEEN ? AND ?";
