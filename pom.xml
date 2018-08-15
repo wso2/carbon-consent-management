@@ -216,6 +216,11 @@
                 <artifactId>jackson-annotations</artifactId>
                 <version>${fasterxml.jackson.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-json-provider</artifactId>
+                <version>${fasterxml.jackson.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -338,11 +343,11 @@
         <eclipse.osgi.version>3.5.100.v20160504-1419</eclipse.osgi.version>
         <carbon.core.version>4.4.32</carbon.core.version>
         <slf4j.api.version>1.6.1</slf4j.api.version>
-        <swagger.jaxrs.version>1.5.2</swagger.jaxrs.version>
+        <swagger.jaxrs.version>1.5.20</swagger.jaxrs.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
         <springframework.version>4.1.6.RELEASE</springframework.version>
         <org.apache.cxf.version>3.2.2</org.apache.cxf.version>
-        <fasterxml.jackson.version>2.9.3</fasterxml.jackson.version>
+        <fasterxml.jackson.version>2.9.6</fasterxml.jackson.version>
         <org.codehaus.jackson.version>1.8.6</org.codehaus.jackson.version>
         <maven.compiler.plugin>3.7.0</maven.compiler.plugin>
         <maven.scr.plugin.version>1.22.0</maven.scr.plugin.version>
