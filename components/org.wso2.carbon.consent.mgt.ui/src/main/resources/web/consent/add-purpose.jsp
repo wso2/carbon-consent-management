@@ -87,7 +87,7 @@
 %>
 
 <fmt:bundle basename="org.wso2.carbon.consent.mgt.ui.i18n.Resources">
-    <carbon:breadcrumb label="add.consent"
+    <carbon:breadcrumb label="add.new.purpose"
                        resourceBundle="org.wso2.carbon.consent.mgt.ui.i18n.Resources"
                        topPage="false" request="<%=request%>"/>
     <style>
@@ -189,7 +189,7 @@
             <form method="post" action="<%=Encode.forHtmlAttribute(addFinishPurposePage)%>" name="dataForm" onsubmit="return
             doValidation();">
                 
-                <table class="styledLeft" id="purposeAdd" width="60%">
+                <table class="styledLeft" id="purposeAdd" width="60%" >
                     <thead>
                     <tr>
                         <th><fmt:message key="enter.purpose.details"/></th>
@@ -200,11 +200,11 @@
                         <td class="formRaw">
                             <table class="normal" id="mainTable" style="width: 100%;">
                                 <tr>
-                                    <td><fmt:message key="purpose.name"/><font color="red">*</font>
+                                    <td style="vertical-align: top!important;"><fmt:message key="purpose.name"/><font color="red">*</font>
                                     </td>
                                     <td><input type="text" name="purposeName" id="purposeName"
                                                value=""
-                                               style="width:150px"/>
+                                               style="width:300px"/>
                                         <div class="sectionHelp" style="margin-top: 5px;">
                                             <fmt:message key='purpose.name.help'/>
                                         </div>
@@ -212,28 +212,12 @@
                                 </tr>
     
                                 <tr id="descripiton">
-                                    <td><fmt:message key="description"/></td>
+                                    <td style="vertical-align: top!important;"><fmt:message key="description"/></td>
                                     <td>
                                         <textarea type="text" name="purpose.description" id="purpose.description"
                                                   style="width:300px"></textarea>
                                         <div class="sectionHelp" style="margin-top: 5px;">
                                             <fmt:message key='purpose.desc.help'/>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><fmt:message key="purpose.flow"/><%if(!isPurposeGroupPresent) {%><font color="red">*
-                                    </font> <%}%></td>
-                                    <td><% if (isPurposeGroupPresent) {%>
-                                        <input type="text" name="group" id="group" readOnly="true"
-                                               value="<%=Encode.forHtmlAttribute(purposeGroup)%>" style="width:150px;
-                                               border-style: none;"/>
-                                    <%} else { %>
-                                        <input type="text" name="group" id="group"
-                                               value="" style="width:150px"/>
-                                        <%}%>
-                                        <div class="sectionHelp" style="margin-top: 5px;">
-                                            <fmt:message key='associated.flow.help'/>
                                         </div>
                                     </td>
                                 </tr>
@@ -260,7 +244,7 @@
                                     <fmt:message key='pii.categories'/>:</td>
                                     <td class="customClaim">
                                         <a id="claimAddLink" class="icon-link"
-                                           style="margin-left:0;background-image:url(images/add.gif);"><fmt:message
+                                           style="margin-left:0;margin-top:2px;background-image:url(images/add.gif);"><fmt:message
                                                 key='add.pii.cat'/></a>
                                         
                                         <div style="clear:both"></div>
