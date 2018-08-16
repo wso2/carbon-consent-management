@@ -37,7 +37,7 @@
 
 <fmt:bundle
         basename="org.wso2.carbon.consent.mgt.ui.i18n.Resources">
-    <carbon:breadcrumb label="consent.mgt"
+    <carbon:breadcrumb label="consent.purposes"
                        resourceBundle="org.wso2.identity.consents.mgt.ui.i18n.Resources"
                        topPage="true" request="<%=request%>"/>
     <div id="middle">
