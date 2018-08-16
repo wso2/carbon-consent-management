@@ -221,14 +221,30 @@
                                         </div>
                                     </td>
                                 </tr>
-                                
+
+                                <tr <%if (isPurposeGroupPresent) {%> style="display:none" <%}%>>
+                                    <td style="vertical-align: top!important;"><fmt:message key="purpose.flow"/><%if(!isPurposeGroupPresent) {%><font color="red">*</font> <%}%></td>
+                                    <td><% if (isPurposeGroupPresent) {%>
+                                        <input type="text" name="group" id="group" readOnly="true"
+                                               value="<%=Encode.forHtmlAttribute(purposeGroup)%>" style="width:300px;
+                                               border-style: none;"/>
+                                        <%} else { %>
+                                        <input type="text" name="group" id="group"
+                                               value="" style="width:300px"/>
+                                        <%}%>
+                                        <div class="sectionHelp" style="margin-top: 5px;">
+                                            <fmt:message key='associated.flow.help'/>
+                                        </div>
+                                    </td>
+                                </tr>
+
                                 <tr<%if (isPurposeGroupTypePresent) {%> style="display:none" <%}%>>
-                                    <td><fmt:message key="purpose.group.type"/><%if(!isPurposeGroupTypePresent){%>
+                                    <td style="vertical-align: top!important;"><fmt:message key="purpose.group.type"/><%if(!isPurposeGroupTypePresent){%>
                                         <font color="red">*</font> <%}%>
                                     </td>
                                     <td><% if (isPurposeGroupTypePresent) {%>
                                         <input type="text" name="groupType" id="groupType" readOnly="true"
-                                               value="<%=Encode.forHtmlAttribute(purposeGroupType)%>" style="width:150px ;
+                                               value="<%=Encode.forHtmlAttribute(purposeGroupType)%>" style="width:300px ;
                                                border-style: none"/>
                                         <%} else { %>
                                         <input type="text" name="groupType" id="groupType"
