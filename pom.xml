@@ -346,7 +346,7 @@
         <swagger.jaxrs.version>1.5.20</swagger.jaxrs.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
         <springframework.version>4.1.6.RELEASE</springframework.version>
-        <org.apache.cxf.version>3.2.2</org.apache.cxf.version>
+        <org.apache.cxf.version>3.2.5</org.apache.cxf.version>
         <fasterxml.jackson.version>2.9.6</fasterxml.jackson.version>
         <org.codehaus.jackson.version>1.8.6</org.codehaus.jackson.version>
         <maven.compiler.plugin>3.7.0</maven.compiler.plugin>
