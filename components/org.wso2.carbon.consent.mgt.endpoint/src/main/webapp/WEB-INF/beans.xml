@@ -12,6 +12,7 @@
         </jaxrs:serviceBeans>
         <jaxrs:providers>
             <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"/>
+            <bean class="org.wso2.carbon.consent.mgt.endpoint.expmapper.ConsentEndpointExceptionMapper"/>
         </jaxrs:providers>
     </jaxrs:server>
 </beans>
