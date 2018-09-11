@@ -40,7 +40,7 @@ public class SQLConstants {
                                                             " TENANT_ID FROM (SELECT ROW_NUMBER() OVER " +
                                                             "(ORDER BY ID) AS rn, p.* FROM CM_PURPOSE AS p) WHERE " +
                                                             "TENANT_ID =? AND PURPOSE_GROUP LIKE ? AND GROUP_TYPE " +
-                                                            "LIKE ? rn BETWEEN ? AND ?";
+                                                            "LIKE ? AND rn BETWEEN ? AND ?";
 
     public static final String LIST_PAGINATED_PURPOSE_ORACLE = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
                                                                "GROUP_TYPE, TENANT_ID FROM (SELECT ID, " +
