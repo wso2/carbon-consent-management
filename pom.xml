@@ -221,6 +221,16 @@
                 <artifactId>jackson-jaxrs-json-provider</artifactId>
                 <version>${fasterxml.jackson.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-jaxrs</artifactId>
+                <version>${swagger.jaxrs.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.ws.rs</groupId>
+                <artifactId>javax.ws.rs-api</artifactId>
+                <version>${javax.ws.rs-api.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -345,8 +355,9 @@
         <slf4j.api.version>1.6.1</slf4j.api.version>
         <swagger.jaxrs.version>1.5.20</swagger.jaxrs.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
+        <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
         <springframework.version>4.1.6.RELEASE</springframework.version>
-        <org.apache.cxf.version>3.1.16</org.apache.cxf.version>
+        <org.apache.cxf.version>3.2.6</org.apache.cxf.version>
         <fasterxml.jackson.version>2.9.6</fasterxml.jackson.version>
         <org.codehaus.jackson.version>1.8.6</org.codehaus.jackson.version>
         <maven.compiler.plugin>3.7.0</maven.compiler.plugin>
