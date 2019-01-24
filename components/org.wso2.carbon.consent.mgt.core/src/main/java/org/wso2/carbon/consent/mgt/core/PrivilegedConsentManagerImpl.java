@@ -105,7 +105,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.STATE;
 /**
  * Consent Manager intercepting layer responsible for triggering listeners and calling the actual
  * {@link ConsentManagerImpl} to perform consent management functionality.
- *
+ * <p>
  * This intercepting layer is free from any authorization logic, therefore any component consuming the
  * {@link ConsentManager} as an OSGi service need to use this implementation instead of
  * {@link InterceptingConsentManager} implementation. This can be done by listening to implementations registered for
@@ -280,7 +280,8 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
         ConsentInterceptorTemplate<PurposeCategory, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
-        return template.intercept(PRE_ADD_PURPOSE_CATEGORY, properties -> properties.put(PURPOSE_CATEGORY, purposeCategory))
+        return template.intercept(PRE_ADD_PURPOSE_CATEGORY,
+                properties -> properties.put(PURPOSE_CATEGORY, purposeCategory))
                 .executeWith(new OperationDelegate<PurposeCategory>() {
                     @Override
                     public PurposeCategory execute() throws ConsentManagementException {
@@ -307,7 +308,8 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                         return consentManager.getPurposeCategory(purposeCategoryId);
                     }
                 })
-                .intercept(POST_GET_PURPOSE_CATEGORY, properties -> properties.put(PURPOSE_CATEGORY_ID, purposeCategoryId))
+                .intercept(POST_GET_PURPOSE_CATEGORY,
+                        properties -> properties.put(PURPOSE_CATEGORY_ID, purposeCategoryId))
                 .getResult();
     }
 
@@ -360,7 +362,8 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
         ConsentInterceptorTemplate<Void, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
-        template.intercept(PRE_DELETE_PURPOSE_CATEGORY, properties -> properties.put(PURPOSE_CATEGORY_ID, purposeCategoryId))
+        template.intercept(PRE_DELETE_PURPOSE_CATEGORY,
+                properties -> properties.put(PURPOSE_CATEGORY_ID, purposeCategoryId))
                 .executeWith(new OperationDelegate<Void>() {
                     @Override
                     public Void execute() throws ConsentManagementException {
@@ -557,7 +560,8 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     @Override
                     public List<ReceiptListResponse> execute() throws ConsentManagementException {
 
-                        return consentManager.searchReceipts(limit, offset, piiPrincipalId, spTenantDomain, service, state);
+                        return consentManager.searchReceipts(limit, offset, piiPrincipalId, spTenantDomain, service,
+                                state);
                     }
                 })
                 .intercept(POST_LIST_RECEIPTS, properties -> {
@@ -641,7 +645,10 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
      * @return boolean true if receipt exists for match criteria
      */
     @Override
-    public boolean isReceiptExist(String receiptId, String tenantAwareUsername, int tenantId) throws ConsentManagementException {
+    public boolean isReceiptExist(String receiptId,
+                                  String tenantAwareUsername,
+                                  int tenantId) throws ConsentManagementException {
+
         return consentManager.isReceiptExist(receiptId, tenantAwareUsername, tenantId);
     }
 

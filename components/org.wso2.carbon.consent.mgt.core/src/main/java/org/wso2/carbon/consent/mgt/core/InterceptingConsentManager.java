@@ -165,8 +165,8 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
 
             if (authorized) {
                 if (log.isDebugEnabled()) {
-                    log.debug("User: " + tenantAwareUsername + " is successfully authorized to perform the operation: " +
-                            operation);
+                    log.debug("User: " + tenantAwareUsername + " is successfully authorized to perform the " +
+                            "operation: " + operation);
                 }
             } else {
                 if (log.isDebugEnabled()) {
