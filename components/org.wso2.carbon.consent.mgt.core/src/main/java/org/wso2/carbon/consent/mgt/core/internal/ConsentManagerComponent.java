@@ -27,6 +27,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.InterceptingConsentManager;
+import org.wso2.carbon.consent.mgt.core.PrivilegedConsentManager;
+import org.wso2.carbon.consent.mgt.core.PrivilegedConsentManagerImpl;
 import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
 import org.wso2.carbon.consent.mgt.core.connector.PIIController;
 import org.wso2.carbon.consent.mgt.core.connector.impl.DefaultPIIController;
@@ -106,6 +108,8 @@ public class ConsentManagerComponent {
 
             bundleContext.registerService(ConsentManager.class.getName(), new InterceptingConsentManager
                     (configHolder, consentMgtInterceptors), null);
+            bundleContext.registerService(PrivilegedConsentManager.class.getName(),
+                    new PrivilegedConsentManagerImpl(configHolder, consentMgtInterceptors), null);
             log.info("ConsentManagerComponent is activated.");
         } catch (Throwable e) {
             log.error("Error while activating ConsentManagerComponent.", e);
