@@ -389,7 +389,7 @@
         <org.wso2.carbon.database.utils.version.range>[2.0.0,2.1.0)</org.wso2.carbon.database.utils.version.range>
         <!-- Test Dependency Versions -->
         <testng.version>6.3.1</testng.version>
-        <powermock.version>1.6.6</powermock.version>
+        <powermock.version>1.7.4</powermock.version>
         <jacoco.version>0.7.9</jacoco.version>
         <maven.surefire.plugin.version>2.20</maven.surefire.plugin.version>
         <orbit.version.h2.engine>1.2.140.wso2v3</orbit.version.h2.engine>
