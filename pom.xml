@@ -365,7 +365,7 @@
         <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
         <maven.war.plugin.version>3.2.2</maven.war.plugin.version>
         <build.helper.plugin.version>3.0.0</build.helper.plugin.version>
-        <encoder.wso2.version>1.2.0.wso2v1</encoder.wso2.version>
+        <encoder.wso2.version>1.2.0.wso2v2</encoder.wso2.version>
         <axis2.wso2.version>1.6.2.wso2v13</axis2.wso2.version>
         <org.json.wso2.version>3.0.0.wso2v1</org.json.wso2.version>
         <apache.httpclient.version>4.5.8</apache.httpclient.version>
