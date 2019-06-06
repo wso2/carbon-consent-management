@@ -122,6 +122,7 @@
                             org.apache.commons.logging.*; version="${commons.logging.version.range}",
                             org.slf4j.*; version="${slf4j.version.range}",
                             org.wso2.securevault.*,
+                            org.wso2.securevault.commons,
                             com.google.gson.*; version="${com.google.code.gson.osgi.version.range}",
                             org.json.*; version="${org.json.wso2.version.range}",
                             org.wso2.carbon.context.*; version="${carbon.core.version.range}",
