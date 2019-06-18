@@ -360,7 +360,7 @@
         <org.apache.cxf.version>3.3.1</org.apache.cxf.version>
         <fasterxml.jackson.version>2.9.8</fasterxml.jackson.version>
         <org.codehaus.jackson.version>1.8.6</org.codehaus.jackson.version>
-        <maven.compiler.plugin>3.7.0</maven.compiler.plugin>
+        <maven.compiler.plugin>3.8.1</maven.compiler.plugin>
         <maven.scr.plugin.version>1.26.0</maven.scr.plugin.version>
         <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
         <maven.war.plugin.version>3.2.2</maven.war.plugin.version>
