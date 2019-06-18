@@ -39,6 +39,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_DATABASE_CONNECTION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GET_DB_TYPE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_NO_SQL_SCRIPT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_ROLL_BACK_CONNECTION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_RUN_SQL_QUERY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_RUN_SQL_SCRIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_UNSUPPORTED_DB;
@@ -152,6 +153,11 @@ public class ConsentDBInitializer {
                 conn.commit();
                 log.debug("Consent tables are created successfully.");
             } catch (SQLException e) {
+                try {
+                    conn.rollback();
+                } catch (SQLException e1) {
+                    throw ConsentUtils.handleRuntimeException(ERROR_CODE_ROLL_BACK_CONNECTION, null, e1);
+                }
                 throw ConsentUtils.handleRuntimeException(ERROR_CODE_CREATE_DB_TABLES, null, e);
 
             } finally {
