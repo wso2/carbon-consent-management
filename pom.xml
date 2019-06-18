@@ -394,6 +394,6 @@
         <maven.surefire.plugin.version>2.20</maven.surefire.plugin.version>
         <orbit.version.h2.engine>1.2.140.wso2v3</orbit.version.h2.engine>
 
-        <org.wso2.carbon.database.utils.version>2.0.6</org.wso2.carbon.database.utils.version>
+        <org.wso2.carbon.database.utils.version>2.0.9</org.wso2.carbon.database.utils.version>
     </properties>
 </project>
