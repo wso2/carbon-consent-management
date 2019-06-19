@@ -25,6 +25,7 @@
             <class name="org.wso2.carbon.consent.mgt.core.dao.impl.PurposeCategoryDAOImplTest"/>
             <class name="org.wso2.carbon.consent.mgt.core.dao.impl.ReceiptDAOImplTest"/>
             <class name="org.wso2.carbon.consent.mgt.core.InterceptingConsentManagerTest"/>
+            <class name="org.wso2.carbon.consent.mgt.core.ConsentManagerImplTest"/>
             <class name="org.wso2.carbon.consent.mgt.core.util.ConsentDBInitializerTest"/>
         </classes>
     </test>

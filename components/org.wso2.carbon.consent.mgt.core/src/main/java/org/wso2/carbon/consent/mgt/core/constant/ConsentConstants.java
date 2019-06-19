@@ -199,7 +199,11 @@ public class ConsentConstants {
         ERROR_CODE_PURPOSE_PII_CONSTRAINT_REQUIRED("CM_00088", "Purpose PII category should be specified mandatory or" +
                                                                " not for PII category ID: %s."),
         ERROR_CODE_ROLL_BACK_CONNECTION("CM_00089", "Transaction rollback connection error occurred while creating"
-                + " database tables for Consent Management.");
+                + " database tables for Consent Management."),
+        ERROR_CODE_GETTING_USER_STORE_MANAGER("CM_00089", "Error while retrieving the user store manager for the user"
+                + " name: %s."),
+
+        ERROR_CODE_GETTING_TENANT_ID("CM_00090", "Error in obtaining tenant ID from tenant domain: %s.");
 
         private final String code;
         private final String message;
