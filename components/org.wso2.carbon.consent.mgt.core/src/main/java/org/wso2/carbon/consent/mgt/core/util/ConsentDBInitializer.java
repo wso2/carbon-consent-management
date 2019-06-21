@@ -143,10 +143,8 @@ public class ConsentDBInitializer {
 
         if (!isDatabaseStructureCreated()) {
             Connection conn = null;
-            boolean autoCommit = false;
             try {
                 conn = dataSource.getConnection();
-                autoCommit = conn.getAutoCommit();
                 conn.setAutoCommit(false);
                 statement = conn.createStatement();
                 executeSQLScript();
@@ -171,7 +169,6 @@ public class ConsentDBInitializer {
 
                 if (conn != null) {
                     try {
-                        conn.setAutoCommit(autoCommit);
                         conn.close();
                     } catch (SQLException e) {
                         log.error("Failed to close database connection.", e);
