@@ -48,9 +48,13 @@ import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -68,6 +72,8 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_SERVICE_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_TYPE_MANDATORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GETTING_PUBLIC_CERT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GETTING_TENANT_ID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GETTING_USER_STORE_MANAGER;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GET_DAO;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_IS_PRIMARY_PURPOSE_IS_REQUIRED;
@@ -85,19 +91,15 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CAT_NAME_INVALID;
-
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages
-        .ERROR_CODE_PURPOSE_GROUP_REQUIRED;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages
-        .ERROR_CODE_PURPOSE_GROUP_TYPE_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_GROUP_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_GROUP_TYPE_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_MANDATORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_IS_ASSOCIATED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_REQUIRED;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages
-        .ERROR_CODE_PURPOSE_PII_CONSTRAINT_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_PII_CONSTRAINT_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_RECEIPT_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_SERVICE_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_TERMINATION_IS_REQUIRED;
@@ -135,6 +137,8 @@ public class ConsentManagerImpl implements ConsentManager {
     private static final String PII_CATEGORY_DAO = "piiCategoryDAOs";
     private static final String PURPOSE_CATEGORY_DAO = "purposedCategoryDAOs";
     private static final String PURPOSE_DAO = "purposedDAOs";
+    private static final String USE_CASE_SENSITIVE_USERNAME_FOR_CACHE_KEYS = "UseCaseSensitiveUsernameForCacheKeys";
+    private Boolean isCaseSensitiveUserName;
     private List<PurposeDAO> purposeDAOs;
     private List<PurposeCategoryDAO> purposeCategoryDAOs;
     private List<PIICategoryDAO> piiCategoryDAOs;
@@ -541,8 +545,11 @@ public class ConsentManagerImpl implements ConsentManager {
         receiptInput.setConsentReceiptId(generateConsentReceiptId());
         setAPIVersion(receiptInput);
         setPIIControllerInfo(receiptInput);
-        getReceiptsDAO(receiptDAOs).addReceipt(receiptInput);
+        if (!isUserNameCaseSensitive(receiptInput.getPiiPrincipalId())) {
+            receiptInput.setPiiPrincipalId(getLowerCaseUserName(receiptInput.getPiiPrincipalId()));
+        }
 
+        getReceiptsDAO(receiptDAOs).addReceipt(receiptInput);
         if (log.isDebugEnabled()) {
             log.debug("Consent stored successfully with the Id: " + receiptInput.getConsentReceiptId());
         }
@@ -624,6 +631,9 @@ public class ConsentManagerImpl implements ConsentManager {
                 log.debug("Limit is not defied the request, default to: " + limit);
             }
         }
+        if (!isUserNameCaseSensitive(piiPrincipalId)) {
+            piiPrincipalId = getLowerCaseUserName(piiPrincipalId);
+        }
         List<ReceiptListResponse> receiptListResponses = getReceiptsDAO(receiptDAOs).searchReceipts(limit, offset,
                 piiPrincipalId, spTenantId, service, state, principalTenantId);
         receiptListResponses.forEach(rethrowConsumer(receiptListResponse -> receiptListResponse.setTenantDomain
@@ -673,6 +683,10 @@ public class ConsentManagerImpl implements ConsentManager {
     @Override
     public boolean isReceiptExist(String receiptId, String tenantAwareUsername, int tenantId) throws
             ConsentManagementException {
+
+        if (!isUserNameCaseSensitive(tenantAwareUsername)) {
+            tenantAwareUsername = getLowerCaseUserName(tenantAwareUsername);
+        }
         return getReceiptsDAO(receiptDAOs).isReceiptExist(receiptId, tenantAwareUsername, tenantId);
     }
 
@@ -1189,5 +1203,75 @@ public class ConsentManagerImpl implements ConsentManager {
         PurposePIICategory purposePIICategoryResult = new PurposePIICategory(piiCategory,
                                                                              purposePIICategory.getMandatory());
         return purposePIICategoryResult;
+    }
+
+    private boolean isUserNameCaseSensitive(String username) throws ConsentManagementException {
+
+        try {
+            UserStoreManager userStoreManager = null;
+            UserRealm userRealm = getUserRealm();
+            if (realmService != null && userRealm != null) {
+                AbstractUserStoreManager abstractUserStoreManager = (AbstractUserStoreManager) userRealm
+                        .getUserStoreManager();
+                if (abstractUserStoreManager != null) {
+                    userStoreManager = abstractUserStoreManager
+                            .getSecondaryUserStoreManager(UserCoreUtil.extractDomainFromName(username));
+                }
+                if (userStoreManager != null && userStoreManager.getRealmConfiguration() != null) {
+                    String useCaseSensitiveUsernameForCacheKeysProperty = userStoreManager.getRealmConfiguration()
+                            .getUserStoreProperty(USE_CASE_SENSITIVE_USERNAME_FOR_CACHE_KEYS);
+                    if (useCaseSensitiveUsernameForCacheKeysProperty != null) {
+                        isCaseSensitiveUserName = Boolean.parseBoolean(useCaseSensitiveUsernameForCacheKeysProperty);
+                        return isCaseSensitiveUserName;
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug("User store property: " + USE_CASE_SENSITIVE_USERNAME_FOR_CACHE_KEYS
+                                    + " not configured. Considering username as case sensitive.");
+                        }
+                        return false;
+                    }
+                }
+            }
+        } catch (UserStoreException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while reading user store property: " + USE_CASE_SENSITIVE_USERNAME_FOR_CACHE_KEYS
+                        + ". Considering username as case sensitive.");
+            }
+            throw handleServerException(ERROR_CODE_GETTING_USER_STORE_MANAGER, username, e);
+        }
+        return false;
+    }
+
+    private String getLowerCaseUserName(String userName) {
+
+        String domainFreeName;
+        String domainName;
+        if (userName != null) {
+            domainFreeName = UserCoreUtil.removeDomainFromName(userName);
+            domainName = UserCoreUtil.extractDomainFromName(userName);
+            return UserCoreUtil.addDomainToName(domainFreeName.toLowerCase(), domainName);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Get the user realm of the logged in user.
+     *
+     * @return the userRealm for given username
+     * @throws ConsentManagementException
+     */
+    private UserRealm getUserRealm() throws ConsentManagementException {
+
+        UserRealm userRealm;
+        String tenantDomain = getTenantDomainFromCarbonContext();
+        int tenantId;
+        try {
+            tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
+            userRealm = realmService.getTenantUserRealm(tenantId);
+        } catch (UserStoreException e) {
+            throw handleServerException(ERROR_CODE_GETTING_TENANT_ID, tenantDomain, e);
+        }
+        return userRealm;
     }
 }
