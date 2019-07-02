@@ -1,0 +1,4 @@
+{
+  "authentication.consent.purposes_search_limit": "100",
+  "authentication.consent.data_source": "jdbc/WSO2CarbonDB"
+}

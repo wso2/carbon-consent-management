@@ -136,6 +136,8 @@
                                         <include>consent-mgt-config.xml</include>
                                         <include>**/*.sql</include>
                                         <include>p2.inf</include>
+                                        <include>consent-mgt-config.xml.j2</include>
+                                        <include>*.json</include>
                                     </includes>
                                 </resource>
                             </resources>
