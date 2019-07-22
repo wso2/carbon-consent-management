@@ -100,9 +100,9 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${slf4j.api.version}</version>
+                <groupId>org.ops4j.pax.logging</groupId>
+                <artifactId>pax-logging-api</artifactId>
+                <version>${pax.logging.api.version}</version>
             </dependency>
             <!-- Test Dependencies -->
             <dependency>
@@ -301,19 +301,7 @@
                         <doUpdate>false</doUpdate>
                     </configuration>
                 </plugin>
-                <plugin>
-                    <groupId>org.apache.felix</groupId>
-                    <artifactId>maven-scr-plugin</artifactId>
-                    <version>${maven.scr.plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>generate-scr-scrdescriptor</id>
-                            <goals>
-                                <goal>scr</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
+
             </plugins>
         </pluginManagement>
         <plugins>
@@ -351,7 +339,7 @@
         <carbon.p2.plugin.version>5.2.3</carbon.p2.plugin.version>
         <org.apache.felix.annotations.version>1.2.10</org.apache.felix.annotations.version>
         <eclipse.osgi.version>3.5.100.v20160504-1419</eclipse.osgi.version>
-        <carbon.core.version>4.4.32</carbon.core.version>
+        <carbon.core.version>4.5.0-m3</carbon.core.version>
         <slf4j.api.version>1.7.26</slf4j.api.version>
         <swagger.jaxrs.version>1.5.22</swagger.jaxrs.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
@@ -362,7 +350,7 @@
         <org.codehaus.jackson.version>1.8.6</org.codehaus.jackson.version>
         <maven.compiler.plugin>3.8.1</maven.compiler.plugin>
         <maven.scr.plugin.version>1.26.0</maven.scr.plugin.version>
-        <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
+        <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
         <maven.war.plugin.version>3.2.2</maven.war.plugin.version>
         <build.helper.plugin.version>3.0.0</build.helper.plugin.version>
         <encoder.wso2.version>1.2.0.wso2v2</encoder.wso2.version>
@@ -393,7 +381,7 @@
         <jacoco.version>0.8.3</jacoco.version>
         <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
         <orbit.version.h2.engine>1.2.140.wso2v3</orbit.version.h2.engine>
-
+        <pax.logging.api.version>1.10.1</pax.logging.api.version>
         <org.wso2.carbon.database.utils.version>2.0.9</org.wso2.carbon.database.utils.version>
     </properties>
 </project>
