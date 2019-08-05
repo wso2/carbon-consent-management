@@ -182,7 +182,6 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 .getResult();
     }
 
-    @Deactivate
     public List<Purpose> listPurposes(int limit, int offset) throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
