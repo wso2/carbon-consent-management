@@ -46,7 +46,7 @@ public class ConsentConfigParser {
     private static final String DATA_SOURCE_NAME = "DataSource.Name";
     private static Map<String, Object> configuration = new HashMap<>();
     private static SecretResolver secretResolver;
-    private static Log log = LogFactory.getLog(ConsentConfigParser.class);
+    private static final Log log = LogFactory.getLog(ConsentConfigParser.class);
     private OMElement rootElement;
 
     public ConsentConfigParser() {

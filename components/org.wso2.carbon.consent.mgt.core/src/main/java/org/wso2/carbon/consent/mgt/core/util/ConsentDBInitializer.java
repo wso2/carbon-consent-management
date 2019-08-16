@@ -51,7 +51,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 public class ConsentDBInitializer {
 
     private static final String DB_CHECK_SQL = "SELECT * FROM CM_PURPOSE_CATEGORY";
-    private static Log log = LogFactory.getLog(ConsentDBInitializer.class);
+    private static final Log log = LogFactory.getLog(ConsentDBInitializer.class);
     private Statement statement;
     private DataSource dataSource;
     private String delimiter = ";";
