@@ -1,4 +1,16 @@
 {
   "authentication.consent.purposes_search_limit": "100",
-  "authentication.consent.data_source": "jdbc/WSO2CarbonDB"
+  "authentication.consent.data_source": "jdbc/WSO2CarbonDB",
+  "authentication.pii_controller.name": "change-me",
+  "authentication.pii_controller.contact": "change-me",
+  "authentication.pii_controller.email": "change-me",
+  "authentication.pii_controller.phone": "change-me",
+  "authentication.pii_controller.on_behalf": "change-me",
+  "authentication.pii_controller.url": "change-me",
+  "authentication.pii_controller.country": "change-me",
+  "authentication.pii_controller.locality": "change-me",
+  "authentication.pii_controller.region": "change-me",
+  "authentication.pii_controller.po_box": "change-me",
+  "authentication.pii_controller.postal_code": "change-me",
+  "authentication.pii_controller.street_address": "change-me"
 }
