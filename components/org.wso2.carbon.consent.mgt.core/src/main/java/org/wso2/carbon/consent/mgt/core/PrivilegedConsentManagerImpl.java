@@ -113,7 +113,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.STATE;
  */
 public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
 
-    protected ConsentManager consentManager;
+    ConsentManager consentManager;
     protected List<ConsentMgtInterceptor> consentMgtInterceptors;
 
     public PrivilegedConsentManagerImpl(ConsentManagerConfigurationHolder configHolder,
