@@ -113,16 +113,6 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.STATE;
  */
 public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
 
-    public ConsentManager getConsentManager() {
-
-        return consentManager;
-    }
-
-    public void setConsentManager(ConsentManager consentManager) {
-
-        this.consentManager = consentManager;
-    }
-
     private ConsentManager consentManager;
     protected List<ConsentMgtInterceptor> consentMgtInterceptors;
 
