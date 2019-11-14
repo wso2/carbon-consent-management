@@ -69,20 +69,20 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
     public Receipt getReceipt(String receiptId) throws ConsentManagementException {
 
         validateAuthorizationForGetOrRevokeReceipts(receiptId, GET_RECEIPT);
-        return consentManager.getReceipt(receiptId);
+        return super.getReceipt(receiptId);
     }
 
     public List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String spTenantDomain,
                                                     String service, String state) throws ConsentManagementException {
 
         validateAuthorizationForListReceipts(piiPrincipalId);
-        return consentManager.searchReceipts(limit, offset, piiPrincipalId, spTenantDomain, service, state);
+        return super.searchReceipts(limit, offset, piiPrincipalId, spTenantDomain, service, state);
     }
 
     public void revokeReceipt(String receiptId) throws ConsentManagementException {
 
         validateAuthorizationForGetOrRevokeReceipts(receiptId, REVOKE_RECEIPT);
-        consentManager.revokeReceipt(receiptId);
+        super.revokeReceipt(receiptId);
     }
 
     private void validateAuthorizationForListReceipts(String piiPrincipalId) throws ConsentManagementException {
@@ -113,7 +113,7 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
         }
         int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        if (consentManager.isReceiptExist(receiptId, loggedInUser, tenantId)) {
+        if (super.isReceiptExist(receiptId, loggedInUser, tenantId)) {
             if (log.isDebugEnabled()) {
                 log.debug("User: " + loggedInUser + " is authorized to perform a " + operation + " on own " +
                         "consent receipt.");
@@ -131,7 +131,7 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
     private void handleCrossDomainPermission(String receiptId) throws ConsentManagementException {
 
         String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
-        Receipt receipt = consentManager.getReceipt(receiptId);
+        Receipt receipt = super.getReceipt(receiptId);
         if (receipt != null) {
             if (StringUtils.equals(receipt.getTenantDomain(), tenantDomain)) {
                 return;
