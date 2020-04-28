@@ -89,7 +89,10 @@
                             org.json.*; version="${org.json.wso2.version.range}",
                             org.wso2.carbon.identity.claim.metadata.mgt.*; version="${claim.metadata.version.range}",
                         </Import-Package>
-                        <Export-Package>org.wso2.carbon.consent.mgt.ui.*</Export-Package>
+                        <Export-Package>
+                            !org.wso2.carbon.consent.mgt.ui.internal,
+                            org.wso2.carbon.consent.mgt.ui.*; version="${project.version}",
+                        </Export-Package>
                         <Carbon-Component>UIBundle</Carbon-Component>
                     </instructions>
                 </configuration>
