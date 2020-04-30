@@ -74,6 +74,16 @@ public interface PIICategoryDAO {
     int deletePIICategory(int id) throws ConsentManagementException;
 
     /**
+     * Delete all {@link PIICategory} of a given tenant id.
+     *
+     * @param tenantId Id of the tenant
+     * @throws ConsentManagementException
+     */
+    default void deletePIICategoriesByTenantId(int tenantId) throws ConsentManagementException {
+
+    }
+
+    /**
      * Get the {@link PIICategory} corresponding to the input name.
      *
      * @param name Name of the {@link PIICategory}.
@@ -85,7 +95,8 @@ public interface PIICategoryDAO {
 
 
     /**
-     * Check whether the {@link PIICategory} by ID is used in a purpose or service
+     * Check whether the {@link PIICategory} by ID is used in a purpose or service.
+     *
      * @param id D of the {@link PIICategory} to be validated
      * @return
      */

@@ -66,6 +66,9 @@ public class SQLConstants {
                                                                  "GROUP_TYPE LIKE ? ORDER BY ID ASC LIMIT ? OFFSET ?";
 
     public static final String DELETE_PURPOSE_SQL = "DELETE FROM CM_PURPOSE WHERE ID = ?";
+
+    public static final String DELETE_PURPOSES_BY_TENANT_ID = "DELETE FROM CM_PURPOSE WHERE TENANT_ID = ?";
+
     public static final String INSERT_PII_CATEGORY_SQL = "INSERT INTO CM_PII_CATEGORY (NAME, DESCRIPTION," +
             "IS_SENSITIVE, TENANT_ID, DISPLAY_NAME) VALUES (?,?,?,?,?)";
     public static final String SELECT_PII_CATEGORY_BY_ID_SQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
@@ -94,6 +97,9 @@ public class SQLConstants {
             "ORDER BY ID) WHERE TENANT_ID =? AND rownum <= ?) WHERE  rnum > ?";
 
     public static final String DELETE_PII_CATEGORY_SQL = "DELETE FROM CM_PII_CATEGORY WHERE ID = ?";
+
+    public static final String DELETE_PII_CATEGORY_BY_TENANT_ID_SQL = "DELETE FROM CM_PII_CATEGORY WHERE TENANT_ID = ?";
+
     public static final String SELECT_PII_CATEGORY_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
             "TENANT_ID,DISPLAY_NAME FROM CM_PII_CATEGORY WHERE NAME = ? AND " +
             "TENANT_ID = ? ";
@@ -121,6 +127,9 @@ public class SQLConstants {
             "CM_PURPOSE_CATEGORY) AS P WHERE P.TENANT_ID = ? AND P.RowNum BETWEEN ? AND ?";
 
     public static final String DELETE_PURPOSE_CATEGORY_SQL = "DELETE FROM CM_PURPOSE_CATEGORY WHERE ID = ?";
+
+    public static final String DELETE_PURPOSE_CATEGORY_BY_TENANT_ID_SQL = "DELETE FROM CM_PURPOSE_CATEGORY WHERE TENANT_ID = ?";
+
     public static final String SELECT_PURPOSE_CATEGORY_BY_NAME_SQL = "SELECT ID, NAME, DESCRIPTION, TENANT_ID FROM " +
             "CM_PURPOSE_CATEGORY WHERE NAME = ? AND TENANT_ID = ?";
 
@@ -129,6 +138,8 @@ public class SQLConstants {
             "POLICY_URL,STATE,PII_CONTROLLER) values (?,?,?,?,?,?,?,?,?,?,?)";
 
     public static final String DELETE_RECEIPT_SQL = "DELETE FROM CM_RECEIPT WHERE CONSENT_RECEIPT_ID = ?";
+
+    public static final String DELETE_RECEIPTS_BY_PRINCIPAL_TENANT_ID_SQL = "DELETE FROM CM_RECEIPT WHERE PRINCIPAL_TENANT_ID = ?";
 
     public static final String DELETE_RECEIPT_SP_ASSOC_SQL = "DELETE FROM CM_RECEIPT_SP_ASSOC WHERE CONSENT_RECEIPT_ID" +
             " = ?";

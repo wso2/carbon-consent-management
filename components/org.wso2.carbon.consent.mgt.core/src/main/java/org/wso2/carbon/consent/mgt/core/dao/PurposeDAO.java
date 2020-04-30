@@ -102,7 +102,18 @@ public interface PurposeDAO {
     int deletePurpose(int id) throws ConsentManagementException;
 
     /**
-     * Check whether the {@link Purpose} by ID is used in a receipt
+     * Delete all {@link Purpose} of a given tenant id.
+     *
+     * @param tenantId Id of the tenant
+     * @throws ConsentManagementException
+     */
+    default void deletePurposesByTenantId(int tenantId) throws ConsentManagementException {
+
+    }
+
+    /**
+     * Check whether the {@link Purpose} by ID is used in a receipt.
+     *
      * @param id D of the {@link Purpose} to be validated
      * @return
      */

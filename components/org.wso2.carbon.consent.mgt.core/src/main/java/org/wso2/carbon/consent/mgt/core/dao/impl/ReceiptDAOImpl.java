@@ -47,6 +47,7 @@ import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_STATE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_RECEIPTS_BY_PRINCIPAL_TENANT_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_RECEIPT_PROPERTIES_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_RECEIPT_SP_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_RECEIPT_SQL;
@@ -235,7 +236,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
         } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_EXISTENCE,
-                    "Receipt Id: "+ receiptId+ ", PII Principal Id: "+ piiPrincipalId+ "and Tenant Id: "+ tenantId, e);
+                    "Receipt Id: " + receiptId + ", PII Principal Id: " + piiPrincipalId + "and Tenant Id: "
+                            + tenantId, e);
         }
     }
 
@@ -760,6 +762,25 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_RECEIPT,
                     receiptID, e);
+        }
+    }
+
+    /**
+     * Delete all {@link Receipt} of a given principal tenant id.
+     *
+     * @param principalTenantId Id of the tenant
+     * @throws ConsentManagementException
+     */
+    @Override
+    public void deleteReceiptsByPrincipalTenantId(int principalTenantId) throws ConsentManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(DELETE_RECEIPTS_BY_PRINCIPAL_TENANT_ID_SQL,
+                    preparedStatement -> preparedStatement.setInt(1, principalTenantId));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_RECEIPTS_BY_PRINCIPAL_TENANT_ID,
+                    String.valueOf(principalTenantId), e);
         }
     }
 

@@ -102,6 +102,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_PII_CONSTRAINT_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_RECEIPT_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_SERVICE_NAME_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_TENANT_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_TERMINATION_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_THIRD_PARTY_DISCLOSURE_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.ADDRESS;
@@ -270,7 +271,7 @@ public class ConsentManagerImpl implements ConsentManager {
      */
     public void deletePurpose(int purposeId) throws ConsentManagementException {
 
-        if (purposeId == 0 || purposeId < 0) {
+        if (purposeId <= 0) {
             if (log.isDebugEnabled()) {
                 log.debug("Purpose Id is not found in the request or invalid purpose Id");
             }
@@ -281,7 +282,7 @@ public class ConsentManagerImpl implements ConsentManager {
             throw handleClientException(ERROR_CODE_PURPOSE_ID_INVALID, String.valueOf(purposeId));
         }
 
-        if (getPurposeDAO(purposeDAOs).isPurposeUsed(purposeId)){
+        if (getPurposeDAO(purposeDAOs).isPurposeUsed(purposeId)) {
             throw handleClientException(ERROR_CODE_PURPOSE_IS_ASSOCIATED, String.valueOf(purposeId));
         }
         int id = getPurposeDAO(purposeDAOs).deletePurpose(purposeId);
@@ -289,6 +290,28 @@ public class ConsentManagerImpl implements ConsentManager {
             log.debug("Purpose deleted successfully. ID: " + id);
         }
     }
+
+    /**
+     * This API is used to delete existing purposes by tenant id.
+     *
+     * @param tenantId Id of the tenant.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    @Override
+    public void deletePurposes(int tenantId) throws ConsentManagementException {
+
+        if (tenantId <= 0) {
+            if (log.isDebugEnabled()) {
+                log.debug("Tenant id is not found in the request or invalid tenant id");
+            }
+            throw handleClientException(ERROR_CODE_TENANT_ID_REQUIRED, null);
+        }
+
+        getPurposeDAO(purposeDAOs).deletePurposesByTenantId(tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug("All purposes deleted successfully for tenant: " + tenantId);
+        }
+    };
 
     /**
      * This API is used to check whether a purpose exists with given name, group and groupType.
@@ -390,7 +413,7 @@ public class ConsentManagerImpl implements ConsentManager {
      */
     public void deletePurposeCategory(int purposeCategoryId) throws ConsentManagementException {
 
-        if (purposeCategoryId == 0 || purposeCategoryId < 0) {
+        if (purposeCategoryId <= 0) {
             if (log.isDebugEnabled()) {
                 log.debug("Purpose Category Id is not found in the request or invalid Id");
             }
@@ -405,6 +428,28 @@ public class ConsentManagerImpl implements ConsentManager {
             log.debug("Purpose category deleted successfully. ID: " + id);
         }
     }
+
+    /**
+     * This API is used to delete existing purpose categories by tenant id.
+     *
+     * @param tenantId Id of the tenant.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    @Override
+    public void deletePurposeCategories(int tenantId) throws ConsentManagementException {
+
+        if (tenantId <= 0) {
+            if (log.isDebugEnabled()) {
+                log.debug("Tenant id is not found in the request or invalid tenant id");
+            }
+            throw handleClientException(ERROR_CODE_TENANT_ID_REQUIRED, null);
+        }
+
+        getPurposeCategoryDAO(purposeCategoryDAOs).deletePurposeCategoriesByTenantId(tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug("All purpose categories deleted successfully for tenant: " + tenantId);
+        }
+    };
 
     /**
      * This API is used to check whether a purpose category exists for a given name.
@@ -502,7 +547,7 @@ public class ConsentManagerImpl implements ConsentManager {
      */
     public void deletePIICategory(int piiCategoryId) throws ConsentManagementException {
 
-        if (piiCategoryId == 0 || piiCategoryId < 0) {
+        if (piiCategoryId <= 0) {
             if (log.isDebugEnabled()) {
                 log.debug("PII Category Id is not found in the request or invalid PII category Id");
             }
@@ -520,6 +565,28 @@ public class ConsentManagerImpl implements ConsentManager {
             log.debug("PII Category deleted successfully. ID: " + id);
         }
     }
+
+    /**
+     * This API is used to delete existing PII categories by tenant id.
+     *
+     * @param tenantId Id of the tenant.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    @Override
+    public void deletePIICategories(int tenantId) throws ConsentManagementException {
+
+        if (tenantId <= 0) {
+            if (log.isDebugEnabled()) {
+                log.debug("Tenant id is not found in the request or invalid tenant id");
+            }
+            throw handleClientException(ERROR_CODE_TENANT_ID_REQUIRED, null);
+        }
+
+        getPiiCategoryDAO(piiCategoryDAOs).deletePIICategoriesByTenantId(tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug("All PII categories deleted successfully for tenant: " + tenantId);
+        }
+    };
 
     /**
      * This API is sued to check whether a PII category exists for a given name.
@@ -572,7 +639,7 @@ public class ConsentManagerImpl implements ConsentManager {
             if (log.isDebugEnabled()) {
                 log.debug("No receipt found with the Id: " + receiptId);
             }
-            String message = String.format(ERROR_CODE_RECEIPT_ID_INVALID.getMessage(), receiptId) + " in tenant: "+
+            String message = String.format(ERROR_CODE_RECEIPT_ID_INVALID.getMessage(), receiptId) + " in tenant: " +
                     ConsentUtils.getTenantDomainFromCarbonContext();
             throw new ConsentManagementClientException(message, ERROR_CODE_RECEIPT_ID_INVALID.getCode());
         }
@@ -621,7 +688,7 @@ public class ConsentManagerImpl implements ConsentManager {
         if (StringUtils.isNotBlank(spTenantDomain)) {
             spTenantId = ConsentUtils.getTenantId(realmService, spTenantDomain);
         }
-        if(StringUtils.isNotBlank(principleTenantDomain)) {
+        if (StringUtils.isNotBlank(principleTenantDomain)) {
             principalTenantId = ConsentUtils.getTenantId(realmService, principleTenantDomain);
         }
         validatePaginationParameters(limit, offset);
@@ -672,8 +739,30 @@ public class ConsentManagerImpl implements ConsentManager {
     }
 
     /**
+     * This API is used to delete existing receipts by tenant id.
+     *
+     * @param tenantId Id of the tenant.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    @Override
+    public void deleteReceipts(int tenantId) throws ConsentManagementException {
+
+        if (tenantId <= 0) {
+            if (log.isDebugEnabled()) {
+                log.debug("Tenant id is not found in the request or invalid tenant id");
+            }
+            throw handleClientException(ERROR_CODE_TENANT_ID_REQUIRED, null);
+        }
+
+        getReceiptsDAO(receiptDAOs).deleteReceiptsByPrincipalTenantId(tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug("All receipts deleted successfully for tenant: " + tenantId);
+        }
+    };
+
+    /**
      * This API is used to check whether a receipt exists for the user identified by the tenantAwareUser name in the
-     * provided tenant
+     * provided tenant.
      *
      * @param receiptId           Consent Receipt ID
      * @param tenantAwareUsername Tenant aware username
@@ -863,8 +952,8 @@ public class ConsentManagerImpl implements ConsentManager {
         String addressLocality = address.optString(ADDRESS_LOCALITY);
         String addressRegion = address.optString(ADDRESS_REGION);
         String addressPostOfficeBoxNumber = address.optString(POST_OFFICE_BOX_NUMBER);
-        String addressPostCode= address.optString(POSTAL_CODE);
-        String addressStreetAddress= address.optString(STREET_ADDRESS);
+        String addressPostCode = address.optString(POSTAL_CODE);
+        String addressStreetAddress = address.optString(STREET_ADDRESS);
 
         return new Address(addressCountry, addressLocality, addressRegion, addressPostOfficeBoxNumber,
                 addressPostCode, addressStreetAddress);
@@ -885,7 +974,7 @@ public class ConsentManagerImpl implements ConsentManager {
         Address piiAddress = controllerInfo.getAddress();
         if (piiAddress != null) {
             JSONObject address = new JSONObject();
-            address.put(ADDRESS_COUNTRY, piiAddress.getAddressCountry() );
+            address.put(ADDRESS_COUNTRY, piiAddress.getAddressCountry());
             address.put(ADDRESS_LOCALITY, piiAddress.getAddressLocality());
             address.put(ADDRESS_REGION, piiAddress.getAddressRegion());
             address.put(POST_OFFICE_BOX_NUMBER, piiAddress.getPostOfficeBoxNumber());

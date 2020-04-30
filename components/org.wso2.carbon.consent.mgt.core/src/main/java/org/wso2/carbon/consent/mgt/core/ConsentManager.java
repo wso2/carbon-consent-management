@@ -96,6 +96,16 @@ public interface ConsentManager {
     void deletePurpose(int purposeId) throws ConsentManagementException;
 
     /**
+     * This API is used to delete existing purposes by tenant id.
+     *
+     * @param tenantId ID of the tenant.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    default void deletePurposes(int tenantId) throws ConsentManagementException {
+
+    };
+
+    /**
      * This API is used to check whether a purpose exists with given name, group and groupType.
      *
      * @param name Name of the purpose.
@@ -151,6 +161,17 @@ public interface ConsentManager {
      */
     void deletePurposeCategory(int purposeCategoryId) throws ConsentManagementException;
 
+
+    /**
+     * This API is used to delete existing purpose categories by tenant id.
+     *
+     * @param tenantId ID of the tenant.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    default void deletePurposeCategories(int tenantId) throws ConsentManagementException {
+
+    };
+
     /**
      * This API is used to check whether a purpose category exists for a given name.
      *
@@ -204,6 +225,16 @@ public interface ConsentManager {
      * @throws ConsentManagementException Consent Management Exception.
      */
     void deletePIICategory(int piiCategoryId) throws ConsentManagementException;
+
+    /**
+     * This API is used to delete existing PII categories by tenant id.
+     *
+     * @param tenantId ID of the tenant.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    default void deletePIICategories(int tenantId) throws ConsentManagementException {
+
+    };
 
     /**
      * This API is sued to check whether a PII category exists for a given name.
@@ -276,6 +307,16 @@ public interface ConsentManager {
      * @throws ConsentManagementException Consent Management Exception.
      */
     void deleteReceipt(String receiptId) throws ConsentManagementException;
+
+    /**
+     * This API is used to delete existing receipts by tenant id.
+     *
+     * @param tenantId ID of the tenant.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    default void deleteReceipts(int tenantId) throws ConsentManagementException {
+
+    };
 
     /**
      * This API is used to check whether a receipt exists for the user identified by the tenantAwareUser name in the

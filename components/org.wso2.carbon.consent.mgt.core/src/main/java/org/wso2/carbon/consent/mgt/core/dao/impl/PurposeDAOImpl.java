@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSES_BY_TENANT_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_NAME_SQL;
@@ -262,6 +263,25 @@ public class PurposeDAOImpl implements PurposeDAO {
         }
 
         return id;
+    }
+
+    /**
+     * Delete all {@link Purpose} of a given tenant id.
+     *
+     * @param tenantId Id of the tenant
+     * @throws ConsentManagementException
+     */
+    @Override
+    public void deletePurposesByTenantId(int tenantId) throws ConsentManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(DELETE_PURPOSES_BY_TENANT_ID,
+                    preparedStatement -> preparedStatement.setInt(1, tenantId));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_PURPOSES_BY_TENANT_ID,
+                    String.valueOf(tenantId), e);
+        }
     }
 
     /**

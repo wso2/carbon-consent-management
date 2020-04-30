@@ -17,7 +17,6 @@
  */
 package org.wso2.carbon.consent.mgt.core;
 
-import org.osgi.service.component.annotations.Deactivate;
 import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
@@ -41,10 +40,14 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.Interce
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_RECEIPT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_DELETE_PII_CATEGORIES;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_DELETE_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_DELETE_PURPOSE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_DELETE_PURPOSES;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_DELETE_PURPOSE_CATEGORIES;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_DELETE_PURPOSE_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_DELETE_RECEIPT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_DELETE_RECEIPTS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_GET_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_GET_PII_CATEGORY_BY_NAME;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_GET_PII_CATEGORY_LIST;
@@ -64,10 +67,14 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.Interce
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_ADD_PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_ADD_PURPOSE_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_ADD_RECEIPT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_DELETE_PII_CATEGORIES;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_DELETE_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_DELETE_PURPOSE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_DELETE_PURPOSES;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_DELETE_PURPOSE_CATEGORIES;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_DELETE_PURPOSE_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_DELETE_RECEIPT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_DELETE_RECEIPTS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_GET_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_GET_PII_CATEGORY_BY_NAME;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_GET_PII_CATEGORY_LIST;
@@ -95,8 +102,9 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_CATEGORY_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_CATEGORY_NAME;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_ID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_NAME;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_ID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.TENANT_ID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_NAME;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_INPUT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.SERVICE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.SP_TENANT_DOMAIN;
@@ -251,6 +259,30 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 .intercept(POST_DELETE_PURPOSE, properties -> properties.put(PURPOSE_ID, purposeId));
     }
 
+    /**
+     * Delete a all purposes of a given tenant.
+     *
+     * @param tenantId Id of the tenant.
+     * @throws ConsentManagementException
+     */
+    public void deletePurposes(int tenantId) throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<Void, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        template.intercept(PRE_DELETE_PURPOSES, properties -> properties.put(TENANT_ID, tenantId))
+                .executeWith(new OperationDelegate<Void>() {
+                    @Override
+                    public Void execute() throws ConsentManagementException {
+
+                        consentManager.deletePurposes(tenantId);
+                        return null;
+                    }
+                })
+                .intercept(POST_DELETE_PURPOSES, properties -> properties.put(TENANT_ID, tenantId));
+    }
+
     public boolean isPurposeExists(String name, String group, String groupType) throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
@@ -375,6 +407,30 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                         purposeCategoryId));
     }
 
+    /**
+     * Delete a all purpose categories of a given tenant.
+     *
+     * @param tenantId Id of the tenant.
+     * @throws ConsentManagementException
+     */
+    public void deletePurposeCategories(int tenantId) throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<Void, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        template.intercept(PRE_DELETE_PURPOSE_CATEGORIES, properties -> properties.put(TENANT_ID, tenantId))
+                .executeWith(new OperationDelegate<Void>() {
+                    @Override
+                    public Void execute() throws ConsentManagementException {
+
+                        consentManager.deletePurposeCategories(tenantId);
+                        return null;
+                    }
+                })
+                .intercept(POST_DELETE_PURPOSE_CATEGORIES, properties -> properties.put(TENANT_ID, tenantId));
+    }
+
     public boolean isPurposeCategoryExists(String name) throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
@@ -488,6 +544,30 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     }
                 })
                 .intercept(POST_DELETE_PII_CATEGORY, properties -> properties.put(PII_CATEGORY_ID, piiCategoryId));
+    }
+
+    /**
+     * Delete a all PII categories of a given tenant.
+     *
+     * @param tenantId Id of the tenant.
+     * @throws ConsentManagementException
+     */
+    public void deletePIICategories(int tenantId) throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<Void, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        template.intercept(PRE_DELETE_PII_CATEGORIES, properties -> properties.put(TENANT_ID, tenantId))
+                .executeWith(new OperationDelegate<Void>() {
+                    @Override
+                    public Void execute() throws ConsentManagementException {
+
+                        consentManager.deletePIICategories(tenantId);
+                        return null;
+                    }
+                })
+                .intercept(POST_DELETE_PII_CATEGORIES, properties -> properties.put(TENANT_ID, tenantId));
     }
 
     public boolean isPIICategoryExists(String name) throws ConsentManagementException {
@@ -634,8 +714,32 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     }
 
     /**
+     * Delete a all receipts of a given tenant.
+     *
+     * @param tenantId Id of the tenant.
+     * @throws ConsentManagementException
+     */
+    public void deleteReceipts(int tenantId) throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<Void, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        template.intercept(PRE_DELETE_RECEIPTS, properties -> properties.put(TENANT_ID, tenantId))
+                .executeWith(new OperationDelegate<Void>() {
+                    @Override
+                    public Void execute() throws ConsentManagementException {
+
+                        consentManager.deleteReceipts(tenantId);
+                        return null;
+                    }
+                })
+                .intercept(POST_DELETE_RECEIPTS, properties -> properties.put(TENANT_ID, tenantId));
+    }
+
+    /**
      * This API is used to check whether a receipt exists for the user identified by the tenantAwareUser name in the
-     * provided tenant
+     * provided tenant.
      * This is not supposed to invoke any interceptor, since this is added to
      *
      * @param receiptId           Consent Receipt ID

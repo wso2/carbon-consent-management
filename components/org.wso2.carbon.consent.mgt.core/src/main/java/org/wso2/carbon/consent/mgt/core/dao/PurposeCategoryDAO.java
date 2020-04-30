@@ -74,6 +74,16 @@ public interface PurposeCategoryDAO {
     int deletePurposeCategory(int id) throws ConsentManagementException;
 
     /**
+     * Delete all {@link PurposeCategory} of a given tenant id.
+     *
+     * @param tenantId Id of the tenant
+     * @throws ConsentManagementException
+     */
+    default void deletePurposeCategoriesByTenantId(int tenantId) throws ConsentManagementException {
+
+    }
+
+    /**
      * Get the {@link PurposeCategory} corresponding to the input name.
      *
      * @param name Name of the {@link PurposeCategory}.
