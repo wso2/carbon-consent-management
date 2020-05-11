@@ -754,7 +754,8 @@ public class ConsentManagerImpl implements ConsentManager {
             throw handleClientException(ERROR_CODE_TENANT_ID_REQUIRED, null);
         }
 
-        getReceiptsDAO(receiptDAOs).deleteReceiptsByPrincipalTenantId(tenantId);
+        getReceiptsDAO(receiptDAOs).deleteReceiptsByTenantId(tenantId);
+
         if (log.isDebugEnabled()) {
             log.debug("All receipts deleted successfully for tenant: " + tenantId);
         }

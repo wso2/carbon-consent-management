@@ -139,10 +139,14 @@ public class SQLConstants {
 
     public static final String DELETE_RECEIPT_SQL = "DELETE FROM CM_RECEIPT WHERE CONSENT_RECEIPT_ID = ?";
 
-    public static final String DELETE_RECEIPTS_BY_PRINCIPAL_TENANT_ID_SQL = "DELETE FROM CM_RECEIPT WHERE PRINCIPAL_TENANT_ID = ?";
+    public static final String DELETE_RECEIPTS_BY_PRINCIPAL_TENANT_ID_SQL = "DELETE FROM CM_RECEIPT WHERE " +
+            "PRINCIPAL_TENANT_ID = ?";
 
     public static final String DELETE_RECEIPT_SP_ASSOC_SQL = "DELETE FROM CM_RECEIPT_SP_ASSOC WHERE CONSENT_RECEIPT_ID" +
             " = ?";
+
+    public static final String DELETE_RECEIPT_SP_ASSOC_BY_SP_TENANT_ID_SQL = "DELETE FROM CM_RECEIPT_SP_ASSOC " +
+            "WHERE SP_TENANT_ID = ?";
 
     public static final String DELETE_SP_TO_PURPOSE_ASSOC_SQL = "DELETE FROM CM_SP_PURPOSE_ASSOC WHERE " +
             "RECEIPT_SP_ASSOC = ?";

@@ -214,7 +214,9 @@ public class ConsentConstants {
         ERROR_CODE_DELETE_PURPOSES_BY_TENANT_ID("CM_00094", "Error occurred while deleting purpose " +
                 "from DB for the tenant: %s."),
         ERROR_CODE_DELETE_RECEIPTS_BY_PRINCIPAL_TENANT_ID("CM_00095", "Error occurred while deleting " +
-                "receipt from DB for the tenant: %s.");
+                "receipt from DB for the tenant: %s."),
+        ERROR_CODE_DELETE_SP_ASSOC_BY_SP_TENANT_ID("CM_00095", "Error occurred while deleting " +
+                "SP Association for the SP tenant: %s.");
 
         private final String code;
         private final String message;

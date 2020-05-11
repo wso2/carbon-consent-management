@@ -71,12 +71,12 @@ public interface ReceiptDAO {
     void deleteReceipt(String receiptID) throws ConsentManagementException;
 
     /**
-     * Delete all {@link Receipt} of a given principal tenant id.
+     * Delete all {@link Receipt} of a given tenant id.
      *
      * @param tenantId Id of the tenant
      * @throws ConsentManagementException
      */
-    default void deleteReceiptsByPrincipalTenantId(int tenantId) throws ConsentManagementException {
+    default void deleteReceiptsByTenantId(int tenantId) throws ConsentManagementException {
 
     }
 

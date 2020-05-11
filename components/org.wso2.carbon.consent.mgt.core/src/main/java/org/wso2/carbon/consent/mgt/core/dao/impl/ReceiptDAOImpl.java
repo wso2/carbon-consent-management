@@ -49,6 +49,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_RECEIPTS_BY_PRINCIPAL_TENANT_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_RECEIPT_PROPERTIES_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_RECEIPT_SP_ASSOC_BY_SP_TENANT_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_RECEIPT_SP_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_SP_PURPOSE_TO_PII_CAT_ASSOC_SQL;
@@ -768,20 +769,14 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     /**
      * Delete all {@link Receipt} of a given principal tenant id.
      *
-     * @param principalTenantId Id of the tenant
+     * @param tenantId Id of the tenant
      * @throws ConsentManagementException
      */
     @Override
-    public void deleteReceiptsByPrincipalTenantId(int principalTenantId) throws ConsentManagementException {
+    public void deleteReceiptsByTenantId(int tenantId) throws ConsentManagementException {
 
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        try {
-            jdbcTemplate.executeUpdate(DELETE_RECEIPTS_BY_PRINCIPAL_TENANT_ID_SQL,
-                    preparedStatement -> preparedStatement.setInt(1, principalTenantId));
-        } catch (DataAccessException e) {
-            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_RECEIPTS_BY_PRINCIPAL_TENANT_ID,
-                    String.valueOf(principalTenantId), e);
-        }
+        deleteReceiptsByPrincipalTenantId(tenantId);
+        deleteReceiptSPAssociationBySPTenantId(tenantId);
     }
 
     protected void deleteReceiptOnly(String receiptID) throws ConsentManagementServerException {
@@ -862,6 +857,34 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_RECEIPT, String
                     .valueOf(receiptID), e);
+        }
+    }
+
+    protected void deleteReceiptsByPrincipalTenantId(int tenantId) throws ConsentManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(DELETE_RECEIPTS_BY_PRINCIPAL_TENANT_ID_SQL,
+                    preparedStatement -> preparedStatement.setInt(1, tenantId));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_RECEIPTS_BY_PRINCIPAL_TENANT_ID,
+                    String.valueOf(tenantId), e);
+        }
+    }
+
+    protected void deleteReceiptSPAssociationBySPTenantId(int tenantId) throws
+            ConsentManagementServerException {
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Deleting Receipt and SP association by SP tenant Id: %s", tenantId));
+        }
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(DELETE_RECEIPT_SP_ASSOC_BY_SP_TENANT_ID_SQL,
+                    preparedStatement -> preparedStatement.setInt(1, tenantId));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_SP_ASSOC_BY_SP_TENANT_ID,
+                    String.valueOf(tenantId), e);
         }
     }
 
