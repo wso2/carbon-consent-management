@@ -319,7 +319,7 @@ public class PurposeCategoryDAOImplTest extends PowerMockTestCase {
 
     @Test
     public void testDeletePurposeCategoriesByTenantId() throws Exception {
-        
+
         DataSource dataSource = mock(DataSource.class);
         mockComponentDataHolder(dataSource);
 

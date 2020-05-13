@@ -273,7 +273,7 @@ public class ConsentManagerImpl implements ConsentManager {
 
         if (purposeId <= 0) {
             if (log.isDebugEnabled()) {
-                log.debug("Purpose Id is not found in the request or invalid purpose Id");
+                log.debug("Purpose Id is not found in the request or invalid purpose Id: " + purposeId);
             }
             throw handleClientException(ERROR_CODE_PURPOSE_ID_REQUIRED, null);
         }
@@ -415,7 +415,7 @@ public class ConsentManagerImpl implements ConsentManager {
 
         if (purposeCategoryId <= 0) {
             if (log.isDebugEnabled()) {
-                log.debug("Purpose Category Id is not found in the request or invalid Id");
+                log.debug("Purpose Category Id is not found in the request or invalid Id: " + purposeCategoryId);
             }
             throw handleClientException(ERROR_CODE_PURPOSE_CATEGORY_ID_REQUIRED, null);
         }
@@ -549,7 +549,7 @@ public class ConsentManagerImpl implements ConsentManager {
 
         if (piiCategoryId <= 0) {
             if (log.isDebugEnabled()) {
-                log.debug("PII Category Id is not found in the request or invalid PII category Id");
+                log.debug("PII Category Id is not found in the request or invalid PII category Id: " + piiCategoryId);
             }
             throw handleClientException(ERROR_CODE_PII_CATEGORY_ID_REQUIRED, null);
         }
