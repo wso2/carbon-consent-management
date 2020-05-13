@@ -302,7 +302,7 @@ public class ConsentManagerImpl implements ConsentManager {
 
         if (tenantId <= 0) {
             if (log.isDebugEnabled()) {
-                log.debug("Tenant id is not found in the request or invalid tenant id");
+                log.debug("Tenant id is not found in the request or invalid tenant id: " + tenantId);
             }
             throw handleClientException(ERROR_CODE_TENANT_ID_REQUIRED, null);
         }
@@ -440,7 +440,7 @@ public class ConsentManagerImpl implements ConsentManager {
 
         if (tenantId <= 0) {
             if (log.isDebugEnabled()) {
-                log.debug("Tenant id is not found in the request or invalid tenant id");
+                log.debug("Tenant id is not found in the request or invalid tenant id: " + tenantId);
             }
             throw handleClientException(ERROR_CODE_TENANT_ID_REQUIRED, null);
         }
@@ -577,7 +577,7 @@ public class ConsentManagerImpl implements ConsentManager {
 
         if (tenantId <= 0) {
             if (log.isDebugEnabled()) {
-                log.debug("Tenant id is not found in the request or invalid tenant id");
+                log.debug("Tenant id is not found in the request or invalid tenant id: " + tenantId);
             }
             throw handleClientException(ERROR_CODE_TENANT_ID_REQUIRED, null);
         }
@@ -749,7 +749,7 @@ public class ConsentManagerImpl implements ConsentManager {
 
         if (tenantId <= 0) {
             if (log.isDebugEnabled()) {
-                log.debug("Tenant id is not found in the request or invalid tenant id");
+                log.debug("Tenant id is not found in the request or invalid tenant id: " + tenantId);
             }
             throw handleClientException(ERROR_CODE_TENANT_ID_REQUIRED, null);
         }

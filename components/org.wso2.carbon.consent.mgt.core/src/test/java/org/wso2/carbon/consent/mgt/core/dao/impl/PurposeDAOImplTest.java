@@ -340,4 +340,26 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
             Assert.fail("Expected: " + ConsentManagementServerException.class.getName());
         }
     }
+
+    @Test
+    public void testDeletePurposesByTenantId() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
+            purposeDAO.addPurpose(purposes.get(0));
+            purposeDAO.addPurpose(purposes.get(1));
+
+            int tenantId = purposes.get(0).getTenantId();
+            purposeDAO.deletePurposesByTenantId(tenantId);
+
+            Assert.assertTrue(Boolean.TRUE);
+        }
+    }
 }
