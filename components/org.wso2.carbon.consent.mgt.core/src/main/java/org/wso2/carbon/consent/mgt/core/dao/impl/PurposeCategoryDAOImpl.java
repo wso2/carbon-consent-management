@@ -28,6 +28,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import java.util.List;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_CATEGORY_BY_TENANT_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_CATEGORY_DB2;
@@ -158,6 +159,25 @@ public class PurposeCategoryDAOImpl implements PurposeCategoryDAO {
                     .valueOf(id), e);
         }
         return id;
+    }
+
+    /**
+     * Delete all {@link PurposeCategory} of a given tenant id.
+     *
+     * @param tenantId Id of the tenant
+     * @throws ConsentManagementException
+     */
+    @Override
+    public void deletePurposeCategoriesByTenantId(int tenantId) throws ConsentManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(DELETE_PURPOSE_CATEGORY_BY_TENANT_ID_SQL,
+                    preparedStatement -> preparedStatement.setInt(1, tenantId));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_PURPOSE_CATEGORIES_BY_TENANT_ID,
+                    String.valueOf(tenantId), e);
+        }
     }
 
     @Override

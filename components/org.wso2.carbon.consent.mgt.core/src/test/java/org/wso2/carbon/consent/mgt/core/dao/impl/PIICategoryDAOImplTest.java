@@ -327,4 +327,27 @@ public class PIICategoryDAOImplTest extends PowerMockTestCase {
             Assert.fail("Expected: " + ConsentManagementServerException.class.getName());
         }
     }
+
+    @Test
+    public void testDeletePIICategoriesByTenantId() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockComponentDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
+            piiCategoryDAO.addPIICategory(piiCategories.get(0));
+            piiCategoryDAO.addPIICategory(piiCategories.get(1));
+
+            int tenantId = piiCategories.get(0).getTenantId();
+            piiCategoryDAO.deletePIICategoriesByTenantId(tenantId);
+
+            Assert.assertTrue(Boolean.TRUE);
+        }
+    }
+
 }

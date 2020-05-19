@@ -28,6 +28,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import java.util.List;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PII_CATEGORY_BY_TENANT_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PII_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_COUNT_ASSOCIATED_WITH_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_SP_PURPOSE_COUNT_ASSOCIATED_WITH_PII_CATEGORY;
@@ -168,6 +169,25 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
         return id;
     }
 
+    /**
+     * Delete all {@link PIICategory} of a given tenant id.
+     *
+     * @param tenantId Id of the tenant
+     * @throws ConsentManagementException
+     */
+    @Override
+    public void deletePIICategoriesByTenantId(int tenantId) throws ConsentManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(DELETE_PII_CATEGORY_BY_TENANT_ID_SQL,
+                    preparedStatement -> preparedStatement.setInt(1, tenantId));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_PII_CATEGORIES_BY_TENANT_ID,
+                    String.valueOf(tenantId), e);
+        }
+    }
+
     @Override
     public PIICategory getPIICategoryByName(String name, int tenantId) throws ConsentManagementException {
 
@@ -193,7 +213,7 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     }
 
     /**
-     * Check whether the {@link PIICategory} by ID is used in a purpose or service
+     * Check whether the {@link PIICategory} by ID is used in a purpose or service.
      *
      * @param id ID of the {@link PIICategory} to be validated
      * @return true if PII category is used, false otherwise.

@@ -71,6 +71,16 @@ public interface ReceiptDAO {
     void deleteReceipt(String receiptID) throws ConsentManagementException;
 
     /**
+     * Delete all {@link Receipt} of a given tenant id.
+     *
+     * @param tenantId Id of the tenant
+     * @throws ConsentManagementException
+     */
+    default void deleteReceiptsByTenantId(int tenantId) throws ConsentManagementException {
+
+    }
+
+    /**
      *  Search {@link Receipt} items for a given criteria.
      *
      * @param limit Maximum number of results expected.

@@ -45,6 +45,7 @@ public class ConsentConstants {
     public static final String PII_CATEGORY = "PII_CATEGORY";
     public static final String RECEIPT_ID = "RECEIPT_ID";
     public static final String PURPOSE_ID = "PURPOSE_ID";
+    public static final String TENANT_ID = "TENANT_ID";
     public static final String PURPOSE_CATEGORY_ID = "PURPOSE_CATEGORY_ID";
     public static final String PII_CATEGORY_ID = "PII_CATEGORY_ID";
     public static final String PURPOSE_NAME = "PURPOSE_NAME";
@@ -203,7 +204,19 @@ public class ConsentConstants {
         ERROR_CODE_GETTING_USER_STORE_MANAGER("CM_00089", "Error while retrieving the user store manager for the user"
                 + " name: %s."),
 
-        ERROR_CODE_GETTING_TENANT_ID("CM_00090", "Error in obtaining tenant ID from tenant domain: %s.");
+        ERROR_CODE_GETTING_TENANT_ID("CM_00090", "Error in obtaining tenant ID from tenant domain: %s."),
+        ERROR_CODE_TENANT_ID_REQUIRED("CM_00091", "Tenant ID is required."),
+
+        ERROR_CODE_DELETE_PURPOSE_CATEGORIES_BY_TENANT_ID("CM_00092", "Error occurred while deleting " +
+                "purpose categories from DB for the tenant: %s."),
+        ERROR_CODE_DELETE_PII_CATEGORIES_BY_TENANT_ID("CM_00093", "Error occurred while deleting " +
+                "PII categories from DB for the tenant: %s."),
+        ERROR_CODE_DELETE_PURPOSES_BY_TENANT_ID("CM_00094", "Error occurred while deleting purpose " +
+                "from DB for the tenant: %s."),
+        ERROR_CODE_DELETE_RECEIPTS_BY_PRINCIPAL_TENANT_ID("CM_00095", "Error occurred while deleting " +
+                "receipt from DB for the tenant: %s."),
+        ERROR_CODE_DELETE_SP_ASSOC_BY_SP_TENANT_ID("CM_00095", "Error occurred while deleting " +
+                "SP Association for the SP tenant: %s.");
 
         private final String code;
         private final String message;
@@ -280,6 +293,8 @@ public class ConsentConstants {
         public static final String POST_GET_PURPOSE_LIST = "POST_GET_PURPOSE_LIST";
         public static final String PRE_DELETE_PURPOSE = "PRE_DELETE_PURPOSE";
         public static final String POST_DELETE_PURPOSE = "POST_DELETE_PURPOSE";
+        public static final String PRE_DELETE_PURPOSES = "PRE_DELETE_PURPOSES";
+        public static final String POST_DELETE_PURPOSES = "POST_DELETE_PURPOSES";
         public static final String PRE_IS_PURPOSE_EXIST = "PRE_IS_PURPOSE_EXIST";
         public static final String POST_IS_PURPOSE_EXIST = "POST_IS_PURPOSE_EXIST";
 
@@ -293,6 +308,8 @@ public class ConsentConstants {
         public static final String POST_GET_PURPOSE_CATEGORY_LIST = "POST_GET_PURPOSE_CATEGORY_LIST";
         public static final String PRE_DELETE_PURPOSE_CATEGORY = "PRE_DELETE_PURPOSE_CATEGORY";
         public static final String POST_DELETE_PURPOSE_CATEGORY = "POST_DELETE_PURPOSE_CATEGORY";
+        public static final String PRE_DELETE_PURPOSE_CATEGORIES = "PRE_DELETE_PURPOSE_CATEGORIES";
+        public static final String POST_DELETE_PURPOSE_CATEGORIES = "POST_DELETE_PURPOSE_CATEGORIES";
         public static final String PRE_IS_PURPOSE_CATEGORY_EXIST = "PRE_IS_PURPOSE_CATEGORY_EXIST";
         public static final String POST_IS_PURPOSE_CATEGORY_EXIST = "POST_IS_PURPOSE_CATEGORY_EXIST";
 
@@ -306,6 +323,8 @@ public class ConsentConstants {
         public static final String POST_GET_PII_CATEGORY_LIST = "POST_GET_PII_CATEGORY_LIST";
         public static final String PRE_DELETE_PII_CATEGORY = "PRE_DELETE_PII_CATEGORY";
         public static final String POST_DELETE_PII_CATEGORY = "POST_DELETE_PII_CATEGORY";
+        public static final String PRE_DELETE_PII_CATEGORIES = "PRE_DELETE_PII_CATEGORIES";
+        public static final String POST_DELETE_PII_CATEGORIES = "POST_DELETE_PII_CATEGORIES";
         public static final String PRE_IS_PII_CATEGORY_EXIST = "PRE_IS_PII_CATEGORY_EXIST";
         public static final String POST_IS_PII_CATEGORY_EXIST = "POST_IS_PII_CATEGORY_EXIST";
 
@@ -317,6 +336,8 @@ public class ConsentConstants {
         public static final String POST_REVOKE_RECEIPT = "POST_REVOKE_RECEIPT";
         public static final String PRE_DELETE_RECEIPT = "PRE_DELETE_RECEIPT";
         public static final String POST_DELETE_RECEIPT = "POST_DELETE_RECEIPT";
+        public static final String PRE_DELETE_RECEIPTS = "PRE_DELETE_RECEIPTS";
+        public static final String POST_DELETE_RECEIPTS = "POST_DELETE_RECEIPTS";
         public static final String PRE_LIST_RECEIPTS = "PRE_LIST_RECEIPTS";
         public static final String POST_LIST_RECEIPTS = "POST_LIST_RECEIPTS";
     }
