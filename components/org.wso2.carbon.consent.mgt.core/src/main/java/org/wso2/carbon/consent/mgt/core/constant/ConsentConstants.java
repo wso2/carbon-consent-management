@@ -64,6 +64,7 @@ public class ConsentConstants {
     public static final String GROUP_TYPE = "GROUP_TYPE";
 
     public static final String MY_SQL = "MySQL";
+    public static final String MARIADB = "MariaDB";
     public static final String POSTGRE_SQL = "PostgreSQL";
     public static final String DB2 = "DB2";
     public static final String MICROSOFT = "Microsoft";
