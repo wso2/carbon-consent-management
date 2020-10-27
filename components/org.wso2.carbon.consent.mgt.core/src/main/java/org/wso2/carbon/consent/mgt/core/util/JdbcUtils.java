@@ -23,6 +23,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.DB2;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.H2;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.INFORMIX;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.MARIADB;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.MICROSOFT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.MY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.POSTGRE_SQL;
@@ -51,7 +52,7 @@ public class JdbcUtils {
      */
     public static boolean isH2MySqlOrPostgresDB() throws DataAccessException {
 
-        return isDBTypeOf(MY_SQL) || isDBTypeOf(H2) || isDBTypeOf(POSTGRE_SQL);
+        return isDBTypeOf(MY_SQL) || isDBTypeOf(H2) || isDBTypeOf(POSTGRE_SQL) || isDBTypeOf(MARIADB);
     }
 
     /**
