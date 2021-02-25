@@ -28,6 +28,7 @@ public class PIICategoryValidity {
     private String validity;
     private String name;
     private String displayName;
+    private boolean isConsented;
 
     public PIICategoryValidity(Integer id, String validity) {
 
@@ -41,6 +42,15 @@ public class PIICategoryValidity {
         this.validity = validity;
         this.name = name;
         this.displayName = displayName;
+    }
+
+    public PIICategoryValidity(String name, String validity, int id, String displayName, boolean isConsented) {
+
+        this.id = id;
+        this.validity = validity;
+        this.name = name;
+        this.displayName = displayName;
+        this.isConsented = isConsented;
     }
 
     public Integer getId() {
@@ -81,5 +91,15 @@ public class PIICategoryValidity {
     public void setDisplayName(String displayName) {
 
         this.displayName = displayName;
+    }
+
+    public boolean isConsented() {
+
+        return isConsented;
+    }
+
+    public void setConsented(boolean isConsented) {
+
+        this.isConsented = isConsented;
     }
 }
