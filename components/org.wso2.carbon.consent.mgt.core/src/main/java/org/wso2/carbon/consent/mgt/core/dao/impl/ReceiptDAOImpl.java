@@ -134,7 +134,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
                         receiptPurposeInput.getPiiCategory().forEach(rethrowConsumer(piiCategoryValidity ->
                                 addSpPurposeToPiiCategoryAssociation(spToPurposeAssocId, piiCategoryValidity.getId(),
-                                        piiCategoryValidity.getValidity())));
+                                        piiCategoryValidity.getValidity(), piiCategoryValidity.isConsented())));
                     }));
                 }));
 
@@ -581,8 +581,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         }
     }
 
-    protected void addSpPurposeToPiiCategoryAssociation(int spToPurposeAssocId, int id, String validity) throws
-            ConsentManagementServerException {
+    protected void addSpPurposeToPiiCategoryAssociation(int spToPurposeAssocId, int id, String validity,
+                                                        boolean isConsented) throws ConsentManagementServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
@@ -591,6 +591,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     preparedStatement.setInt(1, spToPurposeAssocId);
                     preparedStatement.setInt(2, id);
                     preparedStatement.setString(3, validity);
+                    preparedStatement.setBoolean(4, isConsented);
                 }), id, false);
                 return null;
             });
@@ -705,12 +706,13 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         String name = resultSet.getString(1);
                         boolean isSensitive = resultSet.getInt(2) == 1;
                         String validity = resultSet.getString(3);
-                        int id = resultSet.getInt(4);
-                        String displayName = resultSet.getString(5);
+                        boolean isConsented = resultSet.getBoolean(4);
+                        int id = resultSet.getInt(5);
+                        String displayName = resultSet.getString(6);
                         if (isSensitive) {
                             receiptContext.getSecretPIICategory().addSecretCategory(name);
                         }
-                        return new PIICategoryValidity(name, validity, id, displayName);
+                        return new PIICategoryValidity(name, validity, id, displayName, isConsented);
                     }), preparedStatement -> preparedStatement.setInt(1, serviceToPurposeId)));
         } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,

@@ -19,6 +19,7 @@ package org.wso2.carbon.consent.mgt.endpoint.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.collections.CollectionUtils;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
@@ -28,6 +29,8 @@ import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptService;
+import org.wso2.carbon.consent.mgt.core.model.ConsentPurpose;
 import org.wso2.carbon.consent.mgt.endpoint.ConsentsApiService;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentReceiptDTO;
 import org.wso2.carbon.consent.mgt.endpoint.dto.ConsentRequestDTO;
@@ -329,7 +332,8 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
 
         try {
             Receipt receipt = getConsentManager().getReceipt(receiptId);
-            ConsentReceiptDTO consentReceipt = ConsentEndpointUtils.getConsentReceiptDTO(receipt);
+            ConsentReceiptDTO consentReceipt =
+                    ConsentEndpointUtils.getConsentReceiptDTO(removeConsentDeniedPIICategoriesFromServices(receipt));
             return Response.ok().entity(consentReceipt).build();
         } catch (ConsentManagementClientException e) {
             return handleBadRequestResponse(e);
@@ -338,6 +342,25 @@ public class ConsentsApiServiceImpl extends ConsentsApiService {
         } catch (Throwable throwable) {
             return handleUnexpectedServerError(throwable);
         }
+    }
+
+    private Receipt removeConsentDeniedPIICategoriesFromServices(Receipt receipt) {
+
+        if (receipt == null || CollectionUtils.isEmpty(receipt.getServices())) {
+            return receipt;
+        }
+
+        for (ReceiptService receiptService : receipt.getServices()) {
+            if (CollectionUtils.isEmpty(receiptService.getPurposes())) {
+                return receipt;
+            }
+            for (ConsentPurpose consentPurpose : receiptService.getPurposes()) {
+                if (CollectionUtils.isNotEmpty(consentPurpose.getPiiCategory()))
+                    consentPurpose.getPiiCategory().removeIf(piiCategoryValidity ->
+                            !piiCategoryValidity.isConsented());
+            }
+        }
+        return receipt;
     }
 
     private List<ConsentResponseDTO> searchReceipts(Integer limit, Integer offset, String piiPrincipalId, String

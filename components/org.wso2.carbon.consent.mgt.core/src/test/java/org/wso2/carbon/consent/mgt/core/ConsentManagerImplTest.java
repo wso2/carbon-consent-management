@@ -210,7 +210,7 @@ public class ConsentManagerImplTest extends PowerMockTestCase {
         Map<String, String> properties = new HashMap<>();
 
         purposeCategoryIds.add(1);
-        piiCategoryIds.add(new PIICategoryValidity(1, "45"));
+        piiCategoryIds.add(new PIICategoryValidity("http://wso2.org/claims/lastname", "45", 1, "Last Name", true));
         properties.put("K1", "V1");
         properties.put("K2", "V2");
 
