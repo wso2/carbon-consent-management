@@ -42,6 +42,7 @@
         <module>components/org.wso2.carbon.consent.mgt.core</module>
         <module>service-stubs/org.wso2.carbon.claim.metadata.mgt.stub</module>
         <module>components/org.wso2.carbon.consent.mgt.ui</module>
+        <module>components/org.wso2.carbon.api.server.consent.mgt</module>
         <module>components/org.wso2.carbon.consent.mgt.endpoint</module>
         <module>features/org.wso2.carbon.consent.mgt.server.feature</module>
     </modules>
@@ -163,6 +164,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.consent.mgt</groupId>
                 <artifactId>org.wso2.carbon.consent.mgt.core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.consent.mgt</groupId>
+                <artifactId>org.wso2.carbon.api.server.consent.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
