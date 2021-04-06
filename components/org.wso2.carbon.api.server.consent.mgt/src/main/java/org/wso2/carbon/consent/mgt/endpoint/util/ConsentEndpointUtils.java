@@ -305,7 +305,7 @@ public class ConsentEndpointUtils {
                 receiptPurposeInput.setThirdPartyName(purposeDTO.getThirdPartyName());
                 receiptPurposeInput.setPiiCategory(purposeDTO.getPiiCategory().stream().map(piiCategoryListDTO ->
                         new PIICategoryValidity(piiCategoryListDTO.getPiiCategoryId(), piiCategoryListDTO
-                                .getValidity())).collect(Collectors.toList()));
+                                .getValidity(), true)).collect(Collectors.toList()));
                 receiptPurposeInput.setPurposeCategoryId(purposeDTO.getPurposeCategoryId());
                 return receiptPurposeInput;
             }).collect(Collectors.toList()));
