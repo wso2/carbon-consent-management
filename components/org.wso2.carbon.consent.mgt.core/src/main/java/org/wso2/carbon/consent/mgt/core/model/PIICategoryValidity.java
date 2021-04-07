@@ -36,6 +36,13 @@ public class PIICategoryValidity {
         this.validity = validity;
     }
 
+    public PIICategoryValidity(int id, String validity, boolean isConsented) {
+
+        this.id = id;
+        this.validity = validity;
+        this.isConsented = isConsented;
+    }
+
     public PIICategoryValidity(String name, String validity, int id, String displayName) {
 
         this.id = id;
