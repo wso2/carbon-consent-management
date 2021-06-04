@@ -362,7 +362,7 @@
         <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
         <springframework.version>5.1.7.RELEASE</springframework.version>
         <org.apache.cxf.version>3.3.7</org.apache.cxf.version>
-        <fasterxml.jackson.version>2.9.8</fasterxml.jackson.version>
+        <fasterxml.jackson.version>2.9.10.7</fasterxml.jackson.version>
         <org.codehaus.jackson.version>1.8.6</org.codehaus.jackson.version>
         <maven.compiler.plugin>3.8.1</maven.compiler.plugin>
         <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
