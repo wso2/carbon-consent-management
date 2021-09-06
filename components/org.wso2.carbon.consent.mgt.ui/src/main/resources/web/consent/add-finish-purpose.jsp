@@ -76,7 +76,7 @@
         List<PiiCategoryDTO> categories = new ArrayList<PiiCategoryDTO>();
         name = Encode.forJavaScript(request.getParameter("purposeName"));
         String description = Encode.forJavaScript(request.getParameter("purpose.description"));
-        String group = Encode.forJavaScript(request.getParameter("group"));
+        String group = request.getParameter("group");
         String groupType = Encode.forJavaScript(request.getParameter("groupType"));
         int categoryCount = Integer.parseInt(request.getParameter("claimrow_name_count"));
         for (int i = 0; i < categoryCount; i++) {
