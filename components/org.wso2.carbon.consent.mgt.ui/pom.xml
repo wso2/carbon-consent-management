@@ -78,7 +78,7 @@
                             org.apache.commons.collections; version="${commons.collections.version.range}",
                             org.wso2.carbon.ui.*; version="${carbon.core.version.range}",
                             org.wso2.carbon.utils.*; version="${carbon.core.version.range}",
-                            org.wso2.carbon.consent.mgt.*;version=${project.version},
+                            org.wso2.carbon.consent.mgt.*; version="${consent.mgt.version.range}",
                             org.wso2.carbon.user.core.service; version="${carbon.core.version.range}",
                             org.wso2.carbon.user.api.*; version="${carbon.api.version.range}",
                             org.wso2.carbon.context.*; version="${carbon.core.version.range}",
