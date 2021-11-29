@@ -114,12 +114,9 @@ public class ConsentEndpointUtils {
      * @return correlation-id
      */
     public static String getCorrelation() {
-        String ref;
+        String ref = null;
         if (isCorrelationIDPresent()) {
             ref = MDC.get(ConsentConstants.CORRELATION_ID_MDC).toString();
-        } else {
-            ref = UUID.randomUUID().toString();
-            MDC.put(ConsentConstants.CORRELATION_ID_MDC, ref);
         }
         return ref;
     }
