@@ -79,6 +79,8 @@ public class ConsentConstants {
     public static final String LIST_RECEIPT = "LIST_RECEIPT";
     public static final String REVOKE_RECEIPT = "REVOKE_RECEIPT";
 
+    public static final String CORRELATION_ID_MDC = "Correlation-ID";
+
     public enum ErrorMessages {
         ERROR_CODE_DATABASE_CONNECTION("CM_00001", "Error when getting a database connection object from the Consent" +
                 " data source."),

@@ -18,6 +18,7 @@
 package org.wso2.carbon.consent.mgt.endpoint.util;
 
 import org.apache.commons.logging.Log;
+import org.apache.log4j.MDC;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
@@ -54,6 +55,7 @@ import org.wso2.carbon.consent.mgt.endpoint.exception.NotFoundException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -95,6 +97,28 @@ public class ConsentEndpointUtils {
         ErrorDTO errorDTO = getErrorDTO(ConsentConstants.STATUS_BAD_REQUEST_MESSAGE_DEFAULT, description, code);
         logDebug(log, e);
         return new BadRequestException(errorDTO);
+    }
+
+    /**
+     * Check whether correlation id present in the log MDC
+     *
+     * @return whether the correlation id is present
+     */
+    public static boolean isCorrelationIDPresent() {
+        return MDC.get(ConsentConstants.CORRELATION_ID_MDC) != null;
+    }
+
+    /**
+     * Get correlation id of current thread
+     *
+     * @return correlation-id
+     */
+    public static String getCorrelation() {
+        String ref = null;
+        if (isCorrelationIDPresent()) {
+            ref = MDC.get(ConsentConstants.CORRELATION_ID_MDC).toString();
+        }
+        return ref;
     }
 
     /**
@@ -225,6 +249,7 @@ public class ConsentEndpointUtils {
         errorDTO.setCode(code);
         errorDTO.setMessage(message);
         errorDTO.setDescription(description);
+        errorDTO.setRef(getCorrelation());
         return errorDTO;
     }
 
