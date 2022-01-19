@@ -63,6 +63,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_SP_PURPOSE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_PROPERTIES_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_PROPERTIES_SQL_H2;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_SP_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_PURPOSE_TO_PII_CAT_ASSOC_SQL;
@@ -90,6 +91,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECE
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_MSSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_ORACLE;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isDB2DB;
+import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isH2DB;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isH2MySqlOrPostgresDB;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isInformixDB;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isMSSqlDB;
@@ -606,8 +608,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            String sqlStmt = isH2DB() ? INSERT_RECEIPT_PROPERTIES_SQL_H2 : INSERT_RECEIPT_PROPERTIES_SQL;
             jdbcTemplate.withTransaction(template -> {
-                template.executeBatchInsert(INSERT_RECEIPT_PROPERTIES_SQL, (preparedStatement -> {
+                template.executeBatchInsert(sqlStmt, (preparedStatement -> {
 
                     for (Map.Entry<String, String> entry : properties.entrySet()) {
                         preparedStatement.setString(1, consentReceiptId);
@@ -618,7 +621,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 }), consentReceiptId);
                 return null;
             });
-        } catch (TransactionException e) {
+        } catch (DataAccessException | TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages
                     .ERROR_CODE_ADD_RECEIPT_PROPERTIES, null, e);
         }
