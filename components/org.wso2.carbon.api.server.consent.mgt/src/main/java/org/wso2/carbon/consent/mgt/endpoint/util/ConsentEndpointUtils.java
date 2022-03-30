@@ -18,7 +18,7 @@
 package org.wso2.carbon.consent.mgt.endpoint.util;
 
 import org.apache.commons.logging.Log;
-import org.apache.logging.log4j.ThreadContext;
+import org.slf4j.MDC;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
@@ -105,7 +105,7 @@ public class ConsentEndpointUtils {
      * @return whether the correlation id is present
      */
     public static boolean isCorrelationIDPresent() {
-        return ThreadContext.get(ConsentConstants.CORRELATION_ID_MDC) != null;
+        return MDC.get(ConsentConstants.CORRELATION_ID_MDC) != null;
     }
 
     /**
@@ -116,7 +116,7 @@ public class ConsentEndpointUtils {
     public static String getCorrelation() {
         String ref = null;
         if (isCorrelationIDPresent()) {
-            ref = ThreadContext.get(ConsentConstants.CORRELATION_ID_MDC).toString();
+            ref = MDC.get(ConsentConstants.CORRELATION_ID_MDC);
         }
         return ref;
     }
