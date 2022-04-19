@@ -50,6 +50,7 @@
     boolean isPurposeGroupTypePresent = false;
     String callback = request.getParameter("callback");
     String addFinishPurposePage = "add-finish-purpose.jsp";
+    String purposeIdList = request.getParameter("purposeIdList");
     
     if (StringUtils.isNotEmpty(callback)) {
         if (!callback.startsWith("/")) {
@@ -96,8 +97,8 @@
         }
     </style>
     <script type="text/javascript">
-        function doFinish() {
-            document.dataForm.action = "<%=Encode.forJavaScript(addFinishPurposePage)%>";
+        function doFinish(purposeIdList) {
+            document.dataForm.action = "<%=Encode.forJavaScript(addFinishPurposePage)%>" + "&purposeIdList=" + purposeIdList;
             if (doValidation() === true) {
                 document.dataForm.submit();
             }
@@ -290,7 +291,7 @@
                     <tr>
                         <td class="buttonRow">
                             <input type="button" class="button" value="<fmt:message key="finish"/>"
-                                   onclick="doFinish();"/>
+                                   onclick="doFinish('<%=Encode.forUriComponent(purposeIdList)%>');"/>
                             <input type="button" class="button" value="<fmt:message key="cancel"/>"
                                    onclick="doCancel();"/>
                         </td>

@@ -35,6 +35,8 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.nio.charset.StandardCharsets" %>
+<%@ page import="java.util.Arrays" %>
+<%@ page import="org.wso2.carbon.consent.mgt.core.model.Purpose" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
@@ -56,6 +58,10 @@
     String callback = request.getParameter(CALLBACK);
     String listPurposesPage = "list-purposes.jsp";
     String addPurposesPage = "add-purpose.jsp";
+    String purposeIdList = request.getParameter("purposeIdList");
+    boolean hasPurposeWithMandatoryEmailInList = false;
+    boolean hasPurposeWithMandatoryEmailInAddedPurpose = false;
+    String EMAIL_CLAIM_URI = "http://wso2.org/claims/emailaddress";
     
     if (StringUtils.isNotEmpty(callback) && callback.startsWith("/") && StringUtils.isNotEmpty(purposeGroup) &&
             StringUtils.isNotEmpty(purposeGroupType)) {
@@ -91,8 +97,11 @@
             
                 if (jsonObject.get(CLAIM_URI) != null && jsonObject.get(CLAIM_URI) instanceof String) {
                     piiCatName = (String) jsonObject.get(CLAIM_URI);
+                    if (piiCatName.equals(EMAIL_CLAIM_URI) && isPIICategoryMandatory) {
+                        hasPurposeWithMandatoryEmailInAddedPurpose = true;
+                    }
                 }
-            
+
                 if (jsonObject.get(DISPLAY_NAME) != null && jsonObject.get(DISPLAY_NAME) instanceof String) {
                     displayName = (String) jsonObject.get(DISPLAY_NAME);
                 }
@@ -113,9 +122,33 @@
         purposeRequestDTO.setGroupType(groupType);
         purposeRequestDTO.setPiiCategories(categories);
         serviceClient.addPurpose(purposeRequestDTO);
-        
-        String message = MessageFormat.format(resourceBundle.getString("purpose.add.success"), name);
-        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
+
+        List<String> purposeIDs;
+        purposeIDs = Arrays.asList(StringUtils.split(StringUtils.substringBetween(purposeIdList, "[", "]"), ", "));
+
+        try {
+            for (String purposeID : purposeIDs) {
+                Purpose retrievedPurpose = serviceClient.getPurpose(Integer.parseInt(purposeID));
+                hasPurposeWithMandatoryEmailInList =
+                        retrievedPurpose.getPurposePIICategories().stream().anyMatch(purposePIICategory ->
+                                purposePIICategory.getName().equals(EMAIL_CLAIM_URI) &&
+                                        purposePIICategory.getMandatory());
+
+                if (hasPurposeWithMandatoryEmailInList) {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            String message = resourceBundle.getString("error.while.getting.purpose");
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
+        }
+        if (!hasPurposeWithMandatoryEmailInAddedPurpose && !hasPurposeWithMandatoryEmailInList) {
+            String message = MessageFormat.format(resourceBundle.getString("missing.mandatory.email.pii.category.warning"), name);
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.WARNING, request);
+        } else {
+            String message = MessageFormat.format(resourceBundle.getString("purpose.add.success"), name);
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
+        }
     } catch (Exception e) {
         String message = MessageFormat.format(resourceBundle.getString("purpose.cannot.add"), name);
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);

@@ -22,12 +22,16 @@
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException" %>
 <%@ page import="org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException" %>
+<%@ page import="org.wso2.carbon.consent.mgt.core.model.Purpose" %>
 <%@ page
         import="static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_IS_ASSOCIATED" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.nio.charset.StandardCharsets" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="java.util.Arrays" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.text.MessageFormat" %>
 <%! public static final String LOGGED_USER = "logged-user";
     public static final String PURPOSE_NAME = "purposeName";
 %>
@@ -59,6 +63,8 @@
                 String purposeGroup = request.getParameter("purposeGroup");
                 String purposeGroupType = request.getParameter("purposeGroupType");
                 String listPurposePage = "list-purposes.jsp";
+                String purposeIdList = request.getParameter("purposeIdList");
+                String EMAIL_CLAIM_URI = "http://wso2.org/claims/emailaddress";
     
                 if (StringUtils.isNotEmpty(callback) && StringUtils.isNotEmpty(purposeGroup) &&
                         StringUtils.isNotEmpty(purposeGroupType) && callback.startsWith("/")) {
@@ -70,7 +76,39 @@
                 try {
                     String currentUser = (String) session.getAttribute(LOGGED_USER);
                     ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
+
+                    List<String> purposeIDs;
+                    purposeIDs = Arrays.asList(StringUtils.split(StringUtils.substringBetween(purposeIdList, "[", "]"), ", "));
+
+
+                    boolean hasPurposeWithMandatoryEmailInRemainingList = false;
+                    boolean hasPurposeWithMandatoryEmailInDeletedPurpose = false;
+
+                    if (purposeIDs.size() > 1) {
+
+                        for (String purposeID : purposeIDs) {
+                            Purpose retrievedPurpose = serviceClient.getPurpose(Integer.parseInt(purposeID));
+                            if (!retrievedPurpose.getName().equals(purposeName)) {
+                                if (!hasPurposeWithMandatoryEmailInRemainingList) {
+                                    hasPurposeWithMandatoryEmailInRemainingList =
+                                            retrievedPurpose.getPurposePIICategories().stream().anyMatch(purposePIICategory ->
+                                                    purposePIICategory.getName().equals(EMAIL_CLAIM_URI) &&
+                                                            purposePIICategory.getMandatory());
+                                }
+                            } else {
+                                hasPurposeWithMandatoryEmailInDeletedPurpose = retrievedPurpose.getPurposePIICategories().stream().anyMatch(
+                                        purposePIICategory -> purposePIICategory.getName().equals(EMAIL_CLAIM_URI) &&
+                                                purposePIICategory.getMandatory());
+                            }
+                        }
+                    }
+
                     serviceClient.deletePurposeByName(purposeName, purposeGroup, purposeGroupType);
+                    if (hasPurposeWithMandatoryEmailInDeletedPurpose && !hasPurposeWithMandatoryEmailInRemainingList) {
+                        String message = MessageFormat.format(resourceBundle.getString("missing.mandatory.email.pii.category.warning"),
+                                purposeName);
+                        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.WARNING, request);
+                    }
                     forwardTo = listPurposePage;
                 } catch (ConsentManagementException e) {
                     String message = resourceBundle.getString("error.while.delete.purpose");

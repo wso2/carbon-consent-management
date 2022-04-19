@@ -26,6 +26,10 @@
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.nio.charset.StandardCharsets" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Arrays" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.stream.Collectors" %>
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
@@ -53,6 +57,7 @@
             boolean isPurposeGroupPresent = StringUtils.isNotEmpty(purposeGroup);
             boolean isPurposeGroupTypePresent = StringUtils.isNotEmpty(purposeGroupType);
             boolean callbackPresent = false;
+            List<Integer> purposeIdList = new ArrayList<>();
             if (StringUtils.isNotEmpty(callback)) {
                 if (!callback.startsWith("/")) {
                     callback = "";
@@ -84,11 +89,12 @@
             
             <script type="text/javascript">
 
-                function removeItem(pName, pGroup, pGroupType) {
+                function removeItem(pName, pGroup, pGroupType,pIdList) {
                     function doDelete() {
                         var purposeName = pName;
                         var purposeGroup = pGroup;
                         var purposeGroupType = pGroupType;
+                        var purposeIdList = pIdList;
                         $.ajax({
                             type: 'POST',
                             url: 'remove-purpose-finish.jsp',
@@ -96,7 +102,7 @@
                                 Accept: "text/html"
                             },
                             data: 'purposeName=' + purposeName + '&purposeGroup=' + purposeGroup +
-                            '&purposeGroupType=' + purposeGroupType,
+                            '&purposeGroupType=' + purposeGroupType + '&purposeIdList=' + purposeIdList,
                             async: false,
                             success: function (responseText, status) {
                                 if (status == "success") {
@@ -114,14 +120,15 @@
                 function doFinish() {
                     location.href = "<%=Encode.forJavaScript(callback)%>";
                 }
-                function addPurpose() {
-                    location.href = "<%=Encode.forJavaScript(addPurposeLocation)%>";
+                function addPurpose(purposeIdList) {
+                    location.href = "<%=Encode.forJavaScript(addPurposeLocation)%>" + "&purposeIdList="
+                        + purposeIdList;
                 }
             </script>
             
             <%
                 Purpose[] purposes = null;
-                
+
                 try {
                     String currentUser = (String) session.getAttribute(LOGGED_USER);
                     ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
@@ -130,6 +137,9 @@
                     } else {
                         purposes = serviceClient.listPurposes();
                     }
+                    purposeIdList = Arrays.stream(purposes)
+                            .map(Purpose::getId).collect(Collectors.toList());
+
                 } catch (Exception e) {
                     String message = resourceBundle.getString("error.while.listing.purpose");
                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
@@ -206,7 +216,8 @@
                                     <a title="Delete Purpose"
                                        onclick="removeItem('<%=Encode.forJavaScriptAttribute(purpose.getName())%>',
                                        '<%=Encode.forJavaScriptAttribute(purpose.getGroup())%>',
-                                       '<%=Encode.forJavaScriptAttribute(purpose.getGroupType())%>');
+                                       '<%=Encode.forJavaScriptAttribute(purpose.getGroupType())%>',
+                                       '<%=Encode.forJavaScriptAttribute(purposeIdList.toString())%>');
                                        return
                                                false;" href="#"
                                        class="icon-link"
@@ -233,7 +244,7 @@
                                     <input type="button" class="button" value="<fmt:message key="finish"/>"
                                            onclick="doFinish();"/>
                                     <input type="button" class="button" value="<fmt:message key="add.new.purpose"/>"
-                                           onclick="addPurpose();"/>
+                                           onclick="addPurpose('<%=Encode.forUriComponent(purposeIdList.toString())%>');"/>
                                 </td>
                             </tr>
                             <%}%>
@@ -250,7 +261,7 @@
                                     <input type="button" class="button" value="<fmt:message key="finish"/>"
                                            onclick="doFinish();"/>
                                     <input type="button" class="button" value="<fmt:message key="add.new.purpose"/>"
-                                           onclick="addPurpose();"/>
+                                           onclick="addPurpose('<%=Encode.forUriComponent(purposeIdList.toString())%>');"/>
                                 </td>
                             </tr>
                             <%}%>
