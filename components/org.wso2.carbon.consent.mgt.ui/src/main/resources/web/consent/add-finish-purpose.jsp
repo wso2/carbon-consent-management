@@ -19,24 +19,22 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@page import="org.apache.commons.lang.StringUtils" %>
 <%@page import="org.json.JSONObject" %>
-<%@page import="org.owasp.encoder.Encode" %>
-<%@page import="org.wso2.carbon.consent.mgt.core.constant.ConsentConstants" %>
-<%@page import="org.wso2.carbon.consent.mgt.core.model.Purpose" %>
-<%@ page import="org.wso2.carbon.consent.mgt.ui.client.ConsentManagementServiceClient" %>
-<%@ page import="org.wso2.carbon.consent.mgt.ui.dto.PiiCategoryDTO" %>
-<%@ page import="org.wso2.carbon.consent.mgt.ui.dto.PurposeRequestDTO" %>
+<%@page import="org.wso2.carbon.consent.mgt.ui.client.ConsentManagementServiceClient" %>
+<%@page import="org.wso2.carbon.consent.mgt.ui.dto.PiiCategoryDTO" %>
+<%@page import="org.wso2.carbon.consent.mgt.ui.dto.PurposeRequestDTO" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
-<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="java.text.MessageFormat" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.ResourceBundle" %>
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.CLAIM_URI" %>
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DISPLAY_NAME" %>
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DESCRIPTION" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.consent.mgt.core.constant.ConsentConstants" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.nio.charset.StandardCharsets" %>
-<%@ page import="java.text.MessageFormat" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.Arrays" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.ResourceBundle" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
@@ -45,7 +43,7 @@
         response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         return;
     }
-    
+
     String name = null;
     String BUNDLE = "org.wso2.carbon.consent.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -58,14 +56,10 @@
     String callback = request.getParameter(CALLBACK);
     String listPurposesPage = "list-purposes.jsp";
     String addPurposesPage = "add-purpose.jsp";
-    String purposeIdList = request.getParameter("purposeIdList");
-    boolean hasPurposeWithMandatoryEmailInList = false;
-    boolean hasPurposeWithMandatoryEmailInAddedPurpose = false;
-    String EMAIL_CLAIM_URI = "http://wso2.org/claims/emailaddress";
-    
+
     if (StringUtils.isNotEmpty(callback) && callback.startsWith("/") && StringUtils.isNotEmpty(purposeGroup) &&
             StringUtils.isNotEmpty(purposeGroupType)) {
-        
+
         listPurposesPage = listPurposesPage + "?" + PURPOSE_GROUP + "=" + purposeGroup + "&" + PURPOSE_GROUP_TYPE +
                 "=" + purposeGroupType + "&" + CALLBACK + "=" + URLEncoder.encode(callback,
                 StandardCharsets.UTF_8.name());
@@ -73,8 +67,8 @@
                 "=" + purposeGroupType + "&" + CALLBACK + "=" + URLEncoder.encode(callback,
                 StandardCharsets.UTF_8.name());
     }
-    
-    
+
+
     try {
         String currentUser = (String) session.getAttribute("logged-user");
         ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
@@ -94,18 +88,15 @@
                 String piiCatName = null;
                 String displayName = null;
                 String piiCatDescription = null;
-            
+
                 if (jsonObject.get(CLAIM_URI) != null && jsonObject.get(CLAIM_URI) instanceof String) {
                     piiCatName = (String) jsonObject.get(CLAIM_URI);
-                    if (piiCatName.equals(EMAIL_CLAIM_URI) && isPIICategoryMandatory) {
-                        hasPurposeWithMandatoryEmailInAddedPurpose = true;
-                    }
                 }
 
                 if (jsonObject.get(DISPLAY_NAME) != null && jsonObject.get(DISPLAY_NAME) instanceof String) {
                     displayName = (String) jsonObject.get(DISPLAY_NAME);
                 }
-            
+
                 if (jsonObject.get(DESCRIPTION) != null && jsonObject.get(DESCRIPTION) instanceof String) {
                     piiCatDescription = (String) jsonObject.get(DESCRIPTION);
                 }
@@ -116,35 +107,15 @@
             }
         }
         purposeRequestDTO.setPurpose(name);
-    
+
         purposeRequestDTO.setDescription(description == null ? "" : description);
         purposeRequestDTO.setGroup(group);
         purposeRequestDTO.setGroupType(groupType);
         purposeRequestDTO.setPiiCategories(categories);
         serviceClient.addPurpose(purposeRequestDTO);
 
-        List<String> purposeIDs;
-        purposeIDs = Arrays.asList(StringUtils.split(StringUtils.substringBetween(purposeIdList, "[", "]"), ", "));
-
-        for (String purposeID : purposeIDs) {
-            Purpose retrievedPurpose = serviceClient.getPurpose(Integer.parseInt(purposeID));
-            hasPurposeWithMandatoryEmailInList =
-                    retrievedPurpose.getPurposePIICategories().stream().anyMatch(purposePIICategory ->
-                            purposePIICategory.getName().equals(EMAIL_CLAIM_URI) &&
-                                    purposePIICategory.getMandatory());
-
-            if (hasPurposeWithMandatoryEmailInList) {
-                break;
-            }
-        }
-
-        if (!hasPurposeWithMandatoryEmailInAddedPurpose && !hasPurposeWithMandatoryEmailInList) {
-            String message = MessageFormat.format(resourceBundle.getString("missing.mandatory.email.pii.category.warning.add.purpose"), name);
-            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.WARNING, request);
-        } else {
-            String message = MessageFormat.format(resourceBundle.getString("purpose.add.success"), name);
-            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
-        }
+        String message = MessageFormat.format(resourceBundle.getString("purpose.add.success"), name);
+        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
     } catch (Exception e) {
         String message = MessageFormat.format(resourceBundle.getString("purpose.cannot.add"), name);
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
