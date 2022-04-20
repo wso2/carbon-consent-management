@@ -105,7 +105,7 @@
 
                     serviceClient.deletePurposeByName(purposeName, purposeGroup, purposeGroupType);
                     if (hasPurposeWithMandatoryEmailInDeletedPurpose && !hasPurposeWithMandatoryEmailInRemainingList) {
-                        String message = MessageFormat.format(resourceBundle.getString("missing.mandatory.email.pii.category.warning"),
+                        String message = MessageFormat.format(resourceBundle.getString("missing.mandatory.email.pii.category.warning.delete.purpose"),
                                 purposeName);
                         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.WARNING, request);
                     }

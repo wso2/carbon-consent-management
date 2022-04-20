@@ -19,24 +19,24 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@page import="org.apache.commons.lang.StringUtils" %>
 <%@page import="org.json.JSONObject" %>
-<%@page import="org.wso2.carbon.consent.mgt.ui.client.ConsentManagementServiceClient" %>
-<%@page import="org.wso2.carbon.consent.mgt.ui.dto.PiiCategoryDTO" %>
-<%@page import="org.wso2.carbon.consent.mgt.ui.dto.PurposeRequestDTO" %>
+<%@page import="org.owasp.encoder.Encode" %>
+<%@page import="org.wso2.carbon.consent.mgt.core.constant.ConsentConstants" %>
+<%@page import="org.wso2.carbon.consent.mgt.core.model.Purpose" %>
+<%@ page import="org.wso2.carbon.consent.mgt.ui.client.ConsentManagementServiceClient" %>
+<%@ page import="org.wso2.carbon.consent.mgt.ui.dto.PiiCategoryDTO" %>
+<%@ page import="org.wso2.carbon.consent.mgt.ui.dto.PurposeRequestDTO" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
-<%@ page import="java.text.MessageFormat" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.CLAIM_URI" %>
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DISPLAY_NAME" %>
 <%@ page import="static org.wso2.carbon.consent.mgt.ui.constant.ClaimMgtUIConstants.DESCRIPTION" %>
-<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
-<%@ page import="org.wso2.carbon.consent.mgt.core.constant.ConsentConstants" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.nio.charset.StandardCharsets" %>
+<%@ page import="java.text.MessageFormat" %>
+<%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Arrays" %>
-<%@ page import="org.wso2.carbon.consent.mgt.core.model.Purpose" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.ResourceBundle" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
@@ -126,24 +126,20 @@
         List<String> purposeIDs;
         purposeIDs = Arrays.asList(StringUtils.split(StringUtils.substringBetween(purposeIdList, "[", "]"), ", "));
 
-        try {
-            for (String purposeID : purposeIDs) {
-                Purpose retrievedPurpose = serviceClient.getPurpose(Integer.parseInt(purposeID));
-                hasPurposeWithMandatoryEmailInList =
-                        retrievedPurpose.getPurposePIICategories().stream().anyMatch(purposePIICategory ->
-                                purposePIICategory.getName().equals(EMAIL_CLAIM_URI) &&
-                                        purposePIICategory.getMandatory());
+        for (String purposeID : purposeIDs) {
+            Purpose retrievedPurpose = serviceClient.getPurpose(Integer.parseInt(purposeID));
+            hasPurposeWithMandatoryEmailInList =
+                    retrievedPurpose.getPurposePIICategories().stream().anyMatch(purposePIICategory ->
+                            purposePIICategory.getName().equals(EMAIL_CLAIM_URI) &&
+                                    purposePIICategory.getMandatory());
 
-                if (hasPurposeWithMandatoryEmailInList) {
-                    break;
-                }
+            if (hasPurposeWithMandatoryEmailInList) {
+                break;
             }
-        } catch (Exception e) {
-            String message = resourceBundle.getString("error.while.getting.purpose");
-            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
         }
+
         if (!hasPurposeWithMandatoryEmailInAddedPurpose && !hasPurposeWithMandatoryEmailInList) {
-            String message = MessageFormat.format(resourceBundle.getString("missing.mandatory.email.pii.category.warning"), name);
+            String message = MessageFormat.format(resourceBundle.getString("missing.mandatory.email.pii.category.warning.add.purpose"), name);
             CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.WARNING, request);
         } else {
             String message = MessageFormat.format(resourceBundle.getString("purpose.add.success"), name);
