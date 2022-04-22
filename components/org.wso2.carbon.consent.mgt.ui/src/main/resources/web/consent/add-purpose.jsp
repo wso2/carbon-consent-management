@@ -121,10 +121,10 @@
         function doFinish() {
             document.dataForm.action = "<%=Encode.forJavaScript(addFinishPurposePage)%>";
             if (doValidation() === true) {
-                if(!doValidationForMandatoryEmailP2() && !<%=hasPurposeWithMandatoryEmailInList%> ) {
+                if (!doValidationForMandatoryEmailPIICategory() && !<%=hasPurposeWithMandatoryEmailInList%>) {
                     CARBON.showWarningDialog("<%=resourceBundle.getString("missing.mandatory.email.pii.category.warning.add.purpose")%>",
-                    doSubmit,doSubmit);
-                }else {
+                        doSubmit, doSubmit);
+                } else {
                     doSubmit();
                 }
             }
@@ -132,7 +132,7 @@
                 document.dataForm.submit();
             }
         }
-        function doValidationForMandatoryEmailP2() {
+        function doValidationForMandatoryEmailPIICategory() {
             var count = document.getElementsByName("claimrow_name_count")[0];
             for (let i = 0; i < count.value; i++) {
                 var claim = document.getElementsByName("claimrow_name_wso2_" + i)
