@@ -29,9 +29,8 @@
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.nio.charset.StandardCharsets" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="java.util.Arrays" %>
-<%@ page import="java.util.List" %>
 <%@ page import="java.text.MessageFormat" %>
+<%@ page import="org.json.JSONArray" %>
 <%! public static final String LOGGED_USER = "logged-user";
     public static final String PURPOSE_NAME = "purposeName";
 %>
@@ -77,17 +76,15 @@
                     String currentUser = (String) session.getAttribute(LOGGED_USER);
                     ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
 
-                    List<String> purposeIDs;
-                    purposeIDs = Arrays.asList(StringUtils.split(StringUtils.substringBetween(purposeIdList, "[", "]"), ", "));
-
+                    JSONArray purposeIdListParsed = new JSONArray(purposeIdList);
 
                     boolean hasPurposeWithMandatoryEmailInRemainingList = false;
                     boolean hasPurposeWithMandatoryEmailInDeletedPurpose = false;
 
-                    if (purposeIDs.size() > 1) {
+                    if (purposeIdListParsed.length() > 1) {
 
-                        for (String purposeID : purposeIDs) {
-                            Purpose retrievedPurpose = serviceClient.getPurpose(Integer.parseInt(purposeID));
+                        for (int i = 0; i < purposeIdListParsed.length(); i++) {
+                            Purpose retrievedPurpose = serviceClient.getPurpose(Integer.parseInt(purposeIdListParsed.get(i).toString()));
                             if (!retrievedPurpose.getName().equals(purposeName)) {
                                 if (!hasPurposeWithMandatoryEmailInRemainingList) {
                                     hasPurposeWithMandatoryEmailInRemainingList =

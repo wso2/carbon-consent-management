@@ -39,6 +39,7 @@
 <%@ page import="java.nio.charset.StandardCharsets" %>
 <%@ page import="org.wso2.carbon.consent.mgt.core.model.Purpose" %>
 <%@ page import="org.wso2.carbon.consent.mgt.ui.client.ConsentManagementServiceClient" %>
+<%@ page import="org.json.JSONArray" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
@@ -87,11 +88,10 @@
 
         String currentUser = (String) session.getAttribute("logged-user");
         ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
-        List<String> purposeIDs;
-        purposeIDs = Arrays.asList(StringUtils.split(StringUtils.substringBetween(purposeIdList, "[", "]"), ", "));
 
-        for (String purposeID : purposeIDs) {
-            Purpose retrievedPurpose = serviceClient.getPurpose(Integer.parseInt(purposeID));
+        JSONArray purposeIdListParsed = new JSONArray(purposeIdList);
+        for (int i = 0; i < purposeIdListParsed.length(); i++) {
+            Purpose retrievedPurpose = serviceClient.getPurpose(Integer.parseInt(purposeIdListParsed.get(i).toString()));
             hasPurposeWithMandatoryEmailInList =
                     retrievedPurpose.getPurposePIICategories().stream().anyMatch(purposePIICategory ->
                             purposePIICategory.getName().equals(EMAIL_CLAIM_URI) &&
