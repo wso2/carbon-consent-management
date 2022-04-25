@@ -91,7 +91,7 @@
 
         JSONArray purposeIdListParsed = new JSONArray(purposeIdList);
         for (int i = 0; i < purposeIdListParsed.length(); i++) {
-            Purpose retrievedPurpose = serviceClient.getPurpose(Integer.parseInt(purposeIdListParsed.get(i).toString()));
+            Purpose retrievedPurpose = serviceClient.getPurpose(purposeIdListParsed.getInt(i));
             hasPurposeWithMandatoryEmailInList =
                     retrievedPurpose.getPurposePIICategories().stream().anyMatch(purposePIICategory ->
                             purposePIICategory.getName().equals(EMAIL_CLAIM_URI) &&
