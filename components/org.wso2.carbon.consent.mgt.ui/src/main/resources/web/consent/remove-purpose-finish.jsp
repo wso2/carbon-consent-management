@@ -84,7 +84,7 @@
                     if (purposeIdListParsed.length() > 1) {
 
                         for (int i = 0; i < purposeIdListParsed.length(); i++) {
-                            Purpose retrievedPurpose = serviceClient.getPurpose(Integer.parseInt(purposeIdListParsed.get(i).toString()));
+                            Purpose retrievedPurpose = serviceClient.getPurpose(purposeIdListParsed.getInt(i));
                             if (!retrievedPurpose.getName().equals(purposeName)) {
                                 if (!hasPurposeWithMandatoryEmailInRemainingList) {
                                     hasPurposeWithMandatoryEmailInRemainingList =
