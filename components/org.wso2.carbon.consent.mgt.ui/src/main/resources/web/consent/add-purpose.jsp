@@ -37,6 +37,9 @@
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.nio.charset.StandardCharsets" %>
+<%@ page import="org.wso2.carbon.consent.mgt.core.model.Purpose" %>
+<%@ page import="org.wso2.carbon.consent.mgt.ui.client.ConsentManagementServiceClient" %>
+<%@ page import="org.json.JSONArray" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
@@ -50,6 +53,9 @@
     boolean isPurposeGroupTypePresent = false;
     String callback = request.getParameter("callback");
     String addFinishPurposePage = "add-finish-purpose.jsp";
+    String purposeIdList = request.getParameter("purposeIdList");
+    boolean hasPurposeWithMandatoryEmailInList = false;
+    String EMAIL_CLAIM_URI = "http://wso2.org/claims/emailaddress";
     
     if (StringUtils.isNotEmpty(callback)) {
         if (!callback.startsWith("/")) {
@@ -79,6 +85,22 @@
         if (localClaims != null) {
             claims.addAll(Arrays.asList(localClaims));
         }
+
+        String currentUser = (String) session.getAttribute("logged-user");
+        ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
+
+        JSONArray purposeIdListParsed = new JSONArray(purposeIdList);
+        for (int i = 0; i < purposeIdListParsed.length(); i++) {
+            Purpose retrievedPurpose = serviceClient.getPurpose(purposeIdListParsed.getInt(i));
+            hasPurposeWithMandatoryEmailInList =
+                    retrievedPurpose.getPurposePIICategories().stream().anyMatch(purposePIICategory ->
+                            purposePIICategory.getName().equals(EMAIL_CLAIM_URI) &&
+                                    purposePIICategory.getMandatory());
+
+            if (hasPurposeWithMandatoryEmailInList) {
+                break;
+            }
+        }
     } catch (Exception e) {
         String message = MessageFormat.format(resourceBundle.getString("error.while.loading.claim.info"),
                 e.getMessage());
@@ -99,8 +121,29 @@
         function doFinish() {
             document.dataForm.action = "<%=Encode.forJavaScript(addFinishPurposePage)%>";
             if (doValidation() === true) {
+                if (!doValidationForMandatoryEmailPIICategory() && !<%=hasPurposeWithMandatoryEmailInList%>) {
+                    CARBON.showWarningDialog("<%=resourceBundle.getString("missing.mandatory.email.pii.category.warning.add.purpose")%>",
+                        doSubmit, doSubmit);
+                } else {
+                    doSubmit();
+                }
+            }
+            function doSubmit() {
                 document.dataForm.submit();
             }
+        }
+        function doValidationForMandatoryEmailPIICategory() {
+            var count = document.getElementsByName("claimrow_name_count")[0];
+            for (let i = 0; i < count.value; i++) {
+                var claim = document.getElementsByName("claimrow_name_wso2_" + i)
+                var claimInfo = JSON.parse(claim[0].value);
+                var claimURL = claimInfo.ClaimURI;
+                var isMandatory =  document.getElementsByName("claimrow_mandatory_"+ i);
+                if(claimURL === "<%=EMAIL_CLAIM_URI%>" && isMandatory[0].checked) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         function doValidation() {

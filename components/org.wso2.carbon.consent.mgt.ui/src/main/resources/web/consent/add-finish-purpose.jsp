@@ -43,7 +43,7 @@
         response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         return;
     }
-    
+
     String name = null;
     String BUNDLE = "org.wso2.carbon.consent.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -56,10 +56,10 @@
     String callback = request.getParameter(CALLBACK);
     String listPurposesPage = "list-purposes.jsp";
     String addPurposesPage = "add-purpose.jsp";
-    
+
     if (StringUtils.isNotEmpty(callback) && callback.startsWith("/") && StringUtils.isNotEmpty(purposeGroup) &&
             StringUtils.isNotEmpty(purposeGroupType)) {
-        
+
         listPurposesPage = listPurposesPage + "?" + PURPOSE_GROUP + "=" + purposeGroup + "&" + PURPOSE_GROUP_TYPE +
                 "=" + purposeGroupType + "&" + CALLBACK + "=" + URLEncoder.encode(callback,
                 StandardCharsets.UTF_8.name());
@@ -67,8 +67,8 @@
                 "=" + purposeGroupType + "&" + CALLBACK + "=" + URLEncoder.encode(callback,
                 StandardCharsets.UTF_8.name());
     }
-    
-    
+
+
     try {
         String currentUser = (String) session.getAttribute("logged-user");
         ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
@@ -88,15 +88,15 @@
                 String piiCatName = null;
                 String displayName = null;
                 String piiCatDescription = null;
-            
+
                 if (jsonObject.get(CLAIM_URI) != null && jsonObject.get(CLAIM_URI) instanceof String) {
                     piiCatName = (String) jsonObject.get(CLAIM_URI);
                 }
-            
+
                 if (jsonObject.get(DISPLAY_NAME) != null && jsonObject.get(DISPLAY_NAME) instanceof String) {
                     displayName = (String) jsonObject.get(DISPLAY_NAME);
                 }
-            
+
                 if (jsonObject.get(DESCRIPTION) != null && jsonObject.get(DESCRIPTION) instanceof String) {
                     piiCatDescription = (String) jsonObject.get(DESCRIPTION);
                 }
@@ -107,13 +107,13 @@
             }
         }
         purposeRequestDTO.setPurpose(name);
-    
+
         purposeRequestDTO.setDescription(description == null ? "" : description);
         purposeRequestDTO.setGroup(group);
         purposeRequestDTO.setGroupType(groupType);
         purposeRequestDTO.setPiiCategories(categories);
         serviceClient.addPurpose(purposeRequestDTO);
-        
+
         String message = MessageFormat.format(resourceBundle.getString("purpose.add.success"), name);
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
     } catch (Exception e) {

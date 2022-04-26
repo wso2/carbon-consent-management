@@ -22,12 +22,15 @@
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException" %>
 <%@ page import="org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException" %>
+<%@ page import="org.wso2.carbon.consent.mgt.core.model.Purpose" %>
 <%@ page
         import="static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_IS_ASSOCIATED" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.nio.charset.StandardCharsets" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="java.text.MessageFormat" %>
+<%@ page import="org.json.JSONArray" %>
 <%! public static final String LOGGED_USER = "logged-user";
     public static final String PURPOSE_NAME = "purposeName";
 %>
@@ -59,6 +62,8 @@
                 String purposeGroup = request.getParameter("purposeGroup");
                 String purposeGroupType = request.getParameter("purposeGroupType");
                 String listPurposePage = "list-purposes.jsp";
+                String purposeIdList = request.getParameter("purposeIdList");
+                String EMAIL_CLAIM_URI = "http://wso2.org/claims/emailaddress";
     
                 if (StringUtils.isNotEmpty(callback) && StringUtils.isNotEmpty(purposeGroup) &&
                         StringUtils.isNotEmpty(purposeGroupType) && callback.startsWith("/")) {
@@ -70,7 +75,37 @@
                 try {
                     String currentUser = (String) session.getAttribute(LOGGED_USER);
                     ConsentManagementServiceClient serviceClient = new ConsentManagementServiceClient(currentUser);
+
+                    JSONArray purposeIdListParsed = new JSONArray(purposeIdList);
+
+                    boolean hasPurposeWithMandatoryEmailInRemainingList = false;
+                    boolean hasPurposeWithMandatoryEmailInDeletedPurpose = false;
+
+                    if (purposeIdListParsed.length() > 1) {
+
+                        for (int i = 0; i < purposeIdListParsed.length(); i++) {
+                            Purpose retrievedPurpose = serviceClient.getPurpose(purposeIdListParsed.getInt(i));
+                            if (!retrievedPurpose.getName().equals(purposeName)) {
+                                if (!hasPurposeWithMandatoryEmailInRemainingList) {
+                                    hasPurposeWithMandatoryEmailInRemainingList =
+                                            retrievedPurpose.getPurposePIICategories().stream().anyMatch(purposePIICategory ->
+                                                    purposePIICategory.getName().equals(EMAIL_CLAIM_URI) &&
+                                                            purposePIICategory.getMandatory());
+                                }
+                            } else {
+                                hasPurposeWithMandatoryEmailInDeletedPurpose = retrievedPurpose.getPurposePIICategories().stream().anyMatch(
+                                        purposePIICategory -> purposePIICategory.getName().equals(EMAIL_CLAIM_URI) &&
+                                                purposePIICategory.getMandatory());
+                            }
+                        }
+                    }
+
                     serviceClient.deletePurposeByName(purposeName, purposeGroup, purposeGroupType);
+                    if (hasPurposeWithMandatoryEmailInDeletedPurpose && !hasPurposeWithMandatoryEmailInRemainingList) {
+                        String message = MessageFormat.format(resourceBundle.getString("missing.mandatory.email.pii.category.warning.delete.purpose"),
+                                purposeName);
+                        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.WARNING, request);
+                    }
                     forwardTo = listPurposePage;
                 } catch (ConsentManagementException e) {
                     String message = resourceBundle.getString("error.while.delete.purpose");
