@@ -129,9 +129,19 @@
                 }
             }
             function doSubmit() {
+                doEncode();
                 document.dataForm.submit();
             }
         }
+
+        function doEncode() {
+            var claimRawCount = $('#claimrow_id_count').val();
+            for (let i = 0; i < claimRawCount; i++) {
+                var claimValue = $("[name=claimrow_name_wso2_" + i + "] option:selected").val();
+                $("[name=claimrow_name_wso2_" + i + "] option:selected").val(btoa(claimValue));
+            }
+        }
+
         function doValidationForMandatoryEmailPIICategory() {
             var count = document.getElementsByName("claimrow_name_count")[0];
             for (let i = 0; i < count.value; i++) {
