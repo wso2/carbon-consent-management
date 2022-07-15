@@ -35,6 +35,7 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.nio.charset.StandardCharsets" %>
+<%@ page import="java.util.Base64" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
@@ -81,6 +82,7 @@
         int categoryCount = Integer.parseInt(request.getParameter("claimrow_name_count"));
         for (int i = 0; i < categoryCount; i++) {
             String claimInfo = request.getParameter("claimrow_name_wso2_" + i);
+            claimInfo = new String(Base64.getDecoder().decode(claimInfo), StandardCharsets.UTF_8);
             boolean isPIICategoryMandatory = request.getParameter("claimrow_mandatory_" + i) != null;
 
             if (StringUtils.isNotBlank(claimInfo)) {
