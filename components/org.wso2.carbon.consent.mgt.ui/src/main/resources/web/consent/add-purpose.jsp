@@ -189,15 +189,27 @@
             <%}%>
         }
 
-        var deleteClaimRows = [];
         function deleteClaimRow(obj) {
-            if (jQuery(obj).parent().prev().children()[0].value != '') {
-                deleteClaimRows.push(jQuery(obj).parent().prev().children()[0].value);
+            var currentDeletingRowName = jQuery(obj).parent().prev().prev().children()[0].name;
+            var currentDeletingRowId = extractClaimRowIdFromName(currentDeletingRowName);
+
+            for (let i = currentDeletingRowId + 1; i < claimRowId + 1; i++) {
+                $("[name=claimrow_name_wso2_" + i + "]").attr('name', 'claimrow_name_wso2_' + (i - 1));
+                $("[name=claimrow_mandatory_" + i + "]").attr('name', 'claimrow_mandatory_' + (i - 1));
             }
+
+            claimRowId--;
+            $("#claimrow_id_count").val(claimRowId + 1);
+
             jQuery(obj).parent().parent().remove();
             if ($(jQuery('#claimAddTable tr')).length == 1) {
                 $(jQuery('#claimAddTable')).toggle();
             }
+        }
+
+        function extractClaimRowIdFromName(rowName) {
+            nameArr = rowName.split("_");
+            return Number(nameArr[nameArr.length - 1]);
         }
         
         var claimRowId = -1;
