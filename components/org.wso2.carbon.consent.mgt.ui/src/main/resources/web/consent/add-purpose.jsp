@@ -156,6 +156,17 @@
             return false;
         }
 
+        function validateNonEmptyPIICategories() {
+            var count = document.getElementsByName("claimrow_name_count")[0];
+            for (let i = 0; i < count.value; i++) {
+                var claim = document.getElementsByName("claimrow_name_wso2_" + i);
+                if (claim && claim[0] && !claim[0].value){
+                    return false;
+                }
+            }
+            return true;
+        }
+
         function doValidation() {
             var reason = "";
             reason = validateEmpty("purposeName");
@@ -178,6 +189,11 @@
                 return false;
             }
 
+            if (!validateNonEmptyPIICategories()) {
+                CARBON.showWarningDialog("Claim URI must be selected for all added PII categories");
+                return false;
+            }
+
             return true
         }
 
@@ -189,15 +205,27 @@
             <%}%>
         }
 
-        var deleteClaimRows = [];
         function deleteClaimRow(obj) {
-            if (jQuery(obj).parent().prev().children()[0].value != '') {
-                deleteClaimRows.push(jQuery(obj).parent().prev().children()[0].value);
+            var currentDeletingRowName = jQuery(obj).parent().prev().prev().children()[0].name;
+            var currentDeletingRowId = extractClaimRowIdFromName(currentDeletingRowName);
+
+            for (let i = currentDeletingRowId + 1; i < claimRowId + 1; i++) {
+                $("[name=claimrow_name_wso2_" + i + "]").attr('name', 'claimrow_name_wso2_' + (i - 1));
+                $("[name=claimrow_mandatory_" + i + "]").attr('name', 'claimrow_mandatory_' + (i - 1));
             }
+
+            claimRowId--;
+            $("#claimrow_id_count").val(claimRowId + 1);
+
             jQuery(obj).parent().parent().remove();
             if ($(jQuery('#claimAddTable tr')).length == 1) {
                 $(jQuery('#claimAddTable')).toggle();
             }
+        }
+
+        function extractClaimRowIdFromName(rowName) {
+            nameArr = rowName.split("_");
+            return Number(nameArr[nameArr.length - 1]);
         }
         
         var claimRowId = -1;
