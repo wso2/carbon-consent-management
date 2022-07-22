@@ -156,6 +156,17 @@
             return false;
         }
 
+        function validateNonEmptyPIICategories() {
+            var count = document.getElementsByName("claimrow_name_count")[0];
+            for (let i = 0; i < count.value; i++) {
+                var claim = document.getElementsByName("claimrow_name_wso2_" + i);
+                if (claim && claim[0] && !claim[0].value){
+                    return false;
+                }
+            }
+            return true;
+        }
+
         function doValidation() {
             var reason = "";
             reason = validateEmpty("purposeName");
@@ -175,6 +186,11 @@
             
             if (reason != "") {
                 CARBON.showWarningDialog("Purpose group type cannot be empty");
+                return false;
+            }
+
+            if (!validateNonEmptyPIICategories()) {
+                CARBON.showWarningDialog("Claim URI must be selected for all added PII categories");
                 return false;
             }
 
