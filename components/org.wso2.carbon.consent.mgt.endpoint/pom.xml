@@ -154,6 +154,10 @@
             <artifactId>swagger-jaxrs</artifactId>
             <exclusions>
                 <exclusion>
+                    <groupId>javax.validation</groupId>
+                    <artifactId>validation-api</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>com.fasterxml.jackson.dataformat</groupId>
                     <artifactId>jackson-dataformat-xml</artifactId>
                 </exclusion>
@@ -241,6 +245,11 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>${javax.validation-api}</version>
         </dependency>
     </dependencies>
 </project>
