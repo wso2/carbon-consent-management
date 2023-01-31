@@ -698,7 +698,7 @@ public class ConsentManagerImpl implements ConsentManager {
                 log.debug("Limit is not defied the request, default to: " + limit);
             }
         }
-        if (!isUserNameCaseSensitive(piiPrincipalId)) {
+        if (StringUtils.isNotBlank(piiPrincipalId) && !isUserNameCaseSensitive(piiPrincipalId)) {
             piiPrincipalId = getLowerCaseUserName(piiPrincipalId);
         }
         List<ReceiptListResponse> receiptListResponses = getReceiptsDAO(receiptDAOs).searchReceipts(limit, offset,
