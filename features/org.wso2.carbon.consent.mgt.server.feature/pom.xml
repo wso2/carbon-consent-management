@@ -28,19 +28,14 @@
     <artifactId>org.wso2.carbon.consent.mgt.server.feature</artifactId>
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
-    <name>WSO2 Carbon - Consent Management Core Feature</name>
+    <name>WSO2 Carbon - Consent Management Server Feature</name>
     <url>http://wso2.org</url>
-    <description>This feature contains the core consent management functionality</description>
+    <description>This feature contains the core bundles required for back-end consent management functionality</description>
 
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon.consent.mgt</groupId>
             <artifactId>org.wso2.carbon.consent.mgt.core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.consent.mgt</groupId>
-            <artifactId>org.wso2.carbon.consent.mgt.ui</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -106,7 +101,6 @@
                             </adviceFile>
                             <bundles>
                                 <bundleDef>org.wso2.carbon.consent.mgt:org.wso2.carbon.consent.mgt.core</bundleDef>
-                                <bundleDef>org.wso2.carbon.consent.mgt:org.wso2.carbon.consent.mgt.ui</bundleDef>
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>
