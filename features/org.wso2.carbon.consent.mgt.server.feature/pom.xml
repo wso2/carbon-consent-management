@@ -35,20 +35,56 @@
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon.consent.mgt</groupId>
-            <artifactId>org.wso2.carbon.consent.mgt.core.feature</artifactId>
+            <artifactId>org.wso2.carbon.consent.mgt.core</artifactId>
             <version>${project.version}</version>
-            <type>zip</type>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.consent.mgt</groupId>
-            <artifactId>org.wso2.carbon.consent.mgt.ui.feature</artifactId>
+            <artifactId>org.wso2.carbon.consent.mgt.ui</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.consent.mgt</groupId>
+            <artifactId>org.wso2.carbon.consent.mgt.endpoint</artifactId>
+            <version>${project.version}</version>
+            <type>war</type>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.utils</groupId>
+            <artifactId>org.wso2.carbon.database.utils.feature</artifactId>
+            <version>${org.wso2.carbon.database.utils.version}</version>
             <type>zip</type>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.wso2.carbon.consent.mgt</groupId>
+                                    <artifactId>org.wso2.carbon.consent.mgt.endpoint</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>war</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${basedir}/src/main/resources/</outputDirectory>
+                                    <destFileName>api#identity#consent-mgt#v1.0.war</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.wso2.maven</groupId>
                 <artifactId>carbon-p2-plugin</artifactId>
@@ -63,15 +99,69 @@
                         <configuration>
                             <id>org.wso2.carbon.consent.mgt.server</id>
                             <propertiesFile>../etc/feature.properties</propertiesFile>
-                            <includedFeatures>
-                                <includedFeatureDef>
-                                    org.wso2.carbon.consent.mgt:org.wso2.carbon.consent.mgt.core.feature
-                                </includedFeatureDef>
-                                <includedFeatureDef>
-                                    org.wso2.carbon.consent.mgt:org.wso2.carbon.consent.mgt.ui.feature
-                                </includedFeatureDef>
-                            </includedFeatures>
+                            <adviceFile>
+                                <properties>
+                                    <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
+                                </properties>
+                            </adviceFile>
+                            <bundles>
+                                <bundleDef>org.wso2.carbon.consent.mgt:org.wso2.carbon.consent.mgt.core</bundleDef>
+                                <bundleDef>org.wso2.carbon.consent.mgt:org.wso2.carbon.consent.mgt.ui</bundleDef>
+                            </bundles>
+                            <importFeatures>
+                                <importFeatureDef>
+                                    org.wso2.carbon.database.utils:compatible:${org.wso2.carbon.database.utils.version}
+                                </importFeatureDef>
+                            </importFeatures>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>prefilter-resources</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>src/main/resources</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>resources</directory>
+                                    <includes>
+                                        <include>api#identity#consent-mgt#v1.0.war</include>
+                                        <include>consent-mgt-config.xml</include>
+                                        <include>**/*.sql</include>
+                                        <include>p2.inf</include>
+                                        <include>consent-mgt-config.xml.j2</include>
+                                        <include>*.json</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>clean_target</id>
+                        <phase>install</phase>
+                        <configuration>
+                            <tasks>
+                                <delete dir="src/main/resources" />
+                                <delete dir="src/main" />
+                                <delete dir="src" />
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

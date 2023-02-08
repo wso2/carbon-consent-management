@@ -44,8 +44,6 @@
         <module>components/org.wso2.carbon.api.server.consent.mgt</module>
         <module>components/org.wso2.carbon.consent.mgt.endpoint</module>
         <module>features/org.wso2.carbon.consent.mgt.server.feature</module>
-        <module>features/org.wso2.carbon.consent.mgt.ui.feature</module>
-        <module>features/org.wso2.carbon.consent.mgt.core.feature</module>
     </modules>
 
 
