@@ -289,7 +289,7 @@
         <eclipse.osgi.version>3.5.100.v20160504-1419</eclipse.osgi.version>
         <carbon.core.version>4.5.0</carbon.core.version>
         <slf4j.api.version>1.7.26</slf4j.api.version>
-        <swagger.jaxrs.version>1.6.2</swagger.jaxrs.version>
+        <swagger.jaxrs.version>1.6.9</swagger.jaxrs.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
         <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
         <springframework.version>5.1.7.RELEASE</springframework.version>
