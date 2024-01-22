@@ -55,6 +55,7 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -993,8 +994,8 @@ public class ConsentManagerImpl implements ConsentManager {
         try {
             KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
             if (isNotSuperTenant(tenantDomain)) {
-                String jksName = getJKSName(tenantDomain);
-                publicKey = getPublicKey(tenantDomain, keyStoreManager, jksName);
+                String fileName = getKeystoreName(tenantDomain);
+                publicKey = getPublicKey(tenantDomain, keyStoreManager, fileName);
             } else {
                 publicKey = keyStoreManager.getDefaultPublicKey();
             }
@@ -1006,16 +1007,15 @@ public class ConsentManagerImpl implements ConsentManager {
         }
     }
 
-    private PublicKey getPublicKey(String tenantDomain, KeyStoreManager keyStoreManager, String jksName) throws
+    private PublicKey getPublicKey(String tenantDomain, KeyStoreManager keyStoreManager, String keystoreName) throws
             Exception {
 
-        return keyStoreManager.getKeyStore(jksName).getCertificate(tenantDomain).getPublicKey();
+        return keyStoreManager.getKeyStore(keystoreName).getCertificate(tenantDomain).getPublicKey();
     }
 
-    private String getJKSName(String tenantDomain) {
+    private String getKeystoreName(String tenantDomain) {
 
-        String ksName = tenantDomain.trim().replace(".", "-");
-        return ksName + ".jks";
+        return KeystoreUtils.getKeyStoreFileLocation(tenantDomain);
     }
 
     private boolean isNotSuperTenant(String tenantDomain) {

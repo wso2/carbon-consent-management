@@ -287,7 +287,7 @@
         <carbon.p2.plugin.version>5.2.3</carbon.p2.plugin.version>
         <org.apache.felix.annotations.version>1.2.10</org.apache.felix.annotations.version>
         <eclipse.osgi.version>3.5.100.v20160504-1419</eclipse.osgi.version>
-        <carbon.core.version>4.5.0</carbon.core.version>
+        <carbon.core.version>4.9.23</carbon.core.version>
         <slf4j.api.version>1.7.26</slf4j.api.version>
         <swagger.jaxrs.version>1.6.2</swagger.jaxrs.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
