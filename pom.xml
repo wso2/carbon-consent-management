@@ -34,7 +34,7 @@
         <url>https://github.com/wso2/carbon-consent-management.git</url>
         <developerConnection>scm:git:https://github.com/wso2/carbon-consent-management.git</developerConnection>
         <connection>scm:git:https://github.com/wso2/carbon-consent-management.git</connection>
-        <tag>v2.5.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <modules>
