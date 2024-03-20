@@ -194,6 +194,12 @@
                 <groupId>io.swagger</groupId>
                 <artifactId>swagger-jaxrs</artifactId>
                 <version>${swagger.jaxrs.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>javax.ws.rs</groupId>
@@ -286,8 +292,8 @@
         <org.apache.felix.annotations.version>1.2.10</org.apache.felix.annotations.version>
         <eclipse.osgi.version>3.5.100.v20160504-1419</eclipse.osgi.version>
         <carbon.core.version>4.5.0</carbon.core.version>
-        <slf4j.api.version>1.7.26</slf4j.api.version>
-        <swagger.jaxrs.version>1.6.2</swagger.jaxrs.version>
+        <slf4j.api.version>2.0.12</slf4j.api.version>
+        <swagger.jaxrs.version>1.6.11</swagger.jaxrs.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
         <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
         <springframework.version>5.1.7.RELEASE</springframework.version>
@@ -313,7 +319,7 @@
         <commons.collections.version.range>[3.2.2, 4.0.0)</commons.collections.version.range>
         <commons.lang.version.range>[2.6.0, 3.0.0)</commons.lang.version.range>
         <commons.logging.version.range>[1.2, 2.0)</commons.logging.version.range>
-        <slf4j.version.range>[1.6.1, 2.0.0)</slf4j.version.range>
+        <slf4j.version.range>[1.6.1, 3.0.0)</slf4j.version.range>
         <axis2.osgi.version.range>[1.6.1.wso2v12, 2.0.0)</axis2.osgi.version.range>
         <claim.metadata.version.range>[5.0.0,6.0.0)</claim.metadata.version.range>
         <org.json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</org.json.wso2.version.range>
