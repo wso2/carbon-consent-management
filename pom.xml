@@ -42,7 +42,6 @@
         <module>service-stubs/org.wso2.carbon.claim.metadata.mgt.stub</module>
         <module>components/org.wso2.carbon.consent.mgt.ui</module>
         <module>components/org.wso2.carbon.api.server.consent.mgt</module>
-        <module>components/org.wso2.carbon.consent.mgt.endpoint</module>
         <module>features/org.wso2.carbon.consent.mgt.feature</module>
         <module>features/org.wso2.carbon.consent.mgt.ui.feature</module>
         <module>features/org.wso2.carbon.consent.mgt.server.feature</module>
