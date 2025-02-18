@@ -110,7 +110,7 @@ public class ConsentManagerComponent {
                     (configHolder, consentMgtInterceptors), null);
             bundleContext.registerService(PrivilegedConsentManager.class.getName(),
                     new PrivilegedConsentManagerImpl(configHolder, consentMgtInterceptors), null);
-            log.info("ConsentManagerComponent is activated.");
+            log.debug("ConsentManagerComponent is activated.");
         } catch (Throwable e) {
             log.error("Error while activating ConsentManagerComponent.", e);
         }
