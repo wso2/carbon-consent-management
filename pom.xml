@@ -199,6 +199,10 @@
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-api</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.commons</groupId>
+                        <artifactId>commons-lang3</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -306,7 +310,7 @@
         <build.helper.plugin.version>3.0.0</build.helper.plugin.version>
         <encoder.wso2.version>1.2.0.wso2v2</encoder.wso2.version>
         <axis2.wso2.version>1.6.1-wso2v105</axis2.wso2.version>
-        <org.json.wso2.version>3.0.0.wso2v1</org.json.wso2.version>
+        <org.json.wso2.version>3.0.0.wso2v7</org.json.wso2.version>
         <axiom.wso2.version>1.2.11-wso2v29</axiom.wso2.version>
         <com.google.code.gson.version>2.9.0</com.google.code.gson.version>
 
@@ -322,7 +326,7 @@
         <slf4j.version.range>[1.6.1, 3.0.0)</slf4j.version.range>
         <axis2.osgi.version.range>[1.6.1.wso2v105, 2.0.0)</axis2.osgi.version.range>
         <claim.metadata.version.range>[5.0.0,6.0.0)</claim.metadata.version.range>
-        <org.json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</org.json.wso2.version.range>
+        <org.json.wso2.version.range>[3.0.0, 4.0.0)</org.json.wso2.version.range>
         <com.google.code.gson.osgi.version.range>[2.3.1,3.0.0)</com.google.code.gson.osgi.version.range>
         <org.wso2.carbon.database.utils.version.range>[2.0.0,2.2.0)</org.wso2.carbon.database.utils.version.range>
         <!-- Test Dependency Versions -->
