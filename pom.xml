@@ -72,6 +72,11 @@
                 <artifactId>pax-logging-api</artifactId>
                 <version>${pax.logging.api.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.core</artifactId>
+                <version>${carbon.identity.framework.version}</version>
+            </dependency>
             <!-- Test Dependencies -->
             <dependency>
                 <groupId>org.testng</groupId>
@@ -298,6 +303,9 @@
         <org.json.wso2.version>3.0.0.wso2v1</org.json.wso2.version>
         <axiom.wso2.version>1.2.11.wso2v10</axiom.wso2.version>
         <com.google.code.gson.version>2.9.0</com.google.code.gson.version>
+        <carbon.identity.framework.version>7.9.64</carbon.identity.framework.version>
+        <carbon.identity.framework.imp.pkg.version.range>[7.8.0, 8.0.0)
+        </carbon.identity.framework.imp.pkg.version.range>
 
         <!--swagger2cxf.maven.plugin.version>1.0-SNAPSHOT</swagger2cxf.maven.plugin.version-->
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>

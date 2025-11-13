@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2018-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,9 +59,9 @@ import org.wso2.carbon.consent.mgt.endpoint.exception.NotFoundException;
 import org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.UserRealm;
-import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
@@ -73,6 +73,7 @@ import java.util.List;
 import javax.sql.DataSource;
 import javax.ws.rs.core.Response;
 
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -90,7 +91,8 @@ import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.initiateH
 import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.mockComponentDataHolder;
 import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.spyConnection;
 
-@PrepareForTest({PrivilegedCarbonContext.class, ConsentManagerComponentDataHolder.class, KeyStoreManager.class})
+@PrepareForTest({PrivilegedCarbonContext.class, ConsentManagerComponentDataHolder.class, KeyStoreManager.class,
+        IdentityTenantUtil.class})
 public class ConsentsApiServiceImplTest extends PowerMockTestCase {
 
     private Connection connection;
@@ -156,6 +158,7 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
 
         ConsentManager consentManager = new InterceptingConsentManager(configurationHolder, Collections.emptyList());
         mockCarbonContext(consentManager);
+        mockIdentityTenantUtil();
         mockKeyStoreManager();
     }
 
@@ -170,6 +173,12 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
         when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
         when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
         when(privilegedCarbonContext.getUsername()).thenReturn("admin");
+    }
+
+    private void mockIdentityTenantUtil() {
+
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(SUPER_TENANT_DOMAIN_NAME);
     }
 
     private void mockKeyStoreManager() throws Exception {
