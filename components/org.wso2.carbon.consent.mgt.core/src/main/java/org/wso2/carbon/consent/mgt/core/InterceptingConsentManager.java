@@ -21,6 +21,7 @@ package org.wso2.carbon.consent.mgt.core;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
@@ -61,6 +62,13 @@ import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleServerExc
 /**
  * Consent Manager intercepting layer enforcing authorization.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.consent.mgt.core.ConsentManager",
+                "service.scope=singleton"
+        }
+)
 public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
 
     private static final Log log = LogFactory.getLog(InterceptingConsentManager.class);
