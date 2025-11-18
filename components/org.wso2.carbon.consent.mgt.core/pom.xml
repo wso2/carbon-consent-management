@@ -121,7 +121,8 @@
                             org.json.*; version="${org.json.wso2.version.range}",
                             org.wso2.carbon.context.*; version="${carbon.core.version.range}",
                             org.wso2.carbon.core.util.*; version="${carbon.core.version.range}",
-                            org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}"
+                            org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
+                            org.wso2.carbon.identity.core.util; version="${carbon.identity.framework.imp.pkg.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.consent.mgt.core.internal,
@@ -161,6 +162,10 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>

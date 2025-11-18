@@ -1,6 +1,6 @@
 /*
  *
- *   Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *   Copyright (c) 2018-2025, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -25,10 +25,14 @@ import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
+import org.wso2.carbon.consent.mgt.core.model.PIICategory;
+import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -39,6 +43,9 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.wso2.carbon.CarbonConstants.UI_PERMISSION_ACTION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_NO_USER_FOUND;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_RECEIPT_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_USER_NOT_AUTHORIZED;
@@ -83,6 +90,153 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
 
         validateAuthorizationForGetOrRevokeReceipts(receiptId, REVOKE_RECEIPT);
         super.revokeReceipt(receiptId);
+    }
+
+    /**
+     * Delete PII Category after validating the tenant domain of the PII Category.
+     *
+     * @param piiCategoryId PII Category ID.
+     * @throws ConsentManagementException Consent Management Exception if the tenant domain of the PII Category is
+     * different from the accessing tenant domain.
+     */
+    @Override
+    public void deletePIICategory(int piiCategoryId) throws ConsentManagementException {
+
+        PIICategory piiCategory = super.getPIICategory(piiCategoryId);
+
+        if (isCrossTenantOperation(ConsentUtils.getTenantDomainFromCarbonContext(),
+                IdentityTenantUtil.getTenantDomain(piiCategory.getTenantId()))) {
+            String message = String.format(ERROR_CODE_PII_CATEGORY_ID_INVALID.getMessage(), piiCategoryId) +
+                    " in tenant: " + ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_PII_CATEGORY_ID_INVALID.getCode());
+        }
+
+        super.deletePIICategory(piiCategoryId);
+    }
+
+    /**
+     * Get PII Category after validating the tenant domain of the PII Category.
+     *
+     * @param piiCategoryId PII Category ID.
+     * @return PIICategory PII Category.
+     * @throws ConsentManagementException Consent Management Exception if the tenant domain of the PII Category is
+     * different from the accessing tenant domain.
+     */
+    @Override
+    public PIICategory getPIICategory(int piiCategoryId) throws ConsentManagementException {
+
+        PIICategory piiCategory = super.getPIICategory(piiCategoryId);
+
+        if (isCrossTenantOperation(ConsentUtils.getTenantDomainFromCarbonContext(),
+                IdentityTenantUtil.getTenantDomain(piiCategory.getTenantId()))) {
+            String message = String.format(ERROR_CODE_PII_CATEGORY_ID_INVALID.getMessage(), piiCategoryId) +
+                    " in tenant: " + ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_PII_CATEGORY_ID_INVALID.getCode());
+        }
+
+        return piiCategory;
+    }
+
+    /**
+     * Delete Purpose Category after validating the tenant domain of the Purpose Category.
+     *
+     * @param purposeCategoryId Purpose Category ID.
+     * @throws ConsentManagementException Consent Management Exception if the tenant domain of the Purpose Category
+     * is different from the accessing tenant domain.
+     */
+    @Override
+    public void deletePurposeCategory(int purposeCategoryId) throws ConsentManagementException {
+
+        PurposeCategory purposeCategory = super.getPurposeCategory(purposeCategoryId);
+
+        if (isCrossTenantOperation(ConsentUtils.getTenantDomainFromCarbonContext(),
+                IdentityTenantUtil.getTenantDomain(purposeCategory.getTenantId()))) {
+            String message = String.format(ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID.getMessage(), purposeCategoryId) +
+                    " in tenant: " + ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID.getCode());
+        }
+
+        super.deletePurposeCategory(purposeCategoryId);
+    }
+
+    /**
+     * Get Purpose Category after validating the tenant domain of the Purpose Category.
+     *
+     * @param purposeCategoryId Purpose Category ID.
+     * @return PurposeCategory Purpose Category.
+     * @throws ConsentManagementException Consent Management Exception if the tenant domain of the Purpose Category
+     * is different from the accessing tenant domain.
+     */
+    @Override
+    public PurposeCategory getPurposeCategory(int purposeCategoryId) throws ConsentManagementException {
+
+        PurposeCategory purposeCategory = super.getPurposeCategory(purposeCategoryId);
+
+        if (isCrossTenantOperation(ConsentUtils.getTenantDomainFromCarbonContext(),
+                IdentityTenantUtil.getTenantDomain(purposeCategory.getTenantId()))) {
+            String message = String.format(ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID.getMessage(), purposeCategoryId) +
+                    " in tenant: " + ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID.getCode());
+        }
+
+        return purposeCategory;
+    }
+
+    /**
+     * Delete Purpose after validating the tenant domain of the Purpose.
+     *
+     * @param purposeId Purpose ID.
+     * @throws ConsentManagementException Consent Management Exception if the tenant domain of the Purpose is
+     * different from the accessing tenant domain.
+     */
+    @Override
+    public void deletePurpose(int purposeId) throws ConsentManagementException {
+
+        Purpose purpose = super.getPurpose(purposeId);
+
+        if (isCrossTenantOperation(ConsentUtils.getTenantDomainFromCarbonContext(),
+                IdentityTenantUtil.getTenantDomain(purpose.getTenantId()))) {
+            String message = String.format(ERROR_CODE_PURPOSE_ID_INVALID.getMessage(), purposeId) + " in tenant: " +
+                    ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_PURPOSE_ID_INVALID.getCode());
+        }
+
+        super.deletePurpose(purposeId);
+    }
+
+    /**
+     * Get Purpose after validating the tenant domain of the Purpose.
+     *
+     * @param purposeId Purpose ID.
+     * @return Purpose Purpose.
+     * @throws ConsentManagementException Consent Management Exception if the tenant domain of the Purpose is
+     * different from the accessing tenant domain.
+     */
+    @Override
+    public Purpose getPurpose(int purposeId) throws ConsentManagementException {
+
+        Purpose purpose = super.getPurpose(purposeId);
+
+        if (isCrossTenantOperation(ConsentUtils.getTenantDomainFromCarbonContext(),
+                IdentityTenantUtil.getTenantDomain(purpose.getTenantId()))) {
+            String message = String.format(ERROR_CODE_PURPOSE_ID_INVALID.getMessage(), purposeId) + " in tenant: " +
+                    ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_PURPOSE_ID_INVALID.getCode());
+        }
+
+        return purpose;
+    }
+
+    /**
+     * Validate whether the accessing tenant domain is same as the resource tenant domain.
+     *
+     * @param accessingTenantDomain - Accessing tenant domain.
+     * @param resourceTenantDomain  - Resource tenant domain.
+     * @return - true if both tenant domains are same, else false.
+     */
+    private boolean isCrossTenantOperation(String accessingTenantDomain, String resourceTenantDomain) {
+
+        return !StringUtils.equals(accessingTenantDomain, resourceTenantDomain);
     }
 
     private void validateAuthorizationForListReceipts(String piiPrincipalId) throws ConsentManagementException {
