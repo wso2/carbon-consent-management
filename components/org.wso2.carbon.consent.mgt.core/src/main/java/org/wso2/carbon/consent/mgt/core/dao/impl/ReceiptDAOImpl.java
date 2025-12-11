@@ -666,7 +666,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             consentPurposes = jdbcTemplate.withTransaction(template -> {
-                List<ConsentPurpose> internalConsentPurposes = jdbcTemplate.executeQuery(GET_SP_PURPOSE_SQL,
+                List<ConsentPurpose> internalConsentPurposes = template.executeQuery(GET_SP_PURPOSE_SQL,
                                                                                          (resultSet, rowNumber) -> {
                     ConsentPurpose consentPurpose = new ConsentPurpose();
                     consentPurpose.setServiceToPurposeId(resultSet.getInt(1));
