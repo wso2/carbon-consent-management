@@ -17,9 +17,8 @@
 package org.wso2.carbon.consent.mgt.endpoint.impl;
 
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -73,11 +72,11 @@ import java.util.List;
 import javax.sql.DataSource;
 import javax.ws.rs.core.Response;
 
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.wso2.carbon.CarbonConstants.UI_PERMISSION_ACTION;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
@@ -91,25 +90,30 @@ import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.initiateH
 import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.mockComponentDataHolder;
 import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.spyConnection;
 
-@PrepareForTest({PrivilegedCarbonContext.class, ConsentManagerComponentDataHolder.class, KeyStoreManager.class,
-        IdentityTenantUtil.class})
-public class ConsentsApiServiceImplTest extends PowerMockTestCase {
+public class ConsentsApiServiceImplTest {
 
     private Connection connection;
 
     @Mock
     KeyStoreManager keyStoreManager;
 
+    private MockedStatic<ConsentManagerComponentDataHolder> mockedComponentDataHolder;
+    private MockedStatic<PrivilegedCarbonContext> mockedCarbonContext;
+    private MockedStatic<KeyStoreManager> mockedKeyStoreManager;
+    private MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil;
+    private AutoCloseable mockitoCloseable;
+
     @BeforeMethod
     public void setUp() throws Exception {
 
+        mockitoCloseable = MockitoAnnotations.openMocks(this);
         initiateH2Base();
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes").toString();
         System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         connection = getConnection();
         Connection spyConnection = spyConnection(connection);
@@ -164,10 +168,10 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
 
     private void mockCarbonContext(ConsentManager consentManager) {
 
-        mockStatic(PrivilegedCarbonContext.class);
+        mockedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
         PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        mockedCarbonContext.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(privilegedCarbonContext);
         when(privilegedCarbonContext.getOSGiService(ConsentManager.class, null)).thenReturn
                 (consentManager);
         when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
@@ -177,19 +181,20 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
 
     private void mockIdentityTenantUtil() {
 
-        mockStatic(IdentityTenantUtil.class);
-        when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(SUPER_TENANT_DOMAIN_NAME);
     }
 
     private void mockKeyStoreManager() throws Exception {
 
-        mockStatic(KeyStoreManager.class);
-        PowerMockito.when(KeyStoreManager.getInstance(SUPER_TENANT_ID)).thenReturn(keyStoreManager);
+        mockedKeyStoreManager = mockStatic(KeyStoreManager.class);
+        keyStoreManager = mock(KeyStoreManager.class);
+        mockedKeyStoreManager.when(() -> KeyStoreManager.getInstance(SUPER_TENANT_ID)).thenReturn(keyStoreManager);
 
-        PowerMockito.when(keyStoreManager.getDefaultPublicKey())
+        when(keyStoreManager.getDefaultPublicKey())
                 .thenReturn(TestUtils.getPublicKey(TestUtils.loadKeyStoreFromFileSystem(TestUtils
                         .getFilePathInConfDirectory("wso2carbon.jks"), "wso2carbon", "JKS"), "wso2carbon"));
-        PowerMockito.when(keyStoreManager.getKeyStore(anyString())).thenReturn(TestUtils.loadKeyStoreFromFileSystem
+        when(keyStoreManager.getKeyStore(anyString())).thenReturn(TestUtils.loadKeyStoreFromFileSystem
                 (TestUtils.getFilePathInConfDirectory("wso2carbon.jks"), "wso2carbon", "JKS"));
     }
 
@@ -198,6 +203,22 @@ public class ConsentsApiServiceImplTest extends PowerMockTestCase {
 
         connection.close();
         closeH2Base();
+        
+        if (mockedComponentDataHolder != null) {
+            mockedComponentDataHolder.close();
+        }
+        if (mockedCarbonContext != null) {
+            mockedCarbonContext.close();
+        }
+        if (mockedKeyStoreManager != null) {
+            mockedKeyStoreManager.close();
+        }
+        if (mockedIdentityTenantUtil != null) {
+            mockedIdentityTenantUtil.close();
+        }
+        if (mockitoCloseable != null) {
+            mockitoCloseable.close();
+        }
     }
 
     @Test

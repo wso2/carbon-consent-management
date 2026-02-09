@@ -19,9 +19,8 @@
 package org.wso2.carbon.consent.mgt.core;
 
 import org.mockito.Mock;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -68,11 +67,10 @@ import java.util.Map;
 import java.util.UUID;
 import javax.sql.DataSource;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.wso2.carbon.CarbonConstants.UI_PERMISSION_ACTION;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
@@ -85,11 +83,7 @@ import static org.wso2.carbon.consent.mgt.core.util.TestUtils.initiateH2Base;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.mockComponentDataHolder;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 
-@PrepareForTest({
-                        ConsentManagerImpl.class, ConsentManagerComponentDataHolder.class,
-                        PrivilegedCarbonContext.class, KeyStoreManager.class
-                })
-public class ConsentManagerImplTest extends PowerMockTestCase {
+public class ConsentManagerImplTest {
 
     private ConsentManager consentManager;
     ConsentManagerConfigurationHolder configurationHolder;
@@ -98,18 +92,24 @@ public class ConsentManagerImplTest extends PowerMockTestCase {
     @Mock
     KeyStoreManager keyStoreManager;
 
+    private MockedStatic<ConsentManagerComponentDataHolder> mockedComponentDataHolder;
+    private MockedStatic<PrivilegedCarbonContext> mockedCarbonContext;
+    private MockedStatic<KeyStoreManager> mockedKeyStoreManager;
+    private AutoCloseable mockitoCloseable;
+
     private static List<PIICategory> piiCategories = new ArrayList<>();
 
     @BeforeMethod
     public void setUp() throws Exception {
 
+        mockitoCloseable = MockitoAnnotations.openMocks(this);
         initiateH2Base();
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes").toString();
         System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         connection = getConnection();
         Connection spyConnection = spyConnection(connection);
@@ -256,24 +256,25 @@ public class ConsentManagerImplTest extends PowerMockTestCase {
         receiptInput1.setPiiControllerInfo(piiControllerInput);
         receiptInput1.setProperties(properties);
 
+        // Setup mock for isUserNameCaseSensitive behavior through UserStoreManager mock chain
+        setupUserStoreManagerMock(isUserNameCaseSensitive);
+
         consentManager = new ConsentManagerImpl(configurationHolder);
-        ConsentManager spyConsentManager = PowerMockito.spy(consentManager);
-        PowerMockito.doReturn(isUserNameCaseSensitive).when(spyConsentManager, "isUserNameCaseSensitive", any());
-        spyConsentManager.addConsent(receiptInput1);
+        consentManager.addConsent(receiptInput1);
         String receiptID = receiptInput1.getConsentReceiptId();
         receiptInput1.setPiiPrincipalId("SUBJECT1");
-        spyConsentManager.addConsent(receiptInput1);
+        consentManager.addConsent(receiptInput1);
         if (isUserNameCaseSensitive) {
-            Assert.assertEquals(spyConsentManager.getReceipt(receiptID).getState(), "ACTIVE");
-            Assert.assertEquals(spyConsentManager.getReceipt(receiptInput1.getConsentReceiptId()).getState(), "ACTIVE");
+            Assert.assertEquals(consentManager.getReceipt(receiptID).getState(), "ACTIVE");
+            Assert.assertEquals(consentManager.getReceipt(receiptInput1.getConsentReceiptId()).getState(), "ACTIVE");
         } else {
-            Assert.assertEquals(spyConsentManager.getReceipt(receiptID).getState(), "REVOKED");
-            Assert.assertEquals(spyConsentManager.getReceipt(receiptInput1.getConsentReceiptId()).getState(), "ACTIVE");
+            Assert.assertEquals(consentManager.getReceipt(receiptID).getState(), "REVOKED");
+            Assert.assertEquals(consentManager.getReceipt(receiptInput1.getConsentReceiptId()).getState(), "ACTIVE");
         }
-        List<ReceiptListResponse> receiptListResponses = spyConsentManager
+        List<ReceiptListResponse> receiptListResponses = consentManager
                 .searchReceipts(10, 0, "subject1", "carbon" + ".super", receiptInput1.getServices().get(0).getService(),
                         receiptInput1.getState());
-        List<ReceiptListResponse> receiptListResponsesCaps = spyConsentManager
+        List<ReceiptListResponse> receiptListResponsesCaps = consentManager
                 .searchReceipts(10, 0, "SUBJECT1", "carbon" + ".super", receiptInput1.getServices().get(0).getService(),
                         receiptInput1.getState());
         if (isUserNameCaseSensitive) {
@@ -285,12 +286,29 @@ public class ConsentManagerImplTest extends PowerMockTestCase {
         }
     }
 
+    private void setupUserStoreManagerMock(boolean isUserNameCaseSensitive) throws Exception {
+
+        RealmService realmService = configurationHolder.getRealmService();
+        UserRealm tenantUserRealm = realmService.getTenantUserRealm(-1234);
+        
+        org.wso2.carbon.user.core.common.AbstractUserStoreManager abstractUserStoreManager = 
+                mock(org.wso2.carbon.user.core.common.AbstractUserStoreManager.class);
+        org.wso2.carbon.user.api.RealmConfiguration realmConfiguration = 
+                mock(org.wso2.carbon.user.api.RealmConfiguration.class);
+        
+        when(tenantUserRealm.getUserStoreManager()).thenReturn(abstractUserStoreManager);
+        when(abstractUserStoreManager.getSecondaryUserStoreManager(anyString())).thenReturn(abstractUserStoreManager);
+        when(abstractUserStoreManager.getRealmConfiguration()).thenReturn(realmConfiguration);
+        when(realmConfiguration.getUserStoreProperty("UseCaseSensitiveUsernameForCacheKeys"))
+                .thenReturn(String.valueOf(isUserNameCaseSensitive));
+    }
+
     private void mockCarbonContext() {
 
-        mockStatic(PrivilegedCarbonContext.class);
+        mockedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
         PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        mockedCarbonContext.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(privilegedCarbonContext);
         when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
         when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
         when(privilegedCarbonContext.getUsername()).thenReturn("admin");
@@ -298,13 +316,14 @@ public class ConsentManagerImplTest extends PowerMockTestCase {
 
     private void mockKeyStoreManager() throws Exception {
 
-        mockStatic(KeyStoreManager.class);
-        PowerMockito.when(KeyStoreManager.getInstance(SUPER_TENANT_ID)).thenReturn(keyStoreManager);
+        mockedKeyStoreManager = mockStatic(KeyStoreManager.class);
+        keyStoreManager = mock(KeyStoreManager.class);
+        mockedKeyStoreManager.when(() -> KeyStoreManager.getInstance(SUPER_TENANT_ID)).thenReturn(keyStoreManager);
 
-        PowerMockito.when(keyStoreManager.getDefaultPublicKey()).thenReturn(TestUtils.getPublicKey(TestUtils
+        when(keyStoreManager.getDefaultPublicKey()).thenReturn(TestUtils.getPublicKey(TestUtils
                 .loadKeyStoreFromFileSystem(TestUtils.getFilePathInConfDirectory("wso2carbon.jks"), "wso2carbon",
                         "JKS"), "wso2carbon"));
-        PowerMockito.when(keyStoreManager.getKeyStore(anyString())).thenReturn(TestUtils
+        when(keyStoreManager.getKeyStore(anyString())).thenReturn(TestUtils
                 .loadKeyStoreFromFileSystem(TestUtils.getFilePathInConfDirectory("wso2carbon.jks"), "wso2carbon",
                         "JKS"));
     }
@@ -314,5 +333,18 @@ public class ConsentManagerImplTest extends PowerMockTestCase {
 
         connection.close();
         closeH2Base();
+        
+        if (mockedComponentDataHolder != null) {
+            mockedComponentDataHolder.close();
+        }
+        if (mockedCarbonContext != null) {
+            mockedCarbonContext.close();
+        }
+        if (mockedKeyStoreManager != null) {
+            mockedKeyStoreManager.close();
+        }
+        if (mockitoCloseable != null) {
+            mockitoCloseable.close();
+        }
     }
 }

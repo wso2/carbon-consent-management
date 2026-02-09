@@ -85,15 +85,9 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-testng</artifactId>
-                <version>${powermock.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito</artifactId>
-                <version>${powermock.version}</version>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -152,6 +146,11 @@
                 <groupId>org.apache.ws.commons.axiom.wso2</groupId>
                 <artifactId>axiom</artifactId>
                 <version>${axiom.wso2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.activation</groupId>
+                <artifactId>activation</artifactId>
+                <version>${javax.activation.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.gson</groupId>
@@ -324,11 +323,12 @@
         <org.wso2.carbon.database.utils.version.range>[2.0.0,3.0.0)</org.wso2.carbon.database.utils.version.range>
         <!-- Test Dependency Versions -->
         <testng.version>6.14.3</testng.version>
-        <powermock.version>1.7.4</powermock.version>
+        <mockito.version>5.3.1</mockito.version>
         <jacoco.version>0.8.3</jacoco.version>
         <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
         <orbit.version.h2.engine>1.2.140.wso2v3</orbit.version.h2.engine>
         <pax.logging.api.version>1.10.1</pax.logging.api.version>
         <org.wso2.carbon.database.utils.version>2.1.0</org.wso2.carbon.database.utils.version>
+        <javax.activation.version>1.1</javax.activation.version>
     </properties>
 </project>

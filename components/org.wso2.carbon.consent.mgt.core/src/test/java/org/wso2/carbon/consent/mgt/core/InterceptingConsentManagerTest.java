@@ -17,9 +17,8 @@
 package org.wso2.carbon.consent.mgt.core;
 
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -71,11 +70,11 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.wso2.carbon.CarbonConstants.UI_PERMISSION_ACTION;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
@@ -89,9 +88,7 @@ import static org.wso2.carbon.consent.mgt.core.util.TestUtils.initiateH2Base;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.mockComponentDataHolder;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 
-@PrepareForTest({PrivilegedCarbonContext.class, ConsentManagerComponentDataHolder.class, KeyStoreManager.class,
-        IdentityTenantUtil.class})
-public class InterceptingConsentManagerTest extends PowerMockTestCase {
+public class InterceptingConsentManagerTest {
 
     private Connection connection;
     private ConsentManager consentManager;
@@ -99,16 +96,23 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
     @Mock
     KeyStoreManager keyStoreManager;
 
+    private MockedStatic<ConsentManagerComponentDataHolder> mockedComponentDataHolder;
+    private MockedStatic<PrivilegedCarbonContext> mockedCarbonContext;
+    private MockedStatic<KeyStoreManager> mockedKeyStoreManager;
+    private MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil;
+    private AutoCloseable mockitoCloseable;
+
     @BeforeMethod
     public void setUp() throws Exception {
 
+        mockitoCloseable = MockitoAnnotations.openMocks(this);
         initiateH2Base();
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes").toString();
         System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         connection = getConnection();
         Connection spyConnection = spyConnection(connection);
@@ -165,22 +169,23 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
     private void mockKeyStoreManager() throws Exception {
 
-        mockStatic(KeyStoreManager.class);
-        PowerMockito.when(KeyStoreManager.getInstance(SUPER_TENANT_ID)).thenReturn(keyStoreManager);
+        mockedKeyStoreManager = mockStatic(KeyStoreManager.class);
+        keyStoreManager = mock(KeyStoreManager.class);
+        mockedKeyStoreManager.when(() -> KeyStoreManager.getInstance(SUPER_TENANT_ID)).thenReturn(keyStoreManager);
 
-        PowerMockito.when(keyStoreManager.getDefaultPublicKey())
+        when(keyStoreManager.getDefaultPublicKey())
                 .thenReturn(TestUtils.getPublicKey(TestUtils.loadKeyStoreFromFileSystem(TestUtils
                         .getFilePathInConfDirectory("wso2carbon.jks"), "wso2carbon", "JKS"), "wso2carbon"));
-        PowerMockito.when(keyStoreManager.getKeyStore(anyString())).thenReturn(TestUtils.loadKeyStoreFromFileSystem
+        when(keyStoreManager.getKeyStore(anyString())).thenReturn(TestUtils.loadKeyStoreFromFileSystem
                 (TestUtils.getFilePathInConfDirectory("wso2carbon.jks"), "wso2carbon", "JKS"));
     }
 
     private void mockCarbonContext() {
 
-        mockStatic(PrivilegedCarbonContext.class);
+        mockedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
         PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        mockedCarbonContext.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(privilegedCarbonContext);
         when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
         when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
         when(privilegedCarbonContext.getUsername()).thenReturn("admin");
@@ -188,8 +193,8 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
     private void mockIdentityTenantUtil() {
 
-        mockStatic(IdentityTenantUtil.class);
-        when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn(SUPER_TENANT_DOMAIN_NAME);
     }
 
     @AfterMethod
@@ -197,6 +202,22 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
         connection.close();
         closeH2Base();
+
+        if (mockedComponentDataHolder != null) {
+            mockedComponentDataHolder.close();
+        }
+        if (mockedCarbonContext != null) {
+            mockedCarbonContext.close();
+        }
+        if (mockedKeyStoreManager != null) {
+            mockedKeyStoreManager.close();
+        }
+        if (mockedIdentityTenantUtil != null) {
+            mockedIdentityTenantUtil.close();
+        }
+        if (mockitoCloseable != null) {
+            mockitoCloseable.close();
+        }
     }
 
     @DataProvider(name = "listDataProvider")
@@ -577,13 +598,8 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         mockCarbonContextForDifferentTenant("tenant1.com", 1);
         mockIdentityTenantUtilForDifferentTenant();
 
-        try {
-            consentManager.getPurposeCategory(purposeCategoryId);
-            Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
-        } finally {
-            mockCarbonContext();
-            mockIdentityTenantUtil();
-        }
+        consentManager.getPurposeCategory(purposeCategoryId);
+        Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
     }
 
     @Test(expectedExceptions = ConsentManagementClientException.class)
@@ -597,13 +613,8 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         mockCarbonContextForDifferentTenant("tenant1.com", 1);
         mockIdentityTenantUtilForDifferentTenant();
 
-        try {
-            consentManager.deletePurposeCategory(purposeCategoryId);
-            Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
-        } finally {
-            mockCarbonContext();
-            mockIdentityTenantUtil();
-        }
+        consentManager.deletePurposeCategory(purposeCategoryId);
+        Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
     }
 
     @Test(expectedExceptions = ConsentManagementClientException.class)
@@ -617,13 +628,8 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         mockCarbonContextForDifferentTenant("tenant1.com", 1);
         mockIdentityTenantUtilForDifferentTenant();
 
-        try {
-            consentManager.getPIICategory(piiCategoryId);
-            Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
-        } finally {
-            mockCarbonContext();
-            mockIdentityTenantUtil();
-        }
+        consentManager.getPIICategory(piiCategoryId);
+        Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
     }
 
     @Test(expectedExceptions = ConsentManagementClientException.class)
@@ -637,13 +643,8 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         mockCarbonContextForDifferentTenant("tenant1.com", 1);
         mockIdentityTenantUtilForDifferentTenant();
 
-        try {
-            consentManager.deletePIICategory(piiCategoryId);
-            Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
-        } finally {
-            mockCarbonContext();
-            mockIdentityTenantUtil();
-        }
+        consentManager.deletePIICategory(piiCategoryId);
+        Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
     }
 
     @Test(expectedExceptions = ConsentManagementClientException.class)
@@ -657,13 +658,8 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         mockCarbonContextForDifferentTenant("tenant1.com", 1);
         mockIdentityTenantUtilForDifferentTenant();
 
-        try {
-            consentManager.getPurpose(purposeId);
-            Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
-        } finally {
-            mockCarbonContext();
-            mockIdentityTenantUtil();
-        }
+        consentManager.getPurpose(purposeId);
+        Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
     }
 
     @Test(expectedExceptions = ConsentManagementClientException.class)
@@ -677,21 +673,19 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
         mockCarbonContextForDifferentTenant("tenant1.com", 1);
         mockIdentityTenantUtilForDifferentTenant();
 
-        try {
-            consentManager.deletePurpose(purposeId);
-            Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
-        } finally {
-            mockCarbonContext();
-            mockIdentityTenantUtil();
-        }
+        consentManager.deletePurpose(purposeId);
+        Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
     }
 
     private void mockCarbonContextForDifferentTenant(String tenantDomain, int tenantId) {
 
-        mockStatic(PrivilegedCarbonContext.class);
+        if (mockedCarbonContext != null) {
+            mockedCarbonContext.close();
+        }
+        mockedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
         PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        mockedCarbonContext.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(privilegedCarbonContext);
         when(privilegedCarbonContext.getTenantDomain()).thenReturn(tenantDomain);
         when(privilegedCarbonContext.getTenantId()).thenReturn(tenantId);
         when(privilegedCarbonContext.getUsername()).thenReturn("admin");
@@ -699,9 +693,10 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
     private void mockIdentityTenantUtilForDifferentTenant() {
 
-        mockStatic(IdentityTenantUtil.class);
-        when(IdentityTenantUtil.getTenantDomain(SUPER_TENANT_ID)).thenReturn(SUPER_TENANT_DOMAIN_NAME);
-        when(IdentityTenantUtil.getTenantDomain(1)).thenReturn("tenant1.com");
+        mockedIdentityTenantUtil.close();
+        mockedIdentityTenantUtil = mockStatic(IdentityTenantUtil.class);
+        mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(SUPER_TENANT_ID)).thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        mockedIdentityTenantUtil.when(() -> IdentityTenantUtil.getTenantDomain(1)).thenReturn("tenant1.com");
     }
 
     private Purpose addPurpose(String name) throws ConsentManagementException {

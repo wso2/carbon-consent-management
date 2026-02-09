@@ -16,8 +16,8 @@
 
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -55,10 +55,10 @@ import java.util.Map;
 import java.util.UUID;
 import javax.sql.DataSource;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.closeH2Base;
@@ -68,14 +68,17 @@ import static org.wso2.carbon.consent.mgt.core.util.TestUtils.mockComponentDataH
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnectionWithError;
 
-@PrepareForTest({PrivilegedCarbonContext.class,ConsentManagerComponentDataHolder.class})
-public class ReceiptDAOImplTest extends PowerMockTestCase {
+public class ReceiptDAOImplTest {
 
     private static List<ReceiptInput> receiptInputs = new ArrayList<>();
+
+    private MockedStatic<PrivilegedCarbonContext> mockedCarbonContext;
+    private AutoCloseable mockitoCloseable;
 
     @BeforeMethod
     public void setUp() throws Exception {
 
+        mockitoCloseable = MockitoAnnotations.openMocks(this);
         initiateH2Base();
 
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes").toString();
@@ -83,8 +86,9 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
-        try (Connection connection = getConnection()) {
+        
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedDataHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
 
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
@@ -225,6 +229,13 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void tearDown() throws Exception {
 
         closeH2Base();
+        
+        if (mockedCarbonContext != null) {
+            mockedCarbonContext.close();
+        }
+        if (mockitoCloseable != null) {
+            mockitoCloseable.close();
+        }
     }
 
     @DataProvider(name = "exceptionLevelProvider")
@@ -260,9 +271,9 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testAddReceipt() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
 
-        try (Connection connection = getConnection()) {
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
 
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
@@ -280,9 +291,9 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testAddDuplicateReceipt() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
 
-        try (Connection connection = getConnection()) {
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
 
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
@@ -297,9 +308,9 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testAddReceiptWithException(int exceptionLevel) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
 
-        try (Connection connection = getConnection()) {
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
 
             Connection spy = spyConnection(connection);
 
@@ -323,9 +334,9 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
                                    String state, int resultCount) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
 
-        try (Connection connection = getConnection()) {
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
 
@@ -344,9 +355,9 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testSearchReceiptsWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
 
-        try (Connection connection = getConnection()) {
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
             Connection spy = spyConnectionWithError(connection);
             when(dataSource.getConnection()).thenReturn(spy);
 
@@ -359,9 +370,9 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testRevokeReceipt() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
 
-        try (Connection connection = getConnection()) {
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
 
@@ -378,9 +389,9 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testRevokeReceiptWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
 
-        try (Connection connection = getConnection()) {
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
             Connection spy = spyConnectionWithError(connection);
             when(dataSource.getConnection()).thenReturn(spy);
 
@@ -393,9 +404,9 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testGetReceipt() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
 
-        try (Connection connection = getConnection()) {
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
 
@@ -411,9 +422,9 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testGetInvalidReceipt() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
 
-        try (Connection connection = getConnection()) {
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
 
@@ -429,37 +440,37 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testGetReceiptWithException(int exceptionLevel) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
-
-        try (Connection connection = getConnection()) {
-            Connection spy = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spy);
-
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
-            receiptDAO.addReceipt(receiptInputs.get(1));
-        }
-
-        try (Connection connection = getConnection()) {
-            Connection spy = spyConnection(connection);
-
-            if (exceptionLevel == 1) {
-                when(dataSource.getConnection()).thenThrow(new SQLException("Test exception"));
-            } else if (exceptionLevel == 2) {
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource)) {
+            try (Connection connection = getConnection()) {
+                Connection spy = spyConnection(connection);
                 when(dataSource.getConnection()).thenReturn(spy);
-                when(spy.prepareStatement(anyString())).thenThrow(new SQLException("Test exception"));
+
+                ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+                receiptDAO.addReceipt(receiptInputs.get(1));
             }
 
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
-            receiptDAO.getReceipt(receiptInputs.get(1).getConsentReceiptId());
+            try (Connection connection = getConnection()) {
+                Connection spy = spyConnection(connection);
+
+                if (exceptionLevel == 1) {
+                    when(dataSource.getConnection()).thenThrow(new SQLException("Test exception"));
+                } else if (exceptionLevel == 2) {
+                    when(dataSource.getConnection()).thenReturn(spy);
+                    when(spy.prepareStatement(anyString())).thenThrow(new SQLException("Test exception"));
+                }
+
+                ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+                receiptDAO.getReceipt(receiptInputs.get(1).getConsentReceiptId());
+            }
         }
     }
 
     private void mockCarbonContext() {
 
-        mockStatic(PrivilegedCarbonContext.class);
+        mockedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
         PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        mockedCarbonContext.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(privilegedCarbonContext);
         when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
         when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
         when(privilegedCarbonContext.getUsername()).thenReturn("admin");
