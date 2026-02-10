@@ -16,8 +16,8 @@
 
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -43,14 +43,17 @@ import static org.wso2.carbon.consent.mgt.core.util.TestUtils.mockComponentDataH
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnectionWithError;
 
-@PrepareForTest(ConsentManagerComponentDataHolder.class)
-public class PurposeDAOImplTest extends PowerMockTestCase {
+public class PurposeDAOImplTest {
 
     private static List<Purpose> purposes = new ArrayList<>();
+
+    private MockedStatic<ConsentManagerComponentDataHolder> mockedComponentDataHolder;
+    private AutoCloseable mockitoCloseable;
 
     @BeforeMethod
     public void setUp() throws Exception {
 
+        mockitoCloseable = MockitoAnnotations.openMocks(this);
         initiateH2Base();
         Purpose purpose1 = new Purpose("P1", "D1", "SIGNUP", "RESIDENT", -1234);
         Purpose purpose2 = new Purpose("P2", "D2", "JIT", "IDP", -1234);
@@ -62,6 +65,13 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void tearDown() throws Exception {
 
         closeH2Base();
+        
+        if (mockedComponentDataHolder != null) {
+            mockedComponentDataHolder.close();
+        }
+        if (mockitoCloseable != null) {
+            mockitoCloseable.close();
+        }
     }
 
     @DataProvider(name = "purposeListProvider")
@@ -79,7 +89,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void testAddPurpose() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -100,7 +110,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void testAddDuplicatePurpose() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -119,7 +129,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void testGetPurposeById() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -142,7 +152,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void testGetPurposeByInvalidId() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -160,7 +170,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void testGetPurposeByIdWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -178,7 +188,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void testGetPurposeByName() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -204,7 +214,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void testGetPurposeByNullName() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -222,7 +232,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void testGetPurposeByInvalidName() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -241,7 +251,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void testGetPurposeByNameWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -259,7 +269,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void testListPurposes(int limit, int offset, int tenantId, int resultSize) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -288,7 +298,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void testListPurposesWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -306,7 +316,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void testDeletePurpose() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -327,7 +337,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void testDeletePurposeWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -345,7 +355,7 @@ public class PurposeDAOImplTest extends PowerMockTestCase {
     public void testDeletePurposesByTenantId() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 

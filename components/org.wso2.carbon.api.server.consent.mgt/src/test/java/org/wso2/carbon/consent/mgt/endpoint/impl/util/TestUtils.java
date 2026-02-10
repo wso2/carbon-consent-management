@@ -18,6 +18,7 @@ package org.wso2.carbon.consent.mgt.endpoint.impl.util;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
+import org.mockito.MockedStatic;
 import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
 
 import java.io.FileInputStream;
@@ -31,13 +32,12 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.sql.DataSource;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 public class TestUtils {
 
@@ -97,12 +97,13 @@ public class TestUtils {
         throw new RuntimeException("No data source initiated for database: " + DB_NAME);
     }
 
-    public static void mockComponentDataHolder(DataSource dataSource) {
+    public static MockedStatic<ConsentManagerComponentDataHolder> mockComponentDataHolder(DataSource dataSource) {
 
-        mockStatic(ConsentManagerComponentDataHolder.class);
+        MockedStatic<ConsentManagerComponentDataHolder> mockedStatic = org.mockito.Mockito.mockStatic(ConsentManagerComponentDataHolder.class);
         ConsentManagerComponentDataHolder componentDataHolder = mock(ConsentManagerComponentDataHolder.class);
-        when(ConsentManagerComponentDataHolder.getInstance()).thenReturn(componentDataHolder);
+        mockedStatic.when(ConsentManagerComponentDataHolder::getInstance).thenReturn(componentDataHolder);
         when(componentDataHolder.getDataSource()).thenReturn(dataSource);
+        return mockedStatic;
     }
 
     public static KeyStore loadKeyStoreFromFileSystem(String keyStorePath, String password, String type) {
