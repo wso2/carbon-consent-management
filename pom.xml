@@ -50,9 +50,14 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.wso2.eclipse.osgi</groupId>
-                <artifactId>org.eclipse.osgi.services</artifactId>
+                <groupId>org.eclipse.platform</groupId>
+                <artifactId>org.eclipse.osgi</artifactId>
                 <version>${eclipse.osgi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.platform</groupId>
+                <artifactId>org.eclipse.osgi.services</artifactId>
+                <version>${equinox.osgi.services.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon</groupId>
@@ -294,7 +299,8 @@
         <consent.mgt.version.range>[2.0.0, 3.0.0]</consent.mgt.version.range>
         <carbon.p2.plugin.version>5.2.3</carbon.p2.plugin.version>
         <org.apache.felix.annotations.version>1.2.10</org.apache.felix.annotations.version>
-        <eclipse.osgi.version>3.5.100.v20160504-1419</eclipse.osgi.version>
+        <eclipse.osgi.version>3.19.0</eclipse.osgi.version>
+        <equinox.osgi.services.version>3.12.0</equinox.osgi.services.version>
         <carbon.core.version>4.5.0</carbon.core.version>
         <slf4j.api.version>2.0.12</slf4j.api.version>
         <swagger.jaxrs.version>1.6.11</swagger.jaxrs.version>
@@ -305,7 +311,7 @@
         <fasterxml.jackson.version>2.9.8</fasterxml.jackson.version>
         <org.codehaus.jackson.version>1.8.6</org.codehaus.jackson.version>
         <maven.compiler.plugin>3.8.1</maven.compiler.plugin>
-        <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
+        <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
         <maven.war.plugin.version>3.2.2</maven.war.plugin.version>
         <build.helper.plugin.version>3.0.0</build.helper.plugin.version>
         <encoder.wso2.version>1.2.0.wso2v2</encoder.wso2.version>
@@ -337,5 +343,7 @@
         <orbit.version.h2.engine>1.2.140.wso2v3</orbit.version.h2.engine>
         <pax.logging.api.version>1.10.1</pax.logging.api.version>
         <org.wso2.carbon.database.utils.version>2.1.0</org.wso2.carbon.database.utils.version>
+        <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
+        <osgi.service.component.imp.pkg.version.range>[1.2.0, 2.0.0)</osgi.service.component.imp.pkg.version.range>
     </properties>
 </project>

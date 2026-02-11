@@ -107,8 +107,8 @@
                         <Private-Package>org.wso2.carbon.consent.mgt.core.internal</Private-Package>
                         <Import-Package>
                             org.wso2.carbon.consent.mgt.core.*; version="${project.version}",
-                            org.osgi.framework,
-                            org.osgi.service.component,
+                            org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
+                            org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.carbon.user.core.*; version="${carbon.core.version.range}",
                             org.wso2.carbon.user.api; version="${carbon.api.version.range}",
                             org.wso2.carbon.utils.*; version="${carbon.core.version.range}",
@@ -135,7 +135,11 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.wso2.eclipse.osgi</groupId>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.osgi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.osgi.services</artifactId>
         </dependency>
         <dependency>
