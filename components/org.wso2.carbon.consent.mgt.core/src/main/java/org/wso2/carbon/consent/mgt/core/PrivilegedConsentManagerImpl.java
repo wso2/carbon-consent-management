@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.consent.mgt.core;
 
+import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
@@ -119,6 +120,13 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.STATE;
  * {@link InterceptingConsentManager} implementation. This can be done by listening to implementations registered for
  * {@link PrivilegedConsentManager} interface.
  */
+@Capability(
+        namespace = "osgi.service",
+        attribute = {
+                "objectClass=org.wso2.carbon.consent.mgt.core.PrivilegedConsentManager",
+                "service.scope=singleton"
+        }
+)
 public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
 
     private ConsentManager consentManager;
