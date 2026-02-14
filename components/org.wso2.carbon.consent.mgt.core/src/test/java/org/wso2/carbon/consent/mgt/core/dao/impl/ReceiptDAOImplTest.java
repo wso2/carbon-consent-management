@@ -16,8 +16,7 @@
 
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -55,23 +54,25 @@ import java.util.Map;
 import java.util.UUID;
 import javax.sql.DataSource;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.getConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.initiateH2Base;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.mockComponentDataHolder;
+import static org.wso2.carbon.consent.mgt.core.util.TestUtils.reconfigureComponentDataHolder;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnectionWithError;
 
-@PrepareForTest({PrivilegedCarbonContext.class,ConsentManagerComponentDataHolder.class})
-public class ReceiptDAOImplTest extends PowerMockTestCase {
+public class ReceiptDAOImplTest {
 
     private static List<ReceiptInput> receiptInputs = new ArrayList<>();
+    private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContextMock;
+    private MockedStatic<ConsentManagerComponentDataHolder> componentDataHolderMock;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -83,7 +84,7 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
         try (Connection connection = getConnection()) {
 
             Connection spy = spyConnection(connection);
@@ -225,6 +226,13 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void tearDown() throws Exception {
 
         closeH2Base();
+        if (componentDataHolderMock != null) {
+            componentDataHolderMock.close();
+            componentDataHolderMock = null;
+        }
+        if (privilegedCarbonContextMock != null) {
+            privilegedCarbonContextMock.close();
+        }
     }
 
     @DataProvider(name = "exceptionLevelProvider")
@@ -260,7 +268,6 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testAddReceipt() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -280,7 +287,6 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testAddDuplicateReceipt() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -297,7 +303,7 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testAddReceiptWithException(int exceptionLevel) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        reconfigureComponentDataHolder(componentDataHolderMock, dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -323,7 +329,6 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
                                    String state, int resultCount) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spy = spyConnection(connection);
@@ -344,7 +349,7 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testSearchReceiptsWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        reconfigureComponentDataHolder(componentDataHolderMock, dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spy = spyConnectionWithError(connection);
@@ -359,7 +364,6 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testRevokeReceipt() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spy = spyConnection(connection);
@@ -378,7 +382,7 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testRevokeReceiptWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        reconfigureComponentDataHolder(componentDataHolderMock, dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spy = spyConnectionWithError(connection);
@@ -393,7 +397,6 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testGetReceipt() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spy = spyConnection(connection);
@@ -411,7 +414,6 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testGetInvalidReceipt() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spy = spyConnection(connection);
@@ -429,7 +431,7 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
     public void testGetReceiptWithException(int exceptionLevel) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        reconfigureComponentDataHolder(componentDataHolderMock, dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spy = spyConnection(connection);
@@ -456,10 +458,10 @@ public class ReceiptDAOImplTest extends PowerMockTestCase {
 
     private void mockCarbonContext() {
 
-        mockStatic(PrivilegedCarbonContext.class);
+        privilegedCarbonContextMock = mockStatic(PrivilegedCarbonContext.class);
         PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        privilegedCarbonContextMock.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(privilegedCarbonContext);
         when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
         when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
         when(privilegedCarbonContext.getUsername()).thenReturn("admin");

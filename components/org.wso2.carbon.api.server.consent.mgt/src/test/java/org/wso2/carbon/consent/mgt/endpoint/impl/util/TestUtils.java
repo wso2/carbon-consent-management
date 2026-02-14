@@ -31,13 +31,15 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.sql.DataSource;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
+
+import org.mockito.MockedStatic;
 
 public class TestUtils {
 
@@ -97,11 +99,19 @@ public class TestUtils {
         throw new RuntimeException("No data source initiated for database: " + DB_NAME);
     }
 
-    public static void mockComponentDataHolder(DataSource dataSource) {
+    public static MockedStatic<ConsentManagerComponentDataHolder> mockComponentDataHolder(DataSource dataSource) {
 
-        mockStatic(ConsentManagerComponentDataHolder.class);
+        MockedStatic<ConsentManagerComponentDataHolder> mockedStatic = mockStatic(ConsentManagerComponentDataHolder.class);
         ConsentManagerComponentDataHolder componentDataHolder = mock(ConsentManagerComponentDataHolder.class);
-        when(ConsentManagerComponentDataHolder.getInstance()).thenReturn(componentDataHolder);
+        mockedStatic.when(ConsentManagerComponentDataHolder::getInstance).thenReturn(componentDataHolder);
+        when(componentDataHolder.getDataSource()).thenReturn(dataSource);
+        return mockedStatic;
+    }
+
+    public static void reconfigureComponentDataHolder(MockedStatic<ConsentManagerComponentDataHolder> mockedStatic,
+                                                       DataSource dataSource) {
+        ConsentManagerComponentDataHolder componentDataHolder = mock(ConsentManagerComponentDataHolder.class);
+        mockedStatic.when(ConsentManagerComponentDataHolder::getInstance).thenReturn(componentDataHolder);
         when(componentDataHolder.getDataSource()).thenReturn(dataSource);
     }
 
