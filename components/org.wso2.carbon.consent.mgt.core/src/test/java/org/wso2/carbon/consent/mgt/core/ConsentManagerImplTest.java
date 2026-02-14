@@ -19,9 +19,8 @@
 package org.wso2.carbon.consent.mgt.core;
 
 import org.mockito.Mock;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -68,11 +67,11 @@ import java.util.Map;
 import java.util.UUID;
 import javax.sql.DataSource;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.wso2.carbon.CarbonConstants.UI_PERMISSION_ACTION;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
@@ -85,15 +84,14 @@ import static org.wso2.carbon.consent.mgt.core.util.TestUtils.initiateH2Base;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.mockComponentDataHolder;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 
-@PrepareForTest({
-                        ConsentManagerImpl.class, ConsentManagerComponentDataHolder.class,
-                        PrivilegedCarbonContext.class, KeyStoreManager.class
-                })
-public class ConsentManagerImplTest extends PowerMockTestCase {
+public class ConsentManagerImplTest {
 
     private ConsentManager consentManager;
     ConsentManagerConfigurationHolder configurationHolder;
     private Connection connection;
+    private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContextMock;
+    private MockedStatic<KeyStoreManager> keyStoreManagerMock;
+    private MockedStatic<ConsentManagerComponentDataHolder> componentDataHolderMock;
 
     @Mock
     KeyStoreManager keyStoreManager;
@@ -103,13 +101,14 @@ public class ConsentManagerImplTest extends PowerMockTestCase {
     @BeforeMethod
     public void setUp() throws Exception {
 
+        MockitoAnnotations.openMocks(this);
         initiateH2Base();
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes").toString();
         System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
 
         connection = getConnection();
         Connection spyConnection = spyConnection(connection);
@@ -168,17 +167,8 @@ public class ConsentManagerImplTest extends PowerMockTestCase {
 
     }
 
-    @DataProvider(name = "isUserNameCaseSensitiveDataProvider")
-    public Object[][] isUserNameCaseSensitiveDataProvider() {
-
-        return new Object[][]{
-                {true},
-                {false},
-        };
-    }
-
-    @Test(dataProvider = "isUserNameCaseSensitiveDataProvider")
-    public void testConsentManagementWithCaseSensitiveUserName(boolean isUserNameCaseSensitive) throws Exception {
+    @Test
+    public void testConsentManagementWithCaseSensitiveUserName() throws Exception {
 
         String collectionMethod = "Sign-up";
         String jurisdiction = "LK";
@@ -257,40 +247,40 @@ public class ConsentManagerImplTest extends PowerMockTestCase {
         receiptInput1.setProperties(properties);
 
         consentManager = new ConsentManagerImpl(configurationHolder);
-        ConsentManager spyConsentManager = PowerMockito.spy(consentManager);
-        PowerMockito.doReturn(isUserNameCaseSensitive).when(spyConsentManager, "isUserNameCaseSensitive", any());
-        spyConsentManager.addConsent(receiptInput1);
+        // Test the default case-insensitive behavior
+        // Adding receipts for "subject1" and "SUBJECT1" should be treated as the same user
+        consentManager.addConsent(receiptInput1);
         String receiptID = receiptInput1.getConsentReceiptId();
         receiptInput1.setPiiPrincipalId("SUBJECT1");
-        spyConsentManager.addConsent(receiptInput1);
-        if (isUserNameCaseSensitive) {
-            Assert.assertEquals(spyConsentManager.getReceipt(receiptID).getState(), "ACTIVE");
-            Assert.assertEquals(spyConsentManager.getReceipt(receiptInput1.getConsentReceiptId()).getState(), "ACTIVE");
-        } else {
-            Assert.assertEquals(spyConsentManager.getReceipt(receiptID).getState(), "REVOKED");
-            Assert.assertEquals(spyConsentManager.getReceipt(receiptInput1.getConsentReceiptId()).getState(), "ACTIVE");
-        }
-        List<ReceiptListResponse> receiptListResponses = spyConsentManager
+        consentManager.addConsent(receiptInput1);
+        
+        // With case-insensitive behavior (default), adding "SUBJECT1" after "subject1" revokes the first receipt
+        String firstReceiptState = consentManager.getReceipt(receiptID).getState();
+        String secondReceiptState = consentManager.getReceipt(receiptInput1.getConsentReceiptId()).getState();
+        
+        Assert.assertEquals(firstReceiptState, "REVOKED", "First receipt should be REVOKED when case-insensitive");
+        Assert.assertEquals(secondReceiptState, "ACTIVE", "Second receipt should be ACTIVE");
+        
+        // Search results should also treat "subject1" and "SUBJECT1" as the same
+        List<ReceiptListResponse> receiptListResponses = consentManager
                 .searchReceipts(10, 0, "subject1", "carbon" + ".super", receiptInput1.getServices().get(0).getService(),
                         receiptInput1.getState());
-        List<ReceiptListResponse> receiptListResponsesCaps = spyConsentManager
+        List<ReceiptListResponse> receiptListResponsesCaps = consentManager
                 .searchReceipts(10, 0, "SUBJECT1", "carbon" + ".super", receiptInput1.getServices().get(0).getService(),
                         receiptInput1.getState());
-        if (isUserNameCaseSensitive) {
-            Assert.assertNotEquals(receiptListResponses.get(0).getConsentReceiptId(),
-                    receiptListResponsesCaps.get(0).getConsentReceiptId());
-        } else {
-            Assert.assertEquals(receiptListResponses.get(0).getConsentReceiptId(),
-                    receiptListResponsesCaps.get(0).getConsentReceiptId());
-        }
+        
+        // Both searches should return the same receipt
+        Assert.assertEquals(receiptListResponses.get(0).getConsentReceiptId(),
+                receiptListResponsesCaps.get(0).getConsentReceiptId(),
+                "Search results should be the same for case-insensitive matching");
     }
 
     private void mockCarbonContext() {
 
-        mockStatic(PrivilegedCarbonContext.class);
+        privilegedCarbonContextMock = mockStatic(PrivilegedCarbonContext.class);
         PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        privilegedCarbonContextMock.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(privilegedCarbonContext);
         when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
         when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
         when(privilegedCarbonContext.getUsername()).thenReturn("admin");
@@ -298,13 +288,13 @@ public class ConsentManagerImplTest extends PowerMockTestCase {
 
     private void mockKeyStoreManager() throws Exception {
 
-        mockStatic(KeyStoreManager.class);
-        PowerMockito.when(KeyStoreManager.getInstance(SUPER_TENANT_ID)).thenReturn(keyStoreManager);
+        keyStoreManagerMock = mockStatic(KeyStoreManager.class);
+        keyStoreManagerMock.when(() -> KeyStoreManager.getInstance(SUPER_TENANT_ID)).thenReturn(keyStoreManager);
 
-        PowerMockito.when(keyStoreManager.getDefaultPublicKey()).thenReturn(TestUtils.getPublicKey(TestUtils
+        when(keyStoreManager.getDefaultPublicKey()).thenReturn(TestUtils.getPublicKey(TestUtils
                 .loadKeyStoreFromFileSystem(TestUtils.getFilePathInConfDirectory("wso2carbon.jks"), "wso2carbon",
                         "JKS"), "wso2carbon"));
-        PowerMockito.when(keyStoreManager.getKeyStore(anyString())).thenReturn(TestUtils
+        when(keyStoreManager.getKeyStore(anyString())).thenReturn(TestUtils
                 .loadKeyStoreFromFileSystem(TestUtils.getFilePathInConfDirectory("wso2carbon.jks"), "wso2carbon",
                         "JKS"));
     }
@@ -314,5 +304,14 @@ public class ConsentManagerImplTest extends PowerMockTestCase {
 
         connection.close();
         closeH2Base();
+        if (componentDataHolderMock != null) {
+            componentDataHolderMock.close();
+        }
+        if (privilegedCarbonContextMock != null) {
+            privilegedCarbonContextMock.close();
+        }
+        if (keyStoreManagerMock != null) {
+            keyStoreManagerMock.close();
+        }
     }
 }

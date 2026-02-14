@@ -17,9 +17,8 @@
 package org.wso2.carbon.consent.mgt.core;
 
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
+import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -69,10 +68,10 @@ import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.wso2.carbon.CarbonConstants.UI_PERMISSION_ACTION;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
@@ -86,11 +85,13 @@ import static org.wso2.carbon.consent.mgt.core.util.TestUtils.initiateH2Base;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.mockComponentDataHolder;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 
-@PrepareForTest({PrivilegedCarbonContext.class, ConsentManagerComponentDataHolder.class, KeyStoreManager.class})
-public class InterceptingConsentManagerTest extends PowerMockTestCase {
+public class InterceptingConsentManagerTest {
 
     private Connection connection;
     private ConsentManager consentManager;
+    private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContextMock;
+    private MockedStatic<KeyStoreManager> keyStoreManagerMock;
+    private MockedStatic<ConsentManagerComponentDataHolder> componentDataHolderMock;
 
     @Mock
     KeyStoreManager keyStoreManager;
@@ -98,13 +99,14 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
     @BeforeMethod
     public void setUp() throws Exception {
 
+        MockitoAnnotations.openMocks(this);
         initiateH2Base();
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes").toString();
         System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
 
         connection = getConnection();
         Connection spyConnection = spyConnection(connection);
@@ -160,22 +162,22 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
     private void mockKeyStoreManager() throws Exception {
 
-        mockStatic(KeyStoreManager.class);
-        PowerMockito.when(KeyStoreManager.getInstance(SUPER_TENANT_ID)).thenReturn(keyStoreManager);
+        keyStoreManagerMock = mockStatic(KeyStoreManager.class);
+        keyStoreManagerMock.when(() -> KeyStoreManager.getInstance(SUPER_TENANT_ID)).thenReturn(keyStoreManager);
 
-        PowerMockito.when(keyStoreManager.getDefaultPublicKey())
+        when(keyStoreManager.getDefaultPublicKey())
                 .thenReturn(TestUtils.getPublicKey(TestUtils.loadKeyStoreFromFileSystem(TestUtils
                         .getFilePathInConfDirectory("wso2carbon.jks"), "wso2carbon", "JKS"), "wso2carbon"));
-        PowerMockito.when(keyStoreManager.getKeyStore(anyString())).thenReturn(TestUtils.loadKeyStoreFromFileSystem
+        when(keyStoreManager.getKeyStore(anyString())).thenReturn(TestUtils.loadKeyStoreFromFileSystem
                 (TestUtils.getFilePathInConfDirectory("wso2carbon.jks"), "wso2carbon", "JKS"));
     }
 
     private void mockCarbonContext() {
 
-        mockStatic(PrivilegedCarbonContext.class);
+        privilegedCarbonContextMock = mockStatic(PrivilegedCarbonContext.class);
         PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
+        privilegedCarbonContextMock.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(privilegedCarbonContext);
         when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
         when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
         when(privilegedCarbonContext.getUsername()).thenReturn("admin");
@@ -186,6 +188,15 @@ public class InterceptingConsentManagerTest extends PowerMockTestCase {
 
         connection.close();
         closeH2Base();
+        if (componentDataHolderMock != null) {
+            componentDataHolderMock.close();
+        }
+        if (privilegedCarbonContextMock != null) {
+            privilegedCarbonContextMock.close();
+        }
+        if (keyStoreManagerMock != null) {
+            keyStoreManagerMock.close();
+        }
     }
 
     @DataProvider(name = "listDataProvider")
