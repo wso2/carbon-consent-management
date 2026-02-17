@@ -16,8 +16,7 @@
 
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.mockito.MockedStatic;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -42,10 +41,10 @@ import static org.wso2.carbon.consent.mgt.core.util.TestUtils.mockComponentDataH
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnection;
 import static org.wso2.carbon.consent.mgt.core.util.TestUtils.spyConnectionWithError;
 
-@PrepareForTest(ConsentManagerComponentDataHolder.class)
-public class PIICategoryDAOImplTest extends PowerMockTestCase {
+public class PIICategoryDAOImplTest {
 
     private static List<PIICategory> piiCategories = new ArrayList<>();
+    private MockedStatic<ConsentManagerComponentDataHolder> componentDataHolderMock;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -60,6 +59,10 @@ public class PIICategoryDAOImplTest extends PowerMockTestCase {
     @AfterMethod
     public void tearDown() throws Exception {
 
+        if (componentDataHolderMock != null) {
+            componentDataHolderMock.close();
+            componentDataHolderMock = null;
+        }
         closeH2Base();
     }
 
@@ -87,7 +90,7 @@ public class PIICategoryDAOImplTest extends PowerMockTestCase {
     public void testAddPIICategory() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
         try (Connection connection = getConnection()) {
 
             when(dataSource.getConnection()).thenReturn(connection);
@@ -105,7 +108,7 @@ public class PIICategoryDAOImplTest extends PowerMockTestCase {
     public void testAddDuplicatePIICategory() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -125,7 +128,7 @@ public class PIICategoryDAOImplTest extends PowerMockTestCase {
     public void testGetPIICategoryById(int piiCategoryIndexId) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
         PIICategory piiCategoryInput = piiCategories.get(piiCategoryIndexId);
         try (Connection connection = getConnection()) {
 
@@ -146,7 +149,7 @@ public class PIICategoryDAOImplTest extends PowerMockTestCase {
     public void testGetPIICategoryByInvalidId() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -164,7 +167,7 @@ public class PIICategoryDAOImplTest extends PowerMockTestCase {
     public void testGetPIICategoryByIdWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -182,7 +185,7 @@ public class PIICategoryDAOImplTest extends PowerMockTestCase {
     public void testGetPIICategoryByName(int piiCategoryIndexId) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
         PIICategory piiCategoryInput = piiCategories.get(piiCategoryIndexId);
 
         try (Connection connection = getConnection()) {
@@ -209,7 +212,7 @@ public class PIICategoryDAOImplTest extends PowerMockTestCase {
     public void testGetPIICategoryByInvalidName() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -227,7 +230,7 @@ public class PIICategoryDAOImplTest extends PowerMockTestCase {
     public void testGetPIICategoryByNameWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -245,7 +248,7 @@ public class PIICategoryDAOImplTest extends PowerMockTestCase {
     public void testListPIICategories(int limit, int offset, int tenantID, int resultSize) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -275,7 +278,7 @@ public class PIICategoryDAOImplTest extends PowerMockTestCase {
     public void testListPIICategoriesWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -293,7 +296,7 @@ public class PIICategoryDAOImplTest extends PowerMockTestCase {
     public void testDeletePIICategory() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -314,7 +317,7 @@ public class PIICategoryDAOImplTest extends PowerMockTestCase {
     public void testDeletePurposeWithException() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -332,7 +335,7 @@ public class PIICategoryDAOImplTest extends PowerMockTestCase {
     public void testDeletePIICategoriesByTenantId() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        componentDataHolderMock = mockComponentDataHolder(dataSource);
 
         try (Connection connection = getConnection()) {
 
