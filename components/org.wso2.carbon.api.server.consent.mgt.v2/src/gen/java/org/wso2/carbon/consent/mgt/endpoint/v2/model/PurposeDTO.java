@@ -1,0 +1,237 @@
+/*
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.wso2.carbon.consent.mgt.endpoint.v2.model;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModelProperty;
+import java.util.ArrayList;
+import java.util.List;
+
+
+import java.util.Objects;
+import javax.validation.Valid;
+
+public class PurposeDTO  {
+  
+    private Integer id;
+    private String name;
+    private String description;
+    private String group;
+    private String groupType;
+    private Integer version;
+    private List<PurposeElementDTO> elements = null;
+
+
+    /**
+    * Unique identifier of the purpose
+    **/
+    public PurposeDTO id(Integer id) {
+
+        this.id = id;
+        return this;
+    }
+    
+    @ApiModelProperty(example = "1", value = "Unique identifier of the purpose")
+    @JsonProperty("id")
+    @Valid
+    public Integer getId() {
+        return id;
+    }
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    /**
+    * Name of the purpose
+    **/
+    public PurposeDTO name(String name) {
+
+        this.name = name;
+        return this;
+    }
+
+    @ApiModelProperty(example = "User Authentication", value = "Name of the purpose")
+    @JsonProperty("name")
+    @Valid
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+    * Description of the purpose
+    **/
+    public PurposeDTO description(String description) {
+
+        this.description = description;
+        return this;
+    }
+    
+    @ApiModelProperty(example = "To authenticate users and manage their identity in the system", value = "Description of the purpose")
+    @JsonProperty("description")
+    @Valid
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    /**
+    * Purpose group classification
+    **/
+    public PurposeDTO group(String group) {
+
+        this.group = group;
+        return this;
+    }
+    
+    @ApiModelProperty(example = "Core Identity", value = "Purpose group classification")
+    @JsonProperty("group")
+    @Valid
+    public String getGroup() {
+        return group;
+    }
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
+    /**
+    * Type of the purpose group
+    **/
+    public PurposeDTO groupType(String groupType) {
+
+        this.groupType = groupType;
+        return this;
+    }
+    
+    @ApiModelProperty(example = "System", value = "Type of the purpose group")
+    @JsonProperty("groupType")
+    @Valid
+    public String getGroupType() {
+        return groupType;
+    }
+    public void setGroupType(String groupType) {
+        this.groupType = groupType;
+    }
+
+    /**
+    * Current version of the purpose
+    **/
+    public PurposeDTO version(Integer version) {
+
+        this.version = version;
+        return this;
+    }
+    
+    @ApiModelProperty(example = "1", value = "Current version of the purpose")
+    @JsonProperty("version")
+    @Valid
+    public Integer getVersion() {
+        return version;
+    }
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    /**
+    * Consent elements associated with this purpose
+    **/
+    public PurposeDTO elements(List<PurposeElementDTO> elements) {
+
+        this.elements = elements;
+        return this;
+    }
+    
+    @ApiModelProperty(value = "Consent elements associated with this purpose")
+    @JsonProperty("elements")
+    @Valid
+    public List<PurposeElementDTO> getElements() {
+        return elements;
+    }
+    public void setElements(List<PurposeElementDTO> elements) {
+        this.elements = elements;
+    }
+
+    public PurposeDTO addElementsItem(PurposeElementDTO elementsItem) {
+        if (this.elements == null) {
+            this.elements = new ArrayList<>();
+        }
+        this.elements.add(elementsItem);
+        return this;
+    }
+
+    
+
+    @Override
+    public boolean equals(java.lang.Object o) {
+
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        PurposeDTO purposeDTO = (PurposeDTO) o;
+        return Objects.equals(this.id, purposeDTO.id) &&
+            Objects.equals(this.name, purposeDTO.name) &&
+            Objects.equals(this.description, purposeDTO.description) &&
+            Objects.equals(this.group, purposeDTO.group) &&
+            Objects.equals(this.groupType, purposeDTO.groupType) &&
+            Objects.equals(this.version, purposeDTO.version) &&
+            Objects.equals(this.elements, purposeDTO.elements);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, description, group, groupType, version, elements);
+    }
+
+    @Override
+    public String toString() {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("class PurposeDTO {\n");
+        
+        sb.append("    id: ").append(toIndentedString(id)).append("\n");
+        sb.append("    name: ").append(toIndentedString(name)).append("\n");
+        sb.append("    description: ").append(toIndentedString(description)).append("\n");
+        sb.append("    group: ").append(toIndentedString(group)).append("\n");
+        sb.append("    groupType: ").append(toIndentedString(groupType)).append("\n");
+        sb.append("    version: ").append(toIndentedString(version)).append("\n");
+        sb.append("    elements: ").append(toIndentedString(elements)).append("\n");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+    * Convert the given object to string with each line indented by 4 spaces
+    * (except the first line).
+    */
+    private String toIndentedString(java.lang.Object o) {
+
+        if (o == null) {
+            return "null";
+        }
+        return o.toString().replace("\n", "\n");
+    }
+}
+

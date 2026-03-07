@@ -21,10 +21,12 @@ import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
+import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -293,6 +295,26 @@ public interface ConsentManager {
             ConsentManagementException;
 
     /**
+     * This API is used to search receipts filtered by purposeId.
+     *
+     * @param limit          No of search results.
+     * @param offset         Start index of the search.
+     * @param piiPrincipalId PII principal Id.
+     * @param spTenantDomain SP tenant domain.
+     * @param service        Service name.
+     * @param state          Receipt state.
+     * @param purposeId      Purpose ID to filter on, or &lt;= 0 to skip filtering.
+     * @return List of Receipts details.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    default List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId,
+                                                     String spTenantDomain, String service, String state,
+                                                     int purposeId) throws ConsentManagementException {
+
+        return searchReceipts(limit, offset, piiPrincipalId, spTenantDomain, service, state);
+    }
+
+    /**
      * This API is used to revoke a given receipt.
      *
      * @param receiptId Receipt Id.
@@ -327,5 +349,55 @@ public interface ConsentManager {
      * @return boolean true if receipt exists for match criteria
      */
     boolean isReceiptExist(String receiptId, String tenantAwareUsername, int tenantId) throws ConsentManagementException;
+
+    /**
+     * This API is used to add a new version to an existing purpose.
+     *
+     * @param purposeId ID of the purpose.
+     * @param purposeVersion {@link PurposeVersion} to add.
+     * @return Created {@link PurposeVersion}.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    default PurposeVersion addPurposeVersion(int purposeId, PurposeVersion purposeVersion)
+            throws ConsentManagementException {
+
+        return null;
+    }
+
+    /**
+     * This API is used to retrieve all versions of a purpose.
+     *
+     * @param purposeId ID of the purpose.
+     * @return List of {@link PurposeVersion} entries.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    default List<PurposeVersion> listPurposeVersions(int purposeId) throws ConsentManagementException {
+
+        return new ArrayList<>();
+    }
+
+    /**
+     * This API is used to retrieve a specific version of a purpose.
+     *
+     * @param purposeId ID of the purpose.
+     * @param versionId ID of the version record.
+     * @return {@link PurposeVersion} matching the given IDs.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    default PurposeVersion getPurposeVersion(int purposeId, int versionId) throws ConsentManagementException {
+
+        return null;
+    }
+
+    /**
+     * This API is used to delete a specific version of a purpose.
+     *
+     * @param purposeId ID of the purpose.
+     * @param versionId ID of the version record.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    default void deletePurposeVersion(int purposeId, int versionId) throws ConsentManagementException {
+
+    }
 
 }

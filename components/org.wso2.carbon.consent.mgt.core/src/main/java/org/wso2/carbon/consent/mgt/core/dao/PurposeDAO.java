@@ -19,7 +19,9 @@ package org.wso2.carbon.consent.mgt.core.dao;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -118,5 +120,71 @@ public interface PurposeDAO {
      * @return
      */
     boolean isPurposeUsed(int id) throws ConsentManagementServerException;
+
+    /**
+     * Check whether a {@link PurposeVersion} is used in any receipt.
+     *
+     * @param versionId ID of the {@link PurposeVersion} to be validated
+     * @return true if the version is used, false otherwise
+     */
+    boolean isPurposeVersionUsed(int versionId) throws ConsentManagementServerException;
+
+    /**
+     * Add a new version for a {@link Purpose}.
+     *
+     * @param purposeVersion {@link PurposeVersion} to insert.
+     * @return Inserted {@link PurposeVersion}.
+     * @throws ConsentManagementException If error occurs while adding the {@link PurposeVersion}.
+     */
+    default PurposeVersion addPurposeVersion(PurposeVersion purposeVersion) throws ConsentManagementException {
+
+        return null;
+    }
+
+    /**
+     * List all versions for a given purpose ID.
+     *
+     * @param purposeId ID of the {@link Purpose}.
+     * @return List of {@link PurposeVersion} entries.
+     * @throws ConsentManagementException If error occurs while listing {@link PurposeVersion}.
+     */
+    default List<PurposeVersion> listPurposeVersions(int purposeId) throws ConsentManagementException {
+
+        return new ArrayList<>();
+    }
+
+    /**
+     * Returns the current maximum version number for a purpose, or 1 if none exist (version 1 is implicit).
+     *
+     * @param purposeId ID of the {@link Purpose}.
+     * @return Maximum version number, or 1 if no versions have been explicitly created.
+     * @throws ConsentManagementException If error occurs while retrieving the max version.
+     */
+    default int getMaxPurposeVersionNumber(int purposeId) throws ConsentManagementException {
+
+        return 1;
+    }
+
+    /**
+     * Retrieve a single {@link PurposeVersion} by its ID.
+     *
+     * @param versionId ID of the {@link PurposeVersion}.
+     * @return PurposeVersion for the given ID, or {@code null} if not found.
+     * @throws ConsentManagementException If error occurs while retrieving the {@link PurposeVersion}.
+     */
+    default PurposeVersion getPurposeVersionById(int versionId) throws ConsentManagementException {
+
+        return null;
+    }
+
+    /**
+     * Delete a {@link PurposeVersion} by its ID.
+     *
+     * @param versionId ID of the {@link PurposeVersion} to delete.
+     * @throws ConsentManagementException If error occurs while deleting the {@link PurposeVersion}.
+     */
+    default void deletePurposeVersion(int versionId) throws ConsentManagementException {
+
+    }
 
 }

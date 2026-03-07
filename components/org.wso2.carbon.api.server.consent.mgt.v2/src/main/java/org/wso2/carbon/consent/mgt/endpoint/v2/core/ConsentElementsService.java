@@ -1,0 +1,153 @@
+/*
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.wso2.carbon.consent.mgt.endpoint.v2.core;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.consent.mgt.core.ConsentManager;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.model.PIICategory;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementCreateRequest;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementDTO;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementListResponse;
+import org.wso2.carbon.consent.mgt.endpoint.v2.util.ConsentV2EndpointUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import javax.ws.rs.core.Response;
+
+/**
+ * Service class for element (PIICategory) operations in the V2 Consent Management API.
+ */
+public class ConsentElementsService {
+
+    private static final Log LOG = LogFactory.getLog(ConsentElementsService.class);
+
+    private final ConsentManager consentManager;
+
+    public ConsentElementsService(ConsentManager consentManager) {
+
+        this.consentManager = consentManager;
+    }
+
+    /**
+     * Creates a new element (PIICategory).
+     *
+     * @param request Element create request.
+     * @return Response with created ElementDTO or error.
+     */
+    public Response createElement(ElementCreateRequest request) {
+
+        try {
+            String displayName = (request.getDisplayName() != null) ? request.getDisplayName() : request.getName();
+            PIICategory piiCategory = new PIICategory(request.getName(), request.getDescription(), false, displayName);
+            PIICategory created = consentManager.addPIICategory(piiCategory);
+            return Response.status(Response.Status.CREATED).entity(toElementDTO(created)).build();
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Throwable t) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
+        }
+    }
+
+    /**
+     * Retrieves a single element by ID.
+     *
+     * @param elementId Element ID.
+     * @return Response with ElementDTO or error.
+     */
+    public Response getElement(int elementId) {
+
+        try {
+            PIICategory piiCategory = consentManager.getPIICategory(elementId);
+            return Response.ok(toElementDTO(piiCategory)).build();
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Throwable t) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
+        }
+    }
+
+    /**
+     * Lists elements with pagination.
+     *
+     * @param limit  Maximum results.
+     * @param offset Pagination offset.
+     * @return Response with ElementListResponse or error.
+     */
+    public Response listElements(int limit, int offset) {
+
+        try {
+            List<PIICategory> categories = consentManager.listPIICategories(limit, offset);
+            ElementListResponse listResponse = new ElementListResponse();
+            List<ElementDTO> items = new ArrayList<>();
+            if (categories != null) {
+                for (PIICategory cat : categories) {
+                    items.add(toElementDTO(cat));
+                }
+            }
+            listResponse.setStartIndex(offset);
+            listResponse.setCount(items.size());
+            listResponse.setItems(items);
+
+            return Response.ok(listResponse).build();
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Throwable t) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
+        }
+    }
+
+    /**
+     * Deletes an element by ID.
+     *
+     * @param elementId Element ID.
+     * @return Response with no content or error.
+     */
+    public Response deleteElement(int elementId) {
+
+        try {
+            consentManager.deletePIICategory(elementId);
+            return Response.noContent().build();
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Throwable t) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
+        }
+    }
+
+    private ElementDTO toElementDTO(PIICategory cat) {
+
+        ElementDTO dto = new ElementDTO();
+        dto.setId(cat.getId());
+        dto.setName(cat.getName());
+        dto.setDisplayName(cat.getDisplayName());
+        dto.setDescription(cat.getDescription());
+        return dto;
+    }
+}

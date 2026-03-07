@@ -1,0 +1,1141 @@
+openapi: 3.0.0
+info:
+  version: "v2"
+  title: WSO2 Identity Server Consent Management REST API v2
+  description: |
+    This document specifies a Consent Management REST API for WSO2 Identity Server.
+
+    ## Resource Overview
+    - **Purposes**: Core consent use cases (e.g., "User Authentication", "Marketing")
+    - **Elements**: Data elements subject to consent (e.g., email, phone, profile)
+    - **Consents**: User consent records linking purposes to elements
+  contact:
+    name: WSO2 Identity Server
+    url: 'https://wso2.com/identity-and-access-management/'
+    email: architecture@wso2.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+
+servers:
+  - url: /t/{tenant-domain}/api/identity/consent-mgt/v2.0
+    variables:
+      tenant-domain:
+        default: carbon.super
+
+tags:
+  - name: Purposes
+    description: Consent purposes (use cases)
+  - name: Elements
+    description: Consent data elements
+  - name: Consents
+    description: User consent records
+
+paths:
+  /purposes:
+    post:
+      tags:
+        - Purposes
+      summary: Create a new purpose
+      description: |
+        Create a new consent purpose (e.g., "User Authentication", "Marketing").
+      operationId: purposesCreate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurposeCreateRequest'
+      responses:
+        '201':
+          description: Purpose created successfully
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URI of the newly created purpose
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurposeDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    get:
+      tags:
+        - Purposes
+      summary: List all purposes
+      description: |
+        Retrieve all purposes with optional filtering by group or groupType.
+      operationId: purposesList
+      parameters:
+        - $ref: '#/components/parameters/group'
+        - $ref: '#/components/parameters/groupType'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: List of purposes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurposeListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /purposes/{purposeId}:
+    get:
+      tags:
+        - Purposes
+      summary: Get a purpose
+      description: |
+        Retrieve a specific purpose by ID.
+      operationId: purposesGet
+      parameters:
+        - $ref: '#/components/parameters/purposeId'
+      responses:
+        '200':
+          description: Purpose details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurposeDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    delete:
+      tags:
+        - Purposes
+      summary: Delete a purpose
+      description: |
+        Delete a purpose by ID.
+      operationId: purposesDelete
+      parameters:
+        - $ref: '#/components/parameters/purposeId'
+      responses:
+        '204':
+          description: Purpose deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /purposes/{purposeId}/versions:
+    get:
+      tags:
+        - Purposes
+      summary: List purpose versions
+      description: |
+        Retrieve all versions of a specific purpose with pagination support.
+      operationId: purposesVersionsList
+      parameters:
+        - $ref: '#/components/parameters/purposeId'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: List of purpose versions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurposeVersionListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    post:
+      tags:
+        - Purposes
+      summary: Create a new purpose version
+      description: |
+        Add a new version to an existing purpose.
+      operationId: purposesVersionsCreate
+      parameters:
+        - $ref: '#/components/parameters/purposeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurposeVersionCreateRequest'
+      responses:
+        '201':
+          description: Purpose version created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurposeVersionDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /purposes/{purposeId}/versions/{versionId}:
+    get:
+      tags:
+        - Purposes
+      summary: Get a purpose version
+      description: |
+        Retrieve a specific version of a purpose.
+      operationId: purposesVersionsGet
+      parameters:
+        - $ref: '#/components/parameters/purposeId'
+        - $ref: '#/components/parameters/versionId'
+      responses:
+        '200':
+          description: Purpose version details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurposeVersionDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    delete:
+      tags:
+        - Purposes
+      summary: Delete a purpose version
+      description: |
+        Delete a specific version of a purpose.
+      operationId: purposesVersionsDelete
+      parameters:
+        - $ref: '#/components/parameters/purposeId'
+        - $ref: '#/components/parameters/versionId'
+      responses:
+        '204':
+          description: Purpose version deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /elements:
+    post:
+      tags:
+        - Elements
+      summary: Create a consent element
+      description: |
+        Create a new consent element (e.g., "email_address", "phone_number").
+      operationId: elementsCreate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ElementCreateRequest'
+      responses:
+        '201':
+          description: Element created successfully
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URI of the newly created element
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElementDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    get:
+      tags:
+        - Elements
+      summary: List consent elements
+      description: |
+        Retrieve all consent elements.
+      operationId: elementsList
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: List of elements
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElementListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /elements/{elementId}:
+    get:
+      tags:
+        - Elements
+      summary: Get a consent element
+      description: |
+        Retrieve a specific consent element by ID.
+      operationId: elementsGet
+      parameters:
+        - $ref: '#/components/parameters/elementId'
+      responses:
+        '200':
+          description: Element details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElementDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    delete:
+      tags:
+        - Elements
+      summary: Delete a consent element
+      description: |
+        Delete a consent element by ID.
+      operationId: elementsDelete
+      parameters:
+        - $ref: '#/components/parameters/elementId'
+      responses:
+        '204':
+          description: Element deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /consents:
+    post:
+      tags:
+        - Consents
+      summary: Create a consent record
+      description: |
+        Record user consent for specified purposes and elements.
+      operationId: consentsCreate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsentCreateRequest'
+      responses:
+        '201':
+          description: Consent recorded successfully
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URI of the consent (e.g., /consents/{receiptId})
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentResponseDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    get:
+      tags:
+        - Consents
+      summary: List consent records
+      description: |
+        Retrieve consent records with optional filtering by user, service, state, or purpose.
+      operationId: consentsList
+      parameters:
+        - $ref: '#/components/parameters/subjectUserId'
+        - $ref: '#/components/parameters/service'
+        - $ref: '#/components/parameters/state'
+        - $ref: '#/components/parameters/purposeIdQuery'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: List of consents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /consents/{receiptId}:
+    get:
+      tags:
+        - Consents
+      summary: Get a consent record
+      description: |
+        Retrieve a specific consent record by receipt ID.
+      operationId: consentsGet
+      parameters:
+        - $ref: '#/components/parameters/receiptId'
+      responses:
+        '200':
+          description: Consent record details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentReceiptDTO'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /consents/{receiptId}/revoke:
+    post:
+      tags:
+        - Consents
+      summary: Revoke a consent record
+      description: |
+        Revoke an active consent record.
+      operationId: consentsRevoke
+      parameters:
+        - $ref: '#/components/parameters/receiptId'
+      responses:
+        '204':
+          description: Consent revoked successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+components:
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDTO'
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDTO'
+
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDTO'
+
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDTO'
+
+    ServerError:
+      description: Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDTO'
+
+  parameters:
+    limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+      description: Maximum number of records to return.
+
+    offset:
+      name: offset
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+      description: Number of records to skip before collecting the response set.
+
+    purposeId:
+      name: purposeId
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Unique identifier of the purpose.
+
+    versionId:
+      name: versionId
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Unique identifier of the purpose version.
+
+    elementId:
+      name: elementId
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Unique identifier of the consent element.
+
+    receiptId:
+      name: receiptId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 255
+      description: Unique identifier of the consent receipt (UUID).
+
+    subjectUserId:
+      name: subjectUserId
+      in: query
+      required: false
+      schema:
+        type: string
+        maxLength: 255
+      description: Filter by subject user ID.
+
+    service:
+      name: service
+      in: query
+      required: false
+      schema:
+        type: string
+        maxLength: 255
+      description: Filter by service name.
+
+    state:
+      name: state
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [ACTIVE, REVOKED]
+      description: Filter by consent state.
+
+    group:
+      name: group
+      in: query
+      required: false
+      schema:
+        type: string
+        maxLength: 255
+      description: Filter by purpose group.
+
+    groupType:
+      name: groupType
+      in: query
+      required: false
+      schema:
+        type: string
+        maxLength: 255
+      description: Filter by purpose group type.
+
+    purposeIdQuery:
+      name: purposeId
+      in: query
+      required: false
+      schema:
+        type: integer
+      description: Filter consents by purpose ID.
+
+  schemas:
+    # ============================================================================
+    # REQUEST SCHEMAS
+    # ============================================================================
+
+    PurposeCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Name of the purpose
+          example: "User Authentication"
+        description:
+          type: string
+          maxLength: 1024
+          description: Human-readable description of the purpose
+          example: "To authenticate users and manage their identity in the system"
+        group:
+          type: string
+          maxLength: 255
+          description: Purpose group classification
+          example: "Core Identity"
+        groupType:
+          type: string
+          maxLength: 255
+          description: Type of the purpose group
+          example: "System"
+        elements:
+          type: array
+          minItems: 0
+          description: Consent elements associated with this purpose
+          items:
+            $ref: '#/components/schemas/PurposeElementBinding'
+
+    PurposeElementBinding:
+      type: object
+      required:
+        - elementId
+      properties:
+        elementId:
+          type: integer
+          description: Unique identifier of the consent element
+          example: 2
+        mandatory:
+          type: boolean
+          description: Whether this element is mandatory for the purpose
+          example: true
+
+    PurposeVersionCreateRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          maxLength: 1024
+          description: Description of changes in this version
+          example: "Added new consent elements for enhanced user authentication"
+        elements:
+          type: array
+          description: Updated list of consent elements for this version
+          items:
+            $ref: '#/components/schemas/PurposeElementBinding'
+
+    ElementCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Identifier/name of the consent element
+          example: "email_address"
+        displayName:
+          type: string
+          maxLength: 255
+          description: Human-readable display name
+          example: "Email Address"
+        description:
+          type: string
+          maxLength: 1024
+          description: Detailed description of the element
+          example: "User email address used for account notifications and communications"
+
+    ConsentCreateRequest:
+      type: object
+      required:
+        - service
+        - purposes
+      properties:
+        service:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Service name requesting consent
+          example: "admin-dashboard"
+        language:
+          type: string
+          minLength: 1
+          maxLength: 20
+          description: Language code for the consent
+          example: "en"
+        purposes:
+          type: array
+          minItems: 1
+          description: List of purposes and associated elements
+          items:
+            $ref: '#/components/schemas/ConsentPurposeBinding'
+        metadata:
+          type: array
+          description: Optional metadata key-value pairs
+          items:
+            $ref: '#/components/schemas/KeyValuePair'
+
+    ConsentPurposeBinding:
+      type: object
+      required:
+        - purposeId
+        - elements
+      properties:
+        purposeId:
+          type: integer
+          description: Unique identifier of the purpose (will use latest version)
+          example: 1
+        elements:
+          type: array
+          minItems: 1
+          description: Consent elements for this purpose
+          items:
+            $ref: '#/components/schemas/ElementTerminationInfo'
+        terminationPeriod:
+          type: integer
+          description: Termination period in days (-1 for indefinite)
+          example: 365
+
+    ElementTerminationInfo:
+      type: object
+      required:
+        - elementId
+      properties:
+        elementId:
+          type: integer
+          description: Unique identifier of the consent element
+          example: 2
+        validityPeriod:
+          type: integer
+          description: Validity period in days (-1 for indefinite)
+          example: 365
+
+    KeyValuePair:
+      type: object
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "ipAddress"
+        value:
+          type: string
+          maxLength: 1024
+          example: "192.168.1.100"
+
+    # ============================================================================
+    # RESPONSE SCHEMAS
+    # ============================================================================
+
+    PurposeDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier of the purpose
+          example: 1
+        name:
+          type: string
+          description: Name of the purpose
+          example: "User Authentication"
+        description:
+          type: string
+          nullable: true
+          description: Description of the purpose
+          example: "To authenticate users and manage their identity in the system"
+        group:
+          type: string
+          description: Purpose group classification
+          example: "Core Identity"
+        groupType:
+          type: string
+          description: Type of the purpose group
+          example: "System"
+        version:
+          type: integer
+          description: Current version of the purpose
+          example: 1
+        elements:
+          type: array
+          description: Consent elements associated with this purpose
+          items:
+            $ref: '#/components/schemas/PurposeElementDTO'
+
+    PurposeListResponse:
+      type: object
+      properties:
+        startIndex:
+          type: integer
+          description: Starting index of the returned records
+          example: 0
+        count:
+          type: integer
+          description: Number of records returned
+          example: 25
+        items:
+          type: array
+          description: List of purposes
+          items:
+            $ref: '#/components/schemas/PurposeSummaryDTO'
+
+    PurposeSummaryDTO:
+      type: object
+      description: Minimal purpose information for list responses
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "User Authentication"
+        description:
+          type: string
+          nullable: true
+          example: "To authenticate users and manage their identity in the system"
+        group:
+          type: string
+          example: "Core Identity"
+        groupType:
+          type: string
+          example: "System"
+        version:
+          type: integer
+          example: 1
+
+    PurposeElementDTO:
+      type: object
+      properties:
+        elementId:
+          type: integer
+          description: Unique identifier of the element
+          example: 2
+        name:
+          type: string
+          description: Name/identifier of the element
+          example: "email_address"
+        displayName:
+          type: string
+          nullable: true
+          description: Human-readable display name
+          example: "Email Address"
+        description:
+          type: string
+          nullable: true
+          description: Detailed description
+          example: "User email address"
+        mandatory:
+          type: boolean
+          description: Whether this element is mandatory
+          example: true
+
+    PurposeVersionDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique version identifier
+          example: 5
+        version:
+          type: integer
+          description: Version number
+          example: 2
+        description:
+          type: string
+          nullable: true
+          description: Description of changes in this version
+          example: "Added new consent elements for enhanced user authentication"
+        elements:
+          type: array
+          description: Consent elements in this version
+          items:
+            $ref: '#/components/schemas/PurposeElementDTO'
+
+    PurposeVersionListResponse:
+      type: object
+      description: Paginated list of purpose versions
+      properties:
+        startIndex:
+          type: integer
+          description: Starting index of the returned records
+          example: 0
+        count:
+          type: integer
+          description: Number of records returned
+          example: 3
+        items:
+          type: array
+          description: List of purpose versions
+          items:
+            $ref: '#/components/schemas/PurposeVersionDTO'
+
+    ElementDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier of the element
+          example: 2
+        name:
+          type: string
+          description: Name/identifier of the element
+          example: "email_address"
+        displayName:
+          type: string
+          nullable: true
+          description: Human-readable display name
+          example: "Email Address"
+        description:
+          type: string
+          nullable: true
+          description: Detailed description
+          example: "User email address used for account notifications and communications"
+
+    ElementListResponse:
+      type: object
+      properties:
+        startIndex:
+          type: integer
+          description: Starting index of the returned records
+          example: 0
+        count:
+          type: integer
+          description: Number of records returned
+          example: 15
+        items:
+          type: array
+          description: List of consent elements
+          items:
+            $ref: '#/components/schemas/ElementDTO'
+
+    ConsentResponseDTO:
+      type: object
+      description: Response returned when consent is recorded
+      properties:
+        receiptId:
+          type: string
+          description: Unique identifier for this consent receipt
+          example: "f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2"
+        language:
+          type: string
+          description: Language code of the consent
+          example: "en"
+        subjectUserId:
+          type: string
+          description: ID of the user giving consent
+          example: "user@example.com"
+        tenantDomain:
+          type: string
+          description: Tenant domain
+          example: "carbon.super"
+
+    ConsentListResponse:
+      type: object
+      properties:
+        startIndex:
+          type: integer
+          description: Starting index of the returned records
+          example: 0
+        count:
+          type: integer
+          description: Number of records returned
+          example: 42
+        items:
+          type: array
+          description: List of consent records
+          items:
+            $ref: '#/components/schemas/ConsentSummaryDTO'
+
+    ConsentSummaryDTO:
+      type: object
+      description: Minimal consent information for list responses
+      properties:
+        receiptId:
+          type: string
+          description: Unique identifier for the consent receipt
+          example: "f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2"
+        language:
+          type: string
+          example: "en"
+        subjectUserId:
+          type: string
+          example: "user@example.com"
+        state:
+          type: string
+          enum: [ACTIVE, REVOKED]
+          example: "ACTIVE"
+        service:
+          type: string
+          example: "admin-dashboard"
+
+    ConsentReceiptDTO:
+      type: object
+      description: Complete consent receipt details
+      properties:
+        timestamp:
+          type: integer
+          format: int64
+          description: Timestamp of consent (milliseconds since epoch)
+          example: 1677686400000
+        receiptId:
+          type: string
+          description: Unique identifier of the consent
+          example: "f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2"
+        language:
+          type: string
+          description: Language code
+          example: "en"
+        subjectUserId:
+          type: string
+          description: ID of the user giving consent
+          example: "user@example.com"
+        state:
+          type: string
+          enum: [ACTIVE, REVOKED]
+          description: Current state of the consent
+          example: "ACTIVE"
+        service:
+          type: string
+          description: Service name
+          example: "admin-dashboard"
+        purposes:
+          type: array
+          description: Purposes and elements in this consent
+          items:
+            $ref: '#/components/schemas/ConsentedPurposeDTO'
+        metadata:
+          type: array
+          description: Metadata associated with this consent
+          items:
+            $ref: '#/components/schemas/KeyValuePair'
+
+    ConsentedPurposeDTO:
+      type: object
+      description: Purpose information within a consent receipt
+      properties:
+        name:
+          type: string
+          example: "User Authentication"
+        purposeId:
+          type: integer
+          example: 1
+        purposeVersionId:
+          type: integer
+          description: Version ID of the purpose that was consented
+          example: 3
+        terminationPeriod:
+          type: integer
+          description: Termination period in days (-1 for indefinite)
+          example: 365
+        elements:
+          type: array
+          description: Consented elements for this purpose
+          items:
+            $ref: '#/components/schemas/ConsentedElementDTO'
+
+    ConsentedElementDTO:
+      type: object
+      description: Element information within a consented purpose
+      properties:
+        elementId:
+          type: integer
+          example: 2
+        name:
+          type: string
+          example: "email_address"
+        displayName:
+          type: string
+          example: "Email Address"
+        validityPeriod:
+          type: integer
+          description: Validity period in days (-1 for indefinite)
+          example: 365
+
+    # ============================================================================
+    # ERROR SCHEMAS
+    # ============================================================================
+
+    ErrorDTO:
+      type: object
+      description: Error response
+      properties:
+        code:
+          type: string
+          description: Error code
+          example: "CME_00001"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Purpose not found"
+        description:
+          type: string
+          description: Detailed error description
+          example: "No purpose with ID 999 exists in the system"
+        traceId:
+          type: string
+          description: Trace ID for correlating errors in server logs
+          example: "abc123def456"
