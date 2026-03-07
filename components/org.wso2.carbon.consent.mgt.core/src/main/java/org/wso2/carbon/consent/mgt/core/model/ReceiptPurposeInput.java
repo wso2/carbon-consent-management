@@ -22,6 +22,7 @@ import java.util.List;
 public class ReceiptPurposeInput {
 
     private Integer purposeId;
+    private Integer purposeVersionId;
     private String purposeName;
     private List<Integer> purposeCategoryId;
     private String consentType;
@@ -39,6 +40,16 @@ public class ReceiptPurposeInput {
     public void setPurposeId(Integer purposeId) {
 
         this.purposeId = purposeId;
+    }
+
+    public Integer getPurposeVersionId() {
+
+        return purposeVersionId;
+    }
+
+    public void setPurposeVersionId(Integer purposeVersionId) {
+
+        this.purposeVersionId = purposeVersionId;
     }
 
     public List<Integer> getPurposeCategoryId() {

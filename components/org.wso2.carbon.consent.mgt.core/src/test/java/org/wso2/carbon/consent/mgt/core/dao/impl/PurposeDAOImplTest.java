@@ -28,6 +28,7 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientExcepti
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -348,6 +349,98 @@ public class PurposeDAOImplTest {
             purposeDAO.deletePurpose(0);
 
             Assert.fail("Expected: " + ConsentManagementServerException.class.getName());
+        }
+    }
+
+    @Test
+    public void testAddPurposeVersion() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
+            Purpose purpose = purposeDAO.addPurpose(purposes.get(0));
+
+            PurposeVersion purposeVersion = new PurposeVersion();
+            purposeVersion.setPurposeId(purpose.getId());
+            purposeVersion.setVersion(1);
+            purposeVersion.setDescription("Version 1 description");
+            purposeVersion.setTenantId(-1234);
+
+            PurposeVersion result = purposeDAO.addPurposeVersion(purposeVersion);
+
+            Assert.assertNotNull(result);
+            Assert.assertEquals(result.getPurposeId(), (int) purpose.getId());
+            Assert.assertEquals(result.getVersion(), 1);
+            Assert.assertEquals(result.getDescription(), "Version 1 description");
+        }
+    }
+
+    @Test(expectedExceptions = ConsentManagementServerException.class)
+    public void testAddDuplicatePurposeVersion() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
+            Purpose purpose = purposeDAO.addPurpose(purposes.get(0));
+
+            PurposeVersion purposeVersion = new PurposeVersion();
+            purposeVersion.setPurposeId(purpose.getId());
+            purposeVersion.setVersion(1);
+            purposeVersion.setDescription("Version 1");
+            purposeVersion.setTenantId(-1234);
+
+            purposeDAO.addPurposeVersion(purposeVersion);
+            purposeDAO.addPurposeVersion(purposeVersion);
+
+            Assert.fail("Expected: " + ConsentManagementServerException.class.getName());
+        }
+    }
+
+    @Test
+    public void testListPurposeVersions() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
+            Purpose purpose = purposeDAO.addPurpose(purposes.get(0));
+
+            PurposeVersion version1 = new PurposeVersion();
+            version1.setPurposeId(purpose.getId());
+            version1.setVersion(1);
+            version1.setDescription("Version 1");
+            version1.setTenantId(-1234);
+            purposeDAO.addPurposeVersion(version1);
+
+            PurposeVersion version2 = new PurposeVersion();
+            version2.setPurposeId(purpose.getId());
+            version2.setVersion(2);
+            version2.setDescription("Version 2");
+            version2.setTenantId(-1234);
+            purposeDAO.addPurposeVersion(version2);
+
+            List<PurposeVersion> versions = purposeDAO.listPurposeVersions(purpose.getId());
+
+            Assert.assertEquals(versions.size(), 2);
+            Assert.assertEquals(versions.get(0).getVersion(), 1);
+            Assert.assertEquals(versions.get(1).getVersion(), 2);
         }
     }
 

@@ -21,7 +21,9 @@ import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
+import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.consent.mgt.core.util.JdbcUtils;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
@@ -33,17 +35,26 @@ import java.util.List;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSES_BY_TENANT_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_VERSION_PII_CAT_ASSOC_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_VERSION_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_MAX_PURPOSE_VERSION_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_VERSION_BY_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_NAME_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_PII_CAT_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_VERSION_PII_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_COUNT_ASSOCIATED_WITH_PURPOSE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_COUNT_ASSOCIATED_WITH_PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_VERSION_PII_CAT_ASSOC_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_VERSION_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_PURPOSE_PII_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_DB2;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_INFORMIX;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_MSSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_MYSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_ORACLE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PURPOSE_VERSIONS_SQL;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isDB2DB;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isH2MySqlOrPostgresDB;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isInformixDB;
@@ -285,6 +296,193 @@ public class PurposeDAOImpl implements PurposeDAO {
     }
 
     /**
+     * Add a new version for a {@link Purpose}.
+     *
+     * @param purposeVersion {@link PurposeVersion} to insert.
+     * @return Inserted {@link PurposeVersion}.
+     * @throws ConsentManagementException If error occurs while adding the {@link PurposeVersion}.
+     */
+    @Override
+    public PurposeVersion addPurposeVersion(PurposeVersion purposeVersion) throws ConsentManagementException {
+
+        int insertedId;
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            insertedId = jdbcTemplate.executeInsert(INSERT_PURPOSE_VERSION_SQL, (preparedStatement -> {
+                preparedStatement.setInt(1, purposeVersion.getPurposeId());
+                preparedStatement.setInt(2, purposeVersion.getVersion());
+                preparedStatement.setString(3, purposeVersion.getDescription());
+                preparedStatement.setInt(4, purposeVersion.getTenantId());
+            }), purposeVersion, true);
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE_VERSION,
+                    String.valueOf(purposeVersion.getPurposeId()), e);
+        }
+
+        purposeVersion.getPurposePIICategories().forEach(rethrowConsumer(piiCategory -> {
+            try {
+                jdbcTemplate.executeInsert(INSERT_PURPOSE_VERSION_PII_CAT_ASSOC_SQL, (preparedStatement -> {
+                    preparedStatement.setInt(1, insertedId);
+                    preparedStatement.setInt(2, piiCategory.getId());
+                    preparedStatement.setInt(3, piiCategory.getMandatory() ? 1 : 0);
+                }), piiCategory, false);
+            } catch (DataAccessException e) {
+                throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE_VERSION,
+                        String.valueOf(insertedId), e);
+            }
+        }));
+
+        PurposeVersion result = new PurposeVersion(insertedId, purposeVersion.getPurposeId(),
+                purposeVersion.getVersion(), purposeVersion.getDescription(), purposeVersion.getTenantId());
+        result.setPurposePIICategories(purposeVersion.getPurposePIICategories());
+        return result;
+    }
+
+    /**
+     * List all versions for a given purpose ID.
+     *
+     * @param purposeId ID of the {@link Purpose}.
+     * @return List of {@link PurposeVersion} entries.
+     * @throws ConsentManagementException If error occurs while listing {@link PurposeVersion}.
+     */
+    @Override
+    public List<PurposeVersion> listPurposeVersions(int purposeId) throws ConsentManagementException {
+
+        List<PurposeVersion> versions;
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            versions = jdbcTemplate.executeQuery(LIST_PURPOSE_VERSIONS_SQL,
+                    (resultSet, rowNumber) -> new PurposeVersion(
+                            resultSet.getInt(1),
+                            resultSet.getInt(2),
+                            resultSet.getInt(3),
+                            resultSet.getString(4),
+                            resultSet.getInt(5)),
+                    preparedStatement -> preparedStatement.setInt(1, purposeId));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_GET_PURPOSE_VERSION_LIST,
+                    String.valueOf(purposeId), e);
+        }
+
+        for (PurposeVersion version : versions) {
+            try {
+                List<PurposePIICategory> piiCategories = new ArrayList<>();
+                jdbcTemplate.executeQuery(GET_PURPOSE_VERSION_PII_CAT_SQL, (resultSet, rowNumber) -> {
+                    PIICategory piiCategory = new PIICategory(
+                            resultSet.getInt(1),
+                            resultSet.getString(3),
+                            resultSet.getString(4),
+                            resultSet.getInt(5) == 1,
+                            resultSet.getInt(6),
+                            resultSet.getString(7));
+                    piiCategories.add(new PurposePIICategory(piiCategory, resultSet.getInt(2) == 1));
+                    return null;
+                }, preparedStatement -> preparedStatement.setInt(1, version.getId()));
+                version.setPurposePIICategories(piiCategories);
+            } catch (DataAccessException e) {
+                throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_GET_PURPOSE_VERSION_LIST,
+                        String.valueOf(purposeId), e);
+            }
+        }
+        return versions;
+    }
+
+    /**
+     * Returns the current maximum version number for a purpose, or 1 if none exist (version 1 is implicit).
+     *
+     * @param purposeId ID of the {@link Purpose}.
+     * @return Maximum version number, or 1 if no versions have been explicitly created.
+     * @throws ConsentManagementException If error occurs while retrieving the max version.
+     */
+    @Override
+    public int getMaxPurposeVersionNumber(int purposeId) throws ConsentManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            Integer maxVersion = jdbcTemplate.fetchSingleRecord(GET_MAX_PURPOSE_VERSION_SQL,
+                    (resultSet, rowNumber) -> resultSet.getObject(1) != null ? resultSet.getInt(1) : null,
+                    preparedStatement -> preparedStatement.setInt(1, purposeId));
+            return maxVersion != null ? maxVersion : 1;
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_GET_PURPOSE_VERSION_LIST,
+                    String.valueOf(purposeId), e);
+        }
+    }
+
+    /**
+     * Retrieve a single {@link PurposeVersion} by its ID.
+     *
+     * @param versionId ID of the {@link PurposeVersion}.
+     * @return PurposeVersion for the given ID, or {@code null} if not found.
+     * @throws ConsentManagementException If error occurs while retrieving the {@link PurposeVersion}.
+     */
+    @Override
+    public PurposeVersion getPurposeVersionById(int versionId) throws ConsentManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        PurposeVersion version;
+        try {
+            version = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_VERSION_BY_ID_SQL,
+                    (resultSet, rowNumber) -> new PurposeVersion(
+                            resultSet.getInt(1),
+                            resultSet.getInt(2),
+                            resultSet.getInt(3),
+                            resultSet.getString(4),
+                            resultSet.getInt(5)),
+                    preparedStatement -> preparedStatement.setInt(1, versionId));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_GET_PURPOSE_VERSION,
+                    String.valueOf(versionId), e);
+        }
+
+        if (version != null) {
+            try {
+                List<PurposePIICategory> piiCategories = new ArrayList<>();
+                jdbcTemplate.executeQuery(GET_PURPOSE_VERSION_PII_CAT_SQL, (resultSet, rowNumber) -> {
+                    PIICategory piiCategory = new PIICategory(
+                            resultSet.getInt(1),
+                            resultSet.getString(3),
+                            resultSet.getString(4),
+                            resultSet.getInt(5) == 1,
+                            resultSet.getInt(6),
+                            resultSet.getString(7));
+                    piiCategories.add(new PurposePIICategory(piiCategory, resultSet.getInt(2) == 1));
+                    return null;
+                }, preparedStatement -> preparedStatement.setInt(1, version.getId()));
+                version.setPurposePIICategories(piiCategories);
+            } catch (DataAccessException e) {
+                throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_GET_PURPOSE_VERSION,
+                        String.valueOf(versionId), e);
+            }
+        }
+        return version;
+    }
+
+    /**
+     * Delete a {@link PurposeVersion} by its ID.
+     *
+     * @param versionId ID of the {@link PurposeVersion} to delete.
+     * @throws ConsentManagementException If error occurs while deleting the {@link PurposeVersion}.
+     */
+    @Override
+    public void deletePurposeVersion(int versionId) throws ConsentManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                template.executeUpdate(DELETE_PURPOSE_VERSION_PII_CAT_ASSOC_SQL,
+                        preparedStatement -> preparedStatement.setInt(1, versionId));
+                template.executeUpdate(DELETE_PURPOSE_VERSION_SQL,
+                        preparedStatement -> preparedStatement.setInt(1, versionId));
+                return null;
+            });
+        } catch (Exception e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_PURPOSE_VERSION,
+                    String.valueOf(versionId), e);
+        }
+    }
+
+    /**
      * Check whether the {@link Purpose} by ID is used in a receipt
      *
      * @param id ID of the {@link Purpose} to be validated
@@ -305,6 +503,25 @@ public class PurposeDAOImpl implements PurposeDAO {
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages
                     .ERROR_CODE_RETRIEVE_RECEIPTS_ASSOCIATED_WITH_PURPOSE, String.valueOf(id), e);
+        }
+        return (count > 0);
+    }
+
+    @Override
+    public boolean isPurposeVersionUsed(int versionId) throws ConsentManagementServerException {
+
+        Integer count;
+        try {
+            JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+            count = jdbcTemplate.fetchSingleRecord(GET_RECEIPT_COUNT_ASSOCIATED_WITH_PURPOSE_VERSION, (resultSet, rowNumber) ->
+                            resultSet.getInt(1),
+                    preparedStatement -> preparedStatement.setInt(1, versionId));
+            if (count == null) {
+                return false;
+            }
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages
+                    .ERROR_CODE_RETRIEVE_RECEIPTS_ASSOCIATED_WITH_PURPOSE, String.valueOf(versionId), e);
         }
         return (count > 0);
     }
