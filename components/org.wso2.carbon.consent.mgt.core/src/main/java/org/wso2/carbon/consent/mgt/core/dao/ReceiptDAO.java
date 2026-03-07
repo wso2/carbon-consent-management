@@ -107,4 +107,27 @@ public interface ReceiptDAO {
      */
     boolean isReceiptExist(String receiptId, String piiPrincipalId, int tenantId) throws ConsentManagementException;
 
+    /**
+     * Search {@link Receipt} items for a given criteria, filtered by purposeId.
+     * When purposeId &lt;= 0, behaves identically to
+     * {@link #searchReceipts(int, int, String, int, String, String, int)}.
+     *
+     * @param limit Maximum number of results expected.
+     * @param offset Result offset.
+     * @param piiPrincipalId Identifier of the principal subject.
+     * @param spTenantId Tenant domain of the service.
+     * @param service Service name.
+     * @param state State of the {@link Receipt}.
+     * @param principalTenantId Tenant ID of the principal.
+     * @param purposeId Purpose ID to filter on, or &lt;= 0 to skip filtering.
+     * @return A list of {@link ReceiptListResponse}
+     * @throws ConsentManagementException If error occurs while searching {@link Receipt} items.
+     */
+    default List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, int spTenantId,
+                                                     String service, String state, int principalTenantId,
+                                                     int purposeId) throws ConsentManagementException {
+
+        return searchReceipts(limit, offset, piiPrincipalId, spTenantId, service, state, principalTenantId);
+    }
+
 }

@@ -33,6 +33,7 @@ public class Purpose {
     private List<PurposePIICategory> purposePIICategories = new ArrayList<>();
     private int tenantId;
     private String tenantDomain;
+    private PurposeVersion latestVersion;
 
     public void setId(Integer id) {
 
@@ -193,5 +194,15 @@ public class Purpose {
     public void setGroupType(String groupType) {
 
         this.groupType = groupType;
+    }
+
+    public PurposeVersion getLatestVersion() {
+
+        return latestVersion;
+    }
+
+    public void setLatestVersion(PurposeVersion latestVersion) {
+
+        this.latestVersion = latestVersion;
     }
 }

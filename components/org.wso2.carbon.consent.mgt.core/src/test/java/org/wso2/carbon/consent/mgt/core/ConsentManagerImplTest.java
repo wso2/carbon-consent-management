@@ -47,6 +47,7 @@ import org.wso2.carbon.consent.mgt.core.model.PiiController;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
+import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.consent.mgt.core.util.TestUtils;
@@ -328,12 +329,82 @@ public class ConsentManagerImplTest {
                         "JKS"));
     }
 
+    @Test
+    public void testAddPurposeVersion() throws Exception {
+
+        consentManager = new ConsentManagerImpl(configurationHolder);
+
+        PurposeVersion purposeVersion = new PurposeVersion();
+        purposeVersion.setDescription("Version 2 description");
+
+        // DEFAULT purpose (id=1) is pre-inserted in the test DB schema.
+        // First call on a purpose with no versions triggers auto-snapshot (v1) and returns v2.
+        PurposeVersion result = consentManager.addPurposeVersion(1, purposeVersion);
+
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result.getPurposeId(), 1);
+        Assert.assertEquals(result.getVersion(), 2);
+        Assert.assertEquals(result.getDescription(), "Version 2 description");
+
+        // Two versions must exist: the auto-snapshot (v1) and the requested version (v2).
+        List<PurposeVersion> versions = consentManager.listPurposeVersions(1);
+        Assert.assertEquals(versions.size(), 2);
+
+        PurposeVersion snapshot = versions.stream()
+                .filter(v -> v.getVersion() == 1).findFirst().orElse(null);
+        Assert.assertNotNull(snapshot, "Auto-snapshot version 1 must exist");
+        Assert.assertEquals(snapshot.getDescription(), "For core functionalities of the product");
+    }
+
+    @Test
+    public void testAddPurposeVersionWhenVersionsExist() throws Exception {
+
+        consentManager = new ConsentManagerImpl(configurationHolder);
+
+        // First call: creates auto-snapshot (v1) + v2.
+        PurposeVersion first = new PurposeVersion();
+        first.setDescription("First explicit version");
+        consentManager.addPurposeVersion(1, first);
+
+        // Second call: versions already exist (maxVersion=2), no snapshot fires; assigns v3.
+        PurposeVersion second = new PurposeVersion();
+        second.setDescription("Second explicit version");
+        PurposeVersion result = consentManager.addPurposeVersion(1, second);
+
+        Assert.assertEquals(result.getVersion(), 3);
+
+        // Total: snapshot(v1) + first(v2) + second(v3) = 3 versions (no additional snapshot).
+        List<PurposeVersion> versions = consentManager.listPurposeVersions(1);
+        Assert.assertEquals(versions.size(), 3);
+    }
+
+    @Test
+    public void testListPurposeVersions() throws Exception {
+
+        consentManager = new ConsentManagerImpl(configurationHolder);
+
+        // First call: auto-snapshot (v1) + auto-assigned v2 = 2 versions total.
+        PurposeVersion first = new PurposeVersion();
+        first.setDescription("First explicit version");
+        consentManager.addPurposeVersion(1, first);
+
+        // Second call: no snapshot (versions already exist); auto-assigns v3.
+        PurposeVersion second = new PurposeVersion();
+        second.setDescription("Second explicit version");
+        consentManager.addPurposeVersion(1, second);
+
+        List<PurposeVersion> versions = consentManager.listPurposeVersions(1);
+
+        // Expected: snapshot(v1) + first(v2) + second(v3) = 3 versions.
+        Assert.assertEquals(versions.size(), 3);
+    }
+
     @AfterMethod
     public void tearDown() throws Exception {
 
         connection.close();
         closeH2Base();
-        
+
         if (mockedComponentDataHolder != null) {
             mockedComponentDataHolder.close();
         }

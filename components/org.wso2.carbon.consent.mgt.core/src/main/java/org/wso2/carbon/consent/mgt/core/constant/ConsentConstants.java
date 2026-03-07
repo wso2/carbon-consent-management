@@ -45,6 +45,7 @@ public class ConsentConstants {
     public static final String PII_CATEGORY = "PII_CATEGORY";
     public static final String RECEIPT_ID = "RECEIPT_ID";
     public static final String PURPOSE_ID = "PURPOSE_ID";
+    public static final String VERSION_ID = "VERSION_ID";
     public static final String TENANT_ID = "TENANT_ID";
     public static final String PURPOSE_CATEGORY_ID = "PURPOSE_CATEGORY_ID";
     public static final String PII_CATEGORY_ID = "PII_CATEGORY_ID";
@@ -219,7 +220,15 @@ public class ConsentConstants {
         ERROR_CODE_DELETE_RECEIPTS_BY_PRINCIPAL_TENANT_ID("CM_00095", "Error occurred while deleting " +
                 "receipt from DB for the tenant: %s."),
         ERROR_CODE_DELETE_SP_ASSOC_BY_SP_TENANT_ID("CM_00096", "Error occurred while deleting " +
-                "SP Association for the SP tenant: %s.");
+                "SP Association for the SP tenant: %s."),
+        ERROR_CODE_PURPOSE_VERSION_ALREADY_EXISTS("CM_00097", "Purpose version already exists: %s"),
+        ERROR_CODE_PURPOSE_VERSION_ID_INVALID("CM_00098", "Purpose version not found for ID: %s"),
+        ERROR_CODE_ADD_PURPOSE_VERSION("CM_00099", "Error adding purpose version"),
+        ERROR_CODE_GET_PURPOSE_VERSION_LIST("CM_00100", "Error listing purpose versions for purpose ID: %s"),
+        ERROR_CODE_GET_PURPOSE_VERSION("CM_00101", "Error retrieving purpose version for ID: %s"),
+        ERROR_CODE_DELETE_PURPOSE_VERSION("CM_00102", "Error deleting purpose version for ID: %s"),
+        ERROR_CODE_PURPOSE_VERSION_NOT_FOUND("CM_00103", "Purpose version not found for ID: %s"),
+        ERROR_CODE_PURPOSE_VERSION_MISMATCH("CM_00104", "Purpose version ID: %s does not belong to purpose ID: %s");
 
         private final String code;
         private final String message;
@@ -343,5 +352,14 @@ public class ConsentConstants {
         public static final String POST_DELETE_RECEIPTS = "POST_DELETE_RECEIPTS";
         public static final String PRE_LIST_RECEIPTS = "PRE_LIST_RECEIPTS";
         public static final String POST_LIST_RECEIPTS = "POST_LIST_RECEIPTS";
+
+        public static final String PRE_ADD_PURPOSE_VERSION = "PRE_ADD_PURPOSE_VERSION";
+        public static final String POST_ADD_PURPOSE_VERSION = "POST_ADD_PURPOSE_VERSION";
+        public static final String PRE_GET_PURPOSE_VERSION_LIST = "PRE_GET_PURPOSE_VERSION_LIST";
+        public static final String POST_GET_PURPOSE_VERSION_LIST = "POST_GET_PURPOSE_VERSION_LIST";
+        public static final String PRE_GET_PURPOSE_VERSION = "PRE_GET_PURPOSE_VERSION";
+        public static final String POST_GET_PURPOSE_VERSION = "POST_GET_PURPOSE_VERSION";
+        public static final String PRE_DELETE_PURPOSE_VERSION = "PRE_DELETE_PURPOSE_VERSION";
+        public static final String POST_DELETE_PURPOSE_VERSION = "POST_DELETE_PURPOSE_VERSION";
     }
 }
