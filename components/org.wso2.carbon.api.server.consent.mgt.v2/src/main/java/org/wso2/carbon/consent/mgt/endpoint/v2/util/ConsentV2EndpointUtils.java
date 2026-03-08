@@ -19,6 +19,7 @@
 package org.wso2.carbon.consent.mgt.endpoint.v2.util;
 
 import org.apache.commons.logging.Log;
+import org.slf4j.MDC;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
@@ -30,6 +31,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import javax.ws.rs.core.Response;
+
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.CORRELATION_ID_MDC;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_NO_USER_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_INVALID;
@@ -72,8 +75,11 @@ public class ConsentV2EndpointUtils {
             ERROR_CODE_PII_CATEGORY_IS_ASSOCIATED.getCode()
     ));
 
+    private static final Set<String> UNAUTHORIZED_CODES = new HashSet<>(Arrays.asList(
+            ERROR_CODE_NO_USER_FOUND.getCode()
+    ));
+
     private static final Set<String> FORBIDDEN_CODES = new HashSet<>(Arrays.asList(
-            ERROR_CODE_NO_USER_FOUND.getCode(),
             ERROR_CODE_USER_NOT_AUTHORIZED.getCode()
     ));
 
@@ -92,6 +98,18 @@ public class ConsentV2EndpointUtils {
     }
 
     /**
+     * Retrieves the correlation ID from MDC for request tracing.
+     * Falls back to a generated UUID if no correlation ID exists.
+     *
+     * @return Correlation ID from MDC or new UUID.
+     */
+    private static String getCorrelationId() {
+
+        String correlationId = MDC.get(CORRELATION_ID_MDC);
+        return correlationId != null ? correlationId : UUID.randomUUID().toString();
+    }
+
+    /**
      * Handles a ConsentManagementClientException and returns an appropriate JAX-RS Response.
      *
      * @param e   Client exception.
@@ -101,12 +119,15 @@ public class ConsentV2EndpointUtils {
     public static Response handleBadRequestResponse(ConsentManagementClientException e, Log log) {
 
         String code = e.getErrorCode();
-        ErrorDTO errorDTO = buildErrorDTO(code, STATUS_BAD_REQUEST_MESSAGE_DEFAULT, e.getMessage());
+        String traceId = getCorrelationId();
+        ErrorDTO errorDTO = buildErrorDTO(code, STATUS_BAD_REQUEST_MESSAGE_DEFAULT, e.getMessage(), traceId);
 
         if (NOT_FOUND_CODES.contains(code)) {
             return Response.status(Response.Status.NOT_FOUND).entity(errorDTO).build();
         } else if (CONFLICT_CODES.contains(code)) {
             return Response.status(Response.Status.CONFLICT).entity(errorDTO).build();
+        } else if (UNAUTHORIZED_CODES.contains(code)) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity(errorDTO).build();
         } else if (FORBIDDEN_CODES.contains(code)) {
             return Response.status(Response.Status.FORBIDDEN).entity(errorDTO).build();
         }
@@ -122,34 +143,38 @@ public class ConsentV2EndpointUtils {
      */
     public static Response handleServerErrorResponse(ConsentManagementException e, Log log) {
 
+        String traceId = getCorrelationId();
+        MDC.put(CORRELATION_ID_MDC, traceId);
         log.error("Server error: ", e);
         ErrorDTO errorDTO = buildErrorDTO(e.getErrorCode(), STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT,
-                STATUS_INTERNAL_SERVER_ERROR_DESCRIPTION_DEFAULT);
+                STATUS_INTERNAL_SERVER_ERROR_DESCRIPTION_DEFAULT, traceId);
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorDTO).build();
     }
 
     /**
-     * Handles an unexpected throwable and returns a 500 response.
+     * Handles an unexpected exception and returns a 500 response.
      *
-     * @param t   Throwable.
+     * @param e   Exception.
      * @param log Logger.
      * @return HTTP 500 Response.
      */
-    public static Response handleUnexpectedServerError(Throwable t, Log log) {
+    public static Response handleUnexpectedServerError(Exception e, Log log) {
 
-        log.error("Unexpected error: " + t.getMessage(), t);
+        String traceId = getCorrelationId();
+        MDC.put(CORRELATION_ID_MDC, traceId);
+        log.error("Unexpected error: " + e.getMessage(), e);
         ErrorDTO errorDTO = buildErrorDTO("CM_00000", STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT,
-                STATUS_INTERNAL_SERVER_ERROR_DESCRIPTION_DEFAULT);
+                STATUS_INTERNAL_SERVER_ERROR_DESCRIPTION_DEFAULT, traceId);
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorDTO).build();
     }
 
-    private static ErrorDTO buildErrorDTO(String code, String message, String description) {
+    private static ErrorDTO buildErrorDTO(String code, String message, String description, String traceId) {
 
         ErrorDTO errorDTO = new ErrorDTO();
         errorDTO.setCode(code);
         errorDTO.setMessage(message);
         errorDTO.setDescription(description);
-        errorDTO.setTraceId(UUID.randomUUID().toString()); // TODO: need a proper traceId
+        errorDTO.setTraceId(traceId);
         return errorDTO;
     }
 }

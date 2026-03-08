@@ -946,9 +946,6 @@ public class ConsentManagerImpl implements ConsentManager {
         if (purposeId <= 0) {
             throw handleClientException(ERROR_CODE_PURPOSE_ID_REQUIRED, null);
         }
-        // Validate the purpose exists.
-        // TODO: check if this can be removed
-        getPurpose(purposeId);
 
         PurposeVersion version = getPurposeDAO(purposeDAOs).getPurposeVersionById(versionId);
         if (version == null) {
@@ -976,9 +973,6 @@ public class ConsentManagerImpl implements ConsentManager {
         if (purposeId <= 0) {
             throw handleClientException(ERROR_CODE_PURPOSE_ID_REQUIRED, null);
         }
-        // Validate the purpose exists.
-        // TODO: check if this can be removed
-        getPurpose(purposeId);
 
         PurposeVersion version = getPurposeDAO(purposeDAOs).getPurposeVersionById(versionId);
         if (version == null) {

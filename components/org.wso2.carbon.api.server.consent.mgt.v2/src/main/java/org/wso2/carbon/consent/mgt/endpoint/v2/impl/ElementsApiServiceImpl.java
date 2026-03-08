@@ -18,15 +18,24 @@
 
 package org.wso2.carbon.consent.mgt.endpoint.v2.impl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.endpoint.v2.ElementsApiService;
 import org.wso2.carbon.consent.mgt.endpoint.v2.core.ConsentElementsService;
 import org.wso2.carbon.consent.mgt.endpoint.v2.factories.ConsentElementsServiceFactory;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementCreateRequest;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementDTO;
+import org.wso2.carbon.consent.mgt.endpoint.v2.util.ConsentV2EndpointUtils;
 
+import java.net.URI;
 import javax.ws.rs.core.Response;
 
 public class ElementsApiServiceImpl implements ElementsApiService {
 
+    private static final Log LOG = LogFactory.getLog(ElementsApiServiceImpl.class);
     private final ConsentElementsService elementsService;
 
     public ElementsApiServiceImpl() {
@@ -37,26 +46,60 @@ public class ElementsApiServiceImpl implements ElementsApiService {
     @Override
     public Response elementsCreate(ElementCreateRequest elementCreateRequest) {
 
-        return elementsService.createElement(elementCreateRequest);
+        try {
+            ElementDTO dto = elementsService.createElement(elementCreateRequest);
+            URI location = URI.create("elements/" + dto.getId());
+            return Response.created(location).entity(dto).build();
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 
     @Override
     public Response elementsDelete(Integer elementId) {
 
-        return elementsService.deleteElement(elementId);
+        try {
+            return elementsService.deleteElement(elementId);
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 
     @Override
     public Response elementsGet(Integer elementId) {
 
-        return elementsService.getElement(elementId);
+        try {
+            return elementsService.getElement(elementId);
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 
     @Override
     public Response elementsList(Integer limit, Integer offset) {
 
-        int resolvedLimit = (limit != null) ? limit : 50;
-        int resolvedOffset = (offset != null) ? offset : 0;
-        return elementsService.listElements(resolvedLimit, resolvedOffset);
+        try {
+            int resolvedLimit = (limit != null) ? limit : ConsentConstants.DEFAULT_LIMIT;
+            int resolvedOffset = (offset != null) ? offset : ConsentConstants.DEFAULT_OFFSET;
+            return elementsService.listElements(resolvedLimit, resolvedOffset);
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 }

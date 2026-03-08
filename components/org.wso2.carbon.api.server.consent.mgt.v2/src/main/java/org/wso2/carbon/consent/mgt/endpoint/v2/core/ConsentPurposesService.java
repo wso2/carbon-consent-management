@@ -21,7 +21,6 @@ package org.wso2.carbon.consent.mgt.endpoint.v2.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
@@ -35,7 +34,6 @@ import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeSummaryDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeVersionCreateRequest;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeVersionDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeVersionListResponse;
-import org.wso2.carbon.consent.mgt.endpoint.v2.util.ConsentV2EndpointUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,43 +58,29 @@ public class ConsentPurposesService {
      * Creates a new purpose.
      *
      * @param request Purpose create request.
-     * @return Response with created PurposeDTO or error.
+     * @return PurposeDTO with created purpose details.
+     * @throws ConsentManagementException if creation fails.
      */
-    public Response createPurpose(PurposeCreateRequest request) {
+    public PurposeDTO createPurpose(PurposeCreateRequest request) throws ConsentManagementException {
 
-        try {
-            List<PurposePIICategory> purposePIICategories = buildPurposePIICategories(request.getElements());
-            Purpose purpose = new Purpose(request.getName(), request.getDescription(),
-                    request.getGroup(), request.getGroupType(), purposePIICategories);
-            Purpose created = consentManager.addPurpose(purpose);
-            return Response.status(Response.Status.CREATED).entity(toPurposeDTO(created)).build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
-        }
+        List<PurposePIICategory> purposePIICategories = buildPurposePIICategories(request.getElements());
+        Purpose purpose = new Purpose(request.getName(), request.getDescription(),
+                request.getGroup(), request.getGroupType(), purposePIICategories);
+        Purpose created = consentManager.addPurpose(purpose);
+        return toPurposeDTO(created);
     }
 
     /**
      * Retrieves a purpose by ID.
      *
      * @param purposeId Purpose ID.
-     * @return Response with PurposeDTO or error.
+     * @return Response with PurposeDTO.
+     * @throws ConsentManagementException if retrieval fails.
      */
-    public Response getPurpose(int purposeId) {
+    public Response getPurpose(int purposeId) throws ConsentManagementException {
 
-        try {
-            Purpose purpose = consentManager.getPurpose(purposeId);
-            return Response.ok(toPurposeDTO(purpose)).build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
-        }
+        Purpose purpose = consentManager.getPurpose(purposeId);
+        return Response.ok(toPurposeDTO(purpose)).build();
     }
 
     /**
@@ -106,51 +90,37 @@ public class ConsentPurposesService {
      * @param groupType Group type filter (may be null).
      * @param limit     Maximum results.
      * @param offset    Pagination offset.
-     * @return Response with list of PurposeDTOs or error.
+     * @return Response with list of PurposeDTOs.
+     * @throws ConsentManagementException if listing fails.
      */
-    public Response listPurposes(String group, String groupType, int limit, int offset) {
+    public Response listPurposes(String group, String groupType, int limit, int offset) throws ConsentManagementException {
 
-        try {
-            List<Purpose> purposes = consentManager.listPurposes(group, groupType, limit, offset);
-            List<PurposeSummaryDTO> items = new ArrayList<>();
-            if (purposes != null) {
-                for (Purpose p : purposes) {
-                    items.add(toPurposeSummaryDTO(p));
-                }
+        List<Purpose> purposes = consentManager.listPurposes(group, groupType, limit, offset);
+        List<PurposeSummaryDTO> items = new ArrayList<>();
+        if (purposes != null) {
+            for (Purpose p : purposes) {
+                items.add(toPurposeSummaryDTO(p));
             }
-
-            PurposeListResponse listResponse = new PurposeListResponse();
-            listResponse.setStartIndex(offset);
-            listResponse.setCount(items.size());
-            listResponse.setItems(items);
-            return Response.ok(listResponse).build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
         }
+
+        PurposeListResponse listResponse = new PurposeListResponse();
+        listResponse.setStartIndex(offset);
+        listResponse.setCount(items.size());
+        listResponse.setItems(items);
+        return Response.ok(listResponse).build();
     }
 
     /**
      * Deletes a purpose by ID.
      *
      * @param purposeId Purpose ID.
-     * @return Response with no content or error.
+     * @return Response with no content.
+     * @throws ConsentManagementException if deletion fails.
      */
-    public Response deletePurpose(int purposeId) {
+    public Response deletePurpose(int purposeId) throws ConsentManagementException {
 
-        try {
-            consentManager.deletePurpose(purposeId);
-            return Response.noContent().build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
-        }
+        consentManager.deletePurpose(purposeId);
+        return Response.noContent().build();
     }
 
     /**
@@ -158,25 +128,18 @@ public class ConsentPurposesService {
      *
      * @param purposeId Purpose ID.
      * @param request   Version create request.
-     * @return Response with created PurposeVersionDTO or error.
+     * @return PurposeVersionDTO with created version details.
+     * @throws ConsentManagementException if creation fails.
      */
-    public Response createPurposeVersion(int purposeId, PurposeVersionCreateRequest request) {
+    public PurposeVersionDTO createPurposeVersion(int purposeId, PurposeVersionCreateRequest request) throws ConsentManagementException {
 
-        try {
-            PurposeVersion version = new PurposeVersion();
-            version.setPurposeId(purposeId);
-            version.setDescription(request.getDescription());
-            version.setPurposePIICategories(buildPurposePIICategories(request.getElements()));
+        PurposeVersion version = new PurposeVersion();
+        version.setPurposeId(purposeId);
+        version.setDescription(request.getDescription());
+        version.setPurposePIICategories(buildPurposePIICategories(request.getElements()));
 
-            PurposeVersion created = consentManager.addPurposeVersion(purposeId, version);
-            return Response.status(Response.Status.CREATED).entity(toPurposeVersionDTO(created)).build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
-        }
+        PurposeVersion created = consentManager.addPurposeVersion(purposeId, version);
+        return toPurposeVersionDTO(created);
     }
 
     /**
@@ -184,20 +147,13 @@ public class ConsentPurposesService {
      *
      * @param purposeId Purpose ID.
      * @param versionId Version ID.
-     * @return Response with PurposeVersionDTO or error.
+     * @return Response with PurposeVersionDTO.
+     * @throws ConsentManagementException if retrieval fails.
      */
-    public Response getPurposeVersion(int purposeId, int versionId) {
+    public Response getPurposeVersion(int purposeId, int versionId) throws ConsentManagementException {
 
-        try {
-            PurposeVersion version = consentManager.getPurposeVersion(purposeId, versionId);
-            return Response.ok(toPurposeVersionDTO(version)).build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
-        }
+        PurposeVersion version = consentManager.getPurposeVersion(purposeId, versionId);
+        return Response.ok(toPurposeVersionDTO(version)).build();
     }
 
     /**
@@ -206,37 +162,30 @@ public class ConsentPurposesService {
      * @param purposeId Purpose ID.
      * @param limit     Maximum results.
      * @param offset    Pagination offset.
-     * @return Response with list of PurposeVersionDTOs or error.
+     * @return Response with list of PurposeVersionDTOs.
+     * @throws ConsentManagementException if listing fails.
      */
-    public Response listPurposeVersions(int purposeId, int limit, int offset) {
+    public Response listPurposeVersions(int purposeId, int limit, int offset) throws ConsentManagementException {
 
-        try {
-            List<PurposeVersion> versions = consentManager.listPurposeVersions(purposeId);
-            if (versions == null) {
-                versions = Collections.emptyList();
-            }
-            int total = versions.size();
-            int fromIndex = Math.min(offset, total);
-            int toIndex = Math.min(offset + limit, total);
-            List<PurposeVersion> page = versions.subList(fromIndex, toIndex);
-
-            List<PurposeVersionDTO> dtos = new ArrayList<>();
-            for (PurposeVersion v : page) {
-                dtos.add(toPurposeVersionDTO(v));
-            }
-
-            PurposeVersionListResponse listResponse = new PurposeVersionListResponse();
-            listResponse.setStartIndex(offset);
-            listResponse.setCount(dtos.size());
-            listResponse.setItems(dtos);
-            return Response.ok(listResponse).build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
+        List<PurposeVersion> versions = consentManager.listPurposeVersions(purposeId);
+        if (versions == null) {
+            versions = Collections.emptyList();
         }
+        int total = versions.size();
+        int fromIndex = Math.min(offset, total);
+        int toIndex = Math.min(offset + limit, total);
+        List<PurposeVersion> page = versions.subList(fromIndex, toIndex);
+
+        List<PurposeVersionDTO> dtos = new ArrayList<>();
+        for (PurposeVersion v : page) {
+            dtos.add(toPurposeVersionDTO(v));
+        }
+
+        PurposeVersionListResponse listResponse = new PurposeVersionListResponse();
+        listResponse.setStartIndex(offset);
+        listResponse.setCount(dtos.size());
+        listResponse.setItems(dtos);
+        return Response.ok(listResponse).build();
     }
 
     /**
@@ -244,20 +193,13 @@ public class ConsentPurposesService {
      *
      * @param purposeId Purpose ID.
      * @param versionId Version ID.
-     * @return Response with no content or error.
+     * @return Response with no content.
+     * @throws ConsentManagementException if deletion fails.
      */
-    public Response deletePurposeVersion(int purposeId, int versionId) {
+    public Response deletePurposeVersion(int purposeId, int versionId) throws ConsentManagementException {
 
-        try {
-            consentManager.deletePurposeVersion(purposeId, versionId);
-            return Response.noContent().build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
-        }
+        consentManager.deletePurposeVersion(purposeId, versionId);
+        return Response.noContent().build();
     }
 
     private List<PurposePIICategory> buildPurposePIICategories(List<PurposeElementBinding> elements) {

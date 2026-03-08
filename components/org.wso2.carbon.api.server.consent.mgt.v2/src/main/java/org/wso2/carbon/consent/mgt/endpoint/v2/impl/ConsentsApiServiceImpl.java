@@ -18,15 +18,24 @@
 
 package org.wso2.carbon.consent.mgt.endpoint.v2.impl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.endpoint.v2.ConsentsApiService;
 import org.wso2.carbon.consent.mgt.endpoint.v2.core.ConsentReceiptsService;
 import org.wso2.carbon.consent.mgt.endpoint.v2.factories.ConsentReceiptsServiceFactory;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ConsentCreateRequest;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.ConsentResponseDTO;
+import org.wso2.carbon.consent.mgt.endpoint.v2.util.ConsentV2EndpointUtils;
 
+import java.net.URI;
 import javax.ws.rs.core.Response;
 
 public class ConsentsApiServiceImpl implements ConsentsApiService {
 
+    private static final Log LOG = LogFactory.getLog(ConsentsApiServiceImpl.class);
     private final ConsentReceiptsService receiptsService;
 
     public ConsentsApiServiceImpl() {
@@ -37,29 +46,63 @@ public class ConsentsApiServiceImpl implements ConsentsApiService {
     @Override
     public Response consentsCreate(ConsentCreateRequest consentCreateRequest) {
 
-        return receiptsService.createConsent(consentCreateRequest);
+        try {
+            ConsentResponseDTO responseDTO = receiptsService.createConsent(consentCreateRequest);
+            URI location = URI.create("consents/" + responseDTO.getReceiptId());
+            return Response.created(location).entity(responseDTO).build();
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 
     @Override
     public Response consentsGet(String receiptId) {
 
-        return receiptsService.getConsent(receiptId);
+        try {
+            return receiptsService.getConsent(receiptId);
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 
     @Override
     public Response consentsList(String subjectUserId, String service, String state, Integer purposeId,
                                  Integer limit, Integer offset) {
 
-        int resolvedPurposeId = (purposeId != null) ? purposeId : 0;
-        int resolvedLimit = (limit != null) ? limit : 50;
-        int resolvedOffset = (offset != null) ? offset : 0;
-        return receiptsService.listConsents(subjectUserId, service, state, resolvedPurposeId, resolvedLimit,
-                resolvedOffset);
+        try {
+            int resolvedPurposeId = (purposeId != null) ? purposeId : 0;
+            int resolvedLimit = (limit != null) ? limit : ConsentConstants.DEFAULT_LIMIT;
+            int resolvedOffset = (offset != null) ? offset : ConsentConstants.DEFAULT_OFFSET;
+            return receiptsService.listConsents(subjectUserId, service, state, resolvedPurposeId, resolvedLimit,
+                    resolvedOffset);
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 
     @Override
     public Response consentsRevoke(String receiptId) {
 
-        return receiptsService.revokeConsent(receiptId);
+        try {
+            return receiptsService.revokeConsent(receiptId);
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 }

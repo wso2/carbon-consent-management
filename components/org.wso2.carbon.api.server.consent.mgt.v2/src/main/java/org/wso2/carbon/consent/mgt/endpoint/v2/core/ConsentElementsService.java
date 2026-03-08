@@ -21,13 +21,11 @@ package org.wso2.carbon.consent.mgt.endpoint.v2.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementCreateRequest;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementListResponse;
-import org.wso2.carbon.consent.mgt.endpoint.v2.util.ConsentV2EndpointUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,42 +49,28 @@ public class ConsentElementsService {
      * Creates a new element (PIICategory).
      *
      * @param request Element create request.
-     * @return Response with created ElementDTO or error.
+     * @return ElementDTO with created element details.
+     * @throws ConsentManagementException if creation fails.
      */
-    public Response createElement(ElementCreateRequest request) {
+    public ElementDTO createElement(ElementCreateRequest request) throws ConsentManagementException {
 
-        try {
-            String displayName = (request.getDisplayName() != null) ? request.getDisplayName() : request.getName();
-            PIICategory piiCategory = new PIICategory(request.getName(), request.getDescription(), false, displayName);
-            PIICategory created = consentManager.addPIICategory(piiCategory);
-            return Response.status(Response.Status.CREATED).entity(toElementDTO(created)).build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
-        }
+        String displayName = (request.getDisplayName() != null) ? request.getDisplayName() : request.getName();
+        PIICategory piiCategory = new PIICategory(request.getName(), request.getDescription(), false, displayName);
+        PIICategory created = consentManager.addPIICategory(piiCategory);
+        return toElementDTO(created);
     }
 
     /**
      * Retrieves a single element by ID.
      *
      * @param elementId Element ID.
-     * @return Response with ElementDTO or error.
+     * @return Response with ElementDTO.
+     * @throws ConsentManagementException if retrieval fails.
      */
-    public Response getElement(int elementId) {
+    public Response getElement(int elementId) throws ConsentManagementException {
 
-        try {
-            PIICategory piiCategory = consentManager.getPIICategory(elementId);
-            return Response.ok(toElementDTO(piiCategory)).build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
-        }
+        PIICategory piiCategory = consentManager.getPIICategory(elementId);
+        return Response.ok(toElementDTO(piiCategory)).build();
     }
 
     /**
@@ -94,51 +78,37 @@ public class ConsentElementsService {
      *
      * @param limit  Maximum results.
      * @param offset Pagination offset.
-     * @return Response with ElementListResponse or error.
+     * @return Response with ElementListResponse.
+     * @throws ConsentManagementException if listing fails.
      */
-    public Response listElements(int limit, int offset) {
+    public Response listElements(int limit, int offset) throws ConsentManagementException {
 
-        try {
-            List<PIICategory> categories = consentManager.listPIICategories(limit, offset);
-            ElementListResponse listResponse = new ElementListResponse();
-            List<ElementDTO> items = new ArrayList<>();
-            if (categories != null) {
-                for (PIICategory cat : categories) {
-                    items.add(toElementDTO(cat));
-                }
+        List<PIICategory> categories = consentManager.listPIICategories(limit, offset);
+        ElementListResponse listResponse = new ElementListResponse();
+        List<ElementDTO> items = new ArrayList<>();
+        if (categories != null) {
+            for (PIICategory cat : categories) {
+                items.add(toElementDTO(cat));
             }
-            listResponse.setStartIndex(offset);
-            listResponse.setCount(items.size());
-            listResponse.setItems(items);
-
-            return Response.ok(listResponse).build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
         }
+        listResponse.setStartIndex(offset);
+        listResponse.setCount(items.size());
+        listResponse.setItems(items);
+
+        return Response.ok(listResponse).build();
     }
 
     /**
      * Deletes an element by ID.
      *
      * @param elementId Element ID.
-     * @return Response with no content or error.
+     * @return Response with no content.
+     * @throws ConsentManagementException if deletion fails.
      */
-    public Response deleteElement(int elementId) {
+    public Response deleteElement(int elementId) throws ConsentManagementException {
 
-        try {
-            consentManager.deletePIICategory(elementId);
-            return Response.noContent().build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
-        }
+        consentManager.deletePIICategory(elementId);
+        return Response.noContent().build();
     }
 
     private ElementDTO toElementDTO(PIICategory cat) {

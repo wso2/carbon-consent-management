@@ -18,16 +18,26 @@
 
 package org.wso2.carbon.consent.mgt.endpoint.v2.impl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.endpoint.v2.PurposesApiService;
 import org.wso2.carbon.consent.mgt.endpoint.v2.core.ConsentPurposesService;
 import org.wso2.carbon.consent.mgt.endpoint.v2.factories.ConsentPurposesServiceFactory;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeCreateRequest;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeVersionCreateRequest;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeVersionDTO;
+import org.wso2.carbon.consent.mgt.endpoint.v2.util.ConsentV2EndpointUtils;
 
+import java.net.URI;
 import javax.ws.rs.core.Response;
 
 public class PurposesApiServiceImpl implements PurposesApiService {
 
+    private static final Log LOG = LogFactory.getLog(PurposesApiServiceImpl.class);
     private final ConsentPurposesService purposesService;
 
     public PurposesApiServiceImpl() {
@@ -38,52 +48,120 @@ public class PurposesApiServiceImpl implements PurposesApiService {
     @Override
     public Response purposesCreate(PurposeCreateRequest purposeCreateRequest) {
 
-        return purposesService.createPurpose(purposeCreateRequest);
+        try {
+            PurposeDTO dto = purposesService.createPurpose(purposeCreateRequest);
+            URI location = URI.create("purposes/" + dto.getId());
+            return Response.created(location).entity(dto).build();
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 
     @Override
     public Response purposesDelete(Integer purposeId) {
 
-        return purposesService.deletePurpose(purposeId);
+        try {
+            return purposesService.deletePurpose(purposeId);
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 
     @Override
     public Response purposesGet(Integer purposeId) {
 
-        return purposesService.getPurpose(purposeId);
+        try {
+            return purposesService.getPurpose(purposeId);
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 
     @Override
     public Response purposesList(String group, String groupType, Integer limit, Integer offset) {
 
-        int resolvedLimit = (limit != null) ? limit : 50;
-        int resolvedOffset = (offset != null) ? offset : 0;
-        return purposesService.listPurposes(group, groupType, resolvedLimit, resolvedOffset);
+        try {
+            int resolvedLimit = (limit != null) ? limit : ConsentConstants.DEFAULT_LIMIT;
+            int resolvedOffset = (offset != null) ? offset : ConsentConstants.DEFAULT_OFFSET;
+            return purposesService.listPurposes(group, groupType, resolvedLimit, resolvedOffset);
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 
     @Override
     public Response purposesVersionsCreate(Integer purposeId, PurposeVersionCreateRequest purposeVersionCreateRequest) {
 
-        return purposesService.createPurposeVersion(purposeId, purposeVersionCreateRequest);
+        try {
+            PurposeVersionDTO dto = purposesService.createPurposeVersion(purposeId, purposeVersionCreateRequest);
+            URI location = URI.create("purposes/" + purposeId + "/versions/" + dto.getId());
+            return Response.created(location).entity(dto).build();
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 
     @Override
     public Response purposesVersionsDelete(Integer purposeId, Integer versionId) {
 
-        return purposesService.deletePurposeVersion(purposeId, versionId);
+        try {
+            return purposesService.deletePurposeVersion(purposeId, versionId);
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 
     @Override
     public Response purposesVersionsGet(Integer purposeId, Integer versionId) {
 
-        return purposesService.getPurposeVersion(purposeId, versionId);
+        try {
+            return purposesService.getPurposeVersion(purposeId, versionId);
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 
     @Override
     public Response purposesVersionsList(Integer purposeId, Integer limit, Integer offset) {
 
-        int resolvedLimit = (limit != null) ? limit : 50;
-        int resolvedOffset = (offset != null) ? offset : 0;
-        return purposesService.listPurposeVersions(purposeId, resolvedLimit, resolvedOffset);
+        try {
+            int resolvedLimit = (limit != null) ? limit : ConsentConstants.DEFAULT_LIMIT;
+            int resolvedOffset = (offset != null) ? offset : ConsentConstants.DEFAULT_OFFSET;
+            return purposesService.listPurposeVersions(purposeId, resolvedLimit, resolvedOffset);
+        } catch (ConsentManagementClientException e) {
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+        } catch (ConsentManagementException e) {
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+        } catch (Exception e) {
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+        }
     }
 }

@@ -83,36 +83,40 @@ public class PurposeDAOImpl implements PurposeDAO {
     @Override
     public Purpose addPurpose(Purpose purpose) throws ConsentManagementException {
 
-        Purpose purposeResult;
-        int insertedId;
-
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        final int[] insertedIdHolder = new int[1];
+
         try {
-            insertedId = jdbcTemplate.executeInsert(INSERT_PURPOSE_SQL, (preparedStatement -> {
-                preparedStatement.setString(1, purpose.getName());
-                preparedStatement.setString(2, purpose.getDescription());
-                preparedStatement.setString(3, purpose.getGroup());
-                preparedStatement.setString(4, purpose.getGroupType());
-                preparedStatement.setInt(5, purpose.getTenantId());
-            }), purpose, true);
-        } catch (DataAccessException e) {
+            jdbcTemplate.withTransaction(template -> {
+                insertedIdHolder[0] = template.executeInsert(INSERT_PURPOSE_SQL, (preparedStatement -> {
+                    preparedStatement.setString(1, purpose.getName());
+                    preparedStatement.setString(2, purpose.getDescription());
+                    preparedStatement.setString(3, purpose.getGroup());
+                    preparedStatement.setString(4, purpose.getGroupType());
+                    preparedStatement.setInt(5, purpose.getTenantId());
+                }), purpose, true);
+
+                purpose.getPurposePIICategories().forEach(rethrowConsumer(piiCategory -> {
+                    try {
+                        template.executeInsert(INSERT_RECEIPT_PURPOSE_PII_ASSOC_SQL, (preparedStatement -> {
+                            preparedStatement.setInt(1, insertedIdHolder[0]);
+                            preparedStatement.setInt(2, piiCategory.getId());
+                            preparedStatement.setInt(3, piiCategory.getMandatory() ? 1 : 0);
+                        }), piiCategory, false);
+                    } catch (DataAccessException e) {
+                        throw ConsentUtils.handleServerException(ErrorMessages
+                                .ERROR_CODE_ADD_PURPOSE_PII_ASSOC, String.valueOf(insertedIdHolder[0]), e);
+                    }
+                }));
+
+                return null;
+            });
+        } catch (Exception e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE, purpose.getName(), e);
         }
 
-        purpose.getPurposePIICategories().forEach(rethrowConsumer(piiCategory -> {
-            try {
-                jdbcTemplate.executeInsert(INSERT_RECEIPT_PURPOSE_PII_ASSOC_SQL, (preparedStatement -> {
-                    preparedStatement.setInt(1, insertedId);
-                    preparedStatement.setInt(2, piiCategory.getId());
-                    preparedStatement.setInt(3, piiCategory.getMandatory() ? 1 : 0);
-                }), piiCategory, false);
-            } catch (DataAccessException e) {
-                throw ConsentUtils.handleServerException(ErrorMessages
-                        .ERROR_CODE_ADD_PURPOSE_PII_ASSOC, String.valueOf(insertedId), e);
-            }
-        }));
-        purposeResult = new Purpose(insertedId, purpose.getName(), purpose.getDescription(), purpose.getGroup(),
-                purpose.getGroupType(), purpose.getTenantId(), purpose
+        Purpose purposeResult = new Purpose(insertedIdHolder[0], purpose.getName(), purpose.getDescription(),
+                purpose.getGroup(), purpose.getGroupType(), purpose.getTenantId(), purpose
                 .getPurposePIICategories());
         return purposeResult;
     }
@@ -305,34 +309,39 @@ public class PurposeDAOImpl implements PurposeDAO {
     @Override
     public PurposeVersion addPurposeVersion(PurposeVersion purposeVersion) throws ConsentManagementException {
 
-        int insertedId;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        final int[] insertedIdHolder = new int[1];
+
         try {
-            insertedId = jdbcTemplate.executeInsert(INSERT_PURPOSE_VERSION_SQL, (preparedStatement -> {
-                preparedStatement.setInt(1, purposeVersion.getPurposeId());
-                preparedStatement.setInt(2, purposeVersion.getVersion());
-                preparedStatement.setString(3, purposeVersion.getDescription());
-                preparedStatement.setInt(4, purposeVersion.getTenantId());
-            }), purposeVersion, true);
-        } catch (DataAccessException e) {
+            jdbcTemplate.withTransaction(template -> {
+                insertedIdHolder[0] = template.executeInsert(INSERT_PURPOSE_VERSION_SQL, (preparedStatement -> {
+                    preparedStatement.setInt(1, purposeVersion.getPurposeId());
+                    preparedStatement.setInt(2, purposeVersion.getVersion());
+                    preparedStatement.setString(3, purposeVersion.getDescription());
+                    preparedStatement.setInt(4, purposeVersion.getTenantId());
+                }), purposeVersion, true);
+
+                purposeVersion.getPurposePIICategories().forEach(rethrowConsumer(piiCategory -> {
+                    try {
+                        template.executeInsert(INSERT_PURPOSE_VERSION_PII_CAT_ASSOC_SQL, (preparedStatement -> {
+                            preparedStatement.setInt(1, insertedIdHolder[0]);
+                            preparedStatement.setInt(2, piiCategory.getId());
+                            preparedStatement.setInt(3, piiCategory.getMandatory() ? 1 : 0);
+                        }), piiCategory, false);
+                    } catch (DataAccessException e) {
+                        throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE_VERSION,
+                                String.valueOf(insertedIdHolder[0]), e);
+                    }
+                }));
+
+                return null;
+            });
+        } catch (Exception e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE_VERSION,
                     String.valueOf(purposeVersion.getPurposeId()), e);
         }
 
-        purposeVersion.getPurposePIICategories().forEach(rethrowConsumer(piiCategory -> {
-            try {
-                jdbcTemplate.executeInsert(INSERT_PURPOSE_VERSION_PII_CAT_ASSOC_SQL, (preparedStatement -> {
-                    preparedStatement.setInt(1, insertedId);
-                    preparedStatement.setInt(2, piiCategory.getId());
-                    preparedStatement.setInt(3, piiCategory.getMandatory() ? 1 : 0);
-                }), piiCategory, false);
-            } catch (DataAccessException e) {
-                throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE_VERSION,
-                        String.valueOf(insertedId), e);
-            }
-        }));
-
-        PurposeVersion result = new PurposeVersion(insertedId, purposeVersion.getPurposeId(),
+        PurposeVersion result = new PurposeVersion(insertedIdHolder[0], purposeVersion.getPurposeId(),
                 purposeVersion.getVersion(), purposeVersion.getDescription(), purposeVersion.getTenantId());
         result.setPurposePIICategories(purposeVersion.getPurposePIICategories());
         return result;

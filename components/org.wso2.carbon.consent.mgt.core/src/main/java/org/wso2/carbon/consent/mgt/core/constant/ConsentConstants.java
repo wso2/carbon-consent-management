@@ -39,6 +39,8 @@ public class ConsentConstants {
     public static final String API_VERSION = "KI-CR-v1.1.0";
     public static final String REVOKE_STATE = "REVOKED";
     public static final String ACTIVE_STATE = "ACTIVE";
+    public static final Integer DEFAULT_LIMIT = 10;
+    public static final Integer DEFAULT_OFFSET = 0;
 
     public static final String PURPOSE = "PURPOSE";
     public static final String PURPOSE_CATEGORY = "PURPOSE_CATEGORY";

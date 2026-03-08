@@ -21,10 +21,11 @@ package org.wso2.carbon.consent.mgt.endpoint.v2.core;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.ConsentPurpose;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.ConsentResponseDTO;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
@@ -44,10 +45,8 @@ import org.wso2.carbon.consent.mgt.endpoint.v2.model.ConsentedElementDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ConsentedPurposeDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementTerminationInfo;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.KeyValuePair;
-import org.wso2.carbon.consent.mgt.endpoint.v2.util.ConsentV2EndpointUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,6 +55,7 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.API_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_STATE;
 
 /**
  * Service class for consent (receipt) operations in the V2 Consent Management API.
@@ -83,49 +83,34 @@ public class ConsentReceiptsService {
      * Creates a new consent receipt.
      *
      * @param request Consent create request.
-     * @return Response with receiptId or error.
+     * @return ConsentResponseDTO with receipt details.
+     * @throws ConsentManagementException if creation fails.
      */
-    public Response createConsent(ConsentCreateRequest request) {
+    public ConsentResponseDTO createConsent(ConsentCreateRequest request) throws ConsentManagementException {
 
-        try {
-            int defaultPurposeCategoryId = getDefaultPurposeCategoryId();
-            ReceiptInput receiptInput = buildReceiptInput(request, defaultPurposeCategoryId);
-            AddReceiptResponse addReceiptResponse = consentManager.addConsent(receiptInput);
-            URI location = URI.create("consents/" + addReceiptResponse.getConsentReceiptId());
-            return Response.status(Response.Status.CREATED)
-                    .header(javax.ws.rs.core.HttpHeaders.LOCATION, location)
-                    .entity(addReceiptResponse).build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
-        }
+        int defaultPurposeCategoryId = getDefaultPurposeCategoryId();
+        ReceiptInput receiptInput = buildReceiptInput(request, defaultPurposeCategoryId);
+        AddReceiptResponse addReceiptResponse = consentManager.addConsent(receiptInput);
+
+        ConsentResponseDTO responseDTO = new ConsentResponseDTO();
+        responseDTO.setReceiptId(addReceiptResponse.getConsentReceiptId());
+        responseDTO.setLanguage(addReceiptResponse.getLanguage());
+        responseDTO.setSubjectUserId(addReceiptResponse.getPiiPrincipalId());
+        responseDTO.setTenantDomain(addReceiptResponse.getTenantDomain());
+        return responseDTO;
     }
 
     /**
      * Retrieves a consent receipt by ID.
      *
      * @param receiptId Receipt ID.
-     * @return Response with ConsentReceiptDTO or error.
+     * @return ConsentReceiptDTO with receipt details.
+     * @throws ConsentManagementException if retrieval fails.
      */
-    public Response getConsent(String receiptId) {
+    public Response getConsent(String receiptId) throws ConsentManagementException {
 
-        try {
-            Receipt receipt = consentManager.getReceipt(receiptId);
-            // Return 404 if the consent is revoked
-            if ("REVOKED".equals(receipt.getState())) {
-                return Response.status(Response.Status.NOT_FOUND).build();
-            }
-            return Response.ok(toConsentReceiptDTO(receipt)).build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
-        }
+        Receipt receipt = consentManager.getReceipt(receiptId);
+        return Response.ok(toConsentReceiptDTO(receipt)).build();
     }
 
     /**
@@ -137,73 +122,65 @@ public class ConsentReceiptsService {
      * @param purposeId        Purpose ID filter (0 or negative means no filter).
      * @param limit            Maximum results.
      * @param offset           Pagination offset.
-     * @return Response with list of ConsentSummaryDTOs or error.
+     * @return Response with list of ConsentSummaryDTOs.
+     * @throws ConsentManagementException if listing fails.
      */
     public Response listConsents(String subjectUserId, String service, String state,
-                                 int purposeId, int limit, int offset) {
+                                 int purposeId, int limit, int offset) throws ConsentManagementException {
 
-        try {
-            List<ReceiptListResponse> receipts;
-            if (purposeId > 0) {
-                receipts = consentManager.searchReceipts(limit, offset, subjectUserId, null, service, state,
-                        purposeId);
-            } else {
-                receipts = consentManager.searchReceipts(limit, offset, subjectUserId, null, service, state);
-            }
-
-            List<ConsentSummaryDTO> summaries = new ArrayList<>();
-            if (receipts != null) {
-                for (ReceiptListResponse r : receipts) {
-                    summaries.add(toConsentSummaryDTO(r));
-                }
-            }
-
-            ConsentListResponse listResponse = new ConsentListResponse();
-            listResponse.setStartIndex(offset);
-            listResponse.setCount(summaries.size());
-            listResponse.setItems(summaries);
-            return Response.ok(listResponse).build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
+        List<ReceiptListResponse> receipts;
+        if (purposeId > 0) {
+            receipts = consentManager.searchReceipts(limit, offset, subjectUserId, null, service, state,
+                    purposeId);
+        } else {
+            receipts = consentManager.searchReceipts(limit, offset, subjectUserId, null, service, state);
         }
+
+        List<ConsentSummaryDTO> summaries = new ArrayList<>();
+        if (receipts != null) {
+            for (ReceiptListResponse r : receipts) {
+                summaries.add(toConsentSummaryDTO(r));
+            }
+        }
+
+        ConsentListResponse listResponse = new ConsentListResponse();
+        listResponse.setStartIndex(offset);
+        listResponse.setCount(summaries.size());
+        listResponse.setItems(summaries);
+        return Response.ok(listResponse).build();
     }
 
     /**
      * Revokes a consent receipt.
      *
      * @param receiptId Receipt ID.
-     * @return Response with no content or error.
+     * @return Response with no content.
+     * @throws ConsentManagementException if revocation fails.
      */
-    public Response revokeConsent(String receiptId) {
+    public Response revokeConsent(String receiptId) throws ConsentManagementException {
 
-        try {
-            Receipt receipt = consentManager.getReceipt(receiptId);
-            // If already revoked, treat as idempotent success.
-            if ("REVOKED".equals(receipt.getState())) {
-                return Response.noContent().build();
-            }
-            consentManager.revokeReceipt(receiptId);
+        Receipt receipt = consentManager.getReceipt(receiptId);
+        // If already revoked, treat as idempotent success.
+        if (REVOKE_STATE.equals(receipt.getState())) {
             return Response.noContent().build();
-        } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
-        } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
-        } catch (Throwable t) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(t, LOG);
         }
+        consentManager.revokeReceipt(receiptId);
+        return Response.noContent().build();
     }
 
     private int getDefaultPurposeCategoryId() throws ConsentManagementException {
 
         PurposeCategory defaultCategory = consentManager.getPurposeCategoryByName(DEFAULT_PURPOSE_CATEGORY_NAME);
+        if (defaultCategory == null) {
+            throw new ConsentManagementServerException(
+                    "Default purpose category '" + DEFAULT_PURPOSE_CATEGORY_NAME + "' not found.",
+                    "CONF_MGT_V2_DEFAULT_CATEGORY_NOT_FOUND");
+        }
         return defaultCategory.getId();
     }
 
-    private ReceiptInput buildReceiptInput(ConsentCreateRequest request, int defaultPurposeCategoryId) {
+    private ReceiptInput buildReceiptInput(ConsentCreateRequest request, int defaultPurposeCategoryId)
+            throws ConsentManagementException {
 
         PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
 
@@ -240,15 +217,10 @@ public class ConsentReceiptsService {
                 purposeInput.setPurposeId(purposeId);
 
                 // Resolve and set the latest version ID for this purpose
-                try {
-                    Purpose purpose = consentManager.getPurpose(purposeId);
-                    PurposeVersion latestVersion = purpose.getLatestVersion();
-                    if (latestVersion != null) {
-                        purposeInput.setPurposeVersionId(latestVersion.getId());
-                    }
-                } catch (ConsentManagementException e) {
-                    // If we can't resolve the purpose, let the backend handle the error
-                    LOG.debug("Unable to resolve latest version for purpose ID: " + purposeId, e);
+                Purpose purpose = consentManager.getPurpose(purposeId);
+                PurposeVersion latestVersion = purpose.getLatestVersion();
+                if (latestVersion != null) {
+                    purposeInput.setPurposeVersionId(latestVersion.getId());
                 }
 
                 purposeInput.setConsentType(DEFAULT_CONSENT_TYPE);
