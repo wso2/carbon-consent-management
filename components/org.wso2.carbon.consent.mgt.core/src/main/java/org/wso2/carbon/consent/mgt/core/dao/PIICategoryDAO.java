@@ -63,7 +63,21 @@ public interface PIICategoryDAO {
      * @throws ConsentManagementException If error occurs while searching the {@link PIICategory}.
      */
     List<PIICategory> listPIICategories(int limit, int offset, int tenantId) throws ConsentManagementException;
+    /**
+     * Lists PII categories with optional filter tree.
+     *
+     * @param filterTree Filter tree from FilterTreeBuilder (null for no filtering)
+     * @param limit      Maximum results
+     * @param offset     Pagination offset
+     * @param tenantId   Tenant ID
+     * @return List of PII categories matching filter
+     * @throws ConsentManagementException if operation fails
+     */
+    default List<PIICategory> listPIICategories(org.wso2.carbon.identity.core.model.Node filterTree, int limit,
+                                                int offset, int tenantId) throws ConsentManagementException {
 
+        return java.util.Collections.emptyList();
+    }
     /**
      * Delete {@link PIICategory} for a given ID.
      *
@@ -101,4 +115,17 @@ public interface PIICategoryDAO {
      * @return
      */
     boolean isPIICategoryUsed(int id) throws ConsentManagementException;
+
+    /**
+     * Retrieve a {@link PIICategory} by its UUID.
+     *
+     * @param uuid     UUID of the {@link PIICategory}.
+     * @param tenantId Tenant ID.
+     * @return PIICategory for the given UUID, or {@code null} if not found.
+     * @throws ConsentManagementException If error occurs while retrieving the {@link PIICategory}.
+     */
+    default PIICategory getPIICategoryByUuid(String uuid, int tenantId) throws ConsentManagementException {
+
+        return null;
+    }
 }

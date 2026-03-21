@@ -28,15 +28,26 @@ import org.wso2.carbon.consent.mgt.core.model.OperationDelegate;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
+import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
+import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
+import org.wso2.carbon.identity.core.model.Node;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GROUP;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GROUP_TYPE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_DELETE_PURPOSE_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_GET_PURPOSE_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_GET_PURPOSE_VERSION_LIST;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_ADD_PURPOSE_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_DELETE_PURPOSE_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_GET_PURPOSE_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_GET_PURPOSE_VERSION_LIST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE_CATEGORY;
@@ -103,6 +114,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_CATEGORY_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_CATEGORY_NAME;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_ID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.VERSION_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.TENANT_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_NAME;
@@ -183,10 +195,10 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         return template.intercept(PRE_GET_PURPOSE_BY_NAME, properties -> {
-            properties.put(PURPOSE_NAME, name);
-            properties.put(GROUP, group);
-            properties.put(GROUP_TYPE, groupType);
-        })
+                    properties.put(PURPOSE_NAME, name);
+                    properties.put(GROUP, group);
+                    properties.put(GROUP_TYPE, groupType);
+                })
                 .executeWith(new OperationDelegate<Purpose>() {
                     @Override
                     public Purpose execute() throws ConsentManagementException {
@@ -205,9 +217,9 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         return template.intercept(PRE_GET_PURPOSE_LIST, properties -> {
-            properties.put(LIMIT, limit);
-            properties.put(OFFSET, offset);
-        })
+                    properties.put(LIMIT, limit);
+                    properties.put(OFFSET, offset);
+                })
                 .executeWith(new OperationDelegate<List<Purpose>>() {
                     @Override
                     public List<Purpose> execute() throws ConsentManagementException {
@@ -230,11 +242,11 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         return template.intercept(PRE_GET_PURPOSE_LIST, properties -> {
-            properties.put(GROUP, group);
-            properties.put(GROUP_TYPE, groupType);
-            properties.put(LIMIT, limit);
-            properties.put(OFFSET, offset);
-        })
+                    properties.put(GROUP, group);
+                    properties.put(GROUP_TYPE, groupType);
+                    properties.put(LIMIT, limit);
+                    properties.put(OFFSET, offset);
+                })
                 .executeWith(new OperationDelegate<List<Purpose>>() {
                     @Override
                     public List<Purpose> execute() throws ConsentManagementException {
@@ -265,6 +277,25 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     }
                 })
                 .intercept(POST_DELETE_PURPOSE, properties -> properties.put(PURPOSE_ID, purposeId));
+    }
+
+    @Override
+    public void deletePurpose(String uuid) throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<Void, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        template.intercept(PRE_DELETE_PURPOSE, properties -> properties.put(PURPOSE_ID, uuid))
+                .executeWith(new OperationDelegate<Void>() {
+                    @Override
+                    public Void execute() throws ConsentManagementException {
+
+                        consentManager.deletePurpose(uuid);
+                        return null;
+                    }
+                })
+                .intercept(POST_DELETE_PURPOSE, properties -> properties.put(PURPOSE_ID, uuid));
     }
 
     /**
@@ -298,10 +329,10 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         return template.intercept(PRE_IS_PURPOSE_EXIST, properties -> {
-            properties.put(PURPOSE_NAME, name);
-            properties.put(GROUP, group);
-            properties.put(GROUP_TYPE, groupType);
-        })
+                    properties.put(PURPOSE_NAME, name);
+                    properties.put(GROUP, group);
+                    properties.put(GROUP_TYPE, groupType);
+                })
                 .executeWith(new OperationDelegate<Boolean>() {
                     @Override
                     public Boolean execute() throws ConsentManagementException {
@@ -320,7 +351,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         return template.intercept(PRE_ADD_PURPOSE_CATEGORY,
-                properties -> properties.put(PURPOSE_CATEGORY, purposeCategory))
+                        properties -> properties.put(PURPOSE_CATEGORY, purposeCategory))
                 .executeWith(new OperationDelegate<PurposeCategory>() {
                     @Override
                     public PurposeCategory execute() throws ConsentManagementException {
@@ -339,7 +370,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         return template.intercept(PRE_GET_PURPOSE_CATEGORY, properties -> properties.put(PURPOSE_CATEGORY_ID,
-                purposeCategoryId))
+                        purposeCategoryId))
                 .executeWith(new OperationDelegate<PurposeCategory>() {
                     @Override
                     public PurposeCategory execute() throws ConsentManagementException {
@@ -359,7 +390,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         return template.intercept(PRE_GET_PURPOSE_CATEGORY_BY_NAME, properties -> properties.put(PURPOSE_CATEGORY_NAME,
-                name))
+                        name))
                 .executeWith(new OperationDelegate<PurposeCategory>() {
                     @Override
                     public PurposeCategory execute() throws ConsentManagementException {
@@ -378,9 +409,9 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         return template.intercept(PRE_GET_PURPOSE_CATEGORY_LIST, properties -> {
-            properties.put(LIMIT, limit);
-            properties.put(OFFSET, offset);
-        })
+                    properties.put(LIMIT, limit);
+                    properties.put(OFFSET, offset);
+                })
                 .executeWith(new OperationDelegate<List<PurposeCategory>>() {
                     @Override
                     public List<PurposeCategory> execute() throws ConsentManagementException {
@@ -402,7 +433,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         template.intercept(PRE_DELETE_PURPOSE_CATEGORY,
-                properties -> properties.put(PURPOSE_CATEGORY_ID, purposeCategoryId))
+                        properties -> properties.put(PURPOSE_CATEGORY_ID, purposeCategoryId))
                 .executeWith(new OperationDelegate<Void>() {
                     @Override
                     public Void execute() throws ConsentManagementException {
@@ -446,7 +477,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         return template.intercept(PRE_IS_PURPOSE_CATEGORY_EXIST, properties -> properties.put(PURPOSE_CATEGORY_NAME,
-                name))
+                        name))
                 .executeWith(new OperationDelegate<Boolean>() {
                     @Override
                     public Boolean execute() throws ConsentManagementException {
@@ -494,6 +525,29 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 .getResult();
     }
 
+    @Override
+    public PIICategory getPIICategoryByUuid(String uuid) throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<PIICategory, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_GET_PII_CATEGORY, properties -> {
+                    properties.put("PII_CATEGORY_UUID", uuid);
+                })
+                .executeWith(new OperationDelegate<PIICategory>() {
+                    @Override
+                    public PIICategory execute() throws ConsentManagementException {
+
+                        return consentManager.getPIICategoryByUuid(uuid);
+                    }
+                })
+                .intercept(POST_GET_PII_CATEGORY, properties -> {
+                    properties.put("PII_CATEGORY_UUID", uuid);
+                })
+                .getResult();
+    }
+
     public PIICategory getPIICategory(int piiCategoryId) throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
@@ -519,9 +573,9 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         return template.intercept(PRE_GET_PII_CATEGORY_LIST, properties -> {
-            properties.put(LIMIT, limit);
-            properties.put(OFFSET, offset);
-        })
+                    properties.put(LIMIT, limit);
+                    properties.put(OFFSET, offset);
+                })
                 .executeWith(new OperationDelegate<List<PIICategory>>() {
                     @Override
                     public List<PIICategory> execute() throws ConsentManagementException {
@@ -552,6 +606,25 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     }
                 })
                 .intercept(POST_DELETE_PII_CATEGORY, properties -> properties.put(PII_CATEGORY_ID, piiCategoryId));
+    }
+
+    @Override
+    public void deletePIICategory(String uuid) throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<Void, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        template.intercept(PRE_DELETE_PII_CATEGORY, properties -> properties.put(PII_CATEGORY_ID, uuid))
+                .executeWith(new OperationDelegate<Void>() {
+                    @Override
+                    public Void execute() throws ConsentManagementException {
+
+                        consentManager.deletePIICategory(uuid);
+                        return null;
+                    }
+                })
+                .intercept(POST_DELETE_PII_CATEGORY, properties -> properties.put(PII_CATEGORY_ID, uuid));
     }
 
     /**
@@ -585,7 +658,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         return template.intercept(PRE_IS_PII_CATEGORY_EXIST, properties -> properties.put(PII_CATEGORY_NAME,
-                name))
+                        name))
                 .executeWith(new OperationDelegate<Boolean>() {
                     @Override
                     public Boolean execute() throws ConsentManagementException {
@@ -594,6 +667,30 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     }
                 })
                 .intercept(POST_IS_PII_CATEGORY_EXIST, properties -> properties.put(PII_CATEGORY_NAME, name))
+                .getResult();
+    }
+
+    public AddReceiptResponse addConsent(String userId, String applicationId, String tenantDomain,
+                                         String consentType, Map<String, List<Integer>> purposeToElementUuids,
+                                         boolean allowMultipleActiveReceipts)
+            throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<AddReceiptResponse, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_ADD_RECEIPT, properties -> {
+                })
+                .executeWith(new OperationDelegate<AddReceiptResponse>() {
+                    @Override
+                    public AddReceiptResponse execute() throws ConsentManagementException {
+
+                        return consentManager.addConsent(userId, applicationId, tenantDomain, consentType,
+                                purposeToElementUuids, allowMultipleActiveReceipts);
+                    }
+                })
+                .intercept(POST_ADD_RECEIPT, properties -> {
+                })
                 .getResult();
     }
 
@@ -641,8 +738,8 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         return template.intercept(PRE_LIST_RECEIPTS, properties -> {
-            populateProperties(limit, offset, piiPrincipalId, spTenantDomain, service, state, properties);
-        })
+                    populateProperties(limit, offset, piiPrincipalId, spTenantDomain, service, state, properties);
+                })
                 .executeWith(new OperationDelegate<List<ReceiptListResponse>>() {
                     @Override
                     public List<ReceiptListResponse> execute() throws ConsentManagementException {
@@ -667,9 +764,9 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         return template.intercept(PRE_LIST_RECEIPTS, properties -> {
-            populateProperties(limit, offset, piiPrincipalId, spTenantDomain, service, state, principalTenantDomain,
-                    properties);
-        })
+                    populateProperties(limit, offset, piiPrincipalId, spTenantDomain, service, state, principalTenantDomain,
+                            properties);
+                })
                 .executeWith(new OperationDelegate<List<ReceiptListResponse>>() {
                     @Override
                     public List<ReceiptListResponse> execute() throws ConsentManagementException {
@@ -763,6 +860,191 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
         return consentManager.isReceiptExist(receiptId, tenantAwareUsername, tenantId);
     }
 
+    @Override
+    public List<PurposeVersion> listPurposeVersions(String uuid) throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<List<PurposeVersion>, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_GET_PURPOSE_VERSION_LIST, properties -> properties.put(PURPOSE_ID, uuid))
+                .executeWith(new OperationDelegate<List<PurposeVersion>>() {
+                    @Override
+                    public List<PurposeVersion> execute() throws ConsentManagementException {
+
+                        return consentManager.listPurposeVersions(uuid);
+                    }
+                })
+                .intercept(POST_GET_PURPOSE_VERSION_LIST, properties -> properties.put(PURPOSE_ID, uuid))
+                .getResult();
+    }
+
+    @Override
+    public PurposeVersion getPurposeVersion(String purposeUuid, String versionUuid) throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<PurposeVersion, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_GET_PURPOSE_VERSION, properties -> {
+                    properties.put(PURPOSE_ID, purposeUuid);
+                    properties.put(VERSION_ID, versionUuid);
+                })
+                .executeWith(new OperationDelegate<PurposeVersion>() {
+                    @Override
+                    public PurposeVersion execute() throws ConsentManagementException {
+
+                        return consentManager.getPurposeVersion(purposeUuid, versionUuid);
+                    }
+                })
+                .intercept(POST_GET_PURPOSE_VERSION, properties -> {
+                    properties.put(PURPOSE_ID, purposeUuid);
+                    properties.put(VERSION_ID, versionUuid);
+                })
+                .getResult();
+    }
+
+    @Override
+    public void deletePurposeVersion(String purposeUuid, String versionUuid) throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<Void, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        template.intercept(PRE_DELETE_PURPOSE_VERSION, properties -> {
+                    properties.put(PURPOSE_ID, purposeUuid);
+                    properties.put(VERSION_ID, versionUuid);
+                })
+                .executeWith(new OperationDelegate<Void>() {
+                    @Override
+                    public Void execute() throws ConsentManagementException {
+
+                        consentManager.deletePurposeVersion(purposeUuid, versionUuid);
+                        return null;
+                    }
+                })
+                .intercept(POST_DELETE_PURPOSE_VERSION, properties -> {
+                    properties.put(PURPOSE_ID, purposeUuid);
+                    properties.put(VERSION_ID, versionUuid);
+                });
+    }
+
+    @Override
+    public PurposeVersion addPurposeVersion(String purposeUuid, PurposeVersion purposeVersion, boolean setAsLatest)
+            throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<PurposeVersion, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_ADD_PURPOSE_VERSION, properties -> {
+                    properties.put(PURPOSE_ID, purposeUuid);
+                    properties.put("PURPOSE_VERSION", purposeVersion);
+                })
+                .executeWith(new OperationDelegate<PurposeVersion>() {
+                    @Override
+                    public PurposeVersion execute() throws ConsentManagementException {
+
+                        return consentManager.addPurposeVersion(purposeUuid, purposeVersion, setAsLatest);
+                    }
+                })
+                .intercept(POST_ADD_PURPOSE_VERSION, properties -> {
+                    properties.put(PURPOSE_ID, purposeUuid);
+                    properties.put("PURPOSE_VERSION", purposeVersion);
+                })
+                .getResult();
+    }
+
+    @Override
+    public PurposeVersion getPurposeVersionByLabel(int purposeId, String versionLabel)
+            throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<PurposeVersion, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_GET_PURPOSE_VERSION, properties -> {
+                    properties.put(PURPOSE_ID, purposeId);
+                    properties.put("PURPOSE_VERSION_LABEL", versionLabel);
+                })
+                .executeWith(new OperationDelegate<PurposeVersion>() {
+                    @Override
+                    public PurposeVersion execute() throws ConsentManagementException {
+
+                        return consentManager.getPurposeVersionByLabel(purposeId, versionLabel);
+                    }
+                })
+                .intercept(POST_GET_PURPOSE_VERSION, properties -> {
+                    properties.put(PURPOSE_ID, purposeId);
+                    properties.put("PURPOSE_VERSION_LABEL", versionLabel);
+                })
+                .getResult();
+    }
+
+    @Override
+    public Purpose getPurposeByUuid(String uuid) throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<Purpose, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_GET_PURPOSE, properties -> properties.put("PURPOSE_UUID", uuid))
+                .executeWith(new OperationDelegate<Purpose>() {
+                    @Override
+                    public Purpose execute() throws ConsentManagementException {
+
+                        return consentManager.getPurposeByUuid(uuid);
+                    }
+                })
+                .intercept(POST_GET_PURPOSE, properties -> properties.put("PURPOSE_UUID", uuid))
+                .getResult();
+    }
+
+    @Override
+    public void setLatestPurposeVersion(int purposeId, String versionLabel) throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<Void, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        template.intercept(PRE_ADD_PURPOSE_VERSION, properties -> {
+                    properties.put(PURPOSE_ID, purposeId);
+                    properties.put("PURPOSE_VERSION_LABEL", versionLabel);
+                })
+                .executeWith(new OperationDelegate<Void>() {
+                    @Override
+                    public Void execute() throws ConsentManagementException {
+
+                        consentManager.setLatestPurposeVersion(purposeId, versionLabel);
+                        return null;
+                    }
+                })
+                .intercept(POST_ADD_PURPOSE_VERSION, properties -> {
+                    properties.put(PURPOSE_ID, purposeId);
+                    properties.put("PURPOSE_VERSION_LABEL", versionLabel);
+                });
+    }
+
+    @Override
+    public Object[] addPurpose(Purpose purpose, PurposeVersion firstVersion)
+            throws ConsentManagementException {
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<Object[], ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
+                .executeWith(new OperationDelegate<Object[]>() {
+                    @Override
+                    public Object[] execute() throws ConsentManagementException {
+
+                        return consentManager.addPurpose(purpose, firstVersion);
+                    }
+                })
+                .intercept(POST_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
+                .getResult();
+    }
+
     private void populateProperties(int limit, int offset, String piiPrincipalId, String spTenantDomain, String
             service, String state, Map<String, Object> properties) {
 
@@ -784,5 +1066,97 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
         properties.put(SERVICE, service);
         properties.put(STATE, state);
         properties.put(PRINCIPAL_TENANT_DOMAIN, principalTenantDomain);
+    }
+
+    /**
+     * Updates authorization status for a user on a consent.
+     *
+     * @param consentId  Consent receipt ID.
+     * @param userId     User ID for authorization.
+     * @param authStatus Authorization status (APPROVED, REJECTED, or REVOKED).
+     * @throws ConsentManagementException if authorization fails.
+     */
+    @Override
+    public void authorizeConsent(String consentId, String userId, String authStatus)
+            throws ConsentManagementException {
+
+        consentManager.authorizeConsent(consentId, userId, authStatus);
+    }
+
+    /**
+     * Retrieves authorization records for a consent.
+     *
+     * @param consentId Consent receipt ID.
+     * @return List of authorization records.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    @Override
+    public List<ConsentAuthorization> getConsentAuthorizations(String consentId)
+            throws ConsentManagementException {
+
+        return consentManager.getConsentAuthorizations(consentId);
+    }
+
+    /**
+     * Validates and updates consent status based on validity time.
+     *
+     * @param consentId Consent receipt ID.
+     * @return Current consent status (PENDING, ACTIVE, REJECTED, REVOKED, or EXPIRED).
+     * @throws ConsentManagementException if validation fails.
+     */
+    @Override
+    public String validateConsentStatus(String consentId)
+            throws ConsentManagementException {
+
+        return consentManager.validateConsentStatus(consentId);
+    }
+
+    /**
+     * Lists purposes matching a filter tree.
+     *
+     * @param filterTree Filter tree for advanced filtering
+     * @param limit      Maximum number of results
+     * @param offset     Pagination offset
+     * @return List of purposes matching the filter
+     * @throws ConsentManagementException if listing fails
+     */
+    @Override
+    public List<Purpose> listPurposes(Node filterTree, int limit, int offset)
+            throws ConsentManagementException {
+
+        return consentManager.listPurposes(filterTree, limit, offset);
+    }
+
+    /**
+     * Lists PII categories matching a filter tree.
+     *
+     * @param filterTree Filter tree for advanced filtering
+     * @param limit      Maximum number of results
+     * @param offset     Pagination offset
+     * @return List of PII categories matching the filter
+     * @throws ConsentManagementException if listing fails
+     */
+    @Override
+    public List<PIICategory> listPIICategories(Node filterTree, int limit, int offset)
+            throws ConsentManagementException {
+
+        return consentManager.listPIICategories(filterTree, limit, offset);
+    }
+
+    /**
+     * Lists receipts (consents) matching a filter tree.
+     *
+     * @param limit  Maximum number of results
+     * @param offset Pagination offset
+     * @return List of receipts matching the filter
+     * @throws ConsentManagementException if listing fails
+     */
+    @Override
+    public List<Receipt> listReceipts(String subjectId, String serviceId, String state, String purposeId,
+                                      String purposeVersionId, int limit, int offset)
+            throws ConsentManagementException {
+
+        return consentManager.listReceipts(subjectId, serviceId, state, purposeId, purposeVersionId,
+                limit, offset);
     }
 }
