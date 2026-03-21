@@ -17,10 +17,12 @@
 package org.wso2.carbon.consent.mgt.core.dao;
 
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -81,14 +83,14 @@ public interface ReceiptDAO {
     }
 
     /**
-     *  Search {@link Receipt} items for a given criteria.
+     * Search {@link Receipt} items for a given criteria.
      *
-     * @param limit Maximum number of results expected.
-     * @param offset Result offset.
-     * @param piiPrincipalId Identifier of the principal subject.
-     * @param spTenantId Tenant domain of the service.
-     * @param service Service name.
-     * @param state State of the {@link Receipt}.
+     * @param limit             Maximum number of results expected.
+     * @param offset            Result offset.
+     * @param piiPrincipalId    Identifier of the principal subject.
+     * @param spTenantId        Tenant domain of the service.
+     * @param service           Service name.
+     * @param state             State of the {@link Receipt}.
      * @param principalTenantId Tenant ID of the principal.
      * @return A list of {@link ReceiptListResponse}
      * @throws ConsentManagementException If error occurs while searching {@link Receipt} items.
@@ -99,12 +101,55 @@ public interface ReceiptDAO {
 
     /**
      * Check whether a receipt exists with the given criteria.
-     * @param receiptId Consent Receipt Id.
+     *
+     * @param receiptId      Consent Receipt Id.
      * @param piiPrincipalId PII Principal Id.
-     * @param tenantId PII Principal tenant Id.
+     * @param tenantId       PII Principal tenant Id.
      * @return true if a receiept exists.
      * @throws ConsentManagementException If error occurs while checking {@link ConsentManagementException}
      */
     boolean isReceiptExist(String receiptId, String piiPrincipalId, int tenantId) throws ConsentManagementException;
 
+    default void insertConsentAuthorization(ConsentAuthorization authorization)
+            throws ConsentManagementException {
+    }
+
+    default List<ConsentAuthorization> getConsentAuthorizations(String consentReceiptId)
+            throws ConsentManagementException {
+
+        return Collections.emptyList();
+    }
+
+    default ConsentAuthorization getConsentAuthorizationByUser(String consentReceiptId, String userId)
+            throws ConsentManagementException {
+
+        return null;
+    }
+
+    default void updateConsentAuthorization(String consentReceiptId, String userId, String status, long updatedTime)
+            throws ConsentManagementException {
+    }
+
+    default void updateReceiptState(String consentReceiptId, String state)
+            throws ConsentManagementException {
+    }
+
+    default String getReceiptState(String consentReceiptId)
+            throws ConsentManagementException {
+
+        return null;
+    }
+
+    default Long getReceiptValidityTime(String consentReceiptId)
+            throws ConsentManagementException {
+
+        return null;
+    }
+
+    default List<Receipt> listReceipts(String subjectId, String serviceId, String state,
+                                       String purposeId, String purposeVersionId, int limit, int offset, int tenantId)
+            throws ConsentManagementException {
+
+        return null;
+    }
 }

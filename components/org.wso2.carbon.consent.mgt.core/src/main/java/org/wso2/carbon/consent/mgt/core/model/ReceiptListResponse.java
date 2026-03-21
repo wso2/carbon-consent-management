@@ -29,6 +29,7 @@ public class ReceiptListResponse {
     private String state;
     private String spDisplayName;
     private String spDescription;
+    private Long validityTime;
 
     public ReceiptListResponse(String consentReceiptId, String language, String piiPrincipalId, int tenantId,
                                String state, String spDisplayName, String spDescription) {
@@ -120,5 +121,15 @@ public class ReceiptListResponse {
     public void setSpDescription(String spDescription) {
 
         this.spDescription = spDescription;
+    }
+
+    public Long getValidityTime() {
+
+        return validityTime;
+    }
+
+    public void setValidityTime(Long validityTime) {
+
+        this.validityTime = validityTime;
     }
 }
