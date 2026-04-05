@@ -72,7 +72,6 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco.version}</version>
                 <configuration>
                     <excludes>
                         <exclude>**/org/wso2/carbon/consent/mgt/endpoint/*</exclude>
@@ -88,21 +87,9 @@
                         </goals>
                     </execution>
                     <execution>
-                        <id>default-prepare-agent-integration</id>
-                        <goals>
-                            <goal>prepare-agent-integration</goal>
-                        </goals>
-                    </execution>
-                    <execution>
                         <id>default-report</id>
                         <goals>
                             <goal>report</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>default-report-integration</id>
-                        <goals>
-                            <goal>report-integration</goal>
                         </goals>
                     </execution>
                     <execution>
@@ -112,10 +99,10 @@
                         </goals>
                         <configuration>
                             <rules>
-                                <rule implementation="org.jacoco.maven.RuleConfiguration">
+                                <rule>
                                     <element>BUNDLE</element>
                                     <limits>
-                                        <limit implementation="org.jacoco.report.check.Limit">
+                                        <limit>
                                             <counter>COMPLEXITY</counter>
                                             <value>COVEREDRATIO</value>
                                             <!--<minimum>0.60</minimum>-->
