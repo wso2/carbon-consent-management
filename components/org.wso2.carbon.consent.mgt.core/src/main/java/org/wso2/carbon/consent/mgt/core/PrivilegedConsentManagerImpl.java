@@ -672,7 +672,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
 
     public AddReceiptResponse addConsent(String userId, String applicationId, String tenantDomain,
                                          String consentType, Map<String, List<Integer>> purposeToElementUuids,
-                                         boolean allowMultipleActiveReceipts)
+                                         String collectionMethod, String state)
             throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
@@ -686,7 +686,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     public AddReceiptResponse execute() throws ConsentManagementException {
 
                         return consentManager.addConsent(userId, applicationId, tenantDomain, consentType,
-                                purposeToElementUuids, allowMultipleActiveReceipts);
+                                purposeToElementUuids, collectionMethod, state);
                     }
                 })
                 .intercept(POST_ADD_RECEIPT, properties -> {

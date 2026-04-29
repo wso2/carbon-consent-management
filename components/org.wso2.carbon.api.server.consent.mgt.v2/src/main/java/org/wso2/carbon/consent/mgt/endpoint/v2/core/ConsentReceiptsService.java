@@ -65,7 +65,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PENDING_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.API_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.DEFAULT_PURPOSE_GROUP;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.DEFAULT_COLLECTION_METHOD_V2;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.DEFAULT_COLLECTION_METHOD;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.TERMINATION_INDEFINITE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_ELEMENT_UUID_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_INVALID_STATE_FOR_AUTHORIZE;
@@ -228,7 +228,8 @@ public class ConsentReceiptsService {
         receiptInput.setVersion(API_VERSION);
         receiptInput.setJurisdiction(DEFAULT_JURISDICTION);
         receiptInput.setPolicyUrl(DEFAULT_POLICY_URL);
-        receiptInput.setCollectionMethod(DEFAULT_COLLECTION_METHOD_V2);
+        receiptInput.setCollectionMethod(DEFAULT_COLLECTION_METHOD);
+        receiptInput.setAllowMultipleActiveReceipts(true);
         receiptInput.setLanguage(request.getLanguage());
         boolean hasAuthorizations = request.getAuthorizations() != null && !request.getAuthorizations().isEmpty();
         String currentUser = carbonContext.getUsername();

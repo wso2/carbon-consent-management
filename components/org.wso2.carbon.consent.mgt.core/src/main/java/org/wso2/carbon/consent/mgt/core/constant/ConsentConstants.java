@@ -37,7 +37,7 @@ public class ConsentConstants {
     public static final String PURPOSE_CATEGORY_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "purpose-categories";
     public static final String PII_CATEGORY_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "pii-categories";
     public static final String API_VERSION = "KI-CR-v1.1.0";
-    public static final String DEFAULT_COLLECTION_METHOD_V2 = "V2";
+    public static final String DEFAULT_COLLECTION_METHOD = "API";
     public static final String TERMINATION_INDEFINITE = "VALID_UNTIL:INDEFINITE";
     public static final String DEFAULT_PURPOSE_GROUP = "DEFAULT";
     public static final String REVOKE_STATE = "REVOKED";

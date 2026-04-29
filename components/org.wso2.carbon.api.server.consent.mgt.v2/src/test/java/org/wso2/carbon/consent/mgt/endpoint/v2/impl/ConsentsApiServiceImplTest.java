@@ -486,6 +486,29 @@ public class ConsentsApiServiceImplTest {
                 "Consent without authorizations list should be ACTIVE immediately");
     }
 
+        @Test
+        public void testConsentsCreate_allowsMultipleActiveReceipts() {
+
+        UUID[] ids = createPurposeWithElement();
+
+        Response firstCreated = consentsApiService.consentsCreate(buildConsentRequest(ids[0], ids[1]));
+        Response secondCreated = consentsApiService.consentsCreate(buildConsentRequest(ids[0], ids[1]));
+
+        Assert.assertEquals(firstCreated.getStatus(), Response.Status.CREATED.getStatusCode());
+        Assert.assertEquals(secondCreated.getStatus(), Response.Status.CREATED.getStatusCode());
+
+        String firstConsentId = ((ConsentResponseDTO) firstCreated.getEntity()).getConsentId();
+        String secondConsentId = ((ConsentResponseDTO) secondCreated.getEntity()).getConsentId();
+
+        Response firstGet = consentsApiService.consentsGet(firstConsentId);
+        Response secondGet = consentsApiService.consentsGet(secondConsentId);
+
+        Assert.assertEquals(((ConsentDTO) firstGet.getEntity()).getState(), ConsentDTO.StateEnum.ACTIVE,
+            "First consent should remain ACTIVE when multiple active receipts are allowed");
+        Assert.assertEquals(((ConsentDTO) secondGet.getEntity()).getState(), ConsentDTO.StateEnum.ACTIVE,
+            "Second consent should also be ACTIVE when multiple active receipts are allowed");
+        }
+
     @Test
     public void testConsentsCreate_withAuthorizations_statusPending() {
 
