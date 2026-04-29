@@ -298,19 +298,10 @@ public class ConsentConstants {
         // Filter attribute names (API level - camelCase)
         public static final String FILTER_ATTR_TYPE = "type";
         public static final String FILTER_ATTR_NAME = "name";
-        public static final String FILTER_ATTR_SUBJECT_ID = "subjectId";
-        public static final String FILTER_ATTR_SERVICE_ID = "serviceId";
-        public static final String FILTER_ATTR_STATE = "state";
-        public static final String FILTER_ATTR_PURPOSE_ID = "purposeId";
-        public static final String FILTER_ATTR_PURPOSE_VERSION_ID = "purposeVersionId";
 
         // Database column names (SQL level - UPPERCASE)
-        public static final String DB_COL_GROUP_TYPE = "GROUP_TYPE";
         public static final String DB_COL_NAME = "NAME";
-        public static final String DB_COL_PII_PRINCIPAL_ID = "PII_PRINCIPAL_ID";
-        public static final String DB_COL_SERVICE_ID = "SERVICE_ID";
-        public static final String DB_COL_STATE = "STATE";
-        public static final String DB_COL_PURPOSE_VERSION_ID = "PURPOSE_VERSION_ID";
+        public static final String DB_COL_GROUP_TYPE = "GROUP_TYPE";
 
         // Filter operators
         public static final String OP_EQ = "eq";

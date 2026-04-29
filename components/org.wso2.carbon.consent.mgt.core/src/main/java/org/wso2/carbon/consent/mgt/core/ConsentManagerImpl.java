@@ -359,9 +359,7 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("All purposes deleted successfully for tenant: " + tenantId);
         }
-    }
-
-    ;
+    };
 
     /**
      * This API is used to check whether a purpose exists with given name, group and groupType.
@@ -499,9 +497,7 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("All purpose categories deleted successfully for tenant: " + tenantId);
         }
-    }
-
-    ;
+    };
 
     /**
      * This API is used to check whether a purpose category exists for a given name.
@@ -645,9 +641,7 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("All PII categories deleted successfully for tenant: " + tenantId);
         }
-    }
-
-    ;
+    };
 
     /**
      * This API is sued to check whether a PII category exists for a given name.
@@ -892,9 +886,7 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("All receipts deleted successfully for tenant: " + tenantId);
         }
-    }
-
-    ;
+    };
 
     /**
      * This API is used to check whether a receipt exists for the user identified by the tenantAwareUser name in the
@@ -1247,6 +1239,16 @@ public class ConsentManagerImpl implements ConsentManager {
 
         ReceiptDAO vReceiptDAO = getReceiptsDAO(receiptDAOs);
         String state = vReceiptDAO.getReceiptState(consentId);
+
+        if (state == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No receipt found with the Id: " + consentId);
+            }
+            String message = String.format(ERROR_CODE_RECEIPT_ID_INVALID.getMessage(), consentId) + " in tenant: " +
+                    ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_RECEIPT_ID_INVALID.getCode());
+        }
+
         if (ACTIVE_STATE.equals(state)) {
             Long validityTime = vReceiptDAO.getReceiptValidityTime(consentId);
             if (validityTime != null && validityTime < System.currentTimeMillis()) {
@@ -1254,7 +1256,7 @@ public class ConsentManagerImpl implements ConsentManager {
                 return EXPIRED_STATE;
             }
         }
-        return state != null ? state : ACTIVE_STATE;
+        return state;
     }
 
     private Purpose getPurposeFromName(String name, String group, String groupType) throws ConsentManagementException {

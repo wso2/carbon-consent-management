@@ -1123,6 +1123,10 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 finalOffset = limit + offset;
                 finalLimit = offset + 1;
                 query = SQLConstants.LIST_RECEIPTS_MSSQL;
+            } else if (isInformixDB()) {
+                // Informix
+                throw new ConsentManagementServerException("This method is not supported for Informix database.",
+                        ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode());
             } else {
                 // Oracle
                 finalLimit = offset + limit;

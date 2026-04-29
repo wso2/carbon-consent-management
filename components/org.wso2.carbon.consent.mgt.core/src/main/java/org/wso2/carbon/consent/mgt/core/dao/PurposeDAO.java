@@ -127,7 +127,9 @@ public interface PurposeDAO {
      * @param purposeId DB ID of the {@link Purpose} to be deleted.
      * @throws ConsentManagementException If error occurs while deleting.
      */
-    void deletePurposeWithVersions(int purposeId) throws ConsentManagementException;
+    default void deletePurposeWithVersions(int purposeId) throws ConsentManagementException {
+
+    }
 
     /**
      * Delete all {@link Purpose} of a given tenant id.
@@ -153,7 +155,10 @@ public interface PurposeDAO {
      * @param versionUuid UUID of the {@link PurposeVersion} to be validated
      * @return true if the version is used, false otherwise
      */
-    boolean isPurposeVersionUsed(String versionUuid) throws ConsentManagementServerException;
+    default boolean isPurposeVersionUsed(String versionUuid) throws ConsentManagementServerException {
+
+        return false;
+    }
 
     /**
      * Add a new version for a {@link Purpose}.

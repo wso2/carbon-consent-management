@@ -150,6 +150,6 @@ public interface ReceiptDAO {
                                        String purposeId, String purposeVersionId, int limit, int offset, int tenantId)
             throws ConsentManagementException {
 
-        return null;
+        return Collections.emptyList();
     }
 }

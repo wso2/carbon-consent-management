@@ -175,7 +175,9 @@ public class FilterSqlBuilder {
     }
 
     /**
-     * Escapes value for LIKE operators by adding wildcards.
+     * Escapes value for LIKE operators by adding wildcards and escaping SQL wildcard characters.
+     * First escapes backslashes, percent signs, and underscores in the value,
+     * then adds LIKE wildcards as needed.
      *
      * @param operator Filter operator (used to determine wildcard placement)
      * @param value    Original value to escape
@@ -191,19 +193,38 @@ public class FilterSqlBuilder {
             return value;
         }
 
-        switch (operator.toLowerCase()) {
+        String escapedValue = value;
+
+        // Check if this is a LIKE operator that requires escaping
+        String operatorLower = operator.toLowerCase();
+        boolean isLikeOperator = operatorLower.equals(FilterConstants.OP_SW) ||
+                                 operatorLower.equals(FilterConstants.OP_CO) ||
+                                 operatorLower.equals(FilterConstants.OP_EW);
+
+        // For LIKE operators, escape SQL wildcard characters and backslashes
+        if (isLikeOperator) {
+            // Escape backslashes first to avoid double-escaping
+            escapedValue = escapedValue.replace("\\", "\\\\");
+            // Escape percent signs
+            escapedValue = escapedValue.replace("%", "\\%");
+            // Escape underscores
+            escapedValue = escapedValue.replace("_", "\\_");
+        }
+
+        // Add LIKE wildcards based on operator
+        switch (operatorLower) {
             case FilterConstants.OP_SW:
                 // Starts with: "value%"
-                return value + FilterConstants.LIKE_WILDCARD_END;
+                return escapedValue + FilterConstants.LIKE_WILDCARD_END;
             case FilterConstants.OP_CO:
                 // Contains: "%value%"
-                return FilterConstants.LIKE_WILDCARD_START + value + FilterConstants.LIKE_WILDCARD_END;
+                return FilterConstants.LIKE_WILDCARD_START + escapedValue + FilterConstants.LIKE_WILDCARD_END;
             case FilterConstants.OP_EW:
                 // Ends with: "%value"
-                return FilterConstants.LIKE_WILDCARD_START + value;
+                return FilterConstants.LIKE_WILDCARD_START + escapedValue;
             default:
                 // For "eq" and others, return unchanged
-                return value;
+                return escapedValue;
         }
     }
 }

@@ -339,10 +339,15 @@ public class PurposeDAOImpl implements PurposeDAO {
                         "GROUP_TYPE, TENANT_ID, UUID, LATEST_VERSION_ID, ROW_NUMBER() OVER (ORDER BY ID) " +
                         "AS RowNum FROM CM_PURPOSE) AS P WHERE P.TENANT_ID = ?" + filterWhereClause +
                         " AND P.RowNum BETWEEN ? AND ?";
+            } else if (isInformixDB()) {
+                // Informix
+                throw new ConsentManagementServerException("This method is not supported for Informix database.",
+                        ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode());
             } else {
                 // Oracle
                 finalLimit = offset + limit;
-                query = "SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY ID) AS RN, ID, NAME, " +
+                query = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, TENANT_ID, UUID, " +
+                        "LATEST_VERSION_ID FROM (SELECT ROW_NUMBER() OVER (ORDER BY ID) AS RN, ID, NAME, " +
                         "DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, TENANT_ID, UUID, LATEST_VERSION_ID " +
                         "FROM CM_PURPOSE WHERE TENANT_ID = ?" + filterWhereClause +
                         ") WHERE RN <= ? AND RN > ?";
@@ -864,7 +869,9 @@ public class PurposeDAOImpl implements PurposeDAO {
             String attribute = exprNode.getAttributeValue();
 
             // Map filter attribute names to database column names
-            if (FilterConstants.FILTER_ATTR_TYPE.equalsIgnoreCase(attribute)) {
+            if (FilterConstants.FILTER_ATTR_NAME.equalsIgnoreCase(attribute)) {
+                exprNode.setAttributeValue(FilterConstants.DB_COL_NAME);
+            } else if (FilterConstants.FILTER_ATTR_TYPE.equalsIgnoreCase(attribute)) {
                 exprNode.setAttributeValue(FilterConstants.DB_COL_GROUP_TYPE);
             }
             return exprNode;

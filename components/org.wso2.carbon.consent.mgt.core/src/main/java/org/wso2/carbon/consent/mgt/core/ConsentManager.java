@@ -347,9 +347,7 @@ public interface ConsentManager {
      */
     default void deleteReceipts(int tenantId) throws ConsentManagementException {
 
-    }
-
-    ;
+    };
 
     /**
      * This API is used to check whether a receipt exists for the user identified by the tenantAwareUser name in the
