@@ -263,21 +263,22 @@ public interface ConsentManager {
 
     /**
      * Add a consent receipt for a user, resolving purpose and element UUIDs to internal IDs.
+     * Multiple active receipts are always allowed per user per service.
      *
-     * @param userId                       PII principal ID (subject user).
-     * @param applicationId                Service/application identifier.
-     * @param tenantDomain                 Tenant domain.
-     * @param consentType                  Consent type (e.g. "EXPLICIT").
-     * @param purposeToElementUuids        Ordered map of purpose UUID to list of element UUIDs.
-     *                                     An empty list means no elements for that purpose.
-     * @param allowMultipleActiveReceipts  If true, existing active receipts are preserved;
-     *                                     if false, they are revoked before adding the new one.
+     * @param userId                PII principal ID (subject user).
+     * @param applicationId         Service/application identifier.
+     * @param tenantDomain          Tenant domain.
+     * @param consentType           Consent type (e.g. "EXPLICIT").
+     * @param purposeToElementUuids Ordered map of purpose UUID to list of element UUIDs.
+     *                              An empty list means no elements for that purpose.
+     * @param collectionMethod      Collection method for the receipt.
+     * @param state                 Initial receipt state (e.g. "ACTIVE" or "REJECTED").
      * @return AddReceiptResponse with the created receipt details.
      * @throws ConsentManagementException if UUID resolution or receipt creation fails.
      */
     default AddReceiptResponse addConsent(String userId, String applicationId, String tenantDomain,
                                           String consentType, Map<String, List<Integer>> purposeToElementUuids,
-                                          boolean allowMultipleActiveReceipts)
+                                          String collectionMethod, String state)
             throws ConsentManagementException {
 
         return null;

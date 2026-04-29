@@ -703,7 +703,7 @@ public class ConsentManagerImpl implements ConsentManager {
     @Override
     public AddReceiptResponse addConsent(String userId, String applicationId, String tenantDomain,
                                          String consentType, Map<String, List<Integer>> purposeToElementUuids,
-                                         boolean allowMultipleActiveReceipts)
+                                         String collectionMethod, String state)
             throws ConsentManagementException {
 
         PurposeCategory defaultCategory = getPurposeCategoryByName(DEFAULT_PURPOSE_GROUP);
@@ -744,14 +744,15 @@ public class ConsentManagerImpl implements ConsentManager {
 
         ReceiptInput receiptInput = new ReceiptInput();
         receiptInput.setVersion(API_VERSION);
-        receiptInput.setCollectionMethod(DEFAULT_COLLECTION_METHOD_V2);
+        receiptInput.setCollectionMethod(collectionMethod);
         receiptInput.setJurisdiction("");
         receiptInput.setPolicyUrl("");
         receiptInput.setLanguage("");
         receiptInput.setPiiPrincipalId(userId);
         receiptInput.setTenantDomain(tenantDomain);
         receiptInput.setServices(Arrays.asList(serviceInput));
-        receiptInput.setAllowMultipleActiveReceipts(allowMultipleActiveReceipts);
+        receiptInput.setAllowMultipleActiveReceipts(true);
+        receiptInput.setState(state);
 
         return addConsent(receiptInput);
     }
