@@ -268,6 +268,7 @@ public class ConsentsApiServiceImplTest {
         PurposeCreateRequest purposeReq = new PurposeCreateRequest();
         purposeReq.setName("CONSENT_TEST_PURPOSE_" + System.nanoTime());
         purposeReq.setType("CONSENT_TEST_GROUP");
+        purposeReq.setVersion("v1");
         purposeReq.setElements(List.of(binding));
         Response purposeResp = purposesApiService.purposesCreate(purposeReq);
         UUID purposeId = ((PurposeDTO) purposeResp.getEntity()).getPurposeId();
@@ -531,7 +532,7 @@ public class ConsentsApiServiceImplTest {
     // =========================================================================
 
     @Test
-    public void testConsentsAuthorize_approve_returns201() {
+    public void testConsentsAuthorize_approve_returns200() {
 
         UUID[] ids = createPurposeWithElement();
         ConsentCreateRequest request = buildConsentRequest(ids[0], ids[1]);
@@ -545,7 +546,7 @@ public class ConsentsApiServiceImplTest {
 
         Response authResponse = consentsApiService.consentsAuthorize(consentId, authRequest);
 
-        Assert.assertEquals(authResponse.getStatus(), Response.Status.CREATED.getStatusCode());
+        Assert.assertEquals(authResponse.getStatus(), Response.Status.OK.getStatusCode());
         AuthorizationDTO authDTO = (AuthorizationDTO) authResponse.getEntity();
         Assert.assertEquals(authDTO.getState(), AuthorizationDTO.StateEnum.APPROVED);
     }
@@ -630,7 +631,7 @@ public class ConsentsApiServiceImplTest {
         authRequest.setState(AuthorizationCreateRequest.StateEnum.REJECTED);
         Response authResponse = consentsApiService.consentsAuthorize(consentId, authRequest);
 
-        Assert.assertEquals(authResponse.getStatus(), Response.Status.CREATED.getStatusCode());
+        Assert.assertEquals(authResponse.getStatus(), Response.Status.OK.getStatusCode());
         AuthorizationDTO authDTO = (AuthorizationDTO) authResponse.getEntity();
         Assert.assertEquals(authDTO.getState(), AuthorizationDTO.StateEnum.REJECTED,
                 "Authorization state should be REJECTED");

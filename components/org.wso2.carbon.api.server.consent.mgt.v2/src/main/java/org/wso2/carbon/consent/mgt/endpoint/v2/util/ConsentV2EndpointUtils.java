@@ -61,6 +61,10 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_HAS_VERSIONS_WITH_CONSENTS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_USER_NOT_IN_AUTHORIZATION_LIST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.STATUS_BAD_REQUEST_MESSAGE_DEFAULT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.STATUS_NOT_FOUND_MESSAGE_DEFAULT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.STATUS_CONFLICT_MESSAGE_DEFAULT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.STATUS_UNAUTHORIZED_MESSAGE_DEFAULT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.STATUS_FORBIDDEN_MESSAGE_DEFAULT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.STATUS_INTERNAL_SERVER_ERROR_DESCRIPTION_DEFAULT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT;
 
@@ -142,18 +146,29 @@ public class ConsentV2EndpointUtils {
 
         String code = e.getErrorCode();
         String traceId = getCorrelationId();
-        ErrorDTO errorDTO = buildErrorDTO(code, STATUS_BAD_REQUEST_MESSAGE_DEFAULT, e.getMessage(), traceId);
+
+        Response.Status status;
+        String defaultMessage;
 
         if (NOT_FOUND_CODES.contains(code)) {
-            return Response.status(Response.Status.NOT_FOUND).entity(errorDTO).build();
+            status = Response.Status.NOT_FOUND;
+            defaultMessage = STATUS_NOT_FOUND_MESSAGE_DEFAULT;
         } else if (CONFLICT_CODES.contains(code)) {
-            return Response.status(Response.Status.CONFLICT).entity(errorDTO).build();
+            status = Response.Status.CONFLICT;
+            defaultMessage = STATUS_CONFLICT_MESSAGE_DEFAULT;
         } else if (UNAUTHORIZED_CODES.contains(code)) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity(errorDTO).build();
+            status = Response.Status.UNAUTHORIZED;
+            defaultMessage = STATUS_UNAUTHORIZED_MESSAGE_DEFAULT;
         } else if (FORBIDDEN_CODES.contains(code)) {
-            return Response.status(Response.Status.FORBIDDEN).entity(errorDTO).build();
+            status = Response.Status.FORBIDDEN;
+            defaultMessage = STATUS_FORBIDDEN_MESSAGE_DEFAULT;
+        } else {
+            status = Response.Status.BAD_REQUEST;
+            defaultMessage = STATUS_BAD_REQUEST_MESSAGE_DEFAULT;
         }
-        return Response.status(Response.Status.BAD_REQUEST).entity(errorDTO).build();
+
+        ErrorDTO errorDTO = buildErrorDTO(code, defaultMessage, e.getMessage(), traceId);
+        return Response.status(status).entity(errorDTO).build();
     }
 
     /**

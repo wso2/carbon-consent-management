@@ -60,7 +60,7 @@ public class ConsentsApi  {
         })
     }, tags={ "Consents", })
     @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Consent authorized successfully", response = AuthorizationDTO.class),
+        @ApiResponse(code = 200, message = "Consent authorized successfully", response = AuthorizationDTO.class),
         @ApiResponse(code = 400, message = "Bad Request", response = ErrorDTO.class),
         @ApiResponse(code = 401, message = "Unauthorized", response = ErrorDTO.class),
         @ApiResponse(code = 403, message = "Forbidden", response = ErrorDTO.class),

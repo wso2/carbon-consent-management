@@ -30,6 +30,10 @@ public class ConsentConstants {
     public static final String STATUS_INTERNAL_SERVER_ERROR_DESCRIPTION_DEFAULT = "The server encountered "
             + "an internal error. Please contact administrator.";
     public static final String STATUS_BAD_REQUEST_MESSAGE_DEFAULT = "Bad Request";
+    public static final String STATUS_NOT_FOUND_MESSAGE_DEFAULT = "Not Found";
+    public static final String STATUS_CONFLICT_MESSAGE_DEFAULT = "Conflict";
+    public static final String STATUS_UNAUTHORIZED_MESSAGE_DEFAULT = "Unauthorized";
+    public static final String STATUS_FORBIDDEN_MESSAGE_DEFAULT = "Forbidden";
     public static final String PURPOSE_SEARCH_LIMIT_PATH = "SearchLimits.Purpose";
     public static final String CONSENT_RESOURCE_PATH = "consents";
     public static final String PURPOSE_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "purposes";
@@ -72,6 +76,7 @@ public class ConsentConstants {
     public static final String RESULT = "RESULT";
     public static final String GROUP = "GROUP";
     public static final String GROUP_TYPE = "GROUP_TYPE";
+        public static final String PURPOSE_VERSION_LABEL = "PURPOSE_VERSION_LABEL";
 
     public static final String MY_SQL = "MySQL";
     public static final String MARIADB = "MariaDB";
@@ -242,7 +247,7 @@ public class ConsentConstants {
         ERROR_CODE_PURPOSE_VERSION_LABEL_ALREADY_EXISTS("CM_00106", "Version '%s' already exists for this purpose"),
         ERROR_CODE_PURPOSE_UUID_NOT_FOUND("CM_00107", "Purpose with UUID '%s' not found"),
         ERROR_CODE_ELEMENT_UUID_NOT_FOUND("CM_00108", "Element with UUID '%s' not found"),
-        ERROR_CODE_PURPOSE_VERSION_LABEL_NOT_FOUND("CM_00109", "Purpose version '%s' not found for purpose ID: %s"),
+        ERROR_CODE_PURPOSE_VERSION_LABEL_NOT_FOUND("CM_00109", "Purpose version '%s' not found."),
         ERROR_CODE_PURPOSE_CATEGORY_NOT_FOUND("CM_00110", "Purpose category not found: %s"),
         ERROR_CODE_CONSENT_INVALID_STATE_FOR_REVOKE("CM_00111",
                 "Cannot revoke consent: only ACTIVE consents may be revoked. Consent '%s' is not in ACTIVE state."),
@@ -298,19 +303,10 @@ public class ConsentConstants {
         // Filter attribute names (API level - camelCase)
         public static final String FILTER_ATTR_TYPE = "type";
         public static final String FILTER_ATTR_NAME = "name";
-        public static final String FILTER_ATTR_SUBJECT_ID = "subjectId";
-        public static final String FILTER_ATTR_SERVICE_ID = "serviceId";
-        public static final String FILTER_ATTR_STATE = "state";
-        public static final String FILTER_ATTR_PURPOSE_ID = "purposeId";
-        public static final String FILTER_ATTR_PURPOSE_VERSION_ID = "purposeVersionId";
 
         // Database column names (SQL level - UPPERCASE)
-        public static final String DB_COL_GROUP_TYPE = "GROUP_TYPE";
         public static final String DB_COL_NAME = "NAME";
-        public static final String DB_COL_PII_PRINCIPAL_ID = "PII_PRINCIPAL_ID";
-        public static final String DB_COL_SERVICE_ID = "SERVICE_ID";
-        public static final String DB_COL_STATE = "STATE";
-        public static final String DB_COL_PURPOSE_VERSION_ID = "PURPOSE_VERSION_ID";
+        public static final String DB_COL_GROUP_TYPE = "GROUP_TYPE";
 
         // Filter operators
         public static final String OP_EQ = "eq";
@@ -426,6 +422,8 @@ public class ConsentConstants {
 
         public static final String PRE_ADD_PURPOSE_VERSION = "PRE_ADD_PURPOSE_VERSION";
         public static final String POST_ADD_PURPOSE_VERSION = "POST_ADD_PURPOSE_VERSION";
+        public static final String PRE_SET_LATEST_PURPOSE_VERSION = "PRE_SET_LATEST_PURPOSE_VERSION";
+        public static final String POST_SET_LATEST_PURPOSE_VERSION = "POST_SET_LATEST_PURPOSE_VERSION";
         public static final String PRE_GET_PURPOSE_VERSION_LIST = "PRE_GET_PURPOSE_VERSION_LIST";
         public static final String POST_GET_PURPOSE_VERSION_LIST = "POST_GET_PURPOSE_VERSION_LIST";
         public static final String PRE_GET_PURPOSE_VERSION = "PRE_GET_PURPOSE_VERSION";

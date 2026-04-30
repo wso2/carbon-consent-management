@@ -548,9 +548,9 @@ public class SQLConstants {
 
     public static final String LIST_RECEIPTS_H2_MYSQL_POSTGRES =
             "SELECT r.CONSENT_RECEIPT_ID, r.PII_PRINCIPAL_ID, r.STATE, r.PRINCIPAL_TENANT_ID, " +
-            "r.CONSENT_TIMESTAMP, r.VALIDITY_TIME, rsa.SP_NAME " +
+            "r.CONSENT_TIMESTAMP, r.VALIDITY_TIME, " +
+            "(SELECT MIN(rsa2.SP_NAME) FROM CM_RECEIPT_SP_ASSOC rsa2 WHERE rsa2.CONSENT_RECEIPT_ID = r.CONSENT_RECEIPT_ID) AS SP_NAME " +
             "FROM CM_RECEIPT r " +
-            "LEFT JOIN CM_RECEIPT_SP_ASSOC rsa ON r.CONSENT_RECEIPT_ID = rsa.CONSENT_RECEIPT_ID " +
             "WHERE r.PRINCIPAL_TENANT_ID = ? " +
             "AND r.CONSENT_RECEIPT_ID IN (" +
             "  SELECT DISTINCT r2.CONSENT_RECEIPT_ID FROM CM_RECEIPT r2 " +
@@ -565,9 +565,9 @@ public class SQLConstants {
 
     public static final String LIST_RECEIPTS_DB2 =
             "SELECT r.CONSENT_RECEIPT_ID, r.PII_PRINCIPAL_ID, r.STATE, r.PRINCIPAL_TENANT_ID, " +
-            "r.CONSENT_TIMESTAMP, r.VALIDITY_TIME, rsa.SP_NAME " +
+            "r.CONSENT_TIMESTAMP, r.VALIDITY_TIME, " +
+            "(SELECT MIN(rsa2.SP_NAME) FROM CM_RECEIPT_SP_ASSOC rsa2 WHERE rsa2.CONSENT_RECEIPT_ID = r.CONSENT_RECEIPT_ID) AS SP_NAME " +
             "FROM CM_RECEIPT r " +
-            "LEFT JOIN CM_RECEIPT_SP_ASSOC rsa ON r.CONSENT_RECEIPT_ID = rsa.CONSENT_RECEIPT_ID " +
             "WHERE r.PRINCIPAL_TENANT_ID = ? " +
             "AND r.CONSENT_RECEIPT_ID IN (" +
             "  SELECT CONSENT_RECEIPT_ID FROM (" +
@@ -584,9 +584,9 @@ public class SQLConstants {
 
     public static final String LIST_RECEIPTS_MSSQL =
             "SELECT r.CONSENT_RECEIPT_ID, r.PII_PRINCIPAL_ID, r.STATE, r.PRINCIPAL_TENANT_ID, " +
-            "r.CONSENT_TIMESTAMP, r.VALIDITY_TIME, rsa.SP_NAME " +
+            "r.CONSENT_TIMESTAMP, r.VALIDITY_TIME, " +
+            "(SELECT MIN(rsa2.SP_NAME) FROM CM_RECEIPT_SP_ASSOC rsa2 WHERE rsa2.CONSENT_RECEIPT_ID = r.CONSENT_RECEIPT_ID) AS SP_NAME " +
             "FROM CM_RECEIPT r " +
-            "LEFT JOIN CM_RECEIPT_SP_ASSOC rsa ON r.CONSENT_RECEIPT_ID = rsa.CONSENT_RECEIPT_ID " +
             "WHERE r.PRINCIPAL_TENANT_ID = ? " +
             "AND r.CONSENT_RECEIPT_ID IN (" +
             "  SELECT CONSENT_RECEIPT_ID FROM (" +
@@ -603,9 +603,9 @@ public class SQLConstants {
 
     public static final String LIST_RECEIPTS_ORACLE =
             "SELECT r.CONSENT_RECEIPT_ID, r.PII_PRINCIPAL_ID, r.STATE, r.PRINCIPAL_TENANT_ID, " +
-            "r.CONSENT_TIMESTAMP, r.VALIDITY_TIME, rsa.SP_NAME " +
+            "r.CONSENT_TIMESTAMP, r.VALIDITY_TIME, " +
+            "(SELECT MIN(rsa2.SP_NAME) FROM CM_RECEIPT_SP_ASSOC rsa2 WHERE rsa2.CONSENT_RECEIPT_ID = r.CONSENT_RECEIPT_ID) AS SP_NAME " +
             "FROM CM_RECEIPT r " +
-            "LEFT JOIN CM_RECEIPT_SP_ASSOC rsa ON r.CONSENT_RECEIPT_ID = rsa.CONSENT_RECEIPT_ID " +
             "WHERE r.PRINCIPAL_TENANT_ID = ? " +
             "AND r.CONSENT_RECEIPT_ID IN (" +
             "  SELECT CONSENT_RECEIPT_ID FROM (" +

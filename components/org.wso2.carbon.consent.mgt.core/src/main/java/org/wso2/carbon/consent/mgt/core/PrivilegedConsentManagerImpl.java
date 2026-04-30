@@ -44,10 +44,12 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.Interce
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_DELETE_PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_GET_PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_GET_PURPOSE_VERSION_LIST;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_SET_LATEST_PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_ADD_PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_DELETE_PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_GET_PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_GET_PURPOSE_VERSION_LIST;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_SET_LATEST_PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE_CATEGORY;
@@ -118,6 +120,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.VERSION
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.TENANT_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_NAME;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_VERSION_LABEL;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_INPUT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.SERVICE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.SP_TENANT_DOMAIN;
@@ -671,7 +674,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     }
 
     public AddReceiptResponse addConsent(String userId, String applicationId, String tenantDomain,
-                                         String consentType, Map<String, List<Integer>> purposeToElementUuids,
+                                         String consentType, Map<String, List<Integer>> purposeToElementIds,
                                          String collectionMethod, String state)
             throws ConsentManagementException {
 
@@ -686,7 +689,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     public AddReceiptResponse execute() throws ConsentManagementException {
 
                         return consentManager.addConsent(userId, applicationId, tenantDomain, consentType,
-                                purposeToElementUuids, collectionMethod, state);
+                                purposeToElementIds, collectionMethod, state);
                     }
                 })
                 .intercept(POST_ADD_RECEIPT, properties -> {
@@ -1007,9 +1010,9 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
         ConsentInterceptorTemplate<Void, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
-        template.intercept(PRE_ADD_PURPOSE_VERSION, properties -> {
+        template.intercept(PRE_SET_LATEST_PURPOSE_VERSION, properties -> {
                     properties.put(PURPOSE_ID, purposeId);
-                    properties.put("PURPOSE_VERSION_LABEL", versionLabel);
+                    properties.put(PURPOSE_VERSION_LABEL, versionLabel);
                 })
                 .executeWith(new OperationDelegate<Void>() {
                     @Override
@@ -1019,9 +1022,9 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                         return null;
                     }
                 })
-                .intercept(POST_ADD_PURPOSE_VERSION, properties -> {
+                .intercept(POST_SET_LATEST_PURPOSE_VERSION, properties -> {
                     properties.put(PURPOSE_ID, purposeId);
-                    properties.put("PURPOSE_VERSION_LABEL", versionLabel);
+                    properties.put(PURPOSE_VERSION_LABEL, versionLabel);
                 });
     }
 

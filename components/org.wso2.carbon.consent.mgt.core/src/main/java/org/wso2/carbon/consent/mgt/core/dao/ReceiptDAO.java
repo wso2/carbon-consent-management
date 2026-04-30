@@ -114,6 +114,11 @@ public interface ReceiptDAO {
             throws ConsentManagementException {
     }
 
+    default void addReceiptWithAuthorizations(ReceiptInput receiptInput, List<ConsentAuthorization> authorizations)
+            throws ConsentManagementException {
+
+    }
+
     default List<ConsentAuthorization> getConsentAuthorizations(String consentReceiptId)
             throws ConsentManagementException {
 
@@ -150,6 +155,6 @@ public interface ReceiptDAO {
                                        String purposeId, String purposeVersionId, int limit, int offset, int tenantId)
             throws ConsentManagementException {
 
-        return null;
+        return Collections.emptyList();
     }
 }

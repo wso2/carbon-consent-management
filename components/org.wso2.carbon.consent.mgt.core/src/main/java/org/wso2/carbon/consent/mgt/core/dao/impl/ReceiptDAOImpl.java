@@ -34,6 +34,7 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.consent.mgt.core.util.JdbcUtils;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.Template;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 
@@ -137,7 +138,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         try {
             jdbcTemplate.withTransaction(template -> {
                 if (!receiptInput.isAllowMultipleActiveReceipts()) {
-                    revokeActiveReceipts(receiptInput);
+                    revokeActiveReceipts(receiptInput, template);
                 }
                 addReceiptInfo(receiptInput);
 
@@ -166,36 +167,32 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         }
     }
 
-    private void revokeActiveReceipts(ReceiptInput receiptInput) throws ConsentManagementServerException {
+    private void revokeActiveReceipts(ReceiptInput receiptInput, Template<Object> template)
+            throws DataAccessException {
 
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        try {
-            jdbcTemplate.withTransaction(template -> {
-                receiptInput.getServices().forEach(rethrowConsumer(receiptServiceInput -> {
-                    List<String> ids = template.executeQuery(GET_ACTIVE_RECEIPTS_SQL, (resultSet, rowNumber) -> resultSet
-                            .getString(1), preparedStatement -> {
+        receiptInput.getServices().forEach(rethrowConsumer(receiptServiceInput -> {
+            List<String> ids = template.executeQuery(GET_ACTIVE_RECEIPTS_SQL,
+                    (resultSet, rowNumber) -> resultSet.getString(1),
+                    preparedStatement -> {
                         preparedStatement.setString(1, receiptInput.getPiiPrincipalId());
                         preparedStatement.setString(2, receiptServiceInput.getService());
                         preparedStatement.setInt(3, receiptInput.getTenantId());
                         preparedStatement.setInt(4, receiptServiceInput.getTenantId());
                     });
 
-                    if (isNotEmpty(ids)) {
-                        ids.forEach(rethrowConsumer(id -> {
-                            revokeReceipt(id);
-                            if (log.isDebugEnabled()) {
-                                log.debug("Revoked active receipt: " + id + " of the user: " + receiptInput
-                                        .getPiiPrincipalId());
-                            }
-                        }));
+            if (isNotEmpty(ids)) {
+                ids.forEach(rethrowConsumer(id -> {
+                    template.executeUpdate(REVOKE_RECEIPT_SQL, preparedStatement -> {
+                        preparedStatement.setString(1, REVOKE_STATE);
+                        preparedStatement.setString(2, id);
+                    });
+                    if (log.isDebugEnabled()) {
+                        log.debug("Revoked active receipt: " + id + " of the user: " +
+                                receiptInput.getPiiPrincipalId());
                     }
                 }));
-                return null;
-            });
-        } catch (TransactionException e) {
-            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_REVOKE_ACTIVE_RECEIPT,
-                    receiptInput.getPiiPrincipalId(), e);
-        }
+            }
+        }));
     }
 
     @Override
@@ -519,11 +516,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
-                boolean hasV2Fields = receiptInput.getValidityTime() != null
-                        || (receiptInput.getState() != null && !ACTIVE_STATE.equals(receiptInput.getState()));
-                String insertSql = hasV2Fields ? INSERT_RECEIPT_V2_SQL : INSERT_RECEIPT_SQL;
                 String initialState = receiptInput.getState() != null ? receiptInput.getState() : ACTIVE_STATE;
-                template.executeInsert(insertSql, (preparedStatement -> {
+                template.executeInsert(INSERT_RECEIPT_V2_SQL, (preparedStatement -> {
                     preparedStatement.setString(1, receiptInput.getConsentReceiptId());
                     preparedStatement.setString(2, receiptInput.getVersion());
                     preparedStatement.setString(3, receiptInput.getJurisdiction());
@@ -536,12 +530,10 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     preparedStatement.setString(9, receiptInput.getPolicyUrl());
                     preparedStatement.setString(10, initialState);
                     preparedStatement.setString(11, receiptInput.getPiiControllerInfo());
-                    if (hasV2Fields) {
-                        if (receiptInput.getValidityTime() != null) {
-                            preparedStatement.setLong(12, receiptInput.getValidityTime());
-                        } else {
-                            preparedStatement.setNull(12, java.sql.Types.BIGINT);
-                        }
+                    if (receiptInput.getValidityTime() != null) {
+                        preparedStatement.setLong(12, receiptInput.getValidityTime());
+                    } else {
+                        preparedStatement.setNull(12, java.sql.Types.BIGINT);
                     }
                 }), receiptInput, false);
                 return null;
@@ -975,6 +967,52 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     }
 
     @Override
+    public void addReceiptWithAuthorizations(ReceiptInput receiptInput, List<ConsentAuthorization> authorizations)
+            throws ConsentManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                if (!receiptInput.isAllowMultipleActiveReceipts()) {
+                    revokeActiveReceipts(receiptInput, template);
+                }
+                addReceiptInfo(receiptInput);
+
+                receiptInput.getServices().forEach(rethrowConsumer(receiptServiceInput -> {
+                    int receiptToSPAssocId = addReceiptSPAssociation(receiptInput.getConsentReceiptId(), receiptServiceInput);
+                    receiptServiceInput.getPurposes().forEach(rethrowConsumer(receiptPurposeInput -> {
+                        int spToPurposeAssocId = addSpToPurposeAssociation(receiptToSPAssocId, receiptPurposeInput);
+
+                        receiptPurposeInput.getPurposeCategoryId().forEach(rethrowConsumer(id ->
+                                addSpPurposeToPurposeCategoryAssociation(spToPurposeAssocId, id)));
+
+                        receiptPurposeInput.getPiiCategory().forEach(rethrowConsumer(piiCategoryValidity ->
+                                addSpPurposeToPiiCategoryAssociation(spToPurposeAssocId, piiCategoryValidity.getId(),
+                                        piiCategoryValidity.getValidity(), piiCategoryValidity.isConsented())));
+                    }));
+                }));
+
+                if (receiptInput.getProperties() != null) {
+                    addReceiptProperties(receiptInput.getConsentReceiptId(), receiptInput.getProperties());
+                }
+
+                for (ConsentAuthorization authorization : authorizations) {
+                    template.executeInsert(INSERT_CONSENT_AUTHORIZATION_SQL, preparedStatement -> {
+                        preparedStatement.setString(1, authorization.getConsentReceiptId());
+                        preparedStatement.setString(2, authorization.getUserId());
+                        preparedStatement.setString(3, authorization.getStatus());
+                        preparedStatement.setLong(4, authorization.getUpdatedTime());
+                    }, authorization, false);
+                }
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_CONSENT_RECEIPT,
+                    receiptInput.getPiiPrincipalId(), e);
+        }
+    }
+
+    @Override
     public List<ConsentAuthorization> getConsentAuthorizations(String consentReceiptId)
             throws ConsentManagementException {
 
@@ -1123,6 +1161,10 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 finalOffset = limit + offset;
                 finalLimit = offset + 1;
                 query = SQLConstants.LIST_RECEIPTS_MSSQL;
+            } else if (isInformixDB()) {
+                // Informix
+                throw new ConsentManagementServerException("This method is not supported for Informix database.",
+                        ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode());
             } else {
                 // Oracle
                 finalLimit = offset + limit;

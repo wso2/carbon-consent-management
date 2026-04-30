@@ -546,7 +546,7 @@ paths:
             schema:
               $ref: '#/components/schemas/AuthorizationCreateRequest'
       responses:
-        '201':
+        '200':
           description: Consent authorized successfully
           content:
             application/json:
@@ -803,6 +803,7 @@ components:
       required:
         - name
         - type
+        - version
       properties:
         name:
           type: string
@@ -824,7 +825,7 @@ components:
           type: string
           minLength: 1
           maxLength: 100
-          description: Optional initial version label for the purpose (e.g., "v1.0")
+          description: Initial version label for the purpose (e.g., "v1.0")
           example: "v1"
         elements:
           type: array
@@ -839,7 +840,7 @@ components:
               mandatory: false
         properties:
           type: object
-          description: Free-form key-value properties applied to the initial version snapshot. Only stored if a version label is also provided.
+          description: Free-form key-value properties applied to the initial version snapshot; these properties are persisted with the initial version.
           additionalProperties:
             type: string
           example:
@@ -1514,7 +1515,7 @@ components:
           type: integer
           format: int64
           description: Milliseconds since epoch when this authorization was last updated
-          example: 1702800000
+          example: 1702800000000
 
     # ============================================================================
     # CONSENT VALIDATION SCHEMAS
@@ -1569,5 +1570,5 @@ components:
       flows:
         authorizationCode:
           authorizationUrl: 'https://localhost:9443/oauth2/authorize'
-          tokenUrl: 'http://localhost:9443/oauth2/token'
+          tokenUrl: 'https://localhost:9443/oauth2/token'
           scopes: {}

@@ -116,7 +116,7 @@ public enum StateEnum {
         return this;
     }
     
-    @ApiModelProperty(example = "1702800000", value = "Milliseconds since epoch when this authorization was last updated")
+    @ApiModelProperty(example = "1702800000000", value = "Milliseconds since epoch when this authorization was last updated")
     @JsonProperty("updatedTime")
     @Valid
     public Long getUpdatedTime() {

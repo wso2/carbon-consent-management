@@ -359,9 +359,7 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("All purposes deleted successfully for tenant: " + tenantId);
         }
-    }
-
-    ;
+    };
 
     /**
      * This API is used to check whether a purpose exists with given name, group and groupType.
@@ -499,9 +497,7 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("All purpose categories deleted successfully for tenant: " + tenantId);
         }
-    }
-
-    ;
+    };
 
     /**
      * This API is used to check whether a purpose category exists for a given name.
@@ -645,9 +641,7 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("All PII categories deleted successfully for tenant: " + tenantId);
         }
-    }
-
-    ;
+    };
 
     /**
      * This API is sued to check whether a PII category exists for a given name.
@@ -678,20 +672,16 @@ public class ConsentManagerImpl implements ConsentManager {
         }
 
         java.util.List<String> authorizations = receiptInput.getAuthorizations();
+        List<ConsentAuthorization> authorizationsList = new ArrayList<>();
         if (authorizations != null && !authorizations.isEmpty()) {
             receiptInput.setState(PENDING_STATE);
-        }
-
-        getReceiptsDAO(receiptDAOs).addReceipt(receiptInput);
-
-        if (authorizations != null && !authorizations.isEmpty()) {
-            ReceiptDAO receiptDAO = getReceiptsDAO(receiptDAOs);
             long now = System.currentTimeMillis();
             for (String userId : authorizations) {
-                receiptDAO.insertConsentAuthorization(
-                        new ConsentAuthorization(receiptInput.getConsentReceiptId(), userId, PENDING_STATE, now));
+                authorizationsList.add(new ConsentAuthorization(receiptInput.getConsentReceiptId(), userId, PENDING_STATE, now));
             }
         }
+
+        getReceiptsDAO(receiptDAOs).addReceiptWithAuthorizations(receiptInput, authorizationsList);
 
         if (log.isDebugEnabled()) {
             log.debug("Consent stored successfully with the Id: " + receiptInput.getConsentReceiptId());
@@ -702,7 +692,7 @@ public class ConsentManagerImpl implements ConsentManager {
 
     @Override
     public AddReceiptResponse addConsent(String userId, String applicationId, String tenantDomain,
-                                         String consentType, Map<String, List<Integer>> purposeToElementUuids,
+                                         String consentType, Map<String, List<Integer>> purposeToElementIds,
                                          String collectionMethod, String state)
             throws ConsentManagementException {
 
@@ -710,7 +700,7 @@ public class ConsentManagerImpl implements ConsentManager {
         int defaultPurposeCategoryId = defaultCategory.getId();
 
         List<ReceiptPurposeInput> purposeInputs = new ArrayList<>();
-        for (Map.Entry<String, List<Integer>> entry : purposeToElementUuids.entrySet()) {
+        for (Map.Entry<String, List<Integer>> entry : purposeToElementIds.entrySet()) {
             Purpose purpose = getPurposeByUuid(entry.getKey());
 
             ReceiptPurposeInput purposeInput = new ReceiptPurposeInput();
@@ -892,9 +882,7 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("All receipts deleted successfully for tenant: " + tenantId);
         }
-    }
-
-    ;
+    };
 
     /**
      * This API is used to check whether a receipt exists for the user identified by the tenantAwareUser name in the
@@ -937,6 +925,9 @@ public class ConsentManagerImpl implements ConsentManager {
         Purpose purpose = getPurposeByUuid(purposeUuid);
 
         // Check for duplicate version label.
+        // Note: purposes created via the V1 API may have no versions. Adding a version to such a purpose works,
+        // but there is no auto-snapshot of the pre-versioning state. The V2 API enforces version at creation
+        // time to prevent this for new purposes, but existing V1 purposes are unaffected.
         List<PurposeVersion> existing = getPurposeDAO(purposeDAOs).listPurposeVersions(purpose.getUuid());
         if (existing.stream().anyMatch(v -> versionLabel.equals(v.getVersion()))) {
             throw handleClientException(ERROR_CODE_PURPOSE_VERSION_LABEL_ALREADY_EXISTS, versionLabel);
@@ -1108,9 +1099,7 @@ public class ConsentManagerImpl implements ConsentManager {
 
         Purpose createdPurpose = addPurpose(purpose);
 
-        firstVersion.setPurposeId(createdPurpose.getId());
-        firstVersion.setTenantId(getTenantIdFromCarbonContext());
-        PurposeVersion createdVersion = getPurposeDAO(purposeDAOs).addPurposeVersion(firstVersion, true);
+        PurposeVersion createdVersion = addPurposeVersion(createdPurpose.getUuid(), firstVersion, true);
         createdPurpose.setLatestVersion(createdVersion);
         return new Object[]{createdPurpose, createdVersion};
     }
@@ -1128,6 +1117,12 @@ public class ConsentManagerImpl implements ConsentManager {
     public List<Purpose> listPurposes(Node filterTree, int limit, int offset)
             throws ConsentManagementException {
 
+        if (limit == 0) {
+            limit = getDefaultLimitFromConfig();
+            if (log.isDebugEnabled()) {
+                log.debug("Limit is not defied the request, default to: " + limit);
+            }
+        }
         validatePaginationParameters(limit, offset);
 
         List<Purpose> purposes = getPurposeDAO(purposeDAOs).listPurposes(filterTree, limit, offset,
@@ -1159,6 +1154,12 @@ public class ConsentManagerImpl implements ConsentManager {
     public List<PIICategory> listPIICategories(Node filterTree, int limit, int offset)
             throws ConsentManagementException {
 
+        if (limit == 0) {
+            limit = getDefaultLimitFromConfig();
+            if (log.isDebugEnabled()) {
+                log.debug("Limit is not defied the request, default to: " + limit);
+            }
+        }
         validatePaginationParameters(limit, offset);
         return getPiiCategoryDAO(piiCategoryDAOs).listPIICategories(filterTree, limit, offset,
                 getTenantIdFromCarbonContext());
@@ -1177,6 +1178,12 @@ public class ConsentManagerImpl implements ConsentManager {
                                       String purposeId, String purposeVersionId, int limit, int offset)
             throws ConsentManagementException {
 
+        if (limit == 0) {
+            limit = getDefaultLimitFromConfig();
+            if (log.isDebugEnabled()) {
+                log.debug("Limit is not defied the request, default to: " + limit);
+            }
+        }
         validatePaginationParameters(limit, offset);
         return getReceiptsDAO(receiptDAOs).listReceipts(subjectId, serviceId, state, purposeId,
                 purposeVersionId, limit, offset, getTenantIdFromCarbonContext());
@@ -1247,6 +1254,16 @@ public class ConsentManagerImpl implements ConsentManager {
 
         ReceiptDAO vReceiptDAO = getReceiptsDAO(receiptDAOs);
         String state = vReceiptDAO.getReceiptState(consentId);
+
+        if (state == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No receipt found with the Id: " + consentId);
+            }
+            String message = String.format(ERROR_CODE_RECEIPT_ID_INVALID.getMessage(), consentId) + " in tenant: " +
+                    ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_RECEIPT_ID_INVALID.getCode());
+        }
+
         if (ACTIVE_STATE.equals(state)) {
             Long validityTime = vReceiptDAO.getReceiptValidityTime(consentId);
             if (validityTime != null && validityTime < System.currentTimeMillis()) {
@@ -1254,7 +1271,7 @@ public class ConsentManagerImpl implements ConsentManager {
                 return EXPIRED_STATE;
             }
         }
-        return state != null ? state : ACTIVE_STATE;
+        return state;
     }
 
     private Purpose getPurposeFromName(String name, String group, String groupType) throws ConsentManagementException {

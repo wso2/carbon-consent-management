@@ -175,11 +175,12 @@ public class FilterSqlBuilder {
     }
 
     /**
-     * Escapes value for LIKE operators by adding wildcards.
+     * Adds LIKE wildcards based on operator for pattern matching.
+     * Assumes input values have already been validated to not contain special characters.
      *
      * @param operator Filter operator (used to determine wildcard placement)
-     * @param value    Original value to escape
-     * @return Escaped value with wildcards for LIKE, or original value for equals
+     * @param value    Original value (pre-validated)
+     * @return Value with wildcards for LIKE, or original value for equals
      */
     private String escapeValue(String operator, String value) {
 

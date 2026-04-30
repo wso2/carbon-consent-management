@@ -116,9 +116,11 @@ public class PurposeCreateRequest  {
         return this;
     }
     
-    @ApiModelProperty(example = "v1", value = "Optional initial version label for the purpose (e.g., \"v1.0\")")
+    @ApiModelProperty(example = "v1", required = true, value = "Initial version label for the purpose (e.g., \"v1.0\")")
     @JsonProperty("version")
-    @Valid @Size(min=1,max=100)
+    @Valid
+    @NotNull(message = "Property version cannot be null.")
+    @Size(min=1,max=100)
     public String getVersion() {
         return version;
     }

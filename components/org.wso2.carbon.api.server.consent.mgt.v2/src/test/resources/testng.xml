@@ -16,7 +16,7 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="ConsentManagementV2EndpointTestSuite" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
+<suite name="ConsentManagementV2EndpointTestSuite">
 
     <test name="ConsentManagementV2EndpointTests" preserve-order="true" parallel="false">
         <classes>

@@ -205,19 +205,25 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
                 finalLimit = offset + 1;
                 query = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, TENANT_ID, DISPLAY_NAME, UUID " +
                         "FROM (SELECT ROW_NUMBER() OVER (ORDER BY ID) AS rn, p.* " +
-                        "FROM CM_PII_CATEGORY AS p) WHERE TENANT_ID = ?" + filterWhereClause +
-                        " AND rn BETWEEN ? AND ?";
+                        "FROM CM_PII_CATEGORY AS p WHERE p.TENANT_ID = ?" + filterWhereClause + ") " +
+                        "WHERE rn BETWEEN ? AND ?";
             } else if (isMSSqlDB()) {
                 finalOffset = limit + offset;
                 finalLimit = offset + 1;
                 query = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, TENANT_ID, DISPLAY_NAME, UUID " +
                         "FROM (SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, TENANT_ID, DISPLAY_NAME, UUID, " +
-                        "ROW_NUMBER() OVER (ORDER BY ID) AS RowNum FROM CM_PII_CATEGORY) AS P " +
-                        "WHERE P.TENANT_ID = ?" + filterWhereClause + " AND P.RowNum BETWEEN ? AND ?";
+                        "ROW_NUMBER() OVER (ORDER BY ID) AS RowNum FROM CM_PII_CATEGORY " +
+                        "WHERE TENANT_ID = ?" + filterWhereClause + ") AS P " +
+                        "WHERE P.RowNum BETWEEN ? AND ?";
+            } else if (isInformixDB()) {
+                // Informix
+                throw new ConsentManagementServerException("This method is not supported for Informix database.",
+                        ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode());
             } else {
                 // Oracle
                 finalLimit = offset + limit;
-                query = "SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY ID) AS RN, ID, NAME, " +
+                query = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, TENANT_ID, DISPLAY_NAME, UUID " +
+                        "FROM (SELECT ROW_NUMBER() OVER (ORDER BY ID) AS RN, ID, NAME, " +
                         "DESCRIPTION, IS_SENSITIVE, TENANT_ID, DISPLAY_NAME, UUID " +
                         "FROM CM_PII_CATEGORY WHERE TENANT_ID = ?" + filterWhereClause +
                         ") WHERE RN <= ? AND RN > ?";

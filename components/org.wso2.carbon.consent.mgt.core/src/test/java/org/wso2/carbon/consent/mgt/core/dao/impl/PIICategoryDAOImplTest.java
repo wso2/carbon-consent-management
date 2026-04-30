@@ -333,7 +333,7 @@ public class PIICategoryDAOImplTest {
             piiCategoryDAO.addPIICategory(piiCategories.get(0));
             piiCategoryDAO.addPIICategory(piiCategories.get(1));
 
-            List<PIICategory> all = piiCategoryDAO.listPIICategories(10, 0, -1234);
+            List<PIICategory> all = piiCategoryDAO.listPIICategories(null, 10, 0, -1234);
 
             Assert.assertEquals(all.size(), 2);
         }

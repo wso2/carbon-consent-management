@@ -191,6 +191,7 @@ public class PurposesApiServiceImplTest {
         request.setName("Marketing");
         request.setDescription("Send marketing emails");
         request.setType("MARKETING");
+        request.setVersion("v1");
 
         Response response = purposesApiService.purposesCreate(request);
 
@@ -204,6 +205,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest request = new PurposeCreateRequest();
         request.setName("Analytics");
         request.setType("ANALYTICS");
+        request.setVersion("v1");
 
         Response response = purposesApiService.purposesCreate(request);
 
@@ -233,6 +235,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest request = new PurposeCreateRequest();
         request.setName("Analytics");
         request.setType("ANALYTICS");
+        request.setVersion("v1");
         Response created = purposesApiService.purposesCreate(request);
         UUID purposeId = ((PurposeDTO) created.getEntity()).getPurposeId();
 
@@ -266,6 +269,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest request = new PurposeCreateRequest();
         request.setName("Elements-Purpose");
         request.setType("ELEM_GROUP");
+        request.setVersion("v1");
         request.setElements(Collections.singletonList(binding));
         UUID purposeId = ((PurposeDTO) purposesApiService.purposesCreate(request).getEntity()).getPurposeId();
 
@@ -316,11 +320,13 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest req1 = new PurposeCreateRequest();
         req1.setName("Marketing-List");
         req1.setType("MKT");
+        req1.setVersion("v1");
         purposesApiService.purposesCreate(req1);
 
         PurposeCreateRequest req2 = new PurposeCreateRequest();
         req2.setName("Analytics-List");
         req2.setType("ANLYT");
+        req2.setVersion("v1");
         purposesApiService.purposesCreate(req2);
 
         Response response = purposesApiService.purposesList(null, 10, 0);
@@ -345,6 +351,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest req = new PurposeCreateRequest();
         req.setName("Group-Filter-Purpose");
         req.setType("UNIQUE_GROUP");
+        req.setVersion("v1");
         purposesApiService.purposesCreate(req);
 
         Response response = purposesApiService.purposesList("type eq \"UNIQUE_GROUP\"", 10, 0);
@@ -365,16 +372,19 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest alpha = new PurposeCreateRequest();
         alpha.setName("ALPHA_PURPOSE_" + suffix);
         alpha.setType("NF_GROUP_A_" + suffix);
+        alpha.setVersion("v1");
         purposesApiService.purposesCreate(alpha);
 
         PurposeCreateRequest beta = new PurposeCreateRequest();
         beta.setName("BETA_PURPOSE_" + suffix);
         beta.setType("NF_GROUP_B_" + suffix);
+        beta.setVersion("v1");
         purposesApiService.purposesCreate(beta);
 
         PurposeCreateRequest gamma = new PurposeCreateRequest();
         gamma.setName("GAMMA_PURPOSE_" + suffix);
         gamma.setType("NF_GROUP_C_" + suffix);
+        gamma.setVersion("v1");
         purposesApiService.purposesCreate(gamma);
 
         Response response = purposesApiService.purposesList("name co \"ALPHA\"", 10, 0);
@@ -421,6 +431,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest request = new PurposeCreateRequest();
         request.setName("ToDelete");
         request.setType("DEL_GROUP");
+        request.setVersion("v1");
         Response created = purposesApiService.purposesCreate(request);
         UUID purposeId = ((PurposeDTO) created.getEntity()).getPurposeId();
 
@@ -450,6 +461,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest purposeReq = new PurposeCreateRequest();
         purposeReq.setName("Versioned-Purpose");
         purposeReq.setType("VER_GROUP");
+        purposeReq.setVersion("v1");
         Response created = purposesApiService.purposesCreate(purposeReq);
         UUID purposeId = ((PurposeDTO) created.getEntity()).getPurposeId();
 
@@ -482,6 +494,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest purposeReq = new PurposeCreateRequest();
         purposeReq.setName("Multi-Version-Purpose");
         purposeReq.setType("MULTI_VER");
+        purposeReq.setVersion("v1");
         Response created = purposesApiService.purposesCreate(purposeReq);
         UUID purposeId = ((PurposeDTO) created.getEntity()).getPurposeId();
 
@@ -497,7 +510,7 @@ public class PurposesApiServiceImplTest {
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         PurposeVersionListResponse list = (PurposeVersionListResponse) response.getEntity();
-        Assert.assertEquals(list.getCount(), 2);
+        Assert.assertEquals(list.getCount(), 3);
     }
 
     @Test
@@ -506,6 +519,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest purposeReq = new PurposeCreateRequest();
         purposeReq.setName("Paginated-Version-Purpose");
         purposeReq.setType("PAGE_VER");
+        purposeReq.setVersion("v1");
         Response created = purposesApiService.purposesCreate(purposeReq);
         UUID purposeId = ((PurposeDTO) created.getEntity()).getPurposeId();
 
@@ -529,6 +543,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest purposeReq = new PurposeCreateRequest();
         purposeReq.setName("Get-Version-Purpose");
         purposeReq.setType("GET_VER");
+        purposeReq.setVersion("v1");
         Response created = purposesApiService.purposesCreate(purposeReq);
         UUID purposeId = ((PurposeDTO) created.getEntity()).getPurposeId();
 
@@ -550,6 +565,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest purposeReq = new PurposeCreateRequest();
         purposeReq.setName("Get-Version-Not-Found-Purpose");
         purposeReq.setType("GVN_GROUP");
+        purposeReq.setVersion("v1");
         Response created = purposesApiService.purposesCreate(purposeReq);
         UUID purposeId = ((PurposeDTO) created.getEntity()).getPurposeId();
 
@@ -564,6 +580,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest purposeReq = new PurposeCreateRequest();
         purposeReq.setName("Delete-Version-Purpose");
         purposeReq.setType("DEL_VER");
+        purposeReq.setVersion("v1");
         Response created = purposesApiService.purposesCreate(purposeReq);
         UUID purposeId = ((PurposeDTO) created.getEntity()).getPurposeId();
 
@@ -586,6 +603,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest purposeReq = new PurposeCreateRequest();
         purposeReq.setName("Del-Version-NF-Purpose");
         purposeReq.setType("DVNF_GROUP");
+        purposeReq.setVersion("v1");
         Response created = purposesApiService.purposesCreate(purposeReq);
         UUID purposeId = ((PurposeDTO) created.getEntity()).getPurposeId();
 
@@ -600,6 +618,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest request = new PurposeCreateRequest();
         request.setName("DuplicatePurpose");
         request.setType("DUP_GROUP");
+        request.setVersion("v1");
         purposesApiService.purposesCreate(request);
 
         Response response = purposesApiService.purposesCreate(request);
@@ -617,6 +636,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest purposeReq = new PurposeCreateRequest();
         purposeReq.setName("Set-Latest-Purpose");
         purposeReq.setType("SETLATEST_GROUP");
+        purposeReq.setVersion("v1");
         Response created = purposesApiService.purposesCreate(purposeReq);
         UUID purposeId = ((PurposeDTO) created.getEntity()).getPurposeId();
 
@@ -654,6 +674,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest purposeReq = new PurposeCreateRequest();
         purposeReq.setName("SetLatest-VersionNotFound-Purpose");
         purposeReq.setType("SLVNF_GROUP");
+        purposeReq.setVersion("v1");
         Response created = purposesApiService.purposesCreate(purposeReq);
         UUID purposeId = ((PurposeDTO) created.getEntity()).getPurposeId();
 
@@ -686,6 +707,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest purposeReq = new PurposeCreateRequest();
         purposeReq.setName("ELEM_LOCK_PURPOSE_" + System.nanoTime());
         purposeReq.setType("ELEM_LOCK_GROUP");
+        purposeReq.setVersion("v1");
         purposeReq.setElements(Collections.singletonList(binding));
         purposesApiService.purposesCreate(purposeReq);
 
@@ -756,6 +778,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest purposeReq = new PurposeCreateRequest();
         purposeReq.setName("Props-Version-Purpose");
         purposeReq.setType("PROPS_GROUP");
+        purposeReq.setVersion("v1");
         Response created = purposesApiService.purposesCreate(purposeReq);
         UUID purposeId = ((PurposeDTO) created.getEntity()).getPurposeId();
 
@@ -782,6 +805,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest purposeReq = new PurposeCreateRequest();
         purposeReq.setName("Get-Props-Purpose");
         purposeReq.setType("GET_PROPS");
+        purposeReq.setVersion("v1");
         Response created = purposesApiService.purposesCreate(purposeReq);
         UUID purposeId = ((PurposeDTO) created.getEntity()).getPurposeId();
 
@@ -808,6 +832,7 @@ public class PurposesApiServiceImplTest {
         PurposeCreateRequest purposeReq = new PurposeCreateRequest();
         purposeReq.setName("List-Props-Purpose");
         purposeReq.setType("LIST_PROPS");
+        purposeReq.setVersion("v1");
         Response created = purposesApiService.purposesCreate(purposeReq);
         UUID purposeId = ((PurposeDTO) created.getEntity()).getPurposeId();
 

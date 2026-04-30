@@ -72,6 +72,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_USER_NOT_IN_AUTHORIZATION_LIST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_SUBJECT_MISMATCH;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_NOT_FOUND;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_UUID_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleClientException;
 
 /**
@@ -270,6 +271,10 @@ public class ConsentReceiptsService {
 
                 // Resolve purpose by UUID to get the internal DB ID.
                 Purpose purpose = consentManager.getPurposeByUuid(purposeBinding.getPurposeId().toString());
+                if (purpose == null) {
+                    throw handleClientException(ERROR_CODE_PURPOSE_UUID_NOT_FOUND,
+                            purposeBinding.getPurposeId().toString());
+                }
                 purposeInput.setPurposeId(purpose.getId());
 
                 // Resolve and set the latest version ID for this purpose.
@@ -372,18 +377,22 @@ public class ConsentReceiptsService {
         String versionUuid = consentPurpose.getPurposeVersionId();
         try {
             Purpose purpose = consentManager.getPurpose(consentPurpose.getPurposeId());
-            if (StringUtils.isNotBlank(purpose.getUuid())) {
-                dto.setPurposeId(UUID.fromString(purpose.getUuid()));
-            }
-            if (StringUtils.isNotBlank(versionUuid)) {
-                dto.setPurposeVersionId(UUID.fromString(versionUuid));
-                PurposeVersion latestVersion = purpose.getLatestVersion();
-                if (latestVersion != null && versionUuid.equals(latestVersion.getUuid())) {
-                    dto.setVersion(latestVersion.getVersion());
-                } else if (dto.getPurposeId() != null) {
-                    PurposeVersion pv = consentManager.getPurposeVersion(dto.getPurposeId().toString(), versionUuid);
-                    if (pv != null) {
-                        dto.setVersion(pv.getVersion());
+            if (purpose == null) {
+                LOG.warn("Could not resolve purpose UUID for purposeId: " + consentPurpose.getPurposeId());
+            } else {
+                if (StringUtils.isNotBlank(purpose.getUuid())) {
+                    dto.setPurposeId(UUID.fromString(purpose.getUuid()));
+                }
+                if (StringUtils.isNotBlank(versionUuid)) {
+                    dto.setPurposeVersionId(UUID.fromString(versionUuid));
+                    PurposeVersion latestVersion = purpose.getLatestVersion();
+                    if (latestVersion != null && versionUuid.equals(latestVersion.getUuid())) {
+                        dto.setVersion(latestVersion.getVersion());
+                    } else if (dto.getPurposeId() != null) {
+                        PurposeVersion pv = consentManager.getPurposeVersion(dto.getPurposeId().toString(), versionUuid);
+                        if (pv != null) {
+                            dto.setVersion(pv.getVersion());
+                        }
                     }
                 }
             }
@@ -400,8 +409,12 @@ public class ConsentReceiptsService {
                 // Resolve element int ID to UUID.
                 try {
                     PIICategory element = consentManager.getPIICategory(piiCategoryValidity.getId());
-                    if (StringUtils.isNotBlank(element.getUuid())) {
-                        elementDTO.setElementId(UUID.fromString(element.getUuid()));
+                    if (element == null) {
+                        LOG.warn("Could not resolve element UUID for elementId: " + piiCategoryValidity.getId());
+                    } else {
+                        if (StringUtils.isNotBlank(element.getUuid())) {
+                            elementDTO.setElementId(UUID.fromString(element.getUuid()));
+                        }
                     }
                 } catch (ConsentManagementException e) {
                     LOG.warn("Could not resolve element UUID for elementId: " + piiCategoryValidity.getId(), e);
@@ -456,7 +469,7 @@ public class ConsentReceiptsService {
             dto.setUpdatedTime(updated.getUpdatedTime());
         }
 
-        return Response.status(Response.Status.CREATED).entity(dto).build();
+        return Response.status(Response.Status.OK).entity(dto).build();
     }
 
     /**

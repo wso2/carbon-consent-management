@@ -262,14 +262,14 @@ public interface ConsentManager {
     AddReceiptResponse addConsent(ReceiptInput receiptInput) throws ConsentManagementException;
 
     /**
-     * Add a consent receipt for a user, resolving purpose and element UUIDs to internal IDs.
+     * Add a consent receipt for a user, resolving purpose UUIDs to internal IDs.
      * Multiple active receipts are always allowed per user per service.
      *
      * @param userId                PII principal ID (subject user).
      * @param applicationId         Service/application identifier.
      * @param tenantDomain          Tenant domain.
      * @param consentType           Consent type (e.g. "EXPLICIT").
-     * @param purposeToElementUuids Ordered map of purpose UUID to list of element UUIDs.
+     * @param purposeToElementIds   Ordered map of purpose UUID to list of internal element IDs.
      *                              An empty list means no elements for that purpose.
      * @param collectionMethod      Collection method for the receipt.
      * @param state                 Initial receipt state (e.g. "ACTIVE" or "REJECTED").
@@ -277,7 +277,7 @@ public interface ConsentManager {
      * @throws ConsentManagementException if UUID resolution or receipt creation fails.
      */
     default AddReceiptResponse addConsent(String userId, String applicationId, String tenantDomain,
-                                          String consentType, Map<String, List<Integer>> purposeToElementUuids,
+                                          String consentType, Map<String, List<Integer>> purposeToElementIds,
                                           String collectionMethod, String state)
             throws ConsentManagementException {
 
@@ -347,9 +347,7 @@ public interface ConsentManager {
      */
     default void deleteReceipts(int tenantId) throws ConsentManagementException {
 
-    }
-
-    ;
+    };
 
     /**
      * This API is used to check whether a receipt exists for the user identified by the tenantAwareUser name in the

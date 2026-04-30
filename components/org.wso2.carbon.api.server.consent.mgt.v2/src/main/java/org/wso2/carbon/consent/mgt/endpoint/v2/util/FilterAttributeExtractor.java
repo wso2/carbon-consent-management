@@ -88,7 +88,7 @@ public class FilterAttributeExtractor {
         if (node instanceof ExpressionNode) {
             String attributeValue = ((ExpressionNode) node).getAttributeValue();
             if (attributeValue != null) {
-                attributes.add(attributeValue);
+                attributes.add(attributeValue.toLowerCase());
             }
         } else if (node instanceof OperationNode) {
             // Recursively traverse both left and right subtrees

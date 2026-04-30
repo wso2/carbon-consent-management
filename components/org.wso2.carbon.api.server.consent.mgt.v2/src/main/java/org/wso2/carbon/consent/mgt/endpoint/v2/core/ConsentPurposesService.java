@@ -60,7 +60,9 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.DEFAULT
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_FILTER_EXPRESSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_UUID_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_VERSION_NOT_FOUND;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_VERSION_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_ELEMENT_UUID_NOT_FOUND;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleClientException;
 
 /**
@@ -91,19 +93,14 @@ public class ConsentPurposesService {
                 DEFAULT_PURPOSE_GROUP, request.getType(), purposePIICategories);
         purpose.setTenantId(ConsentUtils.getTenantIdFromCarbonContext());
 
-        if (request.getVersion() != null) {
-            PurposeVersion firstVersion = new PurposeVersion();
-            firstVersion.setVersion(request.getVersion());
-            firstVersion.setDescription(request.getDescription());
-            firstVersion.setTenantId(ConsentUtils.getTenantIdFromCarbonContext());
-            firstVersion.setPurposePIICategories(purposePIICategories);
-            firstVersion.setProperties(request.getProperties());
-            Object[] result = consentManager.addPurpose(purpose, firstVersion);
-            Purpose created = (Purpose) result[0];
-            return toPurposeDTO(created);
-        }
-
-        Purpose created = consentManager.addPurpose(purpose);
+        PurposeVersion firstVersion = new PurposeVersion();
+        firstVersion.setVersion(request.getVersion());
+        firstVersion.setDescription(request.getDescription());
+        firstVersion.setTenantId(ConsentUtils.getTenantIdFromCarbonContext());
+        firstVersion.setPurposePIICategories(purposePIICategories);
+        firstVersion.setProperties(request.getProperties());
+        Object[] result = consentManager.addPurpose(purpose, firstVersion);
+        Purpose created = (Purpose) result[0];
         return toPurposeDTO(created);
     }
 
@@ -280,6 +277,10 @@ public class ConsentPurposesService {
      */
     public Response setLatestVersion(UUID purposeId, SetLatestVersionRequest request) throws ConsentManagementException {
 
+        if (request == null || request.getVersionId() == null) {
+            throw handleClientException(ERROR_CODE_PURPOSE_VERSION_REQUIRED, "versionId is required");
+        }
+
         PurposeVersion version = consentManager.getPurposeVersion(purposeId.toString(), request.getVersionId().toString());
         if (version == null) {
             throw handleClientException(ERROR_CODE_PURPOSE_VERSION_NOT_FOUND, request.getVersionId().toString());
@@ -296,6 +297,9 @@ public class ConsentPurposesService {
             return result;
         }
         for (PurposeElementBinding binding : elements) {
+            if (binding == null || binding.getElementId() == null) {
+                throw handleClientException(ERROR_CODE_PII_CATEGORY_ID_REQUIRED, "PII Category ID is required");
+            }
             PIICategory element = consentManager.getPIICategoryByUuid(binding.getElementId().toString());
             if (element == null) {
                 throw handleClientException(ERROR_CODE_ELEMENT_UUID_NOT_FOUND, binding.getElementId().toString());

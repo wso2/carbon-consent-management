@@ -73,9 +73,14 @@ public class PurposeDAOImplTest {
     public void tearDown() throws Exception {
 
         closeH2Base();
-        
+
         if (mockedComponentDataHolder != null) {
-            mockedComponentDataHolder.close();
+            try {
+                mockedComponentDataHolder.close();
+            } catch (Exception e) {
+                // MockedStatic may already be resolved, ignore
+            }
+            mockedComponentDataHolder = null;
         }
         if (mockitoCloseable != null) {
             mockitoCloseable.close();
@@ -649,6 +654,131 @@ public class PurposeDAOImplTest {
                     },
                     preparedStatement -> preparedStatement.setString(1, versionUuid));
             Assert.assertEquals(remaining.size(), 0, "Property rows must be deleted when version is deleted");
+        }
+    }
+
+    /**
+     * Test filter attribute mapping for NAME attribute
+     * Verifies that FILTER_ATTR_NAME ("name") is correctly mapped to DB_COL_NAME ("NAME")
+     */
+    @Test
+    public void testMapFilterAttributesForName() {
+
+        // Create an ExpressionNode with "name" attribute
+        org.wso2.carbon.identity.core.model.ExpressionNode exprNode =
+                new org.wso2.carbon.identity.core.model.ExpressionNode();
+        exprNode.setAttributeValue("name");
+        exprNode.setOperation("eq");
+        exprNode.setValue("Marketing");
+
+        // Create PurposeDAOImpl and access mapFilterAttributes via reflection
+        PurposeDAOImpl purposeDAO = new PurposeDAOImpl();
+        try {
+            java.lang.reflect.Method mapMethod = PurposeDAOImpl.class
+                    .getDeclaredMethod("mapFilterAttributes", org.wso2.carbon.identity.core.model.Node.class);
+            mapMethod.setAccessible(true);
+
+            org.wso2.carbon.identity.core.model.Node result =
+                    (org.wso2.carbon.identity.core.model.Node) mapMethod.invoke(purposeDAO, exprNode);
+
+            Assert.assertNotNull(result, "Mapped node should not be null");
+            org.wso2.carbon.identity.core.model.ExpressionNode mappedNode =
+                    (org.wso2.carbon.identity.core.model.ExpressionNode) result;
+            Assert.assertEquals(mappedNode.getAttributeValue(), "NAME",
+                    "FILTER_ATTR_NAME should be mapped to DB_COL_NAME (NAME)");
+        } catch (Exception e) {
+            Assert.fail("Failed to test mapFilterAttributes for NAME: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Test filter attribute mapping for TYPE attribute
+     * Verifies that FILTER_ATTR_TYPE ("type") is correctly mapped to DB_COL_GROUP_TYPE ("GROUP_TYPE")
+     */
+    @Test
+    public void testMapFilterAttributesForType() {
+
+        // Create an ExpressionNode with "type" attribute
+        org.wso2.carbon.identity.core.model.ExpressionNode exprNode =
+                new org.wso2.carbon.identity.core.model.ExpressionNode();
+        exprNode.setAttributeValue("type");
+        exprNode.setOperation("eq");
+        exprNode.setValue("SP");
+
+        // Create PurposeDAOImpl and access mapFilterAttributes via reflection
+        PurposeDAOImpl purposeDAO = new PurposeDAOImpl();
+        try {
+            java.lang.reflect.Method mapMethod = PurposeDAOImpl.class
+                    .getDeclaredMethod("mapFilterAttributes", org.wso2.carbon.identity.core.model.Node.class);
+            mapMethod.setAccessible(true);
+
+            org.wso2.carbon.identity.core.model.Node result =
+                    (org.wso2.carbon.identity.core.model.Node) mapMethod.invoke(purposeDAO, exprNode);
+
+            Assert.assertNotNull(result, "Mapped node should not be null");
+            org.wso2.carbon.identity.core.model.ExpressionNode mappedNode =
+                    (org.wso2.carbon.identity.core.model.ExpressionNode) result;
+            Assert.assertEquals(mappedNode.getAttributeValue(), "GROUP_TYPE",
+                    "FILTER_ATTR_TYPE should be mapped to DB_COL_GROUP_TYPE (GROUP_TYPE)");
+        } catch (Exception e) {
+            Assert.fail("Failed to test mapFilterAttributes for TYPE: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Test filter attribute mapping with OperationNode (AND/OR operations)
+     * Verifies that the mapping works recursively for complex filter expressions
+     */
+    @Test
+    public void testMapFilterAttributesWithOperationNode() {
+
+        // Create left node: name = "Marketing"
+        org.wso2.carbon.identity.core.model.ExpressionNode leftNode =
+                new org.wso2.carbon.identity.core.model.ExpressionNode();
+        leftNode.setAttributeValue("name");
+        leftNode.setOperation("eq");
+        leftNode.setValue("Marketing");
+
+        // Create right node: type = "SP"
+        org.wso2.carbon.identity.core.model.ExpressionNode rightNode =
+                new org.wso2.carbon.identity.core.model.ExpressionNode();
+        rightNode.setAttributeValue("type");
+        rightNode.setOperation("eq");
+        rightNode.setValue("SP");
+
+        // Create operation node: name = "Marketing" AND type = "SP"
+        org.wso2.carbon.identity.core.model.OperationNode opNode =
+                new org.wso2.carbon.identity.core.model.OperationNode("and");
+        opNode.setLeftNode(leftNode);
+        opNode.setRightNode(rightNode);
+
+        // Create PurposeDAOImpl and access mapFilterAttributes via reflection
+        PurposeDAOImpl purposeDAO = new PurposeDAOImpl();
+        try {
+            java.lang.reflect.Method mapMethod = PurposeDAOImpl.class
+                    .getDeclaredMethod("mapFilterAttributes", org.wso2.carbon.identity.core.model.Node.class);
+            mapMethod.setAccessible(true);
+
+            org.wso2.carbon.identity.core.model.Node result =
+                    (org.wso2.carbon.identity.core.model.Node) mapMethod.invoke(purposeDAO, opNode);
+
+            Assert.assertNotNull(result, "Mapped node should not be null");
+            org.wso2.carbon.identity.core.model.OperationNode mappedOpNode =
+                    (org.wso2.carbon.identity.core.model.OperationNode) result;
+
+            // Verify left node is mapped
+            org.wso2.carbon.identity.core.model.ExpressionNode mappedLeft =
+                    (org.wso2.carbon.identity.core.model.ExpressionNode) mappedOpNode.getLeftNode();
+            Assert.assertEquals(mappedLeft.getAttributeValue(), "NAME",
+                    "Left node FILTER_ATTR_NAME should be mapped to DB_COL_NAME (NAME)");
+
+            // Verify right node is mapped
+            org.wso2.carbon.identity.core.model.ExpressionNode mappedRight =
+                    (org.wso2.carbon.identity.core.model.ExpressionNode) mappedOpNode.getRightNode();
+            Assert.assertEquals(mappedRight.getAttributeValue(), "GROUP_TYPE",
+                    "Right node FILTER_ATTR_TYPE should be mapped to DB_COL_GROUP_TYPE (GROUP_TYPE)");
+        } catch (Exception e) {
+            Assert.fail("Failed to test mapFilterAttributes with OperationNode: " + e.getMessage());
         }
     }
 }
