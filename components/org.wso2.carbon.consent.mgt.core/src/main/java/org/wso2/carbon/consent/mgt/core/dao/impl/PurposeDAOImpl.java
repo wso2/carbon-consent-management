@@ -18,6 +18,7 @@ package org.wso2.carbon.consent.mgt.core.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
@@ -315,6 +316,10 @@ public class PurposeDAOImpl implements PurposeDAO {
                 String builtClause = filterSqlBuilder.buildWhereClause(filterTree, filterParams);
                 if (builtClause != null && !builtClause.isEmpty()) {
                     filterWhereClause = " AND " + builtClause;
+                } else {
+                    throw new ConsentManagementClientException(
+                            "Invalid filter expression: one or more filter conditions could not be resolved.",
+                            ErrorMessages.ERROR_CODE_INVALID_FILTER_EXPRESSION.getCode());
                 }
             }
 
