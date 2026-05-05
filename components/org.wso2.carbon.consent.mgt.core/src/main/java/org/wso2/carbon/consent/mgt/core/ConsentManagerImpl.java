@@ -65,7 +65,6 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
@@ -121,7 +120,6 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_TERMINATION_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_THIRD_PARTY_DISCLOSURE_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CANNOT_DELETE_LATEST_PURPOSE_VERSION;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CANNOT_DELETE_DEFAULT_PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.ADDRESS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.ADDRESS_COUNTRY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.ADDRESS_LOCALITY;
@@ -317,10 +315,6 @@ public class ConsentManagerImpl implements ConsentManager {
     public void deletePurpose(String uuid) throws ConsentManagementException {
 
         Purpose purpose = getPurposeByUuid(uuid);
-        if (DEFAULT_PURPOSE_GROUP.equals(purpose.getName())) {
-            throw handleClientException(ERROR_CODE_CANNOT_DELETE_DEFAULT_PURPOSE, purpose.getName());
-        }
-
         List<PurposeVersion> versions = listPurposeVersions(uuid);
         if (isEmpty(versions)) {
             deletePurpose(purpose.getId());
@@ -688,63 +682,6 @@ public class ConsentManagerImpl implements ConsentManager {
         }
         return new AddReceiptResponse(receiptInput.getConsentReceiptId(), receiptInput.getCollectionMethod(),
                 receiptInput.getLanguage(), receiptInput.getPiiPrincipalId(), receiptInput.getTenantDomain());
-    }
-
-    @Override
-    public AddReceiptResponse addConsent(String userId, String applicationId, String tenantDomain,
-                                         String consentType, Map<String, List<Integer>> purposeToElementIds,
-                                         String collectionMethod, String state)
-            throws ConsentManagementException {
-
-        PurposeCategory defaultCategory = getPurposeCategoryByName(DEFAULT_PURPOSE_GROUP);
-        int defaultPurposeCategoryId = defaultCategory.getId();
-
-        List<ReceiptPurposeInput> purposeInputs = new ArrayList<>();
-        for (Map.Entry<String, List<Integer>> entry : purposeToElementIds.entrySet()) {
-            Purpose purpose = getPurposeByUuid(entry.getKey());
-
-            ReceiptPurposeInput purposeInput = new ReceiptPurposeInput();
-            purposeInput.setPurposeId(purpose.getId());
-            PurposeVersion latestVersion = purpose.getLatestVersion();
-            if (latestVersion != null) {
-                purposeInput.setPurposeVersionId(latestVersion.getUuid());
-            }
-            purposeInput.setConsentType(consentType);
-            purposeInput.setPrimaryPurpose(true);
-            purposeInput.setThirdPartyDisclosure(false);
-            purposeInput.setPurposeCategoryId(Arrays.asList(defaultPurposeCategoryId));
-            purposeInput.setTermination(TERMINATION_INDEFINITE);
-
-            List<PIICategoryValidity> piiValidities = new ArrayList<>();
-            if (entry.getValue() != null) {
-                for (Integer elementId : entry.getValue()) {
-                    PIICategory element = getPIICategory(elementId);
-                    piiValidities.add(new PIICategoryValidity(element.getId(), TERMINATION_INDEFINITE));
-                }
-            }
-            purposeInput.setPiiCategory(piiValidities);
-            purposeInputs.add(purposeInput);
-        }
-
-        ReceiptServiceInput serviceInput = new ReceiptServiceInput();
-        serviceInput.setService(applicationId);
-        serviceInput.setSpDisplayName(applicationId);
-        serviceInput.setTenantDomain(tenantDomain);
-        serviceInput.setPurposes(purposeInputs);
-
-        ReceiptInput receiptInput = new ReceiptInput();
-        receiptInput.setVersion(API_VERSION);
-        receiptInput.setCollectionMethod(collectionMethod);
-        receiptInput.setJurisdiction("");
-        receiptInput.setPolicyUrl("");
-        receiptInput.setLanguage("");
-        receiptInput.setPiiPrincipalId(userId);
-        receiptInput.setTenantDomain(tenantDomain);
-        receiptInput.setServices(Arrays.asList(serviceInput));
-        receiptInput.setAllowMultipleActiveReceipts(true);
-        receiptInput.setState(state);
-
-        return addConsent(receiptInput);
     }
 
     /**

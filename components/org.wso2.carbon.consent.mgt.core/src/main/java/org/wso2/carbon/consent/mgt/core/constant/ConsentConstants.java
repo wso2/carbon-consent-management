@@ -41,8 +41,6 @@ public class ConsentConstants {
     public static final String PURPOSE_CATEGORY_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "purpose-categories";
     public static final String PII_CATEGORY_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "pii-categories";
     public static final String API_VERSION = "KI-CR-v1.1.0";
-    public static final String DEFAULT_COLLECTION_METHOD = "API";
-    public static final String TERMINATION_INDEFINITE = "VALID_UNTIL:INDEFINITE";
     public static final String DEFAULT_PURPOSE_GROUP = "DEFAULT";
     public static final String REVOKE_STATE = "REVOKED";
     public static final String ACTIVE_STATE = "ACTIVE";
@@ -76,7 +74,7 @@ public class ConsentConstants {
     public static final String RESULT = "RESULT";
     public static final String GROUP = "GROUP";
     public static final String GROUP_TYPE = "GROUP_TYPE";
-        public static final String PURPOSE_VERSION_LABEL = "PURPOSE_VERSION_LABEL";
+    public static final String PURPOSE_VERSION_LABEL = "PURPOSE_VERSION_LABEL";
 
     public static final String MY_SQL = "MySQL";
     public static final String MARIADB = "MariaDB";
@@ -260,9 +258,7 @@ public class ConsentConstants {
                 "User '%s' is not in the authorization list for this consent."),
         ERROR_CODE_CONSENT_SUBJECT_MISMATCH("CM_00115",
                 "Subject ID '%s' does not match the authenticated user for a consent without authorizations."),
-        ERROR_CODE_CANNOT_DELETE_DEFAULT_PURPOSE("CM_00116",
-                "Cannot delete purpose '%s': the DEFAULT purpose is protected and cannot be deleted."),
-        ERROR_CODE_PURPOSE_HAS_VERSIONS_WITH_CONSENTS("CM_00117",
+        ERROR_CODE_PURPOSE_HAS_VERSIONS_WITH_CONSENTS("CM_00116",
                 "Purpose '%s' cannot be deleted: one or more of its versions are associated with active consents."),
         ERROR_CODE_UNSUPPORTED_FILTER_ATTRIBUTE("CM_40001",
                 "Unsupported filter attribute: %s. Supported attributes for this endpoint are documented in the API specification."),

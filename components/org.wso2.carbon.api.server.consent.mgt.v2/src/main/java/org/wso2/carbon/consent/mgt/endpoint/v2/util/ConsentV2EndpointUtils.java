@@ -57,7 +57,6 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_INVALID_STATE_FOR_REVOKE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_INVALID_STATE_FOR_AUTHORIZE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CANNOT_DELETE_LATEST_PURPOSE_VERSION;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CANNOT_DELETE_DEFAULT_PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_HAS_VERSIONS_WITH_CONSENTS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_USER_NOT_IN_AUTHORIZATION_LIST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.STATUS_BAD_REQUEST_MESSAGE_DEFAULT;
@@ -96,7 +95,6 @@ public class ConsentV2EndpointUtils {
             ERROR_CODE_CONSENT_INVALID_STATE_FOR_REVOKE.getCode(),
             ERROR_CODE_CONSENT_INVALID_STATE_FOR_AUTHORIZE.getCode(),
             ERROR_CODE_CANNOT_DELETE_LATEST_PURPOSE_VERSION.getCode(),
-            ERROR_CODE_CANNOT_DELETE_DEFAULT_PURPOSE.getCode(),
             ERROR_CODE_PURPOSE_HAS_VERSIONS_WITH_CONSENTS.getCode()
     ));
 

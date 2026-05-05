@@ -673,30 +673,6 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 .getResult();
     }
 
-    public AddReceiptResponse addConsent(String userId, String applicationId, String tenantDomain,
-                                         String consentType, Map<String, List<Integer>> purposeToElementIds,
-                                         String collectionMethod, String state)
-            throws ConsentManagementException {
-
-        ConsentMessageContext context = new ConsentMessageContext();
-        ConsentInterceptorTemplate<AddReceiptResponse, ConsentManagementException>
-                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
-
-        return template.intercept(PRE_ADD_RECEIPT, properties -> {
-                })
-                .executeWith(new OperationDelegate<AddReceiptResponse>() {
-                    @Override
-                    public AddReceiptResponse execute() throws ConsentManagementException {
-
-                        return consentManager.addConsent(userId, applicationId, tenantDomain, consentType,
-                                purposeToElementIds, collectionMethod, state);
-                    }
-                })
-                .intercept(POST_ADD_RECEIPT, properties -> {
-                })
-                .getResult();
-    }
-
     public AddReceiptResponse addConsent(ReceiptInput receiptInput) throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();

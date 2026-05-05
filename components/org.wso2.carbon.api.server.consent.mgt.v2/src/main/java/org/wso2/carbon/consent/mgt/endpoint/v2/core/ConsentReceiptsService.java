@@ -22,10 +22,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
-import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
 import org.wso2.carbon.consent.mgt.core.model.ConsentPurpose;
@@ -33,13 +31,12 @@ import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ConsentResponseDTO;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
-import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
+import org.wso2.carbon.consent.mgt.core.model.PurposePIICategoryBinding;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
-import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptService;
-import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
+import org.wso2.carbon.consent.mgt.core.util.ConsentReceiptUtils;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.AuthorizationCreateRequest;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.AuthorizationDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ConsentCreateRequest;
@@ -60,19 +57,11 @@ import java.util.UUID;
 import javax.ws.rs.core.Response;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REJECTED_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PENDING_STATE;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.API_VERSION;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.DEFAULT_PURPOSE_GROUP;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.DEFAULT_COLLECTION_METHOD;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.TERMINATION_INDEFINITE;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_ELEMENT_UUID_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_INVALID_STATE_FOR_AUTHORIZE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_USER_NOT_IN_AUTHORIZATION_LIST;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_SUBJECT_MISMATCH;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_NOT_FOUND;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_UUID_NOT_FOUND;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_ELEMENT_UUID_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleClientException;
 
 /**
@@ -82,9 +71,6 @@ public class ConsentReceiptsService {
 
     private static final Log LOG = LogFactory.getLog(ConsentReceiptsService.class);
 
-    private static final String DEFAULT_CONSENT_TYPE = "EXPLICIT";
-    private static final String DEFAULT_JURISDICTION = "";
-    private static final String DEFAULT_POLICY_URL = "";
 
     private final ConsentManager consentManager;
 
@@ -102,8 +88,7 @@ public class ConsentReceiptsService {
      */
     public ConsentResponseDTO createConsent(ConsentCreateRequest request) throws ConsentManagementException {
 
-        int defaultPurposeCategoryId = getDefaultPurposeCategoryId();
-        ReceiptInput receiptInput = buildReceiptInput(request, defaultPurposeCategoryId);
+        ReceiptInput receiptInput = buildReceiptInput(request);
         AddReceiptResponse addReceiptResponse = consentManager.addConsent(receiptInput);
 
         ConsentResponseDTO responseDTO = new ConsentResponseDTO();
@@ -209,108 +194,37 @@ public class ConsentReceiptsService {
         return Response.noContent().build();
     }
 
-    private int getDefaultPurposeCategoryId() throws ConsentManagementException {
-
-        PurposeCategory defaultCategory = consentManager.getPurposeCategoryByName(DEFAULT_PURPOSE_GROUP);
-        if (defaultCategory == null) {
-            throw new ConsentManagementServerException(
-                    String.format(ERROR_CODE_PURPOSE_CATEGORY_NOT_FOUND.getMessage(), DEFAULT_PURPOSE_GROUP),
-                    ERROR_CODE_PURPOSE_CATEGORY_NOT_FOUND.getCode());
-        }
-        return defaultCategory.getId();
-    }
-
-    private ReceiptInput buildReceiptInput(ConsentCreateRequest request, int defaultPurposeCategoryId)
+    private ReceiptInput buildReceiptInput(ConsentCreateRequest request)
             throws ConsentManagementException {
 
         PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-
-        ReceiptInput receiptInput = new ReceiptInput();
-        receiptInput.setVersion(API_VERSION);
-        receiptInput.setJurisdiction(DEFAULT_JURISDICTION);
-        receiptInput.setPolicyUrl(DEFAULT_POLICY_URL);
-        receiptInput.setCollectionMethod(DEFAULT_COLLECTION_METHOD);
-        receiptInput.setAllowMultipleActiveReceipts(true);
-        receiptInput.setLanguage(request.getLanguage());
-        boolean hasAuthorizations = request.getAuthorizations() != null && !request.getAuthorizations().isEmpty();
         String currentUser = carbonContext.getUsername();
-        String subjectId = StringUtils.isNotBlank(request.getSubjectId())
-                ? request.getSubjectId() : currentUser;
-        // Delegated consent (subject ≠ caller) requires at least one authorizer.
-        if (!subjectId.equals(currentUser) && !hasAuthorizations) {
-            throw handleClientException(ERROR_CODE_CONSENT_SUBJECT_MISMATCH, subjectId);
-        }
-        receiptInput.setPiiPrincipalId(subjectId);
-        receiptInput.setTenantDomain(carbonContext.getTenantDomain());
-        if (request.getValidityTime() != null) {
-            receiptInput.setValidityTime(request.getValidityTime());
-        }
-        if (hasAuthorizations) {
-            receiptInput.setAuthorizations(request.getAuthorizations());
-        }
-        if (ConsentCreateRequest.StateEnum.REJECTED.equals(request.getState())) {
-            receiptInput.setState(REJECTED_STATE);
-        }
+        String subjectId = StringUtils.isNotBlank(request.getSubjectId()) ? request.getSubjectId() : currentUser;
 
-        // Set metadata properties.
-        if (request.getProperties() != null) {
-            receiptInput.setProperties(request.getProperties());
-        }
-
-        // Build single service input from the request service name.
-        ReceiptServiceInput serviceInput = new ReceiptServiceInput();
-        serviceInput.setService(request.getServiceId());
-        serviceInput.setSpDisplayName(request.getServiceId());
-        serviceInput.setTenantDomain(carbonContext.getTenantDomain());
-
-        // Build purpose inputs.
-        List<ReceiptPurposeInput> purposeInputs = new ArrayList<>();
+        List<PurposePIICategoryBinding> purposeBindings = new ArrayList<>();
         if (request.getPurposes() != null) {
             for (ConsentPurposeBinding purposeBinding : request.getPurposes()) {
-                ReceiptPurposeInput purposeInput = new ReceiptPurposeInput();
-
-                // Resolve purpose by UUID to get the internal DB ID.
-                Purpose purpose = consentManager.getPurposeByUuid(purposeBinding.getPurposeId().toString());
-                if (purpose == null) {
-                    throw handleClientException(ERROR_CODE_PURPOSE_UUID_NOT_FOUND,
-                            purposeBinding.getPurposeId().toString());
-                }
-                purposeInput.setPurposeId(purpose.getId());
-
-                // Resolve and set the latest version ID for this purpose.
-                PurposeVersion latestVersion = purpose.getLatestVersion();
-                if (latestVersion != null) {
-                    purposeInput.setPurposeVersionId(latestVersion.getUuid());
-                }
-
-                purposeInput.setConsentType(DEFAULT_CONSENT_TYPE);
-                purposeInput.setPrimaryPurpose(true);
-                purposeInput.setThirdPartyDisclosure(false);
-                purposeInput.setPurposeCategoryId(List.of(defaultPurposeCategoryId));
-                purposeInput.setTermination(TERMINATION_INDEFINITE);
-
-                // Build element validities, resolving each element UUID to its internal DB ID.
-                List<PIICategoryValidity> piiCategoryValidities = new ArrayList<>();
+                List<PIICategory> piiCategories = new ArrayList<>();
                 if (purposeBinding.getElements() != null) {
                     for (ElementTerminationInfo elementInfo : purposeBinding.getElements()) {
-                        PIICategory piiCategory = consentManager.getPIICategoryByUuid(
-                                elementInfo.getElementId().toString());
+                        String elementId = elementInfo.getElementId().toString();
+                        PIICategory piiCategory = consentManager.getPIICategoryByUuid(elementId);
                         if (piiCategory == null) {
-                            throw handleClientException(ERROR_CODE_ELEMENT_UUID_NOT_FOUND,
-                                    elementInfo.getElementId().toString());
+                            throw handleClientException(ERROR_CODE_ELEMENT_UUID_NOT_FOUND, elementId);
                         }
-                        PIICategoryValidity validity = new PIICategoryValidity(
-                                piiCategory.getId(), TERMINATION_INDEFINITE);
-                        piiCategoryValidities.add(validity);
+                        piiCategories.add(piiCategory);
                     }
                 }
-                purposeInput.setPiiCategory(piiCategoryValidities);
-                purposeInputs.add(purposeInput);
+                purposeBindings.add(new PurposePIICategoryBinding(
+                        purposeBinding.getPurposeId().toString(), piiCategories));
             }
         }
-        serviceInput.setPurposes(purposeInputs);
-        receiptInput.setServices(Collections.singletonList(serviceInput));
-        return receiptInput;
+
+        boolean rejected = ConsentCreateRequest.StateEnum.REJECTED.equals(request.getState());
+        return ConsentReceiptUtils.buildReceiptInput(request.getLanguage(), subjectId, currentUser,
+                carbonContext.getTenantDomain(), request.getValidityTime(), rejected,
+                request.getAuthorizations(), request.getProperties(), request.getServiceId(), purposeBindings,
+                consentManager);
     }
 
     private ConsentDTO toConsentDTO(Receipt receipt) throws ConsentManagementException {
