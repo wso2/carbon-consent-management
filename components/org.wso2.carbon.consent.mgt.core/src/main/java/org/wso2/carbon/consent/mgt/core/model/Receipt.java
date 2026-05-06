@@ -17,6 +17,7 @@
 package org.wso2.carbon.consent.mgt.core.model;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The model representing a a consent receipt.
@@ -40,6 +41,8 @@ public class Receipt {
     private String state;
     private String tenantDomain;
     private int tenantId;
+    private Map<String, String> properties;
+    private Long validityTime;
 
     public String getConsentReceiptId() {
 
@@ -210,4 +213,25 @@ public class Receipt {
 
         this.piiController = piiController;
     }
+
+    public Map<String, String> getProperties() {
+
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+
+        this.properties = properties;
+    }
+
+    public Long getValidityTime() {
+
+        return validityTime;
+    }
+
+    public void setValidityTime(Long validityTime) {
+
+        this.validityTime = validityTime;
+    }
+
 }

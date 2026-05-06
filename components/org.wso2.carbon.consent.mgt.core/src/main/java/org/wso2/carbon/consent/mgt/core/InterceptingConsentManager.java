@@ -33,6 +33,7 @@ import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -257,7 +258,9 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
 
         if (isNotBlank(piiPrincipalId) && piiPrincipalId.equalsIgnoreCase(loggedInUser)) {
             if (log.isDebugEnabled()) {
-                log.debug("User: " + piiPrincipalId + " is authorized to perform a search on own consent receipts.");
+                String maskedId = LoggerUtils.isLogMaskingEnable
+                        ? LoggerUtils.getMaskedContent(piiPrincipalId) : piiPrincipalId;
+                log.debug("User: " + maskedId + " is authorized to perform a search on own consent receipts.");
             }
             //Returns here since same user is trying to search own receipts.
             return;
@@ -277,7 +280,9 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
 
         if (super.isReceiptExist(receiptId, loggedInUser, tenantId)) {
             if (log.isDebugEnabled()) {
-                log.debug("User: " + loggedInUser + " is authorized to perform a " + operation + " on own " +
+                String maskedUser = LoggerUtils.isLogMaskingEnable
+                        ? LoggerUtils.getMaskedContent(loggedInUser) : loggedInUser;
+                log.debug("User: " + maskedUser + " is authorized to perform a " + operation + " on own " +
                         "consent receipt.");
             }
             //Returns here since same user is trying to get/revoke own receipts.
@@ -327,12 +332,16 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
 
             if (authorized) {
                 if (log.isDebugEnabled()) {
-                    log.debug("User: " + tenantAwareUsername + " is successfully authorized to perform the " +
+                    String maskedUser = LoggerUtils.isLogMaskingEnable
+                            ? LoggerUtils.getMaskedContent(tenantAwareUsername) : tenantAwareUsername;
+                    log.debug("User: " + maskedUser + " is successfully authorized to perform the " +
                             "operation: " + operation);
                 }
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("LoggedIn user: " + tenantAwareUsername + " is not authorized to perform operation :" +
+                    String maskedUser = LoggerUtils.isLogMaskingEnable
+                            ? LoggerUtils.getMaskedContent(tenantAwareUsername) : tenantAwareUsername;
+                    log.debug("LoggedIn user: " + maskedUser + " is not authorized to perform operation :" +
                             operation + " of another users");
                 }
                 throw handleClientException(ERROR_CODE_USER_NOT_AUTHORIZED, tenantAwareUsername);

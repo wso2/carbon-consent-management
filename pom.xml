@@ -42,6 +42,7 @@
         <module>service-stubs/org.wso2.carbon.claim.metadata.mgt.stub</module>
         <module>components/org.wso2.carbon.consent.mgt.ui</module>
         <module>components/org.wso2.carbon.api.server.consent.mgt</module>
+        <module>components/org.wso2.carbon.api.server.consent.mgt.v2</module>
         <module>components/org.wso2.carbon.consent.mgt.endpoint</module>
         <module>features/org.wso2.carbon.consent.mgt.feature</module>
         <module>features/org.wso2.carbon.consent.mgt.ui.feature</module>
@@ -80,6 +81,11 @@
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.core</artifactId>
+                <version>${carbon.identity.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
                 <version>${carbon.identity.framework.version}</version>
             </dependency>
             <!-- Test Dependencies -->
@@ -291,7 +297,7 @@
         <org.apache.felix.annotations.version>1.2.10</org.apache.felix.annotations.version>
         <eclipse.osgi.version>3.19.0</eclipse.osgi.version>
         <equinox.osgi.services.version>3.12.0</equinox.osgi.services.version>
-        <carbon.core.version>4.9.23</carbon.core.version>
+        <carbon.core.version>4.12.0</carbon.core.version>
         <slf4j.api.version>1.7.26</slf4j.api.version>
         <swagger.jaxrs.version>1.6.2</swagger.jaxrs.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
@@ -308,14 +314,14 @@
         <org.json.wso2.version>3.0.0.wso2v1</org.json.wso2.version>
         <axiom.wso2.version>1.2.11.wso2v10</axiom.wso2.version>
         <com.google.code.gson.version>2.9.0</com.google.code.gson.version>
-        <carbon.identity.framework.version>7.9.64</carbon.identity.framework.version>
+        <carbon.identity.framework.version>7.10.0</carbon.identity.framework.version>
         <carbon.identity.framework.imp.pkg.version.range>[7.8.0, 8.0.0)
         </carbon.identity.framework.imp.pkg.version.range>
 
         <!--swagger2cxf.maven.plugin.version>1.0-SNAPSHOT</swagger2cxf.maven.plugin.version-->
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
         <!-- OSGi Package Import Versions -->
-        <carbon.core.version.range>[4.5.0, 5.0.0)</carbon.core.version.range>
+        <carbon.core.version.range>[4.12.0, 5.0.0)</carbon.core.version.range>
         <carbon.api.version.range>[1.0.1, 2.0.0)</carbon.api.version.range>
         <axiom.version.range>[1.2.11, 2.0.0)</axiom.version.range>
         <commons.collections.version.range>[3.2.2, 4.0.0)</commons.collections.version.range>

@@ -465,6 +465,206 @@ public class ReceiptDAOImplTest {
         }
     }
 
+    // =========================================================================
+    // listReceipts (V2 explicit-param query)
+    // =========================================================================
+
+    @DataProvider(name = "listReceiptsProvider")
+    public Object[][] provideListReceiptsData() {
+
+        return new Object[][]{
+                // subjectId, serviceId, state, purposeId, purposeVersionId, limit, offset, tenantId, expectedCount
+                {null,      null,         null,     null, null, 10, 0, SUPER_TENANT_ID, 2},
+                {"subject1", null,        null,     null, null, 10, 0, SUPER_TENANT_ID, 1},
+                {"subject2", null,        null,     null, null, 10, 0, SUPER_TENANT_ID, 1},
+                {null,      "foo-company", null,    null, null, 10, 0, SUPER_TENANT_ID, 2},
+                {null,      null,         "ACTIVE", null, null, 10, 0, SUPER_TENANT_ID, 2},
+                {null,      null,         "REVOKED",null, null, 10, 0, SUPER_TENANT_ID, 0},
+                {null,      null,         null,     null, null,  1, 0, SUPER_TENANT_ID, 1},
+                {null,      null,         null,     null, null, 10, 1, SUPER_TENANT_ID, 1},
+                {null,      null,         null,     null, null,  0, 0, SUPER_TENANT_ID, 0},
+                {"nonexistent", null,     null,     null, null, 10, 0, SUPER_TENANT_ID, 0},
+        };
+    }
+
+    @Test(dataProvider = "listReceiptsProvider")
+    public void testListReceipts(String subjectId, String serviceId, String state, String purposeId,
+            String purposeVersionId, int limit, int offset, int tenantId, int expectedCount)
+            throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+            receiptDAO.addReceipt(receiptInputs.get(0));
+            receiptDAO.addReceipt(receiptInputs.get(1));
+
+            List<Receipt> results = receiptDAO.listReceipts(subjectId, serviceId, state, purposeId,
+                    purposeVersionId, limit, offset, tenantId);
+
+            Assert.assertNotNull(results);
+            Assert.assertEquals(results.size(), expectedCount,
+                    String.format("Expected %d receipts for subjectId=%s, serviceId=%s, state=%s, limit=%d, offset=%d",
+                            expectedCount, subjectId, serviceId, state, limit, offset));
+        }
+    }
+
+    @Test
+    public void testListReceipts_allFiltersNull_returnsAll() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+            receiptDAO.addReceipt(receiptInputs.get(0));
+            receiptDAO.addReceipt(receiptInputs.get(1));
+
+            List<Receipt> results = receiptDAO.listReceipts(null, null, null, null, null, 100, 0,
+                    SUPER_TENANT_ID);
+
+            Assert.assertNotNull(results);
+            Assert.assertEquals(results.size(), 2, "All receipts should be returned when no filters applied");
+        }
+    }
+
+    @Test
+    public void testListReceipts_nonExistentPurposeVersionId_returnsEmpty() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+            receiptDAO.addReceipt(receiptInputs.get(0));
+
+            // A random UUID that doesn't exist as a purposeVersionId.
+            String unknownVersionId = UUID.randomUUID().toString();
+            List<Receipt> results = receiptDAO.listReceipts(null, null, null, null, unknownVersionId, 10, 0,
+                    SUPER_TENANT_ID);
+
+            Assert.assertNotNull(results);
+            Assert.assertEquals(results.size(), 0, "No receipts should match an unknown purposeVersionId");
+        }
+    }
+
+    @Test
+    public void testListReceipts_receiptsContainExpectedFields() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+            receiptDAO.addReceipt(receiptInputs.get(0));
+
+            List<Receipt> results = receiptDAO.listReceipts("subject1", null, null, null, null, 10, 0,
+                    SUPER_TENANT_ID);
+
+            Assert.assertNotNull(results);
+            Assert.assertEquals(results.size(), 1);
+
+            Receipt receipt = results.get(0);
+            Assert.assertNotNull(receipt.getConsentReceiptId(), "consentReceiptId must not be null");
+            Assert.assertEquals(receipt.getPiiPrincipalId(), "subject1", "piiPrincipalId must match");
+            Assert.assertEquals(receipt.getState(), ConsentConstants.ACTIVE_STATE, "state must be ACTIVE");
+            Assert.assertNotNull(receipt.getServices(), "services must not be null");
+        }
+    }
+
+    @Test
+    public void testAddReceipt_secondReceipt_revokesFirst_whenFlagNotSet() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+
+            receiptDAO.addReceipt(receiptInputs.get(0));
+
+            ReceiptInput second = cloneReceiptInput(receiptInputs.get(0));
+            second.setConsentReceiptId(UUID.randomUUID().toString());
+            receiptDAO.addReceipt(second);
+
+            Receipt first = receiptDAO.getReceipt(receiptInputs.get(0).getConsentReceiptId());
+            Assert.assertEquals(first.getState(), ConsentConstants.REVOKE_STATE,
+                    "First receipt must be revoked when a second consent is added for the same user+service.");
+        }
+    }
+
+    @Test
+    public void testAddReceipt_doesNotRevokeExisting_whenFlagSet() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+
+            ReceiptInput first = cloneReceiptInput(receiptInputs.get(0));
+            first.setAllowMultipleActiveReceipts(true);
+            receiptDAO.addReceipt(first);
+
+            ReceiptInput second = cloneReceiptInput(receiptInputs.get(0));
+            second.setConsentReceiptId(UUID.randomUUID().toString());
+            second.setAllowMultipleActiveReceipts(true);
+            receiptDAO.addReceipt(second);
+
+            Receipt firstReceipt = receiptDAO.getReceipt(first.getConsentReceiptId());
+            Assert.assertEquals(firstReceipt.getState(), ConsentConstants.ACTIVE_STATE,
+                    "First receipt must remain ACTIVE when allowMultipleActiveReceipts is true.");
+
+            Receipt secondReceipt = receiptDAO.getReceipt(second.getConsentReceiptId());
+            Assert.assertEquals(secondReceipt.getState(), ConsentConstants.ACTIVE_STATE,
+                    "Second receipt must also be ACTIVE when allowMultipleActiveReceipts is true.");
+        }
+    }
+
+    private ReceiptInput cloneReceiptInput(ReceiptInput source) {
+
+        ReceiptInput clone = new ReceiptInput();
+        clone.setConsentReceiptId(source.getConsentReceiptId());
+        clone.setCollectionMethod(source.getCollectionMethod());
+        clone.setJurisdiction(source.getJurisdiction());
+        clone.setPiiPrincipalId(source.getPiiPrincipalId());
+        clone.setLanguage(source.getLanguage());
+        clone.setPolicyUrl(source.getPolicyUrl());
+        clone.setServices(source.getServices());
+        clone.setTenantDomain(source.getTenantDomain());
+        clone.setTenantId(source.getTenantId());
+        clone.setState(source.getState());
+        clone.setVersion(source.getVersion());
+        clone.setPiiControllerInfo(source.getPiiControllerInfo());
+        clone.setProperties(source.getProperties());
+        return clone;
+    }
+
     private void mockCarbonContext() {
 
         mockedCarbonContext = mockStatic(PrivilegedCarbonContext.class);

@@ -44,9 +44,11 @@ import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.PiiController;
+import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
+import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.consent.mgt.core.util.TestUtils;
@@ -98,6 +100,10 @@ public class ConsentManagerImplTest {
     private AutoCloseable mockitoCloseable;
 
     private static List<PIICategory> piiCategories = new ArrayList<>();
+    private static final String TEST_PURPOSE_NAME = "Test Purpose";
+    private static final String TEST_PURPOSE_DESCRIPTION = "Test purpose description";
+    private static final String TEST_PURPOSE_GROUP = "TEST_GROUP";
+    private static final String TEST_PURPOSE_GROUP_TYPE = "SYSTEM";
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -328,12 +334,192 @@ public class ConsentManagerImplTest {
                         "JKS"));
     }
 
+    private Purpose createTestPurpose() throws Exception {
+
+        consentManager = new ConsentManagerImpl(configurationHolder);
+
+        Purpose purpose = new Purpose(TEST_PURPOSE_NAME, TEST_PURPOSE_DESCRIPTION, TEST_PURPOSE_GROUP,
+                TEST_PURPOSE_GROUP_TYPE);
+        purpose.setTenantId(-1234);
+
+        return consentManager.addPurpose(purpose);
+    }
+
+    @Test
+    public void testAddPurposeVersion() throws Exception {
+
+        Purpose purpose = createTestPurpose();
+
+        PurposeVersion purposeVersion = new PurposeVersion();
+        purposeVersion.setVersion("v1");
+        purposeVersion.setDescription("Version 1 description");
+
+        PurposeVersion result = consentManager.addPurposeVersion(purpose.getUuid(), purposeVersion, false);
+
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result.getPurposeId(), purpose.getId());
+        Assert.assertEquals(result.getVersion(), "v1");
+        Assert.assertEquals(result.getDescription(), "Version 1 description");
+
+        List<PurposeVersion> versions = consentManager.listPurposeVersions(purpose.getUuid());
+        Assert.assertEquals(versions.size(), 1);
+    }
+
+    @Test
+    public void testAddPurposeVersionWhenVersionsExist() throws Exception {
+
+        Purpose purpose = createTestPurpose();
+
+        PurposeVersion first = new PurposeVersion();
+        first.setVersion("v1");
+        first.setDescription("First explicit version");
+        consentManager.addPurposeVersion(purpose.getUuid(), first, false);
+
+        PurposeVersion second = new PurposeVersion();
+        second.setVersion("v2");
+        second.setDescription("Second explicit version");
+        PurposeVersion result = consentManager.addPurposeVersion(purpose.getUuid(), second, false);
+
+        Assert.assertEquals(result.getVersion(), "v2");
+
+        List<PurposeVersion> versions = consentManager.listPurposeVersions(purpose.getUuid());
+        Assert.assertEquals(versions.size(), 2);
+    }
+
+    @Test
+    public void testListPurposeVersions() throws Exception {
+
+        Purpose purpose = createTestPurpose();
+
+        PurposeVersion first = new PurposeVersion();
+        first.setVersion("v1");
+        first.setDescription("First explicit version");
+        consentManager.addPurposeVersion(purpose.getUuid(), first, false);
+
+        PurposeVersion second = new PurposeVersion();
+        second.setVersion("v2");
+        second.setDescription("Second explicit version");
+        consentManager.addPurposeVersion(purpose.getUuid(), second, false);
+
+        List<PurposeVersion> versions = consentManager.listPurposeVersions(purpose.getUuid());
+
+        Assert.assertEquals(versions.size(), 2);
+    }
+
+    @Test
+    public void testGetPurposeVersion() throws Exception {
+
+        Purpose purpose = createTestPurpose();
+
+        PurposeVersion version = new PurposeVersion();
+        version.setVersion("v1");
+        version.setDescription("Test version");
+        PurposeVersion added = consentManager.addPurposeVersion(purpose.getUuid(), version, false);
+
+        PurposeVersion result = consentManager.getPurposeVersion(purpose.getUuid(), added.getUuid());
+
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result.getVersion(), "v1");
+        Assert.assertEquals(result.getDescription(), "Test version");
+    }
+
+    @Test
+    public void testDeletePurposeVersion() throws Exception {
+
+        Purpose purpose = createTestPurpose();
+
+        PurposeVersion version = new PurposeVersion();
+        version.setVersion("v1");
+        consentManager.addPurposeVersion(purpose.getUuid(), version, false);
+
+        PurposeVersion toDelete = new PurposeVersion();
+        toDelete.setVersion("v2");
+        PurposeVersion added = consentManager.addPurposeVersion(purpose.getUuid(), toDelete, false);
+
+        consentManager.deletePurposeVersion(purpose.getUuid(), added.getUuid());
+
+        List<PurposeVersion> versions = consentManager.listPurposeVersions(purpose.getUuid());
+        Assert.assertEquals(versions.size(), 1);
+        Assert.assertEquals(versions.get(0).getVersion(), "v1");
+    }
+
+    @Test
+    public void testGetPurposeByUuid() throws Exception {
+
+        Purpose purpose = createTestPurpose();
+
+        Purpose result = consentManager.getPurposeByUuid(purpose.getUuid());
+
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result.getName(), TEST_PURPOSE_NAME);
+        Assert.assertEquals(result.getUuid(), purpose.getUuid());
+    }
+
+    @Test(expectedExceptions = org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException.class)
+    public void testGetPurposeByUuidNotFound() throws Exception {
+
+        consentManager = new ConsentManagerImpl(configurationHolder);
+        consentManager.getPurposeByUuid(UUID.randomUUID().toString());
+    }
+
+    @Test
+    public void testGetPIICategoryByUuid() throws Exception {
+
+        consentManager = new ConsentManagerImpl(configurationHolder);
+
+        // Insert a new PIICategory and capture the returned value which contains the generated UUID.
+        PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
+        PIICategory inserted = piiCategoryDAO.addPIICategory(new PIICategory("UUID_TEST_PII", "Desc", true, -1234));
+        String uuid = inserted.getUuid();
+        Assert.assertNotNull(uuid);
+
+        PIICategory result = consentManager.getPIICategoryByUuid(uuid);
+
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result.getName(), "UUID_TEST_PII");
+    }
+
+    @Test(expectedExceptions = org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException.class)
+    public void testGetPIICategoryByUuidNotFound() throws Exception {
+
+        consentManager = new ConsentManagerImpl(configurationHolder);
+        consentManager.getPIICategoryByUuid(UUID.randomUUID().toString());
+    }
+
+    @Test
+    public void testAddPurposeWithVersion() throws Exception {
+
+        consentManager = new ConsentManagerImpl(configurationHolder);
+
+        Purpose purpose = new Purpose("VersionedOnCreate", "Created with first version",
+                "TEST_GROUP", "SYSTEM", Collections.emptyList());
+        purpose.setTenantId(-1234);
+
+        PurposeVersion firstVersion = new PurposeVersion();
+        firstVersion.setVersion("v1.0");
+        firstVersion.setDescription("Initial version");
+        firstVersion.setTenantId(-1234);
+        firstVersion.setPurposePIICategories(Collections.emptyList());
+
+        Object[] result = consentManager.addPurpose(purpose, firstVersion);
+
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result.length, 2);
+        Purpose createdPurpose = (Purpose) result[0];
+        PurposeVersion createdVersion = (PurposeVersion) result[1];
+        Assert.assertEquals(createdPurpose.getName(), "VersionedOnCreate");
+        Assert.assertEquals(createdVersion.getVersion(), "v1.0");
+
+        List<PurposeVersion> versions = consentManager.listPurposeVersions(createdPurpose.getUuid());
+        Assert.assertEquals(versions.size(), 1);
+    }
+
     @AfterMethod
     public void tearDown() throws Exception {
 
         connection.close();
         closeH2Base();
-        
+
         if (mockedComponentDataHolder != null) {
             mockedComponentDataHolder.close();
         }

@@ -23,15 +23,23 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
+import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
+import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
+import org.wso2.carbon.consent.mgt.core.util.JdbcUtils;
+import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.sql.DataSource;
 
 import static org.mockito.Mockito.mock;
@@ -65,9 +73,14 @@ public class PurposeDAOImplTest {
     public void tearDown() throws Exception {
 
         closeH2Base();
-        
+
         if (mockedComponentDataHolder != null) {
-            mockedComponentDataHolder.close();
+            try {
+                mockedComponentDataHolder.close();
+            } catch (Exception e) {
+                // MockedStatic may already be resolved, ignore
+            }
+            mockedComponentDataHolder = null;
         }
         if (mockitoCloseable != null) {
             mockitoCloseable.close();
@@ -352,6 +365,169 @@ public class PurposeDAOImplTest {
     }
 
     @Test
+    public void testAddPurposeVersion() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
+            Purpose purpose = purposeDAO.addPurpose(purposes.get(0));
+
+            PurposeVersion purposeVersion = new PurposeVersion();
+            purposeVersion.setPurposeId(purpose.getId());
+            purposeVersion.setVersion("v1");
+            purposeVersion.setDescription("Version 1 description");
+            purposeVersion.setTenantId(-1234);
+
+            PurposeVersion result = purposeDAO.addPurposeVersion(purposeVersion, false);
+
+            Assert.assertNotNull(result);
+            Assert.assertEquals(result.getPurposeId(), (int) purpose.getId());
+            Assert.assertEquals(result.getVersion(), "v1");
+            Assert.assertEquals(result.getDescription(), "Version 1 description");
+        }
+    }
+
+    @Test
+    public void testAddPurposeVersionWithSetAsLatestSyncsPurpose() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
+            PIICategory piiCategory = piiCategoryDAO.addPIICategory(new PIICategory("Email", "Email address", true, -1234));
+
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
+            Purpose purpose = purposeDAO.addPurpose(purposes.get(0));
+
+            Map<String, String> properties = new HashMap<>();
+            properties.put("legalBasis", "consent");
+            properties.put("retentionPeriod", "365");
+
+            PurposeVersion version = new PurposeVersion();
+            version.setPurposeId(purpose.getId());
+            version.setVersion("v1");
+            version.setDescription("Version 1 description");
+            version.setTenantId(-1234);
+            version.setPurposePIICategories(List.of(new PurposePIICategory(piiCategory, true)));
+            version.setProperties(properties);
+
+            PurposeVersion created = purposeDAO.addPurposeVersion(version, true);
+
+            // Verify description and PII categories are synced to the purpose.
+            Purpose updated = purposeDAO.getPurposeById(purpose.getId());
+            Assert.assertEquals(updated.getDescription(), "Version 1 description",
+                    "Purpose description should be synced from version");
+            Assert.assertEquals(updated.getPurposePIICategories().size(), 1,
+                    "Purpose PII categories should be synced from version");
+            Assert.assertEquals(updated.getPurposePIICategories().get(0).getId(), (int) piiCategory.getId(),
+                    "Purpose PII category ID should match version's PII category");
+
+            // Verify properties are stored on the version.
+            PurposeVersion fetched = purposeDAO.getPurposeVersionByUuid(created.getUuid());
+            Assert.assertNotNull(fetched.getProperties(), "Version properties should not be null");
+            Assert.assertEquals(fetched.getProperties().size(), 2, "Version should have 2 properties");
+            Assert.assertEquals(fetched.getProperties().get("legalBasis"), "consent");
+            Assert.assertEquals(fetched.getProperties().get("retentionPeriod"), "365");
+        }
+    }
+
+    @Test(expectedExceptions = ConsentManagementServerException.class)
+    public void testAddDuplicatePurposeVersion() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
+            Purpose purpose = purposeDAO.addPurpose(purposes.get(0));
+
+            PurposeVersion purposeVersion = new PurposeVersion();
+            purposeVersion.setPurposeId(purpose.getId());
+            purposeVersion.setVersion("v1");
+            purposeVersion.setDescription("Version 1");
+            purposeVersion.setTenantId(-1234);
+
+            purposeDAO.addPurposeVersion(purposeVersion, false);
+            purposeDAO.addPurposeVersion(purposeVersion, false);
+
+            Assert.fail("Expected: " + ConsentManagementServerException.class.getName());
+        }
+    }
+
+    @Test
+    public void testListPurposeVersions() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
+            Purpose purpose = purposeDAO.addPurpose(purposes.get(0));
+
+            PurposeVersion version1 = new PurposeVersion();
+            version1.setPurposeId(purpose.getId());
+            version1.setVersion("v1");
+            version1.setDescription("Version 1");
+            version1.setTenantId(-1234);
+            purposeDAO.addPurposeVersion(version1, false);
+
+            PurposeVersion version2 = new PurposeVersion();
+            version2.setPurposeId(purpose.getId());
+            version2.setVersion("v2");
+            version2.setDescription("Version 2");
+            version2.setTenantId(-1234);
+            purposeDAO.addPurposeVersion(version2, false);
+
+            List<PurposeVersion> versions = purposeDAO.listPurposeVersions(purpose.getUuid());
+
+            Assert.assertEquals(versions.size(), 2);
+            Assert.assertEquals(versions.get(0).getVersion(), "v1");
+            Assert.assertEquals(versions.get(1).getVersion(), "v2");
+        }
+    }
+
+    @Test
+    public void testListPurposesWithNullNameReturnsAll() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
+            purposeDAO.addPurpose(purposes.get(0));
+            purposeDAO.addPurpose(purposes.get(1));
+
+            // DB is pre-seeded with a DEFAULT purpose, so 2 added + 1 pre-existing = 3
+            List<Purpose> all = purposeDAO.listPurposes(null, 10, 0, -1234);
+
+            Assert.assertTrue(all.size() >= 2);
+        }
+    }
+
+    @Test
     public void testDeletePurposesByTenantId() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
@@ -370,6 +546,239 @@ public class PurposeDAOImplTest {
             purposeDAO.deletePurposesByTenantId(tenantId);
 
             Assert.assertTrue(Boolean.TRUE);
+        }
+    }
+
+    @Test
+    public void testAddPurposeVersionStoresProperties() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
+            Purpose purpose = purposeDAO.addPurpose(purposes.get(0));
+
+            PurposeVersion purposeVersion = new PurposeVersion();
+            purposeVersion.setPurposeId(purpose.getId());
+            purposeVersion.setVersion("v1");
+            purposeVersion.setDescription("Version with properties");
+            purposeVersion.setTenantId(-1234);
+            Map<String, String> props = new HashMap<>();
+            props.put("legalBasis", "consent");
+            props.put("retentionPeriod", "365");
+            purposeVersion.setProperties(props);
+
+            PurposeVersion result = purposeDAO.addPurposeVersion(purposeVersion, false);
+
+            Assert.assertNotNull(result);
+            Assert.assertNotNull(result.getProperties());
+            Assert.assertEquals(result.getProperties().size(), 2);
+            Assert.assertEquals(result.getProperties().get("legalBasis"), "consent");
+            Assert.assertEquals(result.getProperties().get("retentionPeriod"), "365");
+        }
+    }
+
+    @Test
+    public void testGetPurposeVersionByUuidReturnsProperties() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
+            Purpose purpose = purposeDAO.addPurpose(purposes.get(0));
+
+            PurposeVersion purposeVersion = new PurposeVersion();
+            purposeVersion.setPurposeId(purpose.getId());
+            purposeVersion.setVersion("v1");
+            purposeVersion.setTenantId(-1234);
+            Map<String, String> props = new HashMap<>();
+            props.put("dataController", "Acme Corp");
+            purposeVersion.setProperties(props);
+
+            PurposeVersion created = purposeDAO.addPurposeVersion(purposeVersion, false);
+
+            PurposeVersion fetched = purposeDAO.getPurposeVersionByUuid(created.getUuid());
+
+            Assert.assertNotNull(fetched);
+            Assert.assertNotNull(fetched.getProperties());
+            Assert.assertEquals(fetched.getProperties().size(), 1);
+            Assert.assertEquals(fetched.getProperties().get("dataController"), "Acme Corp");
+        }
+    }
+
+    @Test
+    public void testDeletePurposeVersionCleansUpProperties() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
+            Purpose purpose = purposeDAO.addPurpose(purposes.get(0));
+
+            PurposeVersion purposeVersion = new PurposeVersion();
+            purposeVersion.setPurposeId(purpose.getId());
+            purposeVersion.setVersion("v1");
+            purposeVersion.setTenantId(-1234);
+            Map<String, String> props = new HashMap<>();
+            props.put("key1", "value1");
+            purposeVersion.setProperties(props);
+
+            PurposeVersion created = purposeDAO.addPurposeVersion(purposeVersion, false);
+            String versionUuid = created.getUuid();
+            purposeDAO.deletePurposeVersion(versionUuid);
+
+            PurposeVersion fetched = purposeDAO.getPurposeVersionByUuid(versionUuid);
+            Assert.assertNull(fetched);
+
+            JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+            List<Map<String, String>> remaining = new ArrayList<>();
+            jdbcTemplate.executeQuery(
+                    "SELECT PROPERTY_KEY, PROPERTY_VALUE FROM CM_PURPOSE_VERSION_PROPERTY WHERE VERSION_ID = ?",
+                    (resultSet, rowNumber) -> {
+                        Map<String, String> row = new HashMap<>();
+                        row.put(resultSet.getString(1), resultSet.getString(2));
+                        remaining.add(row);
+                        return null;
+                    },
+                    preparedStatement -> preparedStatement.setString(1, versionUuid));
+            Assert.assertEquals(remaining.size(), 0, "Property rows must be deleted when version is deleted");
+        }
+    }
+
+    /**
+     * Test filter attribute mapping for NAME attribute
+     * Verifies that FILTER_ATTR_NAME ("name") is correctly mapped to DB_COL_NAME ("NAME")
+     */
+    @Test
+    public void testMapFilterAttributesForName() {
+
+        // Create an ExpressionNode with "name" attribute
+        org.wso2.carbon.identity.core.model.ExpressionNode exprNode =
+                new org.wso2.carbon.identity.core.model.ExpressionNode();
+        exprNode.setAttributeValue("name");
+        exprNode.setOperation("eq");
+        exprNode.setValue("Marketing");
+
+        // Create PurposeDAOImpl and access mapFilterAttributes via reflection
+        PurposeDAOImpl purposeDAO = new PurposeDAOImpl();
+        try {
+            java.lang.reflect.Method mapMethod = PurposeDAOImpl.class
+                    .getDeclaredMethod("mapFilterAttributes", org.wso2.carbon.identity.core.model.Node.class);
+            mapMethod.setAccessible(true);
+
+            org.wso2.carbon.identity.core.model.Node result =
+                    (org.wso2.carbon.identity.core.model.Node) mapMethod.invoke(purposeDAO, exprNode);
+
+            Assert.assertNotNull(result, "Mapped node should not be null");
+            org.wso2.carbon.identity.core.model.ExpressionNode mappedNode =
+                    (org.wso2.carbon.identity.core.model.ExpressionNode) result;
+            Assert.assertEquals(mappedNode.getAttributeValue(), "NAME",
+                    "FILTER_ATTR_NAME should be mapped to DB_COL_NAME (NAME)");
+        } catch (Exception e) {
+            Assert.fail("Failed to test mapFilterAttributes for NAME: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Test filter attribute mapping for TYPE attribute
+     * Verifies that FILTER_ATTR_TYPE ("type") is correctly mapped to DB_COL_GROUP_TYPE ("GROUP_TYPE")
+     */
+    @Test
+    public void testMapFilterAttributesForType() {
+
+        // Create an ExpressionNode with "type" attribute
+        org.wso2.carbon.identity.core.model.ExpressionNode exprNode =
+                new org.wso2.carbon.identity.core.model.ExpressionNode();
+        exprNode.setAttributeValue("type");
+        exprNode.setOperation("eq");
+        exprNode.setValue("SP");
+
+        // Create PurposeDAOImpl and access mapFilterAttributes via reflection
+        PurposeDAOImpl purposeDAO = new PurposeDAOImpl();
+        try {
+            java.lang.reflect.Method mapMethod = PurposeDAOImpl.class
+                    .getDeclaredMethod("mapFilterAttributes", org.wso2.carbon.identity.core.model.Node.class);
+            mapMethod.setAccessible(true);
+
+            org.wso2.carbon.identity.core.model.Node result =
+                    (org.wso2.carbon.identity.core.model.Node) mapMethod.invoke(purposeDAO, exprNode);
+
+            Assert.assertNotNull(result, "Mapped node should not be null");
+            org.wso2.carbon.identity.core.model.ExpressionNode mappedNode =
+                    (org.wso2.carbon.identity.core.model.ExpressionNode) result;
+            Assert.assertEquals(mappedNode.getAttributeValue(), "GROUP_TYPE",
+                    "FILTER_ATTR_TYPE should be mapped to DB_COL_GROUP_TYPE (GROUP_TYPE)");
+        } catch (Exception e) {
+            Assert.fail("Failed to test mapFilterAttributes for TYPE: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Test filter attribute mapping with OperationNode (AND/OR operations)
+     * Verifies that the mapping works recursively for complex filter expressions
+     */
+    @Test
+    public void testMapFilterAttributesWithOperationNode() {
+
+        // Create left node: name = "Marketing"
+        org.wso2.carbon.identity.core.model.ExpressionNode leftNode =
+                new org.wso2.carbon.identity.core.model.ExpressionNode();
+        leftNode.setAttributeValue("name");
+        leftNode.setOperation("eq");
+        leftNode.setValue("Marketing");
+
+        // Create right node: type = "SP"
+        org.wso2.carbon.identity.core.model.ExpressionNode rightNode =
+                new org.wso2.carbon.identity.core.model.ExpressionNode();
+        rightNode.setAttributeValue("type");
+        rightNode.setOperation("eq");
+        rightNode.setValue("SP");
+
+        // Create operation node: name = "Marketing" AND type = "SP"
+        org.wso2.carbon.identity.core.model.OperationNode opNode =
+                new org.wso2.carbon.identity.core.model.OperationNode("and");
+        opNode.setLeftNode(leftNode);
+        opNode.setRightNode(rightNode);
+
+        // Create PurposeDAOImpl and access mapFilterAttributes via reflection
+        PurposeDAOImpl purposeDAO = new PurposeDAOImpl();
+        try {
+            java.lang.reflect.Method mapMethod = PurposeDAOImpl.class
+                    .getDeclaredMethod("mapFilterAttributes", org.wso2.carbon.identity.core.model.Node.class);
+            mapMethod.setAccessible(true);
+
+            org.wso2.carbon.identity.core.model.Node result =
+                    (org.wso2.carbon.identity.core.model.Node) mapMethod.invoke(purposeDAO, opNode);
+
+            Assert.assertNotNull(result, "Mapped node should not be null");
+            org.wso2.carbon.identity.core.model.OperationNode mappedOpNode =
+                    (org.wso2.carbon.identity.core.model.OperationNode) result;
+
+            // Verify left node is mapped
+            org.wso2.carbon.identity.core.model.ExpressionNode mappedLeft =
+                    (org.wso2.carbon.identity.core.model.ExpressionNode) mappedOpNode.getLeftNode();
+            Assert.assertEquals(mappedLeft.getAttributeValue(), "NAME",
+                    "Left node FILTER_ATTR_NAME should be mapped to DB_COL_NAME (NAME)");
+
+            // Verify right node is mapped
+            org.wso2.carbon.identity.core.model.ExpressionNode mappedRight =
+                    (org.wso2.carbon.identity.core.model.ExpressionNode) mappedOpNode.getRightNode();
+            Assert.assertEquals(mappedRight.getAttributeValue(), "GROUP_TYPE",
+                    "Right node FILTER_ATTR_TYPE should be mapped to DB_COL_GROUP_TYPE (GROUP_TYPE)");
+        } catch (Exception e) {
+            Assert.fail("Failed to test mapFilterAttributes with OperationNode: " + e.getMessage());
         }
     }
 }

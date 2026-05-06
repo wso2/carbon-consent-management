@@ -318,6 +318,71 @@ public class PIICategoryDAOImplTest {
         }
     }
 
+
+    @Test
+    public void testListPIICategoriesWithNullNameReturnsAll() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
+            piiCategoryDAO.addPIICategory(piiCategories.get(0));
+            piiCategoryDAO.addPIICategory(piiCategories.get(1));
+
+            List<PIICategory> all = piiCategoryDAO.listPIICategories(null, 10, 0, -1234);
+
+            Assert.assertEquals(all.size(), 2);
+        }
+    }
+
+    @Test
+    public void testIsPIICategoryUsedInPurposeVersion() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
+            PIICategory piiCategory = piiCategoryDAO.addPIICategory(piiCategories.get(0));
+
+            String versionUuid = java.util.UUID.randomUUID().toString();
+            connection.createStatement().executeUpdate(
+                    "INSERT INTO CM_PURPOSE_VERSION (UUID, PURPOSE_ID, VERSION, TENANT_ID) " +
+                    "VALUES ('" + versionUuid + "', 1, 'v1', -1234)");
+            connection.createStatement().executeUpdate(
+                    "INSERT INTO CM_PURPOSE_VERSION_PII_CAT_ASSOC (PURPOSE_VERSION_ID, CM_PII_CATEGORY_ID, IS_MANDATORY) " +
+                    "VALUES ('" + versionUuid + "', " + piiCategory.getId() + ", 1)");
+
+            Assert.assertTrue(piiCategoryDAO.isPIICategoryUsed(piiCategory.getId()),
+                    "PII category used in a purpose version should be detected as used.");
+        }
+    }
+
+    @Test
+    public void testIsPIICategoryNotUsedWhenNoAssociations() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
+            PIICategory piiCategory = piiCategoryDAO.addPIICategory(piiCategories.get(0));
+
+            Assert.assertFalse(piiCategoryDAO.isPIICategoryUsed(piiCategory.getId()),
+                    "PII category with no associations should not be detected as used.");
+        }
+    }
+
     @Test
     public void testDeletePIICategoriesByTenantId() throws Exception {
 

@@ -24,6 +24,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
 import org.wso2.carbon.consent.mgt.core.connector.PIIController;
+import org.wso2.carbon.identity.core.model.Node;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
@@ -33,12 +35,15 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.Address;
+import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
 import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
+import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.PiiController;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
+import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
@@ -57,16 +62,42 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.security.KeystoreUtils;
 
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.utils.AuditLog;
+
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.API_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.APPROVED_STATE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.EXPIRED_STATE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PENDING_STATE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_SEARCH_LIMIT_PATH;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REJECTED_STATE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_STATE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.ADD_CONSENT_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.ADD_PII_CATEGORY_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.ADD_PURPOSE_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.DELETE_CONSENT_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.DELETE_PII_CATEGORY_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.DELETE_PURPOSE_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.PII_CATEGORY_NAME_FIELD;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.PII_PRINCIPAL_ID_FIELD;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.PURPOSE_GROUP_FIELD;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.PURPOSE_NAME_FIELD;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.REVOKE_CONSENT_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.TARGET_PII_CATEGORY;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.TARGET_PURPOSE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.TARGET_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_CATEGORY_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_PII_CATEGORY_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_PURPOSE_REQUIRED;
@@ -98,14 +129,23 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_MANDATORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_IS_ASSOCIATED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_ELEMENT_UUID_NOT_FOUND;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_UUID_NOT_FOUND;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_VERSION_LABEL_ALREADY_EXISTS;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_VERSION_LABEL_NOT_FOUND;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_VERSION_MISMATCH;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_VERSION_NOT_FOUND;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_VERSION_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_HAS_VERSIONS_WITH_CONSENTS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_PII_CONSTRAINT_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_RECEIPT_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_SERVICE_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_TENANT_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_TERMINATION_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_THIRD_PARTY_DISCLOSURE_IS_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CANNOT_DELETE_LATEST_PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.ADDRESS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.ADDRESS_COUNTRY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.ADDRESS_LOCALITY;
@@ -119,7 +159,6 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIICont
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.POSTAL_CODE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.POST_OFFICE_BOX_NUMBER;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.STREET_ADDRESS;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_SEARCH_LIMIT_PATH;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.getTenantDomainFromCarbonContext;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.getTenantId;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.getTenantIdFromCarbonContext;
@@ -171,6 +210,11 @@ public class ConsentManagerImpl implements ConsentManager {
 
         validateInputParameters(purpose);
         Purpose purposeResponse = getPurposeDAO(purposeDAOs).addPurpose(purpose);
+        Map<String, Object> auditData = new HashMap<>();
+        auditData.put(PURPOSE_NAME_FIELD, purposeResponse.getName());
+        auditData.put(PURPOSE_GROUP_FIELD, purposeResponse.getGroup());
+        triggerAuditLog(String.valueOf(purposeResponse.getId()), TARGET_PURPOSE,
+                ADD_PURPOSE_ACTION, auditData);
         return populatePiiCategories(purposeResponse);
     }
 
@@ -194,14 +238,20 @@ public class ConsentManagerImpl implements ConsentManager {
         purpose.getPurposePIICategories().forEach(rethrowConsumer(piiCategory -> purposePIICategories.add
                 (getPurposePIICategory(piiCategory))));
         purpose.setPurposePIICategories(purposePIICategories);
+
+        if (purpose.getLatestVersionId() != null) {
+            PurposeVersion latestVersion =
+                    getPurposeDAO(purposeDAOs).getPurposeVersionByUuid(purpose.getLatestVersionId());
+            purpose.setLatestVersion(latestVersion);
+        }
         return purpose;
     }
 
     /**
      * This API is used to get the purpose by purpose name.
      *
-     * @param name Name of the purpose.
-     * @param group Name of the purpose group.
+     * @param name      Name of the purpose.
+     * @param group     Name of the purpose group.
      * @param groupType Type of the purpose group.
      * @return Purpose matching the input criteria.
      * @throws ConsentManagementException Consent Management Exception.
@@ -243,10 +293,10 @@ public class ConsentManagerImpl implements ConsentManager {
     /**
      * This API is used to get all or filtered existing purposes.
      *
-     * @param group Name of the purpose group.
+     * @param group     Name of the purpose group.
      * @param groupType Type of the purpose group.
-     * @param limit  Number of search results.
-     * @param offset Start index of the search.
+     * @param limit     Number of search results.
+     * @param offset    Start index of the search.
      * @return 200 OK with Filtered list of Purpose elements
      * @throws ConsentManagementException Consent Management Exception.
      */
@@ -290,6 +340,32 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("Purpose deleted successfully. ID: " + id);
         }
+        triggerAuditLog(String.valueOf(purposeId), TARGET_PURPOSE,
+                DELETE_PURPOSE_ACTION, new HashMap<>());
+    }
+
+    @Override
+    public void deletePurpose(String uuid) throws ConsentManagementException {
+
+        Purpose purpose = getPurposeByUuid(uuid);
+        List<PurposeVersion> versions = listPurposeVersions(uuid);
+        if (isEmpty(versions)) {
+            deletePurpose(purpose.getId());
+            return;
+        }
+
+        for (PurposeVersion version : versions) {
+            if (getPurposeDAO(purposeDAOs).isPurposeVersionUsed(version.getUuid())) {
+                throw handleClientException(ERROR_CODE_PURPOSE_HAS_VERSIONS_WITH_CONSENTS, purpose.getName());
+            }
+        }
+
+        getPurposeDAO(purposeDAOs).deletePurposeWithVersions(purpose.getId());
+        if (log.isDebugEnabled()) {
+            log.debug("Purpose and versions deleted successfully. UUID: " + uuid);
+        }
+        triggerAuditLog(uuid, TARGET_PURPOSE,
+                DELETE_PURPOSE_ACTION, new HashMap<>());
     }
 
     /**
@@ -317,8 +393,8 @@ public class ConsentManagerImpl implements ConsentManager {
     /**
      * This API is used to check whether a purpose exists with given name, group and groupType.
      *
-     * @param name Name of the purpose.
-     * @param group Purpose group.
+     * @param name      Name of the purpose.
+     * @param group     Purpose group.
      * @param groupType Purpose group type.
      * @return true, if an element is found.
      * @throws ConsentManagementException Consent Management Exception.
@@ -478,6 +554,10 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("PII category added successfully with the name: " + category.getName());
         }
+        Map<String, Object> auditData = new HashMap<>();
+        auditData.put(PII_CATEGORY_NAME_FIELD, category.getName());
+        triggerAuditLog(String.valueOf(category.getId()), TARGET_PII_CATEGORY,
+                ADD_PII_CATEGORY_ACTION, auditData);
         return category;
     }
 
@@ -565,6 +645,15 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("PII Category deleted successfully. ID: " + id);
         }
+        triggerAuditLog(String.valueOf(piiCategoryId), TARGET_PII_CATEGORY,
+                DELETE_PII_CATEGORY_ACTION, new HashMap<>());
+    }
+
+    @Override
+    public void deletePIICategory(String uuid) throws ConsentManagementException {
+
+        PIICategory category = getPIICategoryByUuid(uuid);
+        deletePIICategory(category.getId());
     }
 
     /**
@@ -617,12 +706,31 @@ public class ConsentManagerImpl implements ConsentManager {
             receiptInput.setPiiPrincipalId(getLowerCaseUserName(receiptInput.getPiiPrincipalId()));
         }
 
-        getReceiptsDAO(receiptDAOs).addReceipt(receiptInput);
+        java.util.List<String> authorizations = receiptInput.getAuthorizations();
+        List<ConsentAuthorization> authorizationsList = new ArrayList<>();
+        if (authorizations != null && !authorizations.isEmpty()) {
+            receiptInput.setState(PENDING_STATE);
+            long now = System.currentTimeMillis();
+            for (String userId : authorizations) {
+                authorizationsList.add(new ConsentAuthorization(receiptInput.getConsentReceiptId(), userId, PENDING_STATE, now));
+            }
+        }
+
+        getReceiptsDAO(receiptDAOs).addReceiptWithAuthorizations(receiptInput, authorizationsList);
+
         if (log.isDebugEnabled()) {
             log.debug("Consent stored successfully with the Id: " + receiptInput.getConsentReceiptId());
         }
-        return new AddReceiptResponse(receiptInput.getConsentReceiptId(), receiptInput.getCollectionMethod(),
-                receiptInput.getLanguage(), receiptInput.getPiiPrincipalId(), receiptInput.getTenantDomain());
+        AddReceiptResponse receiptResponse = new AddReceiptResponse(receiptInput.getConsentReceiptId(),
+                receiptInput.getCollectionMethod(), receiptInput.getLanguage(), receiptInput.getPiiPrincipalId(),
+                receiptInput.getTenantDomain());
+        Map<String, Object> auditData = new HashMap<>();
+        String piiPrincipalId = receiptInput.getPiiPrincipalId();
+        auditData.put(PII_PRINCIPAL_ID_FIELD,
+                LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(piiPrincipalId) : piiPrincipalId);
+        triggerAuditLog(receiptInput.getConsentReceiptId(), TARGET_RECEIPT,
+                ADD_CONSENT_ACTION, auditData);
+        return receiptResponse;
     }
 
     /**
@@ -673,7 +781,7 @@ public class ConsentManagerImpl implements ConsentManager {
         }
         String piiPrincipalTenantId = ConsentUtils.getTenantDomainFromCarbonContext();
         List<ReceiptListResponse> receiptListResponses = searchReceipts(limit, offset, piiPrincipalId, spTenantDomain,
-                                                                        service, state, piiPrincipalTenantId);
+                service, state, piiPrincipalTenantId);
         receiptListResponses.forEach(rethrowConsumer(receiptListResponse -> receiptListResponse.setTenantDomain
                 (ConsentUtils.getTenantDomain(realmService, receiptListResponse.getTenantId()))));
 
@@ -723,6 +831,8 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("Receipt revoked successfully with the Id: " + receiptId);
         }
+        triggerAuditLog(receiptId, TARGET_RECEIPT,
+                REVOKE_CONSENT_ACTION, new HashMap<>());
     }
 
     /**
@@ -737,6 +847,8 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("Receipt deleted successfully with the Id: " + receiptId);
         }
+        triggerAuditLog(receiptId, TARGET_RECEIPT,
+                DELETE_CONSENT_ACTION, new HashMap<>());
     }
 
     /**
@@ -779,6 +891,377 @@ public class ConsentManagerImpl implements ConsentManager {
             tenantAwareUsername = getLowerCaseUserName(tenantAwareUsername);
         }
         return getReceiptsDAO(receiptDAOs).isReceiptExist(receiptId, tenantAwareUsername, tenantId);
+    }
+
+    /**
+     * This API is used to add a new version to an existing purpose.
+     *
+     * @param purposeUuid    UUID of the purpose.
+     * @param purposeVersion {@link PurposeVersion} to add.
+     * @return Created {@link PurposeVersion}.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    @Override
+    public PurposeVersion addPurposeVersion(String purposeUuid, PurposeVersion purposeVersion, boolean setAsLatest)
+            throws ConsentManagementException {
+
+        // Validate version label is provided.
+        String versionLabel = purposeVersion.getVersion();
+        if (isBlank(versionLabel)) {
+            throw handleClientException(ERROR_CODE_PURPOSE_VERSION_REQUIRED, null);
+        }
+
+        // Confirm the purpose exists.
+        Purpose purpose = getPurposeByUuid(purposeUuid);
+
+        // Check for duplicate version label.
+        // Note: purposes created via the V1 API may have no versions. Adding a version to such a purpose works,
+        // but there is no auto-snapshot of the pre-versioning state. The V2 API enforces version at creation
+        // time to prevent this for new purposes, but existing V1 purposes are unaffected.
+        List<PurposeVersion> existing = getPurposeDAO(purposeDAOs).listPurposeVersions(purpose.getUuid());
+        if (existing.stream().anyMatch(v -> versionLabel.equals(v.getVersion()))) {
+            throw handleClientException(ERROR_CODE_PURPOSE_VERSION_LABEL_ALREADY_EXISTS, versionLabel);
+        }
+
+        if (isNotEmpty(purposeVersion.getPurposePIICategories())) {
+            purposeVersion.getPurposePIICategories().forEach(rethrowConsumer(purposePIICategory -> {
+                int id = purposePIICategory.getId();
+                if (getPiiCategoryById(id) == null) {
+                    throw handleClientException(ERROR_CODE_PII_CATEGORY_ID_INVALID, String.valueOf(id));
+                }
+                if (purposePIICategory.getMandatory() == null) {
+                    throw handleClientException(ERROR_CODE_PURPOSE_PII_CONSTRAINT_REQUIRED, String.valueOf(id));
+                }
+            }));
+        }
+
+        purposeVersion.setPurposeId(purpose.getId());
+        purposeVersion.setTenantId(getTenantIdFromCarbonContext());
+
+        return populatePiiCategories(getPurposeDAO(purposeDAOs).addPurposeVersion(purposeVersion, setAsLatest));
+    }
+
+    /**
+     * This API is used to retrieve all versions of a purpose.
+     *
+     * @param uuid UUID of the purpose.
+     * @return List of {@link PurposeVersion} entries.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    @Override
+    public List<PurposeVersion> listPurposeVersions(String uuid) throws ConsentManagementException {
+
+        if (isBlank(uuid)) {
+            throw handleClientException(ERROR_CODE_PURPOSE_ID_REQUIRED, null);
+        }
+
+        // Confirm the purpose exists.
+        Purpose purpose = getPurposeByUuid(uuid);
+        if (purpose == null) {
+            throw handleClientException(ERROR_CODE_PURPOSE_ID_INVALID, uuid);
+        }
+
+        return getPurposeDAO(purposeDAOs).listPurposeVersions(uuid);
+    }
+
+    /**
+     * This API is used to retrieve a specific version of a purpose.
+     *
+     * @param purposeUuid UUID of the purpose.
+     * @param versionUuid UUID of the version record.
+     * @return {@link PurposeVersion} matching the given UUIDs.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    @Override
+    public PurposeVersion getPurposeVersion(String purposeUuid, String versionUuid) throws ConsentManagementException {
+
+        if (isBlank(purposeUuid)) {
+            throw handleClientException(ERROR_CODE_PURPOSE_ID_REQUIRED, null);
+        }
+
+        Purpose purpose = getPurposeByUuid(purposeUuid);
+        if (purpose == null) {
+            throw handleClientException(ERROR_CODE_PURPOSE_ID_INVALID, purposeUuid);
+        }
+
+        PurposeVersion version = getPurposeDAO(purposeDAOs).getPurposeVersionByUuid(versionUuid);
+        if (version == null) {
+            throw handleClientException(ERROR_CODE_PURPOSE_VERSION_NOT_FOUND, versionUuid);
+        }
+        if (version.getPurposeId() != purpose.getId()) {
+            throw new ConsentManagementClientException(
+                    String.format(ERROR_CODE_PURPOSE_VERSION_MISMATCH.getMessage(),
+                            versionUuid, purposeUuid),
+                    ERROR_CODE_PURPOSE_VERSION_MISMATCH.getCode());
+        }
+        return version;
+    }
+
+    /**
+     * This API is used to delete a specific version of a purpose.
+     *
+     * @param purposeUuid UUID of the purpose.
+     * @param versionUuid UUID of the version record.
+     * @throws ConsentManagementException Consent Management Exception.
+     */
+    @Override
+    public void deletePurposeVersion(String purposeUuid, String versionUuid) throws ConsentManagementException {
+
+        // Validates: purpose exists, version exists, version belongs to purpose.
+        getPurposeVersion(purposeUuid, versionUuid);
+
+        // Prevent deletion of the version currently marked as latest (would violate FK constraint).
+        Purpose purpose = getPurposeByUuid(purposeUuid);
+        if (versionUuid.equals(purpose.getLatestVersionId())) {
+            throw handleClientException(ERROR_CODE_CANNOT_DELETE_LATEST_PURPOSE_VERSION, versionUuid);
+        }
+
+        if (getPurposeDAO(purposeDAOs).isPurposeVersionUsed(versionUuid)) {
+            throw handleClientException(ERROR_CODE_PURPOSE_IS_ASSOCIATED, versionUuid);
+        }
+
+        getPurposeDAO(purposeDAOs).deletePurposeVersion(versionUuid);
+        if (log.isDebugEnabled()) {
+            log.debug("Purpose version deleted successfully. versionUuid: " + versionUuid);
+        }
+    }
+
+    @Override
+    public Purpose getPurposeByUuid(String uuid) throws ConsentManagementException {
+
+        Purpose purpose = getPurposeDAO(purposeDAOs).getPurposeByUuid(uuid, getTenantIdFromCarbonContext());
+        if (purpose == null) {
+            throw handleClientException(ERROR_CODE_PURPOSE_UUID_NOT_FOUND, uuid);
+        }
+        List<PurposePIICategory> purposePIICategories = new ArrayList<>();
+        purpose.getPurposePIICategories().forEach(rethrowConsumer(
+                piiCategory -> purposePIICategories.add(getPurposePIICategory(piiCategory))));
+        purpose.setPurposePIICategories(purposePIICategories);
+        if (purpose.getLatestVersionId() != null) {
+            PurposeVersion latestVersion =
+                    getPurposeDAO(purposeDAOs).getPurposeVersionByUuid(purpose.getLatestVersionId());
+            purpose.setLatestVersion(latestVersion);
+        }
+        return purpose;
+    }
+
+    @Override
+    public PIICategory getPIICategoryByUuid(String uuid) throws ConsentManagementException {
+
+        PIICategory category = getPiiCategoryDAO(piiCategoryDAOs).getPIICategoryByUuid(uuid,
+                getTenantIdFromCarbonContext());
+        if (category == null) {
+            throw handleClientException(ERROR_CODE_ELEMENT_UUID_NOT_FOUND, uuid);
+        }
+        return category;
+    }
+
+    @Override
+    public PurposeVersion getPurposeVersionByLabel(int purposeId, String versionLabel)
+            throws ConsentManagementException {
+
+        PurposeVersion version = getPurposeDAO(purposeDAOs).getPurposeVersionByLabel(purposeId, versionLabel,
+                getTenantIdFromCarbonContext());
+        if (version == null) {
+            throw handleClientException(ERROR_CODE_PURPOSE_VERSION_LABEL_NOT_FOUND, versionLabel);
+        }
+        return version;
+    }
+
+    @Override
+    public void setLatestPurposeVersion(int purposeId, String versionLabel) throws ConsentManagementException {
+
+        if (purposeId <= 0) {
+            throw handleClientException(ERROR_CODE_PURPOSE_ID_REQUIRED, null);
+        }
+        int tenantId = getTenantIdFromCarbonContext();
+        PurposeVersion version = getPurposeDAO(purposeDAOs).getPurposeVersionByLabel(purposeId, versionLabel,
+                tenantId);
+        if (version == null) {
+            throw handleClientException(ERROR_CODE_PURPOSE_VERSION_LABEL_NOT_FOUND, versionLabel);
+        }
+        getPurposeDAO(purposeDAOs).updateLatestVersionId(purposeId, version.getUuid(), tenantId);
+    }
+
+    @Override
+    public Object[] addPurpose(Purpose purpose, PurposeVersion firstVersion)
+            throws ConsentManagementException {
+
+        Purpose createdPurpose = addPurpose(purpose);
+
+        PurposeVersion createdVersion = addPurposeVersion(createdPurpose.getUuid(), firstVersion, true);
+        createdPurpose.setLatestVersion(createdVersion);
+        return new Object[]{createdPurpose, createdVersion};
+    }
+
+    /**
+     * Lists purposes with tree-based filtering and pagination.
+     *
+     * @param filterTree Node tree for attribute-based filtering (null for no filtering).
+     * @param limit      Maximum number of results to return.
+     * @param offset     Pagination offset.
+     * @return List of purposes matching the filter.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    @Override
+    public List<Purpose> listPurposes(Node filterTree, int limit, int offset)
+            throws ConsentManagementException {
+
+        if (limit == 0) {
+            limit = getDefaultLimitFromConfig();
+            if (log.isDebugEnabled()) {
+                log.debug("Limit is not defied the request, default to: " + limit);
+            }
+        }
+        validatePaginationParameters(limit, offset);
+
+        List<Purpose> purposes = getPurposeDAO(purposeDAOs).listPurposes(filterTree, limit, offset,
+                getTenantIdFromCarbonContext());
+
+        // Fetch latest version for each purpose if it exists
+        if (purposes != null) {
+            for (Purpose purpose : purposes) {
+                if (purpose.getLatestVersionId() != null) {
+                    PurposeVersion latestVersion = getPurposeDAO(purposeDAOs)
+                            .getPurposeVersionByUuid(purpose.getLatestVersionId());
+                    purpose.setLatestVersion(latestVersion);
+                }
+            }
+        }
+        return purposes;
+    }
+
+    /**
+     * Lists PII categories with tree-based filtering and pagination.
+     *
+     * @param filterTree Node tree for attribute-based filtering (null for no filtering).
+     * @param limit      Maximum number of results to return.
+     * @param offset     Pagination offset.
+     * @return List of PII categories matching the filter.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    @Override
+    public List<PIICategory> listPIICategories(Node filterTree, int limit, int offset)
+            throws ConsentManagementException {
+
+        if (limit == 0) {
+            limit = getDefaultLimitFromConfig();
+            if (log.isDebugEnabled()) {
+                log.debug("Limit is not defied the request, default to: " + limit);
+            }
+        }
+        validatePaginationParameters(limit, offset);
+        return getPiiCategoryDAO(piiCategoryDAOs).listPIICategories(filterTree, limit, offset,
+                getTenantIdFromCarbonContext());
+    }
+
+    /**
+     * Lists receipts (consents) with tree-based filtering and pagination.
+     *
+     * @param limit      Maximum number of results to return.
+     * @param offset     Pagination offset.
+     * @return List of receipts matching the filter.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    @Override
+    public List<Receipt> listReceipts(String subjectId, String serviceId, String state,
+                                      String purposeId, String purposeVersionId, int limit, int offset)
+            throws ConsentManagementException {
+
+        if (limit == 0) {
+            limit = getDefaultLimitFromConfig();
+            if (log.isDebugEnabled()) {
+                log.debug("Limit is not defied the request, default to: " + limit);
+            }
+        }
+        validatePaginationParameters(limit, offset);
+        return getReceiptsDAO(receiptDAOs).listReceipts(subjectId, serviceId, state, purposeId,
+                purposeVersionId, limit, offset, getTenantIdFromCarbonContext());
+    }
+
+    /**
+     * Updates authorization status for a user on a consent receipt.
+     *
+     * @param consentId  Consent receipt ID.
+     * @param userId     User ID for whom to update authorization.
+     * @param authStatus Authorization status (APPROVED, REJECTED, or REVOKED).
+     * @throws ConsentManagementException if update fails.
+     */
+    @Override
+    public void authorizeConsent(String consentId, String userId, String authStatus)
+            throws ConsentManagementException {
+
+        ReceiptDAO receiptDAO = getReceiptsDAO(receiptDAOs);
+        long now = System.currentTimeMillis();
+
+        ConsentAuthorization existing = receiptDAO.getConsentAuthorizationByUser(consentId, userId);
+        if (existing != null) {
+            receiptDAO.updateConsentAuthorization(consentId, userId, authStatus, now);
+        } else {
+            receiptDAO.insertConsentAuthorization(new ConsentAuthorization(consentId, userId, authStatus, now));
+        }
+
+        String currentState = receiptDAO.getReceiptState(consentId);
+        if (PENDING_STATE.equals(currentState)) {
+            if (REJECTED_STATE.equals(authStatus)) {
+                receiptDAO.updateReceiptState(consentId, REJECTED_STATE);
+            } else if (APPROVED_STATE.equals(authStatus)) {
+                List<ConsentAuthorization> all = receiptDAO.getConsentAuthorizations(consentId);
+                boolean allApproved = all.stream().allMatch(a -> APPROVED_STATE.equals(a.getStatus()));
+                if (allApproved) {
+                    receiptDAO.updateReceiptState(consentId, ACTIVE_STATE);
+                }
+            }
+        } else if (!REVOKE_STATE.equals(currentState) && REVOKE_STATE.equals(authStatus)) {
+            receiptDAO.updateReceiptState(consentId, REVOKE_STATE);
+        }
+    }
+
+    /**
+     * Retrieves all authorization records for a consent receipt.
+     *
+     * @param consentId Consent receipt ID.
+     * @return List of authorization records for the consent.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    @Override
+    public List<ConsentAuthorization> getConsentAuthorizations(String consentId)
+            throws ConsentManagementException {
+
+        return getReceiptsDAO(receiptDAOs).getConsentAuthorizations(consentId);
+    }
+
+    /**
+     * Validates and updates consent status, checking for expiration.
+     * If consent is ACTIVE and validityTime has passed, updates status to EXPIRED and returns it.
+     *
+     * @param consentId Consent receipt ID.
+     * @return Current status of the consent (PENDING, ACTIVE, REJECTED, REVOKED, or EXPIRED).
+     * @throws ConsentManagementException if validation fails.
+     */
+    @Override
+    public String validateConsentStatus(String consentId) throws ConsentManagementException {
+
+        ReceiptDAO vReceiptDAO = getReceiptsDAO(receiptDAOs);
+        String state = vReceiptDAO.getReceiptState(consentId);
+
+        if (state == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No receipt found with the Id: " + consentId);
+            }
+            String message = String.format(ERROR_CODE_RECEIPT_ID_INVALID.getMessage(), consentId) + " in tenant: " +
+                    ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_RECEIPT_ID_INVALID.getCode());
+        }
+
+        if (ACTIVE_STATE.equals(state)) {
+            Long validityTime = vReceiptDAO.getReceiptValidityTime(consentId);
+            if (validityTime != null && validityTime < System.currentTimeMillis()) {
+                vReceiptDAO.updateReceiptState(consentId, EXPIRED_STATE);
+                return EXPIRED_STATE;
+            }
+        }
+        return state;
     }
 
     private Purpose getPurposeFromName(String name, String group, String groupType) throws ConsentManagementException {
@@ -1286,12 +1769,21 @@ public class ConsentManagerImpl implements ConsentManager {
         return purposeResponse;
     }
 
+    private PurposeVersion populatePiiCategories(PurposeVersion purposeVersionResponse) {
+
+        List<PurposePIICategory> purposePIICategories = new ArrayList<>();
+        purposeVersionResponse.getPurposePIICategories().forEach(rethrowConsumer(
+                piiCategory -> purposePIICategories.add(getPurposePIICategory(piiCategory))));
+        purposeVersionResponse.setPurposePIICategories(purposePIICategories);
+        return purposeVersionResponse;
+    }
+
     private PurposePIICategory getPurposePIICategory(PurposePIICategory purposePIICategory) throws ConsentManagementException {
 
         PIICategory piiCategory = getPiiCategoryById(purposePIICategory.getId());
 
         PurposePIICategory purposePIICategoryResult = new PurposePIICategory(piiCategory,
-                                                                             purposePIICategory.getMandatory());
+                purposePIICategory.getMandatory());
         return purposePIICategoryResult;
     }
 
@@ -1363,5 +1855,48 @@ public class ConsentManagerImpl implements ConsentManager {
             throw handleServerException(ERROR_CODE_GETTING_TENANT_ID, tenantDomain, e);
         }
         return userRealm;
+    }
+
+    /**
+     * Emits a v2 audit log entry for a successful consent management operation.
+     * No-op when v2 audit logs are disabled via the {@code enableV2AuditLogs} system property.
+     *
+     * @param targetId   Identifier of the affected resource (purpose ID, receipt ID, etc.).
+     * @param targetType Type of the affected resource (see {@code ConsentConstants.AuditLog}).
+     * @param action     Action performed (see {@code ConsentConstants.AuditLog}).
+     * @param data       Additional key-value metadata to include in the audit entry.
+     */
+    private void triggerAuditLog(String targetId, String targetType, String action, Map<String, Object> data) {
+
+        if (!LoggerUtils.isEnableV2AuditLogs()) {
+            return;
+        }
+        String initiatorId = resolveInitiatorId();
+        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                initiatorId,
+                LoggerUtils.getInitiatorType(initiatorId),
+                targetId,
+                targetType,
+                action).data(data);
+        LoggerUtils.triggerAuditLogEvent(auditLogBuilder);
+    }
+
+    /**
+     * Resolves the audit log initiator identifier.
+     * When log masking is enabled, attempts to resolve the user to their UUID (non-PII). Falls back to a masked
+     * representation of the username if the UUID cannot be resolved.
+     */
+    private String resolveInitiatorId() {
+
+        String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        if (LoggerUtils.isLogMaskingEnable) {
+            String initiatorId = IdentityUtil.getInitiatorId(username, tenantDomain);
+            if (StringUtils.isNotBlank(initiatorId)) {
+                return initiatorId;
+            }
+            return LoggerUtils.getMaskedContent(username + "@" + tenantDomain);
+        }
+        return username;
     }
 }
