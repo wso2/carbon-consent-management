@@ -451,5 +451,10 @@ public class ConsentConstants {
         public static final String POST_GET_PURPOSE_VERSION = "POST_GET_PURPOSE_VERSION";
         public static final String PRE_DELETE_PURPOSE_VERSION = "PRE_DELETE_PURPOSE_VERSION";
         public static final String POST_DELETE_PURPOSE_VERSION = "POST_DELETE_PURPOSE_VERSION";
+
+        public static final String PRE_AUTHORIZE_CONSENT = "PRE_AUTHORIZE_CONSENT";
+        public static final String POST_AUTHORIZE_CONSENT = "POST_AUTHORIZE_CONSENT";
+        public static final String PRE_VALIDATE_CONSENT_STATUS = "PRE_VALIDATE_CONSENT_STATUS";
+        public static final String POST_VALIDATE_CONSENT_STATUS = "POST_VALIDATE_CONSENT_STATUS";
     }
 }

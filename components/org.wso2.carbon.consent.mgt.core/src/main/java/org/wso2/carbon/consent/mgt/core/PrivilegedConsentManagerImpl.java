@@ -104,6 +104,10 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.Interce
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_IS_PURPOSE_EXIST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_LIST_RECEIPTS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_REVOKE_RECEIPT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_AUTHORIZE_CONSENT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_AUTHORIZE_CONSENT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_VALIDATE_CONSENT_STATUS;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_VALIDATE_CONSENT_STATUS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.LIMIT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.OFFSET;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY;
@@ -1059,7 +1063,28 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     public void authorizeConsent(String consentId, String userId, String authStatus)
             throws ConsentManagementException {
 
-        consentManager.authorizeConsent(consentId, userId, authStatus);
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<Void, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        template.intercept(PRE_AUTHORIZE_CONSENT, properties -> {
+                    properties.put(RECEIPT_ID, consentId);
+                    properties.put("USER_ID", userId);
+                    properties.put("AUTH_STATUS", authStatus);
+                })
+                .executeWith(new OperationDelegate<Void>() {
+                    @Override
+                    public Void execute() throws ConsentManagementException {
+
+                        consentManager.authorizeConsent(consentId, userId, authStatus);
+                        return null;
+                    }
+                })
+                .intercept(POST_AUTHORIZE_CONSENT, properties -> {
+                    properties.put(RECEIPT_ID, consentId);
+                    properties.put("USER_ID", userId);
+                    properties.put("AUTH_STATUS", authStatus);
+                });
     }
 
     /**
@@ -1087,7 +1112,20 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     public String validateConsentStatus(String consentId)
             throws ConsentManagementException {
 
-        return consentManager.validateConsentStatus(consentId);
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<String, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_VALIDATE_CONSENT_STATUS, properties -> properties.put(RECEIPT_ID, consentId))
+                .executeWith(new OperationDelegate<String>() {
+                    @Override
+                    public String execute() throws ConsentManagementException {
+
+                        return consentManager.validateConsentStatus(consentId);
+                    }
+                })
+                .intercept(POST_VALIDATE_CONSENT_STATUS, properties -> properties.put(RECEIPT_ID, consentId))
+                .getResult();
     }
 
     /**

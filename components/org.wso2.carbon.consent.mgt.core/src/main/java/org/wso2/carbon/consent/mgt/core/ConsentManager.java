@@ -501,7 +501,7 @@ public interface ConsentManager {
      */
     default String validateConsentStatus(String consentId) throws ConsentManagementException {
 
-        return "ACTIVE";
+        return null;
     }
 
     /**
