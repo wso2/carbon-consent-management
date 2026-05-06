@@ -260,6 +260,8 @@ public class ConsentConstants {
                 "Subject ID '%s' does not match the authenticated user for a consent without authorizations."),
         ERROR_CODE_PURPOSE_HAS_VERSIONS_WITH_CONSENTS("CM_00116",
                 "Purpose '%s' cannot be deleted: one or more of its versions are associated with active consents."),
+        ERROR_CODE_CONSENT_REJECTED_WITH_AUTHORIZATIONS("CM_00117",
+                "Cannot create a rejected consent when authorizations are present."),
         ERROR_CODE_UNSUPPORTED_FILTER_ATTRIBUTE("CM_40001",
                 "Unsupported filter attribute: %s. Supported attributes for this endpoint are documented in the API specification."),
         ERROR_CODE_INVALID_FILTER_EXPRESSION("CM_40002",

@@ -60,6 +60,8 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PENDING_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_INVALID_STATE_FOR_AUTHORIZE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_REJECTED_WITH_AUTHORIZATIONS;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_SUBJECT_MISMATCH;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_USER_NOT_IN_AUTHORIZATION_LIST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_ELEMENT_UUID_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleClientException;
@@ -88,7 +90,19 @@ public class ConsentReceiptsService {
      */
     public ConsentResponseDTO createConsent(ConsentCreateRequest request) throws ConsentManagementException {
 
-        ReceiptInput receiptInput = buildReceiptInput(request);
+        PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+        String currentUser = carbonContext.getUsername();
+        String subjectId = StringUtils.isNotBlank(request.getSubjectId()) ? request.getSubjectId() : currentUser;
+        boolean hasAuthorizations = request.getAuthorizations() != null && !request.getAuthorizations().isEmpty();
+        boolean rejected = ConsentCreateRequest.StateEnum.REJECTED.equals(request.getState());
+        if (rejected && hasAuthorizations) {
+            throw handleClientException(ERROR_CODE_CONSENT_REJECTED_WITH_AUTHORIZATIONS, null);
+        }
+        if (!subjectId.equals(currentUser) && !hasAuthorizations) {
+            throw handleClientException(ERROR_CODE_CONSENT_SUBJECT_MISMATCH, subjectId);
+        }
+
+        ReceiptInput receiptInput = buildReceiptInput(request, subjectId);
         AddReceiptResponse addReceiptResponse = consentManager.addConsent(receiptInput);
 
         ConsentResponseDTO responseDTO = new ConsentResponseDTO();
@@ -194,12 +208,8 @@ public class ConsentReceiptsService {
         return Response.noContent().build();
     }
 
-    private ReceiptInput buildReceiptInput(ConsentCreateRequest request)
+    private ReceiptInput buildReceiptInput(ConsentCreateRequest request, String subjectId)
             throws ConsentManagementException {
-
-        PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-        String currentUser = carbonContext.getUsername();
-        String subjectId = StringUtils.isNotBlank(request.getSubjectId()) ? request.getSubjectId() : currentUser;
 
         List<PurposePIICategoryBinding> purposeBindings = new ArrayList<>();
         if (request.getPurposes() != null) {
@@ -221,10 +231,10 @@ public class ConsentReceiptsService {
         }
 
         boolean rejected = ConsentCreateRequest.StateEnum.REJECTED.equals(request.getState());
-        return ConsentReceiptUtils.buildReceiptInput(request.getLanguage(), subjectId, currentUser,
-                carbonContext.getTenantDomain(), request.getValidityTime(), rejected,
-                request.getAuthorizations(), request.getProperties(), request.getServiceId(), purposeBindings,
-                consentManager);
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        return ConsentReceiptUtils.buildReceiptInput(request.getLanguage(), subjectId, tenantDomain,
+                request.getValidityTime(), rejected, request.getAuthorizations(), request.getProperties(),
+                request.getServiceId(), purposeBindings, consentManager);
     }
 
     private ConsentDTO toConsentDTO(Receipt receipt) throws ConsentManagementException {

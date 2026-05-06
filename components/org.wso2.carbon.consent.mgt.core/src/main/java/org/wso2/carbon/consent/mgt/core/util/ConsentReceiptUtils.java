@@ -80,10 +80,10 @@ public class ConsentReceiptUtils {
      * @return Fully populated {@link ReceiptInput} ready to pass to the consent management service.
      * @throws ConsentManagementException if any UUID cannot be resolved or a subject mismatch is detected.
      */
-    public static ReceiptInput buildReceiptInput(String language, String subjectId, String currentUser,
-                                                 String tenantDomain, Long validityTime, boolean rejected,
-                                                 List<String> authorizationUserIds, Map<String, String> properties,
-                                                 String serviceId, List<PurposePIICategoryBinding> purposeBindings,
+    public static ReceiptInput buildReceiptInput(String language, String subjectId, String tenantDomain, 
+                                                 Long validityTime, boolean rejected, List<String> authorizationUserIds,
+                                                 Map<String, String> properties,String serviceId, 
+                                                 List<PurposePIICategoryBinding> purposeBindings,
                                                  ConsentManager consentManager)
             throws ConsentManagementException {
 
@@ -94,18 +94,13 @@ public class ConsentReceiptUtils {
         receiptInput.setCollectionMethod(DEFAULT_COLLECTION_METHOD);
         receiptInput.setAllowMultipleActiveReceipts(true);
         receiptInput.setLanguage(language);
-
-        boolean hasAuthorizations = authorizationUserIds != null && !authorizationUserIds.isEmpty();
-        if (!subjectId.equals(currentUser) && !hasAuthorizations) {
-            throw handleClientException(ERROR_CODE_CONSENT_SUBJECT_MISMATCH, subjectId);
-        }
         receiptInput.setPiiPrincipalId(subjectId);
         receiptInput.setTenantDomain(tenantDomain);
 
         if (validityTime != null) {
             receiptInput.setValidityTime(validityTime);
         }
-        if (hasAuthorizations) {
+        if (authorizationUserIds != null) {
             receiptInput.setAuthorizations(authorizationUserIds);
         }
         if (rejected) {
@@ -130,7 +125,6 @@ public class ConsentReceiptUtils {
                     throw handleClientException(ERROR_CODE_PURPOSE_UUID_NOT_FOUND, binding.getPurposeId());
                 }
                 purposeInput.setPurposeId(purpose.getId());
-
                 PurposeVersion latestVersion = purpose.getLatestVersion();
                 if (latestVersion != null) {
                     purposeInput.setPurposeVersionId(latestVersion.getUuid());

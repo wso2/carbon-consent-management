@@ -967,6 +967,23 @@ public class ConsentsApiServiceImplTest {
     }
 
     /**
+     * REJECTED requests cannot also carry authorizations because the persisted state would be forced to PENDING.
+     */
+    @Test
+    public void testConsentsCreate_rejectedWithAuthorizations_returns400() {
+
+        UUID[] ids = createPurposeWithElement();
+        ConsentCreateRequest request = buildConsentRequest(ids[0], ids[1]);
+        request.setState(ConsentCreateRequest.StateEnum.REJECTED);
+        request.setAuthorizations(List.of("admin"));
+
+        Response response = consentsApiService.consentsCreate(request);
+
+        Assert.assertEquals(response.getStatus(), Response.Status.BAD_REQUEST.getStatusCode(),
+                "Creating a rejected consent with authorizations should return 400");
+    }
+
+    /**
      * Revoking a consent with authorizations succeeds when the calling user is in the authz list.
      */
     @Test

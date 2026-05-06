@@ -88,7 +88,7 @@ public class ConsentReceiptUtilsTest {
 
         PurposePIICategoryBinding binding = new PurposePIICategoryBinding(PURPOSE_UUID, Collections.emptyList());
         ReceiptInput result = ConsentReceiptUtils.buildReceiptInput(
-                LANG, SUBJECT_ID, SUBJECT_ID, TENANT_DOMAIN, null, false,
+                LANG, SUBJECT_ID, TENANT_DOMAIN, null, false,
                 null, null, SERVICE_ID, List.of(binding), consentManager);
 
         Assert.assertNotNull(result);
@@ -125,19 +125,11 @@ public class ConsentReceiptUtilsTest {
 
         PurposePIICategoryBinding binding = new PurposePIICategoryBinding(PURPOSE_UUID, Collections.emptyList());
         ReceiptInput result = ConsentReceiptUtils.buildReceiptInput(
-                LANG, SUBJECT_ID, "admin@wso2.com", TENANT_DOMAIN, null, false,
+                LANG, SUBJECT_ID, TENANT_DOMAIN, null, false,
                 List.of("admin@wso2.com"), null, SERVICE_ID, List.of(binding), consentManager);
 
         Assert.assertEquals(result.getPiiPrincipalId(), SUBJECT_ID);
         Assert.assertEquals(result.getAuthorizations(), List.of("admin@wso2.com"));
-    }
-
-    @Test(expectedExceptions = ConsentManagementClientException.class)
-    public void testBuildReceiptInput_subjectMismatch_throwsException() throws ConsentManagementException {
-
-        ConsentReceiptUtils.buildReceiptInput(
-                LANG, SUBJECT_ID, "otheruser@wso2.com", TENANT_DOMAIN, null, false,
-                null, null, SERVICE_ID, Collections.emptyList(), consentManager);
     }
 
     @Test
@@ -147,7 +139,7 @@ public class ConsentReceiptUtilsTest {
                 .thenReturn(new PurposeCategory(1, "DEFAULT", "desc", -1234));
 
         ReceiptInput result = ConsentReceiptUtils.buildReceiptInput(
-                LANG, SUBJECT_ID, SUBJECT_ID, TENANT_DOMAIN, null, true,
+                LANG, SUBJECT_ID, TENANT_DOMAIN, null, true,
                 null, null, SERVICE_ID, Collections.emptyList(), consentManager);
 
         Assert.assertEquals(result.getState(), ConsentConstants.REJECTED_STATE);
@@ -160,7 +152,7 @@ public class ConsentReceiptUtilsTest {
                 .thenReturn(new PurposeCategory(1, "DEFAULT", "desc", -1234));
 
         ReceiptInput result = ConsentReceiptUtils.buildReceiptInput(
-                LANG, SUBJECT_ID, SUBJECT_ID, TENANT_DOMAIN, null, false,
+                LANG, SUBJECT_ID, TENANT_DOMAIN, null, false,
                 null, null, SERVICE_ID, Collections.emptyList(), consentManager);
 
         Assert.assertNull(result.getState());
@@ -173,7 +165,7 @@ public class ConsentReceiptUtilsTest {
                 .thenReturn(new PurposeCategory(1, "DEFAULT", "desc", -1234));
 
         ReceiptInput result = ConsentReceiptUtils.buildReceiptInput(
-                LANG, SUBJECT_ID, SUBJECT_ID, TENANT_DOMAIN, 3600L, false,
+                LANG, SUBJECT_ID, TENANT_DOMAIN, 3600L, false,
                 null, null, SERVICE_ID, Collections.emptyList(), consentManager);
 
         Assert.assertEquals(result.getValidityTime(), 3600L);
@@ -189,7 +181,7 @@ public class ConsentReceiptUtilsTest {
         props.put("key1", "val1");
 
         ReceiptInput result = ConsentReceiptUtils.buildReceiptInput(
-                LANG, SUBJECT_ID, SUBJECT_ID, TENANT_DOMAIN, null, false,
+                LANG, SUBJECT_ID, TENANT_DOMAIN, null, false,
                 null, props, SERVICE_ID, Collections.emptyList(), consentManager);
 
         Assert.assertEquals(result.getProperties(), props);
@@ -211,7 +203,7 @@ public class ConsentReceiptUtilsTest {
         PurposePIICategoryBinding binding = new PurposePIICategoryBinding(PURPOSE_UUID, List.of(piiCategory));
 
         ReceiptInput result = ConsentReceiptUtils.buildReceiptInput(
-                LANG, SUBJECT_ID, SUBJECT_ID, TENANT_DOMAIN, null, false,
+                LANG, SUBJECT_ID, TENANT_DOMAIN, null, false,
                 null, null, SERVICE_ID, List.of(binding), consentManager);
 
         ReceiptPurposeInput purposeInput = result.getServices().get(0).getPurposes().get(0);
@@ -236,7 +228,7 @@ public class ConsentReceiptUtilsTest {
         PurposePIICategoryBinding binding = new PurposePIICategoryBinding(PURPOSE_UUID, null);
 
         ReceiptInput result = ConsentReceiptUtils.buildReceiptInput(
-                LANG, SUBJECT_ID, SUBJECT_ID, TENANT_DOMAIN, null, false,
+                LANG, SUBJECT_ID, TENANT_DOMAIN, null, false,
                 null, null, SERVICE_ID, List.of(binding), consentManager);
 
         ReceiptPurposeInput purposeInput = result.getServices().get(0).getPurposes().get(0);
@@ -254,7 +246,7 @@ public class ConsentReceiptUtilsTest {
         PurposePIICategoryBinding binding = new PurposePIICategoryBinding(PURPOSE_UUID, Collections.emptyList());
 
         ConsentReceiptUtils.buildReceiptInput(
-                LANG, SUBJECT_ID, SUBJECT_ID, TENANT_DOMAIN, null, false,
+                LANG, SUBJECT_ID, TENANT_DOMAIN, null, false,
                 null, null, SERVICE_ID, List.of(binding), consentManager);
     }
 
@@ -262,7 +254,7 @@ public class ConsentReceiptUtilsTest {
     public void testBuildReceiptInput_nullPurposeBindings_emptyPurposeList() throws ConsentManagementException {
 
         ReceiptInput result = ConsentReceiptUtils.buildReceiptInput(
-                LANG, SUBJECT_ID, SUBJECT_ID, TENANT_DOMAIN, null, false,
+                LANG, SUBJECT_ID, TENANT_DOMAIN, null, false,
                 null, null, SERVICE_ID, null, consentManager);
 
         Assert.assertTrue(result.getServices().get(0).getPurposes().isEmpty());
@@ -285,7 +277,7 @@ public class ConsentReceiptUtilsTest {
         PurposePIICategoryBinding binding = new PurposePIICategoryBinding(PURPOSE_UUID, Collections.emptyList());
 
         ReceiptInput result = ConsentReceiptUtils.buildReceiptInput(
-                LANG, SUBJECT_ID, SUBJECT_ID, TENANT_DOMAIN, null, false,
+                LANG, SUBJECT_ID, TENANT_DOMAIN, null, false,
                 null, null, SERVICE_ID, List.of(binding), consentManager);
 
         verify(consentManager).addPurposeCategory(any(PurposeCategory.class));
@@ -304,7 +296,7 @@ public class ConsentReceiptUtilsTest {
         PurposePIICategoryBinding binding = new PurposePIICategoryBinding(PURPOSE_UUID, Collections.emptyList());
 
         ConsentReceiptUtils.buildReceiptInput(
-                LANG, SUBJECT_ID, SUBJECT_ID, TENANT_DOMAIN, null, false,
+                LANG, SUBJECT_ID, TENANT_DOMAIN, null, false,
                 null, null, SERVICE_ID, List.of(binding), consentManager);
     }
 
