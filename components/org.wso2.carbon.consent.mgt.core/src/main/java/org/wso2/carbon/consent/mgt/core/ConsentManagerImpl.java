@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
 import org.wso2.carbon.consent.mgt.core.connector.PIIController;
 import org.wso2.carbon.identity.core.model.Node;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
@@ -61,16 +62,42 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.security.KeystoreUtils;
 
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.utils.AuditLog;
+
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.*;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.API_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.APPROVED_STATE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.EXPIRED_STATE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PENDING_STATE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_SEARCH_LIMIT_PATH;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REJECTED_STATE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_STATE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.ADD_CONSENT_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.ADD_PII_CATEGORY_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.ADD_PURPOSE_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.DELETE_CONSENT_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.DELETE_PII_CATEGORY_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.DELETE_PURPOSE_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.PII_CATEGORY_NAME_FIELD;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.PII_PRINCIPAL_ID_FIELD;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.PURPOSE_GROUP_FIELD;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.PURPOSE_NAME_FIELD;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.REVOKE_CONSENT_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.TARGET_PII_CATEGORY;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.TARGET_PURPOSE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AuditLog.TARGET_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_CATEGORY_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_PII_CATEGORY_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_PURPOSE_REQUIRED;
@@ -104,7 +131,6 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_IS_ASSOCIATED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_ELEMENT_UUID_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_UUID_NOT_FOUND;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_VERSION_ALREADY_EXISTS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_VERSION_LABEL_ALREADY_EXISTS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_VERSION_LABEL_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_VERSION_MISMATCH;
@@ -184,6 +210,11 @@ public class ConsentManagerImpl implements ConsentManager {
 
         validateInputParameters(purpose);
         Purpose purposeResponse = getPurposeDAO(purposeDAOs).addPurpose(purpose);
+        Map<String, Object> auditData = new HashMap<>();
+        auditData.put(PURPOSE_NAME_FIELD, purposeResponse.getName());
+        auditData.put(PURPOSE_GROUP_FIELD, purposeResponse.getGroup());
+        triggerAuditLog(String.valueOf(purposeResponse.getId()), TARGET_PURPOSE,
+                ADD_PURPOSE_ACTION, auditData);
         return populatePiiCategories(purposeResponse);
     }
 
@@ -309,6 +340,8 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("Purpose deleted successfully. ID: " + id);
         }
+        triggerAuditLog(String.valueOf(purposeId), TARGET_PURPOSE,
+                DELETE_PURPOSE_ACTION, new HashMap<>());
     }
 
     @Override
@@ -331,6 +364,8 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("Purpose and versions deleted successfully. UUID: " + uuid);
         }
+        triggerAuditLog(uuid, TARGET_PURPOSE,
+                DELETE_PURPOSE_ACTION, new HashMap<>());
     }
 
     /**
@@ -519,6 +554,10 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("PII category added successfully with the name: " + category.getName());
         }
+        Map<String, Object> auditData = new HashMap<>();
+        auditData.put(PII_CATEGORY_NAME_FIELD, category.getName());
+        triggerAuditLog(String.valueOf(category.getId()), TARGET_PII_CATEGORY,
+                ADD_PII_CATEGORY_ACTION, auditData);
         return category;
     }
 
@@ -606,6 +645,8 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("PII Category deleted successfully. ID: " + id);
         }
+        triggerAuditLog(String.valueOf(piiCategoryId), TARGET_PII_CATEGORY,
+                DELETE_PII_CATEGORY_ACTION, new HashMap<>());
     }
 
     @Override
@@ -680,8 +721,16 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("Consent stored successfully with the Id: " + receiptInput.getConsentReceiptId());
         }
-        return new AddReceiptResponse(receiptInput.getConsentReceiptId(), receiptInput.getCollectionMethod(),
-                receiptInput.getLanguage(), receiptInput.getPiiPrincipalId(), receiptInput.getTenantDomain());
+        AddReceiptResponse receiptResponse = new AddReceiptResponse(receiptInput.getConsentReceiptId(),
+                receiptInput.getCollectionMethod(), receiptInput.getLanguage(), receiptInput.getPiiPrincipalId(),
+                receiptInput.getTenantDomain());
+        Map<String, Object> auditData = new HashMap<>();
+        String piiPrincipalId = receiptInput.getPiiPrincipalId();
+        auditData.put(PII_PRINCIPAL_ID_FIELD,
+                LoggerUtils.isLogMaskingEnable ? LoggerUtils.getMaskedContent(piiPrincipalId) : piiPrincipalId);
+        triggerAuditLog(receiptInput.getConsentReceiptId(), TARGET_RECEIPT,
+                ADD_CONSENT_ACTION, auditData);
+        return receiptResponse;
     }
 
     /**
@@ -782,6 +831,8 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("Receipt revoked successfully with the Id: " + receiptId);
         }
+        triggerAuditLog(receiptId, TARGET_RECEIPT,
+                REVOKE_CONSENT_ACTION, new HashMap<>());
     }
 
     /**
@@ -796,6 +847,8 @@ public class ConsentManagerImpl implements ConsentManager {
         if (log.isDebugEnabled()) {
             log.debug("Receipt deleted successfully with the Id: " + receiptId);
         }
+        triggerAuditLog(receiptId, TARGET_RECEIPT,
+                DELETE_CONSENT_ACTION, new HashMap<>());
     }
 
     /**
@@ -1802,5 +1855,48 @@ public class ConsentManagerImpl implements ConsentManager {
             throw handleServerException(ERROR_CODE_GETTING_TENANT_ID, tenantDomain, e);
         }
         return userRealm;
+    }
+
+    /**
+     * Emits a v2 audit log entry for a successful consent management operation.
+     * No-op when v2 audit logs are disabled via the {@code enableV2AuditLogs} system property.
+     *
+     * @param targetId   Identifier of the affected resource (purpose ID, receipt ID, etc.).
+     * @param targetType Type of the affected resource (see {@code ConsentConstants.AuditLog}).
+     * @param action     Action performed (see {@code ConsentConstants.AuditLog}).
+     * @param data       Additional key-value metadata to include in the audit entry.
+     */
+    private void triggerAuditLog(String targetId, String targetType, String action, Map<String, Object> data) {
+
+        if (!LoggerUtils.isEnableV2AuditLogs()) {
+            return;
+        }
+        String initiatorId = resolveInitiatorId();
+        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
+                initiatorId,
+                LoggerUtils.getInitiatorType(initiatorId),
+                targetId,
+                targetType,
+                action).data(data);
+        LoggerUtils.triggerAuditLogEvent(auditLogBuilder);
+    }
+
+    /**
+     * Resolves the audit log initiator identifier.
+     * When log masking is enabled, attempts to resolve the user to their UUID (non-PII). Falls back to a masked
+     * representation of the username if the UUID cannot be resolved.
+     */
+    private String resolveInitiatorId() {
+
+        String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        if (LoggerUtils.isLogMaskingEnable) {
+            String initiatorId = IdentityUtil.getInitiatorId(username, tenantDomain);
+            if (StringUtils.isNotBlank(initiatorId)) {
+                return initiatorId;
+            }
+            return LoggerUtils.getMaskedContent(username + "@" + tenantDomain);
+        }
+        return username;
     }
 }

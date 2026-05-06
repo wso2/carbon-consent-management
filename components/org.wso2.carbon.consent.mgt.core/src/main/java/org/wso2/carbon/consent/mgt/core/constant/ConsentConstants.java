@@ -322,6 +322,29 @@ public class ConsentConstants {
     }
 
     /**
+     * V2 audit log action and target type constants for consent management operations.
+     */
+    public static class AuditLog {
+
+        public static final String ADD_PURPOSE_ACTION = "add-purpose";
+        public static final String DELETE_PURPOSE_ACTION = "delete-purpose";
+        public static final String ADD_PII_CATEGORY_ACTION = "add-pii-category";
+        public static final String DELETE_PII_CATEGORY_ACTION = "delete-pii-category";
+        public static final String ADD_CONSENT_ACTION = "add-consent";
+        public static final String REVOKE_CONSENT_ACTION = "revoke-consent";
+        public static final String DELETE_CONSENT_ACTION = "delete-consent";
+
+        public static final String TARGET_PURPOSE = "Purpose";
+        public static final String TARGET_PII_CATEGORY = "PIICategory";
+        public static final String TARGET_RECEIPT = "ConsentReceipt";
+
+        public static final String PURPOSE_NAME_FIELD = "PurposeName";
+        public static final String PURPOSE_GROUP_FIELD = "PurposeGroup";
+        public static final String PII_CATEGORY_NAME_FIELD = "PIICategoryName";
+        public static final String PII_PRINCIPAL_ID_FIELD = "PiiPrincipalId";
+    }
+
+    /**
      * PII Controller related constants.
      */
     public static class PIIControllerElements {

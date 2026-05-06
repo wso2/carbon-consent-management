@@ -18,6 +18,7 @@ package org.wso2.carbon.consent.mgt.core.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
@@ -187,8 +188,10 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         preparedStatement.setString(2, id);
                     });
                     if (log.isDebugEnabled()) {
-                        log.debug("Revoked active receipt: " + id + " of the user: " +
-                                receiptInput.getPiiPrincipalId());
+                        String maskedPrincipal = LoggerUtils.isLogMaskingEnable
+                                ? LoggerUtils.getMaskedContent(receiptInput.getPiiPrincipalId())
+                                : receiptInput.getPiiPrincipalId();
+                        log.debug("Revoked active receipt: " + id + " of the user: " + maskedPrincipal);
                     }
                 }));
             }
