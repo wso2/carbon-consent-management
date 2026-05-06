@@ -519,8 +519,10 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
+                boolean hasValidityTime = receiptInput.getValidityTime() != null;
+                String insertSql = hasValidityTime ? INSERT_RECEIPT_V2_SQL : INSERT_RECEIPT_SQL;
                 String initialState = receiptInput.getState() != null ? receiptInput.getState() : ACTIVE_STATE;
-                template.executeInsert(INSERT_RECEIPT_V2_SQL, (preparedStatement -> {
+                template.executeInsert(insertSql, (preparedStatement -> {
                     preparedStatement.setString(1, receiptInput.getConsentReceiptId());
                     preparedStatement.setString(2, receiptInput.getVersion());
                     preparedStatement.setString(3, receiptInput.getJurisdiction());
@@ -533,10 +535,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     preparedStatement.setString(9, receiptInput.getPolicyUrl());
                     preparedStatement.setString(10, initialState);
                     preparedStatement.setString(11, receiptInput.getPiiControllerInfo());
-                    if (receiptInput.getValidityTime() != null) {
+                    if (hasValidityTime) {
                         preparedStatement.setLong(12, receiptInput.getValidityTime());
-                    } else {
-                        preparedStatement.setNull(12, java.sql.Types.BIGINT);
                     }
                 }), receiptInput, false);
                 return null;
