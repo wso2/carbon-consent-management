@@ -113,6 +113,8 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.OFFSET;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY_NAME;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_UUID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY_UUID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_PRINCIPAL_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PRINCIPAL_TENANT_DOMAIN;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE;
@@ -293,7 +295,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
         ConsentInterceptorTemplate<Void, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
-        template.intercept(PRE_DELETE_PURPOSE, properties -> properties.put(PURPOSE_ID, uuid))
+        template.intercept(PRE_DELETE_PURPOSE, properties -> properties.put(PURPOSE_UUID, uuid))
                 .executeWith(new OperationDelegate<Void>() {
                     @Override
                     public Void execute() throws ConsentManagementException {
@@ -302,7 +304,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                         return null;
                     }
                 })
-                .intercept(POST_DELETE_PURPOSE, properties -> properties.put(PURPOSE_ID, uuid));
+                .intercept(POST_DELETE_PURPOSE, properties -> properties.put(PURPOSE_UUID, uuid));
     }
 
     /**
@@ -622,7 +624,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
         ConsentInterceptorTemplate<Void, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
-        template.intercept(PRE_DELETE_PII_CATEGORY, properties -> properties.put(PII_CATEGORY_ID, uuid))
+        template.intercept(PRE_DELETE_PII_CATEGORY, properties -> properties.put(PII_CATEGORY_UUID, uuid))
                 .executeWith(new OperationDelegate<Void>() {
                     @Override
                     public Void execute() throws ConsentManagementException {
@@ -631,7 +633,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                         return null;
                     }
                 })
-                .intercept(POST_DELETE_PII_CATEGORY, properties -> properties.put(PII_CATEGORY_ID, uuid));
+                .intercept(POST_DELETE_PII_CATEGORY, properties -> properties.put(PII_CATEGORY_UUID, uuid));
     }
 
     /**

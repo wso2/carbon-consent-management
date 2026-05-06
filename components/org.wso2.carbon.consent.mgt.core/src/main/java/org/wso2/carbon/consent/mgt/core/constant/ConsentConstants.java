@@ -60,6 +60,8 @@ public class ConsentConstants {
     public static final String TENANT_ID = "TENANT_ID";
     public static final String PURPOSE_CATEGORY_ID = "PURPOSE_CATEGORY_ID";
     public static final String PII_CATEGORY_ID = "PII_CATEGORY_ID";
+    public static final String PURPOSE_UUID = "PURPOSE_UUID";
+    public static final String PII_CATEGORY_UUID = "PII_CATEGORY_UUID";
     public static final String PURPOSE_NAME = "PURPOSE_NAME";
     public static final String PURPOSE_CATEGORY_NAME = "PURPOSE_CATEGORY_NAME";
     public static final String PII_CATEGORY_NAME = "PII_CATEGORY_NAME";
