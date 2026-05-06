@@ -18,9 +18,15 @@
 
 <suite name="ConsentManagementEndpointTestSuite" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
 
-    <test name="ConsentManagementEndpointTests" preserve-order="true" parallel="false">
+    <test name="ConsentManagementEndpointTests-LegacySchema" preserve-order="true" parallel="false">
         <classes>
             <class name="org.wso2.carbon.consent.mgt.endpoint.impl.ConsentsApiServiceImplTest" />
+        </classes>
+    </test>
+
+    <test name="ConsentManagementEndpointTests-NewSchema" preserve-order="true" parallel="false">
+        <classes>
+            <class name="org.wso2.carbon.consent.mgt.endpoint.impl.ConsentsApiServiceImplNewSchemaTest" />
         </classes>
     </test>
 </suite>
