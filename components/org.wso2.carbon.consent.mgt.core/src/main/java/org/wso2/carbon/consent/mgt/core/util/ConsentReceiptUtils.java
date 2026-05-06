@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.API_VERSION;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_SUBJECT_MISMATCH;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CAT_NAME_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CAT_NAME_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_UUID_NOT_FOUND;
@@ -68,7 +67,6 @@ public class ConsentReceiptUtils {
      *
      * @param language             Language code for the consent receipt.
      * @param subjectId            PII principal (data subject) user ID.
-     * @param currentUser          Logged-in user making the request.
      * @param tenantDomain         Tenant domain of the request.
      * @param validityTime         Optional validity period in seconds; {@code null} means no expiry.
      * @param rejected             {@code true} to create the consent in REJECTED state.

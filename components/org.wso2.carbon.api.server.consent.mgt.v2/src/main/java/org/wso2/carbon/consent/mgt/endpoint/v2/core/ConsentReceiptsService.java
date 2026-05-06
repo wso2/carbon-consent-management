@@ -271,7 +271,7 @@ public class ConsentReceiptsService {
         if (auths != null) {
             for (ConsentAuthorization auth : auths) {
                 // Skip PENDING authorizations — they are not exposed in the API response DTO
-                if ("PENDING".equals(auth.getStatus())) {
+                if (PENDING_STATE.equals(auth.getStatus())) {
                     continue;
                 }
                 try {
@@ -291,8 +291,7 @@ public class ConsentReceiptsService {
         return dto;
     }
 
-    private ConsentedPurposeDTO toConsentedPurposeDTO(ConsentPurpose consentPurpose)
-            throws ConsentManagementException {
+    private ConsentedPurposeDTO toConsentedPurposeDTO(ConsentPurpose consentPurpose) {
 
         ConsentedPurposeDTO dto = new ConsentedPurposeDTO();
         dto.setName(consentPurpose.getPurpose());

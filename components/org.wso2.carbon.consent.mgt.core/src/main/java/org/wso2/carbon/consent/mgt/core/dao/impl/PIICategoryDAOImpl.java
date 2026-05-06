@@ -29,10 +29,9 @@ import org.wso2.carbon.identity.core.model.Node;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
 import java.util.UUID;
 
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PII_CATEGORY_BY_TENANT_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PII_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CATEGORY_BY_UUID_SQL;

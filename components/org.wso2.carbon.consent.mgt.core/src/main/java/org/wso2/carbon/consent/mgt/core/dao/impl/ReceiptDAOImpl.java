@@ -18,7 +18,6 @@ package org.wso2.carbon.consent.mgt.core.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
@@ -38,8 +37,8 @@ import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.Template;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
+import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -48,9 +47,6 @@ import java.util.TimeZone;
 
 import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
-
-import org.wso2.carbon.consent.mgt.core.constant.SQLConstants;
-
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REVOKE_STATE;
@@ -63,27 +59,29 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_SP_P
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_SP_PURPOSE_TO_PURPOSE_CAT_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_SP_TO_PURPOSE_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_ACTIVE_RECEIPTS_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_CONSENT_AUTHORIZATIONS_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_CONSENT_AUTHORIZATION_BY_USER_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_BASIC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_SP_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_STATE_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_V2_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_SP_PURPOSE_WITH_VERSION_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_TO_PURPOSE_ASSOC_WITH_VERSION_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_CONSENT_AUTHORIZATION_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_PROPERTIES_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_PROPERTIES_SQL_H2;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_SP_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_V2_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_V2_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_CONSENT_AUTHORIZATION_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_CONSENT_AUTHORIZATIONS_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_CONSENT_AUTHORIZATION_BY_USER_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_CONSENT_AUTHORIZATION_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_RECEIPT_STATE_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_STATE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_PURPOSE_TO_PII_CAT_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_PURPOSE_TO_PURPOSE_CAT_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_TO_PURPOSE_ASSOC_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_TO_PURPOSE_ASSOC_WITH_VERSION_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_DB2;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_H2_MYSQL_POSTGRES;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_MSSQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_ORACLE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.REVOKE_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_DB2;
@@ -105,6 +103,8 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECE
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_INFORMIX;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_MSSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_ORACLE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_CONSENT_AUTHORIZATION_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_RECEIPT_STATE_SQL;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isDB2DB;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isH2DB;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isH2MySqlOrPostgresDB;
@@ -1155,15 +1155,15 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             int finalOffset = offset;
 
             if (isH2MySqlOrPostgresDB()) {
-                query = SQLConstants.LIST_RECEIPTS_H2_MYSQL_POSTGRES;
+                query = LIST_RECEIPTS_H2_MYSQL_POSTGRES;
             } else if (isDB2DB()) {
                 finalOffset = offset + limit;
                 finalLimit = offset + 1;
-                query = SQLConstants.LIST_RECEIPTS_DB2;
+                query = LIST_RECEIPTS_DB2;
             } else if (isMSSqlDB()) {
                 finalOffset = limit + offset;
                 finalLimit = offset + 1;
-                query = SQLConstants.LIST_RECEIPTS_MSSQL;
+                query = LIST_RECEIPTS_MSSQL;
             } else if (isInformixDB()) {
                 // Informix
                 throw new ConsentManagementServerException("This method is not supported for Informix database.",
@@ -1171,7 +1171,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             } else {
                 // Oracle
                 finalLimit = offset + limit;
-                query = SQLConstants.LIST_RECEIPTS_ORACLE;
+                query = LIST_RECEIPTS_ORACLE;
             }
 
             final int paramLimit = finalLimit;
