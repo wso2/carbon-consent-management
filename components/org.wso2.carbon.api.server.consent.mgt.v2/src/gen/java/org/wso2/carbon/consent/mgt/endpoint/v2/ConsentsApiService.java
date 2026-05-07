@@ -44,7 +44,7 @@ public interface ConsentsApiService {
 
       public Response consentsGet(String consentId);
 
-      public Response consentsList(String subjectId, String serviceId, String state, UUID purposeId, UUID purposeVersionId, Integer limit, Integer offset);
+      public Response consentsList(String subjectId, String serviceId, String state, UUID purposeId, UUID purposeVersionId, Integer limit, String after, String before);
 
       public Response consentsRevoke(String consentId);
 

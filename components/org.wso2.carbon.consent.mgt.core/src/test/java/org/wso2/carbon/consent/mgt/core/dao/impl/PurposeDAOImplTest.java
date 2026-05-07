@@ -521,7 +521,7 @@ public class PurposeDAOImplTest {
             purposeDAO.addPurpose(purposes.get(1));
 
             // DB is pre-seeded with a DEFAULT purpose, so 2 added + 1 pre-existing = 3
-            List<Purpose> all = purposeDAO.listPurposes(null, 10, 0, -1234);
+            List<Purpose> all = purposeDAO.listPurposes(java.util.Collections.emptyList(), 10, -1234);
 
             Assert.assertTrue(all.size() >= 2);
         }

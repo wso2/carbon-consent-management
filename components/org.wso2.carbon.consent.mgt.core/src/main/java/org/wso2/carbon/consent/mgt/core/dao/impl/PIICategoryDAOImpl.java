@@ -17,19 +17,24 @@
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
-import org.wso2.carbon.consent.mgt.core.util.FilterSqlBuilder;
+import org.wso2.carbon.consent.mgt.core.util.FilterQueryBuilder;
+import org.wso2.carbon.consent.mgt.core.util.FilterQueriesUtil;
 import org.wso2.carbon.consent.mgt.core.util.JdbcUtils;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
-import org.wso2.carbon.identity.core.model.Node;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.FilterConstants;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PII_CATEGORY_BY_TENANT_ID_SQL;
@@ -57,6 +62,15 @@ import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isMSSqlDB;
  * Default implementation of {@link PIICategoryDAO}. This handles {@link PIICategory} related DB operations.
  */
 public class PIICategoryDAOImpl implements PIICategoryDAO {
+
+    private static final Map<String, String> ELEMENT_ATTR_COL_MAP;
+
+    static {
+        ELEMENT_ATTR_COL_MAP = new LinkedHashMap<>();
+        ELEMENT_ATTR_COL_MAP.put(FilterConstants.FILTER_ATTR_NAME, FilterConstants.DB_COL_NAME);
+        ELEMENT_ATTR_COL_MAP.put(FilterQueriesUtil.AFTER, "UUID");
+        ELEMENT_ATTR_COL_MAP.put(FilterQueriesUtil.BEFORE, "UUID");
+    }
 
     public PIICategoryDAOImpl() {
 
@@ -212,91 +226,61 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     }
 
     @Override
-    public List<PIICategory> listPIICategories(Node filterTree, int limit, int offset, int tenantId)
+    public List<PIICategory> listPIICategories(List<ExpressionNode> expressionNodes, int limit, int tenantId)
             throws ConsentManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         List<PIICategory> categories;
         try {
-            // Build filter WHERE clause if filterTree provided
-            List<Object> filterParams = new ArrayList<>();
-            String filterWhereClause = "";
-            if (filterTree != null) {
-                FilterSqlBuilder filterSqlBuilder = new FilterSqlBuilder();
-                String builtClause = filterSqlBuilder.buildWhereClause(filterTree, filterParams);
-                if (builtClause != null && !builtClause.isEmpty()) {
-                    filterWhereClause = " AND " + builtClause;
-                }
-            }
+            FilterQueryBuilder filterQueryBuilder =
+                    FilterQueriesUtil.buildFilterQueryBuilder(expressionNodes, ELEMENT_ATTR_COL_MAP);
+            String filterQuery = filterQueryBuilder.getFilterQuery();
+            Map<Integer, String> filterParams = filterQueryBuilder.getFilterAttributeValue();
 
-            // Determine database type and select appropriate query
             String query;
-            int finalLimit = limit;
-            int finalOffset = offset;
-
             if (isH2MySqlOrPostgresDB()) {
                 query = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, TENANT_ID, DISPLAY_NAME, UUID " +
-                        "FROM CM_PII_CATEGORY WHERE TENANT_ID = ?" + filterWhereClause +
-                        " ORDER BY ID ASC LIMIT ? OFFSET ?";
+                        "FROM CM_PII_CATEGORY WHERE TENANT_ID = ?" + filterQuery +
+                        " ORDER BY UUID ASC LIMIT ?";
             } else if (isDB2DB()) {
-                finalOffset = offset + limit;
-                finalLimit = offset + 1;
                 query = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, TENANT_ID, DISPLAY_NAME, UUID " +
-                        "FROM (SELECT ROW_NUMBER() OVER (ORDER BY ID) AS rn, p.* " +
-                        "FROM CM_PII_CATEGORY AS p WHERE p.TENANT_ID = ?" + filterWhereClause + ") " +
-                        "WHERE rn BETWEEN ? AND ?";
+                        "FROM CM_PII_CATEGORY WHERE TENANT_ID = ?" + filterQuery +
+                        " ORDER BY UUID ASC FETCH FIRST ? ROWS ONLY";
             } else if (isMSSqlDB()) {
-                finalOffset = limit + offset;
-                finalLimit = offset + 1;
                 query = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, TENANT_ID, DISPLAY_NAME, UUID " +
-                        "FROM (SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, TENANT_ID, DISPLAY_NAME, UUID, " +
-                        "ROW_NUMBER() OVER (ORDER BY ID) AS RowNum FROM CM_PII_CATEGORY " +
-                        "WHERE TENANT_ID = ?" + filterWhereClause + ") AS P " +
-                        "WHERE P.RowNum BETWEEN ? AND ?";
+                        "FROM CM_PII_CATEGORY WHERE TENANT_ID = ?" + filterQuery +
+                        " ORDER BY UUID ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
             } else if (isInformixDB()) {
-                // Informix
                 throw new ConsentManagementServerException("This method is not supported for Informix database.",
                         ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode());
             } else {
                 // Oracle
-                finalLimit = offset + limit;
                 query = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, TENANT_ID, DISPLAY_NAME, UUID " +
-                        "FROM (SELECT ROW_NUMBER() OVER (ORDER BY ID) AS RN, ID, NAME, " +
-                        "DESCRIPTION, IS_SENSITIVE, TENANT_ID, DISPLAY_NAME, UUID " +
-                        "FROM CM_PII_CATEGORY WHERE TENANT_ID = ?" + filterWhereClause +
-                        ") WHERE RN <= ? AND RN > ?";
+                        "FROM CM_PII_CATEGORY WHERE TENANT_ID = ?" + filterQuery +
+                        " ORDER BY UUID ASC FETCH FIRST ? ROWS ONLY";
             }
 
-            final int paramLimit = finalLimit;
-            final int paramOffset = finalOffset;
-            final List<Object> finalFilterParams = filterParams;
-
             categories = jdbcTemplate.executeQuery(query,
-                    (resultSet, rowNumber) -> {
-                        PIICategory cat = new PIICategory(resultSet.getInt(1),
-                                resultSet.getString(2),
-                                resultSet.getString(3),
-                                resultSet.getInt(4) == 1,
-                                resultSet.getInt(5),
-                                resultSet.getString(6),
-                                resultSet.getString(7));
-                        return cat;
-                    },
+                    (resultSet, rowNumber) -> new PIICategory(resultSet.getInt(1),
+                            resultSet.getString(2),
+                            resultSet.getString(3),
+                            resultSet.getInt(4) == 1,
+                            resultSet.getInt(5),
+                            resultSet.getString(6),
+                            resultSet.getString(7)),
                     preparedStatement -> {
                         int paramIndex = 1;
                         preparedStatement.setInt(paramIndex++, tenantId);
-
-                        // Set filter parameters
-                        for (Object filterParam : finalFilterParams) {
-                            preparedStatement.setObject(paramIndex++, filterParam);
+                        for (String paramValue : filterParams.values()) {
+                            preparedStatement.setString(paramIndex++, paramValue);
                         }
-
-                        preparedStatement.setInt(paramIndex++, paramLimit);
-                        preparedStatement.setInt(paramIndex, paramOffset);
+                        preparedStatement.setInt(paramIndex, limit);
                     });
+        } catch (ConsentManagementClientException e) {
+            throw e;
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(
-                    String.format("Error listing PII categories with filter for tenant %d", tenantId),
+                    String.format("Error listing PII categories with cursor for tenant %d", tenantId),
                     ErrorMessages.ERROR_CODE_LIST_PII_CATEGORY.getCode(), e);
         }
         return categories;

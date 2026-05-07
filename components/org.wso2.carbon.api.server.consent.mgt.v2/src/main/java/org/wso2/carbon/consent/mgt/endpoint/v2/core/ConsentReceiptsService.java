@@ -106,7 +106,7 @@ public class ConsentReceiptsService {
         AddReceiptResponse addReceiptResponse = consentManager.addConsent(receiptInput);
 
         ConsentResponseDTO responseDTO = new ConsentResponseDTO();
-        responseDTO.setConsentId(addReceiptResponse.getConsentReceiptId());
+        responseDTO.setId(addReceiptResponse.getConsentReceiptId());
         responseDTO.setLanguage(addReceiptResponse.getLanguage());
         responseDTO.setSubjectId(addReceiptResponse.getPiiPrincipalId());
         responseDTO.setTenantDomain(addReceiptResponse.getTenantDomain());
@@ -148,12 +148,13 @@ public class ConsentReceiptsService {
      * @param purposeId        Filter by purpose UUID.
      * @param purposeVersionId Filter by specific purpose version UUID.
      * @param limit            Maximum results.
-     * @param offset           Pagination offset.
+     * @param after            Cursor for pagination (results after this cursor).
+     * @param before           Cursor for pagination (results before this cursor).
      * @return Response with list of ConsentSummaryDTOs.
      * @throws ConsentManagementException if listing fails.
      */
     public Response listConsents(String subjectId, String serviceId, String state, UUID purposeId,
-                                 UUID purposeVersionId, int limit, int offset)
+                                 UUID purposeVersionId, Integer limit, String after, String before)
             throws ConsentManagementException {
 
         List<Receipt> receipts = consentManager.listReceipts(
@@ -162,7 +163,7 @@ public class ConsentReceiptsService {
                 state,
                 purposeId != null ? purposeId.toString() : null,
                 purposeVersionId != null ? purposeVersionId.toString() : null,
-                limit, offset);
+                after, before, limit);
 
         if (receipts == null) {
             receipts = Collections.emptyList();
@@ -174,9 +175,9 @@ public class ConsentReceiptsService {
         }
 
         ConsentListResponse listResponse = new ConsentListResponse();
-        listResponse.setStartIndex(offset);
-        listResponse.setCount(summaries.size());
-        listResponse.setItems(summaries);
+        listResponse.setTotalResults(summaries.size());
+        listResponse.setLinks(Collections.emptyList());
+        listResponse.setConsents(summaries);
         return Response.ok(listResponse).build();
     }
 
@@ -217,7 +218,7 @@ public class ConsentReceiptsService {
                 List<PIICategory> piiCategories = new ArrayList<>();
                 if (purposeBinding.getElements() != null) {
                     for (ElementTerminationInfo elementInfo : purposeBinding.getElements()) {
-                        String elementId = elementInfo.getElementId().toString();
+                        String elementId = elementInfo.getId().toString();
                         PIICategory piiCategory = consentManager.getPIICategoryByUuid(elementId);
                         if (piiCategory == null) {
                             throw handleClientException(ERROR_CODE_ELEMENT_UUID_NOT_FOUND, elementId);
@@ -226,7 +227,7 @@ public class ConsentReceiptsService {
                     }
                 }
                 purposeBindings.add(new PurposePIICategoryBinding(
-                        purposeBinding.getPurposeId().toString(), piiCategories));
+                        purposeBinding.getId().toString(), piiCategories));
             }
         }
 
@@ -240,7 +241,7 @@ public class ConsentReceiptsService {
     private ConsentDTO toConsentDTO(Receipt receipt) throws ConsentManagementException {
 
         ConsentDTO dto = new ConsentDTO();
-        dto.setConsentId(receipt.getConsentReceiptId());
+        dto.setId(receipt.getConsentReceiptId());
         dto.setTimestamp(receipt.getConsentTimestamp());
         dto.setLanguage(receipt.getLanguage());
         dto.setSubjectId(receipt.getPiiPrincipalId());
@@ -299,20 +300,20 @@ public class ConsentReceiptsService {
         // Resolve purpose int ID to UUID, and populate version label using the fetched purpose.
         String versionUuid = consentPurpose.getPurposeVersionId();
         try {
-            Purpose purpose = consentManager.getPurpose(consentPurpose.getPurposeId());
+            Purpose purpose = consentManager.getPurposeByUuid(consentPurpose.getUuid());
             if (purpose == null) {
-                LOG.warn("Could not resolve purpose UUID for purposeId: " + consentPurpose.getPurposeId());
+                LOG.warn("Could not resolve purpose UUID for purposeId: " + consentPurpose.getUuid());
             } else {
                 if (StringUtils.isNotBlank(purpose.getUuid())) {
-                    dto.setPurposeId(UUID.fromString(purpose.getUuid()));
+                    dto.setId(UUID.fromString(purpose.getUuid()));
                 }
                 if (StringUtils.isNotBlank(versionUuid)) {
-                    dto.setPurposeVersionId(UUID.fromString(versionUuid));
+                    dto.setVersionId(UUID.fromString(versionUuid));
                     PurposeVersion latestVersion = purpose.getLatestVersion();
                     if (latestVersion != null && versionUuid.equals(latestVersion.getUuid())) {
                         dto.setVersion(latestVersion.getVersion());
-                    } else if (dto.getPurposeId() != null) {
-                        PurposeVersion pv = consentManager.getPurposeVersion(dto.getPurposeId().toString(), versionUuid);
+                    } else if (dto.getId() != null) {
+                        PurposeVersion pv = consentManager.getPurposeVersion(dto.getId().toString(), versionUuid);
                         if (pv != null) {
                             dto.setVersion(pv.getVersion());
                         }
@@ -331,12 +332,12 @@ public class ConsentReceiptsService {
                 elementDTO.setDisplayName(piiCategoryValidity.getDisplayName());
                 // Resolve element int ID to UUID.
                 try {
-                    PIICategory element = consentManager.getPIICategory(piiCategoryValidity.getId());
+                    PIICategory element = consentManager.getPIICategoryByUuid(piiCategoryValidity.getUuid());
                     if (element == null) {
-                        LOG.warn("Could not resolve element UUID for elementId: " + piiCategoryValidity.getId());
+                        LOG.warn("Could not resolve element UUID for elementId: " + piiCategoryValidity.getUuid());
                     } else {
                         if (StringUtils.isNotBlank(element.getUuid())) {
-                            elementDTO.setElementId(UUID.fromString(element.getUuid()));
+                            elementDTO.setId(UUID.fromString(element.getUuid()));
                         }
                     }
                 } catch (ConsentManagementException e) {
@@ -419,7 +420,7 @@ public class ConsentReceiptsService {
     private ConsentSummaryDTO toConsentSummaryDTO(Receipt receipt) {
 
         ConsentSummaryDTO dto = new ConsentSummaryDTO();
-        dto.setConsentId(receipt.getConsentReceiptId());
+        dto.setId(receipt.getConsentReceiptId());
         dto.setSubjectId(receipt.getPiiPrincipalId());
         String state = StringUtils.isNotBlank(receipt.getState()) ? receipt.getState() : ACTIVE_STATE;
         dto.setState(ConsentSummaryDTO.StateEnum.fromValue(state));

@@ -208,7 +208,7 @@ public class ElementsApiServiceImplTest {
         request2.setDescription("Phone number");
         elementsApiService.elementsCreate(request2);
 
-        Response response = elementsApiService.elementsList(null, 10, 0);
+        Response response = elementsApiService.elementsList(null, 10, null, null);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         Assert.assertNotNull(response.getEntity());
@@ -221,7 +221,7 @@ public class ElementsApiServiceImplTest {
         request.setName("EMAIL");
         elementsApiService.elementsCreate(request);
 
-        Response response = elementsApiService.elementsList(null, null, null);
+        Response response = elementsApiService.elementsList(null, 10, null, null);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         Assert.assertNotNull(response.getEntity());
@@ -234,7 +234,7 @@ public class ElementsApiServiceImplTest {
         request.setName("EMAIL");
         elementsApiService.elementsCreate(request);
 
-        Response response = elementsApiService.elementsList(null, 5, 0);
+        Response response = elementsApiService.elementsList(null, 5, null, null);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
     }
@@ -261,14 +261,14 @@ public class ElementsApiServiceImplTest {
         request.setName("BIRTHDAY");
         request.setDescription("Date of birth");
         Response created = elementsApiService.elementsCreate(request);
-        UUID elementId = ((ElementDTO) created.getEntity()).getElementId();
+        UUID elementId = ((ElementDTO) created.getEntity()).getId();
 
         Response response = elementsApiService.elementsGet(elementId);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         ElementDTO dto = (ElementDTO) response.getEntity();
         Assert.assertEquals(dto.getName(), "BIRTHDAY");
-        Assert.assertEquals(dto.getElementId(), elementId);
+        Assert.assertEquals(dto.getId(), elementId);
     }
 
     @Test
@@ -285,7 +285,7 @@ public class ElementsApiServiceImplTest {
         ElementCreateRequest request = new ElementCreateRequest();
         request.setName("TO_DELETE_ELEMENT");
         Response created = elementsApiService.elementsCreate(request);
-        UUID elementId = ((ElementDTO) created.getEntity()).getElementId();
+        UUID elementId = ((ElementDTO) created.getEntity()).getId();
 
         Response response = elementsApiService.elementsDelete(elementId);
 
@@ -338,12 +338,12 @@ public class ElementsApiServiceImplTest {
         gamma.setName("GAMMA_ELEM_" + suffix);
         elementsApiService.elementsCreate(gamma);
 
-        Response response = elementsApiService.elementsList("name co \"ALPHA\"", 10, 0);
+        Response response = elementsApiService.elementsList("name co \"ALPHA\"", 10, null, null);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         ElementListResponse list = (ElementListResponse) response.getEntity();
-        Assert.assertEquals((int) list.getCount(), 1, "Name filter 'ALPHA' should return exactly 1 element");
-        Assert.assertTrue(list.getItems().get(0).getName().contains("ALPHA"));
+        Assert.assertEquals((int) list.getTotalResults(), 1, "Name filter 'ALPHA' should return exactly 1 element");
+        Assert.assertTrue(list.getElements().get(0).getName().contains("ALPHA"));
     }
 
     @Test
@@ -358,10 +358,10 @@ public class ElementsApiServiceImplTest {
         e2.setName("NOFILT_B_" + suffix);
         elementsApiService.elementsCreate(e2);
 
-        Response response = elementsApiService.elementsList(null, 10, 0);
+        Response response = elementsApiService.elementsList(null, 10, null, null);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         ElementListResponse list = (ElementListResponse) response.getEntity();
-        Assert.assertTrue(list.getItems().size() >= 2, "No filter should return all created elements");
+        Assert.assertTrue(list.getElements().size() >= 2, "No filter should return all created elements");
     }
 }

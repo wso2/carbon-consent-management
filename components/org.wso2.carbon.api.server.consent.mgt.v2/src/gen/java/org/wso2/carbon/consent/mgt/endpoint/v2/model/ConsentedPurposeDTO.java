@@ -40,8 +40,8 @@ import javax.xml.bind.annotation.*;
 public class ConsentedPurposeDTO  {
   
     private String name;
-    private UUID purposeId;
-    private UUID purposeVersionId;
+    private UUID id;
+    private UUID versionId;
     private String version;
     private List<ConsentedElementDTO> elements = null;
 
@@ -66,39 +66,39 @@ public class ConsentedPurposeDTO  {
 
     /**
     **/
-    public ConsentedPurposeDTO purposeId(UUID purposeId) {
+    public ConsentedPurposeDTO id(UUID id) {
 
-        this.purposeId = purposeId;
+        this.id = id;
         return this;
     }
     
     @ApiModelProperty(example = "f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2", value = "")
-    @JsonProperty("purposeId")
+    @JsonProperty("id")
     @Valid
-    public UUID getPurposeId() {
-        return purposeId;
+    public UUID getId() {
+        return id;
     }
-    public void setPurposeId(UUID purposeId) {
-        this.purposeId = purposeId;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     /**
     * UUID of the purpose version that was consented
     **/
-    public ConsentedPurposeDTO purposeVersionId(UUID purposeVersionId) {
+    public ConsentedPurposeDTO versionId(UUID versionId) {
 
-        this.purposeVersionId = purposeVersionId;
+        this.versionId = versionId;
         return this;
     }
     
     @ApiModelProperty(example = "f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2", value = "UUID of the purpose version that was consented")
-    @JsonProperty("purposeVersionId")
+    @JsonProperty("versionId")
     @Valid
-    public UUID getPurposeVersionId() {
-        return purposeVersionId;
+    public UUID getVersionId() {
+        return versionId;
     }
-    public void setPurposeVersionId(UUID purposeVersionId) {
-        this.purposeVersionId = purposeVersionId;
+    public void setVersionId(UUID versionId) {
+        this.versionId = versionId;
     }
 
     /**
@@ -160,15 +160,15 @@ public class ConsentedPurposeDTO  {
         }
         ConsentedPurposeDTO consentedPurposeDTO = (ConsentedPurposeDTO) o;
         return Objects.equals(this.name, consentedPurposeDTO.name) &&
-            Objects.equals(this.purposeId, consentedPurposeDTO.purposeId) &&
-            Objects.equals(this.purposeVersionId, consentedPurposeDTO.purposeVersionId) &&
+            Objects.equals(this.id, consentedPurposeDTO.id) &&
+            Objects.equals(this.versionId, consentedPurposeDTO.versionId) &&
             Objects.equals(this.version, consentedPurposeDTO.version) &&
             Objects.equals(this.elements, consentedPurposeDTO.elements);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, purposeId, purposeVersionId, version, elements);
+        return Objects.hash(name, id, versionId, version, elements);
     }
 
     @Override
@@ -178,8 +178,8 @@ public class ConsentedPurposeDTO  {
         sb.append("class ConsentedPurposeDTO {\n");
         
         sb.append("    name: ").append(toIndentedString(name)).append("\n");
-        sb.append("    purposeId: ").append(toIndentedString(purposeId)).append("\n");
-        sb.append("    purposeVersionId: ").append(toIndentedString(purposeVersionId)).append("\n");
+        sb.append("    id: ").append(toIndentedString(id)).append("\n");
+        sb.append("    versionId: ").append(toIndentedString(versionId)).append("\n");
         sb.append("    version: ").append(toIndentedString(version)).append("\n");
         sb.append("    elements: ").append(toIndentedString(elements)).append("\n");
         sb.append("}");

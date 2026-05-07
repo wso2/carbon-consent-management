@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import java.util.UUID;
 import javax.validation.constraints.*;
 
 
@@ -31,29 +30,47 @@ import java.util.Objects;
 import javax.validation.Valid;
 import javax.xml.bind.annotation.*;
 
-public class ElementTerminationInfo  {
+public class PaginationLink  {
   
-    private UUID id;
+    private String rel;
+    private String href;
 
     /**
-    * ID of the consent element
+    * Relationship — \&quot;next\&quot; for forward pagination, \&quot;previous\&quot; for backward
     **/
-    public ElementTerminationInfo id(UUID id) {
+    public PaginationLink rel(String rel) {
 
-        this.id = id;
+        this.rel = rel;
         return this;
     }
     
-    @ApiModelProperty(example = "f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2", required = true, value = "ID of the consent element")
-    @JsonProperty("id")
+    @ApiModelProperty(example = "next", value = "Relationship — \"next\" for forward pagination, \"previous\" for backward")
+    @JsonProperty("rel")
     @Valid
-    @NotNull(message = "Property id cannot be null.")
-
-    public UUID getId() {
-        return id;
+    public String getRel() {
+        return rel;
     }
-    public void setId(UUID id) {
-        this.id = id;
+    public void setRel(String rel) {
+        this.rel = rel;
+    }
+
+    /**
+    * URL to retrieve the linked page
+    **/
+    public PaginationLink href(String href) {
+
+        this.href = href;
+        return this;
+    }
+    
+    @ApiModelProperty(example = "/api/identity/consent-mgt/v2.0/purposes?after=NDoy&limit=10", value = "URL to retrieve the linked page")
+    @JsonProperty("href")
+    @Valid
+    public String getHref() {
+        return href;
+    }
+    public void setHref(String href) {
+        this.href = href;
     }
 
 
@@ -67,22 +84,24 @@ public class ElementTerminationInfo  {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        ElementTerminationInfo elementTerminationInfo = (ElementTerminationInfo) o;
-        return Objects.equals(this.id, elementTerminationInfo.id);
+        PaginationLink paginationLink = (PaginationLink) o;
+        return Objects.equals(this.rel, paginationLink.rel) &&
+            Objects.equals(this.href, paginationLink.href);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(rel, href);
     }
 
     @Override
     public String toString() {
 
         StringBuilder sb = new StringBuilder();
-        sb.append("class ElementTerminationInfo {\n");
+        sb.append("class PaginationLink {\n");
         
-        sb.append("    id: ").append(toIndentedString(id)).append("\n");
+        sb.append("    rel: ").append(toIndentedString(rel)).append("\n");
+        sb.append("    href: ").append(toIndentedString(href)).append("\n");
         sb.append("}");
         return sb.toString();
     }

@@ -25,6 +25,7 @@ import io.swagger.annotations.ApiModelProperty;
 import java.util.ArrayList;
 import java.util.List;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ConsentSummaryDTO;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.PaginationLink;
 import javax.validation.constraints.*;
 
 
@@ -35,73 +36,82 @@ import javax.xml.bind.annotation.*;
 
 public class ConsentListResponse  {
   
-    private Integer startIndex;
-    private Integer count;
-    private List<ConsentSummaryDTO> items = null;
+    private Integer totalResults;
+    private List<PaginationLink> links = null;
+
+    private List<ConsentSummaryDTO> consents = null;
 
 
     /**
-    * Starting index of the returned records
+    * Total number of results matching the query
     **/
-    public ConsentListResponse startIndex(Integer startIndex) {
+    public ConsentListResponse totalResults(Integer totalResults) {
 
-        this.startIndex = startIndex;
+        this.totalResults = totalResults;
         return this;
     }
     
-    @ApiModelProperty(example = "0", value = "Starting index of the returned records")
-    @JsonProperty("startIndex")
+    @ApiModelProperty(example = "2", value = "Total number of results matching the query")
+    @JsonProperty("totalResults")
     @Valid
-    public Integer getStartIndex() {
-        return startIndex;
+    public Integer getTotalResults() {
+        return totalResults;
     }
-    public void setStartIndex(Integer startIndex) {
-        this.startIndex = startIndex;
+    public void setTotalResults(Integer totalResults) {
+        this.totalResults = totalResults;
     }
 
     /**
-    * Number of records returned
+    * Pagination links for next/previous pages
     **/
-    public ConsentListResponse count(Integer count) {
+    public ConsentListResponse links(List<PaginationLink> links) {
 
-        this.count = count;
+        this.links = links;
         return this;
     }
     
-    @ApiModelProperty(example = "2", value = "Number of records returned")
-    @JsonProperty("count")
+    @ApiModelProperty(value = "Pagination links for next/previous pages")
+    @JsonProperty("links")
     @Valid
-    public Integer getCount() {
-        return count;
+    public List<PaginationLink> getLinks() {
+        return links;
     }
-    public void setCount(Integer count) {
-        this.count = count;
+    public void setLinks(List<PaginationLink> links) {
+        this.links = links;
     }
 
-    /**
+    public ConsentListResponse addLinksItem(PaginationLink linksItem) {
+        if (this.links == null) {
+            this.links = new ArrayList<>();
+        }
+        this.links.add(linksItem);
+        return this;
+    }
+
+        /**
     * List of consent records
     **/
-    public ConsentListResponse items(List<ConsentSummaryDTO> items) {
+    public ConsentListResponse consents(List<ConsentSummaryDTO> consents) {
 
-        this.items = items;
+        this.consents = consents;
         return this;
     }
     
-    @ApiModelProperty(example = "[{\"consentId\":\"f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2\",\"subjectId\":\"alice@wso2.com\",\"serviceId\":\"admin-dashboard\",\"state\":\"ACTIVE\",\"timestamp\":1744000000000,\"validityTime\":1766383796000},{\"consentId\":\"c2d3e4f5-2345-6789-bcde-f01234567891\",\"subjectId\":\"bob@wso2.com\",\"serviceId\":\"mobile-app\",\"state\":\"PENDING\",\"timestamp\":1744000100000,\"validityTime\":null}]", value = "List of consent records")
-    @JsonProperty("items")
+    @ApiModelProperty(example = "[{\"id\":\"f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2\",\"subjectId\":\"alice@wso2.com\",\"serviceId\":\"admin-dashboard\",\"state\":\"ACTIVE\",\"timestamp\":1744000000000,\"validityTime\":1766383796000},{\"id\":\"c2d3e4f5-2345-6789-bcde-f01234567891\",\"subjectId\":\"bob@wso2.com\",\"serviceId\":\"mobile-app\",\"state\":\"PENDING\",\"timestamp\":1744000100000,\"validityTime\":null}]", value = "List of consent records")
+    @JsonProperty("Consents")
     @Valid
-    public List<ConsentSummaryDTO> getItems() {
-        return items;
+    public List<ConsentSummaryDTO> getConsents() {
+        return consents;
     }
-    public void setItems(List<ConsentSummaryDTO> items) {
-        this.items = items;
+    public void setConsents(List<ConsentSummaryDTO> consents) {
+        this.consents = consents;
     }
 
-    public ConsentListResponse addItemsItem(ConsentSummaryDTO itemsItem) {
-        if (this.items == null) {
-            this.items = new ArrayList<>();
+    public ConsentListResponse addConsentsItem(ConsentSummaryDTO consentsItem) {
+        if (this.consents == null) {
+            this.consents = new ArrayList<>();
         }
-        this.items.add(itemsItem);
+        this.consents.add(consentsItem);
         return this;
     }
 
@@ -117,14 +127,14 @@ public class ConsentListResponse  {
             return false;
         }
         ConsentListResponse consentListResponse = (ConsentListResponse) o;
-        return Objects.equals(this.startIndex, consentListResponse.startIndex) &&
-            Objects.equals(this.count, consentListResponse.count) &&
-            Objects.equals(this.items, consentListResponse.items);
+        return Objects.equals(this.totalResults, consentListResponse.totalResults) &&
+            Objects.equals(this.links, consentListResponse.links) &&
+            Objects.equals(this.consents, consentListResponse.consents);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(startIndex, count, items);
+        return Objects.hash(totalResults, links, consents);
     }
 
     @Override
@@ -133,9 +143,9 @@ public class ConsentListResponse  {
         StringBuilder sb = new StringBuilder();
         sb.append("class ConsentListResponse {\n");
         
-        sb.append("    startIndex: ").append(toIndentedString(startIndex)).append("\n");
-        sb.append("    count: ").append(toIndentedString(count)).append("\n");
-        sb.append("    items: ").append(toIndentedString(items)).append("\n");
+        sb.append("    totalResults: ").append(toIndentedString(totalResults)).append("\n");
+        sb.append("    links: ").append(toIndentedString(links)).append("\n");
+        sb.append("    consents: ").append(toIndentedString(consents)).append("\n");
         sb.append("}");
         return sb.toString();
     }

@@ -53,7 +53,7 @@ public class PurposesApi  {
     
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @ApiOperation(value = "Create a new purpose", notes = "Create a new consent purpose (e.g., \"User Authentication\", \"Marketing\"). ", response = PurposeDTO.class, authorizations = {
+    @ApiOperation(value = "Create a new purpose", notes = "Create a new consent purpose (e.g., \"Privacy Policy\", \"Marketing\"). ", response = PurposeDTO.class, authorizations = {
         @Authorization(value = "BasicAuth"),
         @Authorization(value = "OAuth2", scopes = {
             
@@ -137,9 +137,9 @@ public class PurposesApi  {
         @ApiResponse(code = 401, message = "Unauthorized", response = ErrorDTO.class),
         @ApiResponse(code = 500, message = "Server Error", response = ErrorDTO.class)
     })
-    public Response purposesList(    @Valid@ApiParam(value = "Filter purposes by supported attributes: name, type. Supports 'sw' (starts with), 'co' (contains), 'ew' (ends with), and 'eq' (equals) operations. Combine multiple conditions with 'and', 'or' logical operators. Examples: - filter=name eq Marketing - filter=type co Policy - filter=name sw Data and type eq Policy ")  @QueryParam("filter") String filter,     @Valid @Min(1)@ApiParam(value = "Maximum number of records to return.", defaultValue="10") @DefaultValue("10")  @QueryParam("limit") Integer limit,     @Valid @Min(0)@ApiParam(value = "Number of records to skip before collecting the response set.", defaultValue="0") @DefaultValue("0")  @QueryParam("offset") Integer offset) {
+    public Response purposesList(    @Valid@ApiParam(value = "Filter purposes by supported attributes: name, type. Supports 'sw' (starts with), 'co' (contains), 'ew' (ends with), and 'eq' (equals) operations. Combine multiple conditions with 'and', 'or' logical operators. Examples: - filter=name eq Marketing - filter=type co Policy - filter=name sw Data and type eq Policy ")  @QueryParam("filter") String filter,     @Valid @Min(1)@ApiParam(value = "Maximum number of records to return.", defaultValue="10") @DefaultValue("10")  @QueryParam("limit") Integer limit,     @Valid@ApiParam(value = "Cursor for forward pagination. Pass the base64-encoded UUID of the last item received from the previous page to retrieve the next page of results. ")  @QueryParam("after") String after,     @Valid@ApiParam(value = "Cursor for backward pagination. Pass the base64-encoded UUID of the first item received from the current page to retrieve the previous page of results. ")  @QueryParam("before") String before) {
 
-        return delegate.purposesList(filter,  limit,  offset );
+        return delegate.purposesList(filter,  limit,  after,  before );
     }
 
     @Valid
@@ -257,9 +257,9 @@ public class PurposesApi  {
         @ApiResponse(code = 404, message = "Not Found", response = ErrorDTO.class),
         @ApiResponse(code = 500, message = "Server Error", response = ErrorDTO.class)
     })
-    public Response purposesVersionsList(@ApiParam(value = "ID of the purpose.",required=true) @PathParam("purposeId") UUID purposeId,     @Valid @Min(1)@ApiParam(value = "Maximum number of records to return.", defaultValue="10") @DefaultValue("10")  @QueryParam("limit") Integer limit,     @Valid @Min(0)@ApiParam(value = "Number of records to skip before collecting the response set.", defaultValue="0") @DefaultValue("0")  @QueryParam("offset") Integer offset) {
+    public Response purposesVersionsList(@ApiParam(value = "ID of the purpose.",required=true) @PathParam("purposeId") UUID purposeId,     @Valid @Min(1)@ApiParam(value = "Maximum number of records to return.", defaultValue="10") @DefaultValue("10")  @QueryParam("limit") Integer limit,     @Valid@ApiParam(value = "Cursor for forward pagination. Pass the base64-encoded UUID of the last item received from the previous page to retrieve the next page of results. ")  @QueryParam("after") String after,     @Valid@ApiParam(value = "Cursor for backward pagination. Pass the base64-encoded UUID of the first item received from the current page to retrieve the previous page of results. ")  @QueryParam("before") String before) {
 
-        return delegate.purposesVersionsList(purposeId,  limit,  offset );
+        return delegate.purposesVersionsList(purposeId,  limit,  after,  before );
     }
 
 }

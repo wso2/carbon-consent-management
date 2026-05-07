@@ -41,6 +41,8 @@ import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeVersionListResponse;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeVersionSummaryDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.SetLatestVersionRequest;
 import org.wso2.carbon.consent.mgt.endpoint.v2.util.FilterAttributeExtractor;
+import org.wso2.carbon.consent.mgt.core.util.FilterQueriesUtil;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -125,34 +127,30 @@ public class ConsentPurposesService {
      *
      * @param filterExpression Filter expression string (null for no filtering).
      * @param limit            Maximum results.
-     * @param offset           Pagination offset.
+     * @param after            Cursor for pagination (results after this cursor).
+     * @param before           Cursor for pagination (results before this cursor).
      * @return Response with list of PurposeSummaryDTOs.
      * @throws ConsentManagementException if listing fails.
      */
-    public Response listPurposes(String filterExpression, int limit, int offset) throws ConsentManagementException {
+    public Response listPurposes(String filterExpression, Integer limit, String after, String before)
+            throws ConsentManagementException {
 
-        Node filterTree = null;
-
-        // Parse filter expression if provided
-        if (StringUtils.isNotEmpty(filterExpression)) {
+        if (StringUtils.isNotBlank(filterExpression)) {
             try {
                 FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filterExpression);
-                filterTree = filterTreeBuilder.buildTree();
-
-                // Validate filter attributes
+                Node filterTree = filterTreeBuilder.buildTree();
                 Set<String> supportedAttrs = new HashSet<>(Arrays.asList(
                         FilterConstants.FILTER_ATTR_NAME,
                         FilterConstants.FILTER_ATTR_TYPE));
                 FilterAttributeExtractor extractor = new FilterAttributeExtractor();
                 extractor.validateFilterAttributes(filterTree, supportedAttrs);
-
             } catch (IdentityException | java.io.IOException e) {
                 throw handleClientException(ERROR_CODE_INVALID_FILTER_EXPRESSION, e.getMessage());
             }
         }
 
-        // Pass filterTree to manager (V2 method without group/groupType)
-        List<Purpose> purposes = consentManager.listPurposes(filterTree, limit, offset);
+        List<ExpressionNode> expressionNodes = FilterQueriesUtil.getExpressionNodes(filterExpression, after, before);
+        List<Purpose> purposes = consentManager.listPurposes(expressionNodes, limit);
 
         List<PurposeSummaryDTO> items = new ArrayList<>();
         if (purposes != null) {
@@ -165,9 +163,9 @@ public class ConsentPurposesService {
         }
 
         PurposeListResponse listResponse = new PurposeListResponse();
-        listResponse.setStartIndex(offset);
-        listResponse.setCount(items.size());
-        listResponse.setItems(items);
+        listResponse.setTotalResults(items.size());
+        listResponse.setLinks(Collections.emptyList());
+        listResponse.setPurposes(items);
         return Response.ok(listResponse).build();
     }
 
@@ -226,30 +224,54 @@ public class ConsentPurposesService {
      *
      * @param purposeId Purpose UUID.
      * @param limit     Maximum results.
-     * @param offset    Pagination offset.
+     * @param after     Cursor for pagination (results after this cursor).
+     * @param before    Cursor for pagination (results before this cursor).
      * @return Response with list of PurposeVersionDTOs.
      * @throws ConsentManagementException if listing fails.
      */
-    public Response listPurposeVersions(UUID purposeId, int limit, int offset) throws ConsentManagementException {
+    public Response listPurposeVersions(UUID purposeId, Integer limit, String after, String before)
+            throws ConsentManagementException {
 
-        List<PurposeVersion> versions = consentManager.listPurposeVersions(purposeId.toString());
-        if (versions == null) {
-            versions = Collections.emptyList();
+        List<PurposeVersion> all = consentManager.listPurposeVersions(purposeId.toString());
+        if (all == null) {
+            all = Collections.emptyList();
         }
-        int total = versions.size();
-        int fromIndex = Math.min(offset, total);
-        int toIndex = Math.min(offset + limit, total);
-        List<PurposeVersion> page = versions.subList(fromIndex, toIndex);
 
+        List<PurposeVersion> filtered;
+        if (after != null) {
+            String afterId = FilterQueriesUtil.decodeCursor(after);
+            int afterIdx = -1;
+            for (int i = 0; i < all.size(); i++) {
+                if (afterId.equals(all.get(i).getUuid())) {
+                    afterIdx = i;
+                    break;
+                }
+            }
+            filtered = afterIdx >= 0 ? all.subList(afterIdx + 1, all.size()) : all;
+        } else if (before != null) {
+            String beforeId = FilterQueriesUtil.decodeCursor(before);
+            int beforeIdx = all.size();
+            for (int i = 0; i < all.size(); i++) {
+                if (beforeId.equals(all.get(i).getUuid())) {
+                    beforeIdx = i;
+                    break;
+                }
+            }
+            filtered = all.subList(0, beforeIdx);
+        } else {
+            filtered = all;
+        }
+
+        List<PurposeVersion> page = filtered.subList(0, Math.min(limit, filtered.size()));
         List<PurposeVersionSummaryDTO> dtos = new ArrayList<>();
         for (PurposeVersion v : page) {
             dtos.add(toPurposeVersionSummaryDTO(v));
         }
 
         PurposeVersionListResponse listResponse = new PurposeVersionListResponse();
-        listResponse.setStartIndex(offset);
-        listResponse.setCount(dtos.size());
-        listResponse.setItems(dtos);
+        listResponse.setTotalResults(dtos.size());
+        listResponse.setLinks(Collections.emptyList());
+        listResponse.setVersions(dtos);
         return Response.ok(listResponse).build();
     }
 
@@ -277,13 +299,13 @@ public class ConsentPurposesService {
      */
     public Response setLatestVersion(UUID purposeId, SetLatestVersionRequest request) throws ConsentManagementException {
 
-        if (request == null || request.getVersionId() == null) {
-            throw handleClientException(ERROR_CODE_PURPOSE_VERSION_REQUIRED, "versionId is required");
+        if (request == null || request.getId() == null) {
+            throw handleClientException(ERROR_CODE_PURPOSE_VERSION_REQUIRED, "id is required");
         }
 
-        PurposeVersion version = consentManager.getPurposeVersion(purposeId.toString(), request.getVersionId().toString());
+        PurposeVersion version = consentManager.getPurposeVersion(purposeId.toString(), request.getId().toString());
         if (version == null) {
-            throw handleClientException(ERROR_CODE_PURPOSE_VERSION_NOT_FOUND, request.getVersionId().toString());
+            throw handleClientException(ERROR_CODE_PURPOSE_VERSION_NOT_FOUND, request.getId().toString());
         }
         consentManager.setLatestPurposeVersion(version.getPurposeId(), version.getVersion());
         return Response.noContent().build();
@@ -297,12 +319,12 @@ public class ConsentPurposesService {
             return result;
         }
         for (PurposeElementBinding binding : elements) {
-            if (binding == null || binding.getElementId() == null) {
+            if (binding == null || binding.getId() == null) {
                 throw handleClientException(ERROR_CODE_PII_CATEGORY_ID_REQUIRED, "PII Category ID is required");
             }
-            PIICategory element = consentManager.getPIICategoryByUuid(binding.getElementId().toString());
+            PIICategory element = consentManager.getPIICategoryByUuid(binding.getId().toString());
             if (element == null) {
-                throw handleClientException(ERROR_CODE_ELEMENT_UUID_NOT_FOUND, binding.getElementId().toString());
+                throw handleClientException(ERROR_CODE_ELEMENT_UUID_NOT_FOUND, binding.getId().toString());
             }
             Boolean mandatory = Boolean.TRUE.equals(binding.getMandatory());
             result.add(new PurposePIICategory(element, mandatory));
@@ -313,7 +335,7 @@ public class ConsentPurposesService {
     private PurposeSummaryDTO toPurposeSummaryDTO(Purpose purpose) {
 
         PurposeSummaryDTO dto = new PurposeSummaryDTO();
-        dto.setPurposeId(UUID.fromString(purpose.getUuid()));
+        dto.setId(UUID.fromString(purpose.getUuid()));
         dto.setName(purpose.getName());
         dto.setDescription(purpose.getDescription());
         dto.setType(purpose.getGroupType());
@@ -321,7 +343,7 @@ public class ConsentPurposesService {
         if (latestVersion != null) {
             PurposeDTOLatestVersion lv = new PurposeDTOLatestVersion();
             if (StringUtils.isNotBlank(latestVersion.getUuid())) {
-                lv.setVersionId(UUID.fromString(latestVersion.getUuid()));
+                lv.setId(UUID.fromString(latestVersion.getUuid()));
             }
             lv.setVersion(latestVersion.getVersion());
             dto.setLatestVersion(lv);
@@ -332,7 +354,7 @@ public class ConsentPurposesService {
     private PurposeDTO toPurposeDTO(Purpose purpose) {
 
         PurposeDTO dto = new PurposeDTO();
-        dto.setPurposeId(UUID.fromString(purpose.getUuid()));
+        dto.setId(UUID.fromString(purpose.getUuid()));
         dto.setName(purpose.getName());
         dto.setDescription(purpose.getDescription());
         dto.setType(purpose.getGroupType());
@@ -341,7 +363,7 @@ public class ConsentPurposesService {
         if (latestVersion != null) {
             PurposeDTOLatestVersion lv = new PurposeDTOLatestVersion();
             if (StringUtils.isNotBlank(latestVersion.getUuid())) {
-                lv.setVersionId(UUID.fromString(latestVersion.getUuid()));
+                lv.setId(UUID.fromString(latestVersion.getUuid()));
             }
             lv.setVersion(latestVersion.getVersion());
             dto.setLatestVersion(lv);
@@ -366,7 +388,7 @@ public class ConsentPurposesService {
 
         PurposeVersionDTO dto = new PurposeVersionDTO();
         if (StringUtils.isNotBlank(version.getUuid())) {
-            dto.setVersionId(UUID.fromString(version.getUuid()));
+            dto.setId(UUID.fromString(version.getUuid()));
         }
         dto.setVersion(version.getVersion());
         dto.setDescription(version.getDescription());
@@ -385,8 +407,8 @@ public class ConsentPurposesService {
     private PurposeVersionSummaryDTO toPurposeVersionSummaryDTO(PurposeVersion version) {
 
         PurposeVersionSummaryDTO dto = new PurposeVersionSummaryDTO();
-        if (version.getUuid() != null) {
-            dto.setVersionId(UUID.fromString(version.getUuid()));
+        if (StringUtils.isNotBlank(version.getUuid())) {
+            dto.setId(UUID.fromString(version.getUuid()));
         }
         dto.setVersion(version.getVersion());
         dto.setDescription(version.getDescription());
@@ -396,8 +418,8 @@ public class ConsentPurposesService {
     private PurposeElementDTO toPurposeElementDTO(PurposePIICategory cat) {
 
         PurposeElementDTO dto = new PurposeElementDTO();
-        if (cat.getUuid() != null) {
-            dto.setElementId(UUID.fromString(cat.getUuid()));
+        if (StringUtils.isNotBlank(cat.getUuid())) {
+            dto.setId(UUID.fromString(cat.getUuid()));
         }
         dto.setName(cat.getName());
         dto.setDisplayName(cat.getDisplayName());

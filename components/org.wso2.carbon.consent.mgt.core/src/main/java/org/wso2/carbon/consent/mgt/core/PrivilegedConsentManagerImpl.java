@@ -33,7 +33,7 @@ import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
-import org.wso2.carbon.identity.core.model.Node;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.util.List;
 import java.util.Map;
@@ -1184,7 +1184,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
      * @throws ConsentManagementException if listing fails
      */
     @Override
-    public List<Purpose> listPurposes(Node filterTree, int limit, int offset)
+    public List<Purpose> listPurposes(List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
@@ -1193,18 +1193,16 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
 
         return template.intercept(PRE_GET_PURPOSE_LIST, properties -> {
                     properties.put(LIMIT, limit);
-                    properties.put(OFFSET, offset);
                 })
                 .executeWith(new OperationDelegate<List<Purpose>>() {
                     @Override
                     public List<Purpose> execute() throws ConsentManagementException {
 
-                        return consentManager.listPurposes(filterTree, limit, offset);
+                        return consentManager.listPurposes(expressionNodes, limit);
                     }
                 })
                 .intercept(POST_GET_PURPOSE_LIST, properties -> {
                     properties.put(LIMIT, limit);
-                    properties.put(OFFSET, offset);
                 })
                 .getResult();
     }
@@ -1219,7 +1217,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
      * @throws ConsentManagementException if listing fails
      */
     @Override
-    public List<PIICategory> listPIICategories(Node filterTree, int limit, int offset)
+    public List<PIICategory> listPIICategories(List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
@@ -1228,18 +1226,16 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
 
         return template.intercept(PRE_GET_PII_CATEGORY_LIST, properties -> {
                     properties.put(LIMIT, limit);
-                    properties.put(OFFSET, offset);
                 })
                 .executeWith(new OperationDelegate<List<PIICategory>>() {
                     @Override
                     public List<PIICategory> execute() throws ConsentManagementException {
 
-                        return consentManager.listPIICategories(filterTree, limit, offset);
+                        return consentManager.listPIICategories(expressionNodes, limit);
                     }
                 })
                 .intercept(POST_GET_PII_CATEGORY_LIST, properties -> {
                     properties.put(LIMIT, limit);
-                    properties.put(OFFSET, offset);
                 })
                 .getResult();
     }
@@ -1254,7 +1250,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
      */
     @Override
     public List<Receipt> listReceipts(String subjectId, String serviceId, String state, String purposeId,
-                                      String purposeVersionId, int limit, int offset)
+                                      String purposeVersionId, String after, String before, int limit)
             throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
@@ -1265,22 +1261,21 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     properties.put(SERVICE, serviceId);
                     properties.put(STATE, state);
                     properties.put(LIMIT, limit);
-                    properties.put(OFFSET, offset);
                 })
                 .executeWith(new OperationDelegate<List<Receipt>>() {
                     @Override
                     public List<Receipt> execute() throws ConsentManagementException {
 
                         return consentManager.listReceipts(subjectId, serviceId, state, purposeId, purposeVersionId,
-                                limit, offset);
+                                after, before, limit);
                     }
                 })
                 .intercept(POST_LIST_RECEIPTS, properties -> {
                     properties.put(SERVICE, serviceId);
                     properties.put(STATE, state);
                     properties.put(LIMIT, limit);
-                    properties.put(OFFSET, offset);
                 })
                 .getResult();
     }
+
 }

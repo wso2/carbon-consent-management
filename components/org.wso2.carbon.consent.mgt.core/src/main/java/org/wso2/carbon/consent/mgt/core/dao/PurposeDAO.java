@@ -20,9 +20,11 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.Node;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -96,19 +98,20 @@ public interface PurposeDAO {
             ConsentManagementException;
 
     /**
-     * Lists purposes with optional filter tree (V2 API).
+     * Lists purposes using cursor-based pagination with ExpressionNode filter list (V2 API).
+     * Cursor nodes ({@code after}/{@code before}) are expected to be embedded in the list
+     * by the caller via {@code FilterQueriesUtil.getExpressionNodes}.
      *
-     * @param filterTree Filter tree from FilterTreeBuilder (null for no filtering)
-     * @param limit      Maximum results
-     * @param offset     Pagination offset
-     * @param tenantId   Tenant ID
-     * @return List of purposes matching filter
+     * @param expressionNodes Filter + cursor nodes (may be empty for no filtering/no cursor)
+     * @param limit           Maximum results (no offset — cursor replaces it)
+     * @param tenantId        Tenant ID
+     * @return List of matching purposes
      * @throws ConsentManagementException if operation fails
      */
-    default List<Purpose> listPurposes(Node filterTree, int limit, int offset, int tenantId)
+    default List<Purpose> listPurposes(List<ExpressionNode> expressionNodes, int limit, int tenantId)
             throws ConsentManagementException {
 
-        return java.util.Collections.emptyList();
+        return Collections.emptyList();
     }
 
     /**

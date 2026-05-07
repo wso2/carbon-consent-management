@@ -36,29 +36,29 @@ import javax.xml.bind.annotation.*;
 
 public class ConsentPurposeBinding  {
   
-    private UUID purposeId;
+    private UUID id;
     private List<ElementTerminationInfo> elements = new ArrayList<>();
 
 
     /**
     * ID of the purpose (will use latest version)
     **/
-    public ConsentPurposeBinding purposeId(UUID purposeId) {
+    public ConsentPurposeBinding id(UUID id) {
 
-        this.purposeId = purposeId;
+        this.id = id;
         return this;
     }
     
     @ApiModelProperty(example = "f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2", required = true, value = "ID of the purpose (will use latest version)")
-    @JsonProperty("purposeId")
+    @JsonProperty("id")
     @Valid
-    @NotNull(message = "Property purposeId cannot be null.")
+    @NotNull(message = "Property id cannot be null.")
 
-    public UUID getPurposeId() {
-        return purposeId;
+    public UUID getId() {
+        return id;
     }
-    public void setPurposeId(UUID purposeId) {
-        this.purposeId = purposeId;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     /**
@@ -99,13 +99,13 @@ public class ConsentPurposeBinding  {
             return false;
         }
         ConsentPurposeBinding consentPurposeBinding = (ConsentPurposeBinding) o;
-        return Objects.equals(this.purposeId, consentPurposeBinding.purposeId) &&
+        return Objects.equals(this.id, consentPurposeBinding.id) &&
             Objects.equals(this.elements, consentPurposeBinding.elements);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(purposeId, elements);
+        return Objects.hash(id, elements);
     }
 
     @Override
@@ -114,7 +114,7 @@ public class ConsentPurposeBinding  {
         StringBuilder sb = new StringBuilder();
         sb.append("class ConsentPurposeBinding {\n");
         
-        sb.append("    purposeId: ").append(toIndentedString(purposeId)).append("\n");
+        sb.append("    id: ").append(toIndentedString(id)).append("\n");
         sb.append("    elements: ").append(toIndentedString(elements)).append("\n");
         sb.append("}");
         return sb.toString();

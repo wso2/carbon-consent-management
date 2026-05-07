@@ -50,7 +50,7 @@ import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
-import org.wso2.carbon.identity.core.model.Node;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -1093,28 +1093,20 @@ public class ConsentManagerImpl implements ConsentManager {
     /**
      * Lists purposes with tree-based filtering and pagination.
      *
-     * @param filterTree Node tree for attribute-based filtering (null for no filtering).
+     * @param expressionNodes Node tree for attribute-based filtering (null for no filtering).
      * @param limit      Maximum number of results to return.
-     * @param offset     Pagination offset.
      * @return List of purposes matching the filter.
      * @throws ConsentManagementException if retrieval fails.
      */
     @Override
-    public List<Purpose> listPurposes(Node filterTree, int limit, int offset)
+    public List<Purpose> listPurposes(List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
-            if (log.isDebugEnabled()) {
-                log.debug("Limit is not defied the request, default to: " + limit);
-            }
         }
-        validatePaginationParameters(limit, offset);
-
-        List<Purpose> purposes = getPurposeDAO(purposeDAOs).listPurposes(filterTree, limit, offset,
-                getTenantIdFromCarbonContext());
-
-        // Fetch latest version for each purpose if it exists
+        List<Purpose> purposes = getPurposeDAO(purposeDAOs).listPurposes(
+                expressionNodes, limit, getTenantIdFromCarbonContext());
         if (purposes != null) {
             for (Purpose purpose : purposes) {
                 if (purpose.getLatestVersionId() != null) {
@@ -1130,49 +1122,47 @@ public class ConsentManagerImpl implements ConsentManager {
     /**
      * Lists PII categories with tree-based filtering and pagination.
      *
-     * @param filterTree Node tree for attribute-based filtering (null for no filtering).
+     * @param expressionNodes Node tree for attribute-based filtering (null for no filtering).
      * @param limit      Maximum number of results to return.
-     * @param offset     Pagination offset.
      * @return List of PII categories matching the filter.
      * @throws ConsentManagementException if retrieval fails.
      */
     @Override
-    public List<PIICategory> listPIICategories(Node filterTree, int limit, int offset)
+    public List<PIICategory> listPIICategories(List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
-            if (log.isDebugEnabled()) {
-                log.debug("Limit is not defied the request, default to: " + limit);
-            }
         }
-        validatePaginationParameters(limit, offset);
-        return getPiiCategoryDAO(piiCategoryDAOs).listPIICategories(filterTree, limit, offset,
-                getTenantIdFromCarbonContext());
+        return getPiiCategoryDAO(piiCategoryDAOs).listPIICategories(
+                expressionNodes, limit, getTenantIdFromCarbonContext());
     }
 
     /**
      * Lists receipts (consents) with tree-based filtering and pagination.
      *
-     * @param limit      Maximum number of results to return.
-     * @param offset     Pagination offset.
+     * @param subjectId   Subject (user) ID to filter by (null for no filtering).
+     * @param serviceId   Service ID to filter by (null for no filtering).
+     * @param state       Consent state to filter by (null for no filtering).
+     * @param purposeId   Purpose ID to filter by (null for no filtering).
+     * @param purposeVersionId Purpose version ID to filter by (null for no filtering).
+     * @param after       ISO 8601 timestamp to filter for receipts created after this time (null for no filtering).
+     * @param before      ISO 8601 timestamp to filter for receipts created before this time (null for no filtering).
+     * @param limit       Maximum number of results to return.
      * @return List of receipts matching the filter.
      * @throws ConsentManagementException if retrieval fails.
      */
     @Override
     public List<Receipt> listReceipts(String subjectId, String serviceId, String state,
-                                      String purposeId, String purposeVersionId, int limit, int offset)
+                                      String purposeId, String purposeVersionId,
+                                      String after, String before, int limit)
             throws ConsentManagementException {
 
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
-            if (log.isDebugEnabled()) {
-                log.debug("Limit is not defied the request, default to: " + limit);
-            }
         }
-        validatePaginationParameters(limit, offset);
         return getReceiptsDAO(receiptDAOs).listReceipts(subjectId, serviceId, state, purposeId,
-                purposeVersionId, limit, offset, getTenantIdFromCarbonContext());
+                purposeVersionId, after, before, limit, getTenantIdFromCarbonContext());
     }
 
     /**

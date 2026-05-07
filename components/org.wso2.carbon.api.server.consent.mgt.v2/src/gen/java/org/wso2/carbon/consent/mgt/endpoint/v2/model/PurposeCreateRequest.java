@@ -137,7 +137,7 @@ public class PurposeCreateRequest  {
         return this;
     }
     
-    @ApiModelProperty(example = "[{\"elementId\":\"2ee774d9-a277-4b7e-b7dd-8873d515fd24\",\"mandatory\":true},{\"elementId\":\"fefd9d59-2fd5-49d6-9459-48668318a97f\",\"mandatory\":false}]", value = "Consent elements associated with this purpose")
+    @ApiModelProperty(example = "[{\"id\":\"2ee774d9-a277-4b7e-b7dd-8873d515fd24\",\"mandatory\":true},{\"id\":\"fefd9d59-2fd5-49d6-9459-48668318a97f\",\"mandatory\":false}]", value = "Consent elements associated with this purpose")
     @JsonProperty("elements")
     @Valid @Size(min=0)
     public List<PurposeElementBinding> getElements() {

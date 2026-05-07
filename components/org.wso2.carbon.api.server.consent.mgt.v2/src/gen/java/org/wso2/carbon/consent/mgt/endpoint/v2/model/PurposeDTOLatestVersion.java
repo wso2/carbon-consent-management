@@ -36,26 +36,26 @@ import javax.xml.bind.annotation.*;
 @ApiModel(description = "Latest version of this purpose")
 public class PurposeDTOLatestVersion  {
   
-    private UUID versionId;
+    private UUID id;
     private String version;
 
     /**
     * ID of the latest version
     **/
-    public PurposeDTOLatestVersion versionId(UUID versionId) {
+    public PurposeDTOLatestVersion id(UUID id) {
 
-        this.versionId = versionId;
+        this.id = id;
         return this;
     }
     
     @ApiModelProperty(example = "a1b2c3d4-1234-5678-abcd-ef1234567890", value = "ID of the latest version")
-    @JsonProperty("versionId")
+    @JsonProperty("id")
     @Valid
-    public UUID getVersionId() {
-        return versionId;
+    public UUID getId() {
+        return id;
     }
-    public void setVersionId(UUID versionId) {
-        this.versionId = versionId;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     /**
@@ -89,13 +89,13 @@ public class PurposeDTOLatestVersion  {
             return false;
         }
         PurposeDTOLatestVersion purposeDTOLatestVersion = (PurposeDTOLatestVersion) o;
-        return Objects.equals(this.versionId, purposeDTOLatestVersion.versionId) &&
+        return Objects.equals(this.id, purposeDTOLatestVersion.id) &&
             Objects.equals(this.version, purposeDTOLatestVersion.version);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(versionId, version);
+        return Objects.hash(id, version);
     }
 
     @Override
@@ -104,7 +104,7 @@ public class PurposeDTOLatestVersion  {
         StringBuilder sb = new StringBuilder();
         sb.append("class PurposeDTOLatestVersion {\n");
         
-        sb.append("    versionId: ").append(toIndentedString(versionId)).append("\n");
+        sb.append("    id: ").append(toIndentedString(id)).append("\n");
         sb.append("    version: ").append(toIndentedString(version)).append("\n");
         sb.append("}");
         return sb.toString();

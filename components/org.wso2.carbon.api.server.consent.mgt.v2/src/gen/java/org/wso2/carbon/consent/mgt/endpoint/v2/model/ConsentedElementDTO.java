@@ -36,26 +36,26 @@ import javax.xml.bind.annotation.*;
 @ApiModel(description = "Element information within a consented purpose")
 public class ConsentedElementDTO  {
   
-    private UUID elementId;
+    private UUID id;
     private String name;
     private String displayName;
 
     /**
     **/
-    public ConsentedElementDTO elementId(UUID elementId) {
+    public ConsentedElementDTO id(UUID id) {
 
-        this.elementId = elementId;
+        this.id = id;
         return this;
     }
     
     @ApiModelProperty(example = "f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2", value = "")
-    @JsonProperty("elementId")
+    @JsonProperty("id")
     @Valid
-    public UUID getElementId() {
-        return elementId;
+    public UUID getId() {
+        return id;
     }
-    public void setElementId(UUID elementId) {
-        this.elementId = elementId;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     /**
@@ -106,14 +106,14 @@ public class ConsentedElementDTO  {
             return false;
         }
         ConsentedElementDTO consentedElementDTO = (ConsentedElementDTO) o;
-        return Objects.equals(this.elementId, consentedElementDTO.elementId) &&
+        return Objects.equals(this.id, consentedElementDTO.id) &&
             Objects.equals(this.name, consentedElementDTO.name) &&
             Objects.equals(this.displayName, consentedElementDTO.displayName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(elementId, name, displayName);
+        return Objects.hash(id, name, displayName);
     }
 
     @Override
@@ -122,7 +122,7 @@ public class ConsentedElementDTO  {
         StringBuilder sb = new StringBuilder();
         sb.append("class ConsentedElementDTO {\n");
         
-        sb.append("    elementId: ").append(toIndentedString(elementId)).append("\n");
+        sb.append("    id: ").append(toIndentedString(id)).append("\n");
         sb.append("    name: ").append(toIndentedString(name)).append("\n");
         sb.append("    displayName: ").append(toIndentedString(displayName)).append("\n");
         sb.append("}");

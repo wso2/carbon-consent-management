@@ -40,5 +40,5 @@ public interface ElementsApiService {
 
       public Response elementsGet(UUID elementId);
 
-      public Response elementsList(String filter, Integer limit, Integer offset);
+      public Response elementsList(String filter, Integer limit, String after, String before);
 }

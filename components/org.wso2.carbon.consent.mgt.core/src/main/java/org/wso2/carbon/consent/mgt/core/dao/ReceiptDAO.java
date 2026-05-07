@@ -150,8 +150,14 @@ public interface ReceiptDAO {
         return null;
     }
 
+    /**
+     * Lists receipts using cursor-based pagination (V2 API).
+     * Either {@code after} or {@code before} may be provided; both are base64-encoded
+     * CONSENT_RECEIPT_ID values from a previous page.
+     */
     default List<Receipt> listReceipts(String subjectId, String serviceId, String state,
-                                       String purposeId, String purposeVersionId, int limit, int offset, int tenantId)
+                                       String purposeId, String purposeVersionId,
+                                       String after, String before, int limit, int tenantId)
             throws ConsentManagementException {
 
         return Collections.emptyList();

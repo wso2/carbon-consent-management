@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
@@ -39,6 +40,8 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -62,6 +65,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_ACTIVE_
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_CONSENT_AUTHORIZATIONS_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_CONSENT_AUTHORIZATION_BY_USER_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CAT_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CAT_WITH_UUID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_BASIC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_SP_SQL;
@@ -80,10 +84,6 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_P
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_PURPOSE_TO_PURPOSE_CAT_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_TO_PURPOSE_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_TO_PURPOSE_ASSOC_WITH_VERSION_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_DB2;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_H2_MYSQL_POSTGRES;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_MSSQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_ORACLE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.REVOKE_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_DB2;
@@ -833,15 +833,16 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                             consentPurpose.setPurposeDescription(resultSet.getString(8));
                             consentPurpose.setPurposeId(resultSet.getInt(9));
                             String versionUuid = resultSet.getString(10);
-                            if (versionUuid != null) {
+                            if (StringUtils.isNotBlank(versionUuid)) {
                                 consentPurpose.setPurposeVersionId(versionUuid);
                             }
+                            consentPurpose.setUuid(resultSet.getString(11));
                             return consentPurpose;
                         }, preparedStatement -> preparedStatement.setInt(1, receiptToServiceId));
 
                 if (internalConsentPurposes != null) {
                     internalConsentPurposes.forEach(rethrowConsumer(consentPurpose -> {
-                        consentPurpose.setPiiCategory(getPIICategoryInfoOfPurpose(
+                        consentPurpose.setPiiCategory(getPIICategoryInfoOfPurposeWithUuid(
                                 consentPurpose.getServiceToPurposeId(), consentReceiptId, receiptContext));
                         consentPurpose.setPurposeCategory(getPurposeCategoryInfoOfPurpose(
                                 consentPurpose.getServiceToPurposeId(), consentReceiptId));
@@ -874,6 +875,36 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                             receiptContext.getSecretPIICategory().addSecretCategory(name);
                         }
                         return new PIICategoryValidity(name, validity, id, displayName, isConsented);
+                    }), preparedStatement -> preparedStatement.setInt(1, serviceToPurposeId)));
+        } catch (TransactionException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
+                                                     consentReceiptId, e);
+        }
+    }
+
+    private List<PIICategoryValidity> getPIICategoryInfoOfPurposeWithUuid(int serviceToPurposeId,
+                                                                          String consentReceiptId,
+                                                                          ReceiptContext receiptContext) throws
+            ConsentManagementServerException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            return jdbcTemplate.withTransaction(template -> template.executeQuery(GET_PII_CAT_WITH_UUID_SQL,
+                    ((resultSet, rowNumber) -> {
+                        String name = resultSet.getString(1);
+                        boolean isSensitive = resultSet.getInt(2) == 1;
+                        String validity = resultSet.getString(3);
+                        boolean isConsented = resultSet.getBoolean(4);
+                        int id = resultSet.getInt(5);
+                        String displayName = resultSet.getString(6);
+                        String uuid = resultSet.getString(7);
+                        if (isSensitive) {
+                            receiptContext.getSecretPIICategory().addSecretCategory(name);
+                        }
+                        PIICategoryValidity piiCategoryValidity =
+                                new PIICategoryValidity(name, validity, id, displayName, isConsented);
+                        piiCategoryValidity.setUuid(uuid);
+                        return piiCategoryValidity;
                     }), preparedStatement -> preparedStatement.setInt(1, serviceToPurposeId)));
         } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
@@ -1249,8 +1280,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     }
 
     @Override
-    public List<Receipt> listReceipts(String subjectId, String serviceId, String state, String purposeId,
-                                      String purposeVersionId, int limit, int offset, int tenantId)
+    public List<Receipt> listReceipts(String subjectId, String serviceId, String state,
+                                      String purposeId, String purposeVersionId,
+                                      String after, String before, int limit, int tenantId)
             throws ConsentManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
@@ -1262,36 +1294,22 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         final String finalPurposeId = purposeId != null ? purposeId : SQL_FILTER_STRING_ANY;
         final String finalPurposeVersionId = purposeVersionId != null ? purposeVersionId : SQL_FILTER_STRING_ANY;
 
+        final String afterValue = after != null
+                ? new String(Base64.getDecoder().decode(after), StandardCharsets.UTF_8) : null;
+        final String beforeValue = before != null
+                ? new String(Base64.getDecoder().decode(before), StandardCharsets.UTF_8) : null;
+
+        final String cursorCondition;
+        if (afterValue != null) {
+            cursorCondition = " AND r2.CONSENT_RECEIPT_ID > ?";
+        } else if (beforeValue != null) {
+            cursorCondition = " AND r2.CONSENT_RECEIPT_ID < ?";
+        } else {
+            cursorCondition = "";
+        }
+
         try {
-
-            // Determine database type and select appropriate query
-            String query;
-            int finalLimit = limit;
-            int finalOffset = offset;
-
-            if (isH2MySqlOrPostgresDB()) {
-                query = LIST_RECEIPTS_H2_MYSQL_POSTGRES;
-            } else if (isDB2DB()) {
-                finalOffset = offset + limit;
-                finalLimit = offset + 1;
-                query = LIST_RECEIPTS_DB2;
-            } else if (isMSSqlDB()) {
-                finalOffset = limit + offset;
-                finalLimit = offset + 1;
-                query = LIST_RECEIPTS_MSSQL;
-            } else if (isInformixDB()) {
-                // Informix
-                throw new ConsentManagementServerException("This method is not supported for Informix database.",
-                        ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode());
-            } else {
-                // Oracle
-                finalLimit = offset + limit;
-                query = LIST_RECEIPTS_ORACLE;
-            }
-
-            final int paramLimit = finalLimit;
-            final int paramOffset = finalOffset;
-
+            String query = buildCursorReceiptQuery(cursorCondition);
             receipts = jdbcTemplate.executeQuery(query,
                     (resultSet, rowNumber) -> {
                         Receipt receipt = new Receipt();
@@ -1316,22 +1334,59 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         return receipt;
                     },
                     preparedStatement -> {
-                        preparedStatement.setInt(1, tenantId);
-                        preparedStatement.setInt(2, tenantId);
-                        preparedStatement.setString(3, finalSubjectId);
-                        preparedStatement.setString(4, finalServiceId);
-                        preparedStatement.setString(5, finalState);
-                        preparedStatement.setString(6, finalPurposeId);
-                        preparedStatement.setString(7, finalPurposeVersionId);
-                        preparedStatement.setInt(8, paramLimit);
-                        preparedStatement.setInt(9, paramOffset);
+                        int paramIndex = 1;
+                        preparedStatement.setInt(paramIndex++, tenantId);
+                        preparedStatement.setInt(paramIndex++, tenantId);
+                        preparedStatement.setString(paramIndex++, finalSubjectId);
+                        preparedStatement.setString(paramIndex++, finalServiceId);
+                        preparedStatement.setString(paramIndex++, finalState);
+                        preparedStatement.setString(paramIndex++, finalPurposeId);
+                        preparedStatement.setString(paramIndex++, finalPurposeVersionId);
+                        if (afterValue != null) {
+                            preparedStatement.setString(paramIndex++, afterValue);
+                        } else if (beforeValue != null) {
+                            preparedStatement.setString(paramIndex++, beforeValue);
+                        }
+                        preparedStatement.setInt(paramIndex, limit);
                     });
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(
-                    String.format("Error listing receipts with filter for tenant %d", tenantId),
+                    String.format("Error listing receipts with cursor for tenant %d", tenantId),
                     ErrorMessages.ERROR_CODE_LIST_PURPOSE.getCode(), e);
         }
         return receipts;
+    }
+
+    private String buildCursorReceiptQuery(String cursorCondition) throws DataAccessException {
+
+        String head =
+                "SELECT r.CONSENT_RECEIPT_ID, r.PII_PRINCIPAL_ID, r.STATE, r.PRINCIPAL_TENANT_ID, " +
+                "r.CONSENT_TIMESTAMP, r.VALIDITY_TIME, " +
+                "(SELECT MIN(rsa2.SP_NAME) FROM CM_RECEIPT_SP_ASSOC rsa2 " +
+                "WHERE rsa2.CONSENT_RECEIPT_ID = r.CONSENT_RECEIPT_ID) AS SP_NAME " +
+                "FROM CM_RECEIPT r " +
+                "WHERE r.PRINCIPAL_TENANT_ID = ? " +
+                "AND r.CONSENT_RECEIPT_ID IN (" +
+                "  SELECT DISTINCT r2.CONSENT_RECEIPT_ID FROM CM_RECEIPT r2 " +
+                "  LEFT JOIN CM_RECEIPT_SP_ASSOC rsa2 ON r2.CONSENT_RECEIPT_ID = rsa2.CONSENT_RECEIPT_ID " +
+                "  LEFT JOIN CM_SP_PURPOSE_ASSOC spa ON rsa2.ID = spa.RECEIPT_SP_ASSOC " +
+                "  LEFT JOIN CM_PURPOSE p ON spa.PURPOSE_ID = p.ID " +
+                "  WHERE r2.PRINCIPAL_TENANT_ID = ? " +
+                "  AND r2.PII_PRINCIPAL_ID LIKE ? AND rsa2.SP_NAME LIKE ? AND r2.STATE LIKE ? " +
+                "  AND p.UUID LIKE ? AND COALESCE(spa.PURPOSE_VERSION_ID, '') LIKE ?";
+
+        String tail;
+        if (isH2MySqlOrPostgresDB()) {
+            tail = cursorCondition + " ORDER BY r2.CONSENT_RECEIPT_ID ASC LIMIT ?) ORDER BY r.CONSENT_RECEIPT_ID ASC";
+        } else if (isMSSqlDB()) {
+            tail = cursorCondition +
+                    " ORDER BY r2.CONSENT_RECEIPT_ID ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY) ORDER BY r.CONSENT_RECEIPT_ID ASC";
+        } else {
+            // Oracle and DB2
+            tail = cursorCondition +
+                    " ORDER BY r2.CONSENT_RECEIPT_ID ASC FETCH FIRST ? ROWS ONLY) ORDER BY r.CONSENT_RECEIPT_ID ASC";
+        }
+        return head + tail;
     }
 
 }

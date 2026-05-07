@@ -25,6 +25,7 @@ public class PIICategoryValidity {
 
     @SerializedName("piiCategoryId")
     private Integer id;
+    private String uuid;
     private String validity;
     private String name;
     private String displayName;
@@ -68,6 +69,16 @@ public class PIICategoryValidity {
     public void setId(Integer id) {
 
         this.id = id;
+    }
+
+    public String getUuid() {
+
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+
+        this.uuid = uuid;
     }
 
     public String getValidity() {

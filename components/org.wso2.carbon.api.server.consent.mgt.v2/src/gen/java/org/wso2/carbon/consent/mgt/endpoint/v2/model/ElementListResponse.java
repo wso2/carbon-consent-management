@@ -25,6 +25,7 @@ import io.swagger.annotations.ApiModelProperty;
 import java.util.ArrayList;
 import java.util.List;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementDTO;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.PaginationLink;
 import javax.validation.constraints.*;
 
 
@@ -35,73 +36,82 @@ import javax.xml.bind.annotation.*;
 
 public class ElementListResponse  {
   
-    private Integer startIndex;
-    private Integer count;
-    private List<ElementDTO> items = null;
+    private Integer totalResults;
+    private List<PaginationLink> links = null;
+
+    private List<ElementDTO> elements = null;
 
 
     /**
-    * Starting index of the returned records
+    * Total number of results matching the query
     **/
-    public ElementListResponse startIndex(Integer startIndex) {
+    public ElementListResponse totalResults(Integer totalResults) {
 
-        this.startIndex = startIndex;
+        this.totalResults = totalResults;
         return this;
     }
     
-    @ApiModelProperty(example = "0", value = "Starting index of the returned records")
-    @JsonProperty("startIndex")
+    @ApiModelProperty(example = "2", value = "Total number of results matching the query")
+    @JsonProperty("totalResults")
     @Valid
-    public Integer getStartIndex() {
-        return startIndex;
+    public Integer getTotalResults() {
+        return totalResults;
     }
-    public void setStartIndex(Integer startIndex) {
-        this.startIndex = startIndex;
+    public void setTotalResults(Integer totalResults) {
+        this.totalResults = totalResults;
     }
 
     /**
-    * Number of records returned
+    * Pagination links for next/previous pages
     **/
-    public ElementListResponse count(Integer count) {
+    public ElementListResponse links(List<PaginationLink> links) {
 
-        this.count = count;
+        this.links = links;
         return this;
     }
     
-    @ApiModelProperty(example = "2", value = "Number of records returned")
-    @JsonProperty("count")
+    @ApiModelProperty(value = "Pagination links for next/previous pages")
+    @JsonProperty("links")
     @Valid
-    public Integer getCount() {
-        return count;
+    public List<PaginationLink> getLinks() {
+        return links;
     }
-    public void setCount(Integer count) {
-        this.count = count;
+    public void setLinks(List<PaginationLink> links) {
+        this.links = links;
     }
 
-    /**
+    public ElementListResponse addLinksItem(PaginationLink linksItem) {
+        if (this.links == null) {
+            this.links = new ArrayList<>();
+        }
+        this.links.add(linksItem);
+        return this;
+    }
+
+        /**
     * List of consent elements
     **/
-    public ElementListResponse items(List<ElementDTO> items) {
+    public ElementListResponse elements(List<ElementDTO> elements) {
 
-        this.items = items;
+        this.elements = elements;
         return this;
     }
     
-    @ApiModelProperty(example = "[{\"elementId\":\"f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2\",\"name\":\"email_address\",\"displayName\":\"Email Address\",\"description\":\"User email address used for account notifications and communications\"},{\"elementId\":\"c2d3e4f5-2345-6789-bcde-f01234567891\",\"name\":\"phone_number\",\"displayName\":\"Phone Number\",\"description\":\"User phone number used for SMS notifications and two-factor authentication\"}]", value = "List of consent elements")
-    @JsonProperty("items")
+    @ApiModelProperty(example = "[{\"id\":\"f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2\",\"name\":\"email_address\",\"displayName\":\"Email Address\",\"description\":\"User email address used for account notifications and communications\"},{\"id\":\"c2d3e4f5-2345-6789-bcde-f01234567891\",\"name\":\"phone_number\",\"displayName\":\"Phone Number\",\"description\":\"User phone number used for SMS notifications and two-factor authentication\"}]", value = "List of consent elements")
+    @JsonProperty("Elements")
     @Valid
-    public List<ElementDTO> getItems() {
-        return items;
+    public List<ElementDTO> getElements() {
+        return elements;
     }
-    public void setItems(List<ElementDTO> items) {
-        this.items = items;
+    public void setElements(List<ElementDTO> elements) {
+        this.elements = elements;
     }
 
-    public ElementListResponse addItemsItem(ElementDTO itemsItem) {
-        if (this.items == null) {
-            this.items = new ArrayList<>();
+    public ElementListResponse addElementsItem(ElementDTO elementsItem) {
+        if (this.elements == null) {
+            this.elements = new ArrayList<>();
         }
-        this.items.add(itemsItem);
+        this.elements.add(elementsItem);
         return this;
     }
 
@@ -117,14 +127,14 @@ public class ElementListResponse  {
             return false;
         }
         ElementListResponse elementListResponse = (ElementListResponse) o;
-        return Objects.equals(this.startIndex, elementListResponse.startIndex) &&
-            Objects.equals(this.count, elementListResponse.count) &&
-            Objects.equals(this.items, elementListResponse.items);
+        return Objects.equals(this.totalResults, elementListResponse.totalResults) &&
+            Objects.equals(this.links, elementListResponse.links) &&
+            Objects.equals(this.elements, elementListResponse.elements);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(startIndex, count, items);
+        return Objects.hash(totalResults, links, elements);
     }
 
     @Override
@@ -133,9 +143,9 @@ public class ElementListResponse  {
         StringBuilder sb = new StringBuilder();
         sb.append("class ElementListResponse {\n");
         
-        sb.append("    startIndex: ").append(toIndentedString(startIndex)).append("\n");
-        sb.append("    count: ").append(toIndentedString(count)).append("\n");
-        sb.append("    items: ").append(toIndentedString(items)).append("\n");
+        sb.append("    totalResults: ").append(toIndentedString(totalResults)).append("\n");
+        sb.append("    links: ").append(toIndentedString(links)).append("\n");
+        sb.append("    elements: ").append(toIndentedString(elements)).append("\n");
         sb.append("}");
         return sb.toString();
     }

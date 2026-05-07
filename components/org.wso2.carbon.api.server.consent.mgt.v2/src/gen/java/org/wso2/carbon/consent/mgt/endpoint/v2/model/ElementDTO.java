@@ -33,7 +33,7 @@ import javax.xml.bind.annotation.*;
 
 public class ElementDTO  {
   
-    private UUID elementId;
+    private UUID id;
     private String name;
     private String displayName;
     private String description;
@@ -41,20 +41,20 @@ public class ElementDTO  {
     /**
     * ID of the element
     **/
-    public ElementDTO elementId(UUID elementId) {
+    public ElementDTO id(UUID id) {
 
-        this.elementId = elementId;
+        this.id = id;
         return this;
     }
     
     @ApiModelProperty(example = "f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2", value = "ID of the element")
-    @JsonProperty("elementId")
+    @JsonProperty("id")
     @Valid
-    public UUID getElementId() {
-        return elementId;
+    public UUID getId() {
+        return id;
     }
-    public void setElementId(UUID elementId) {
-        this.elementId = elementId;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     /**
@@ -126,7 +126,7 @@ public class ElementDTO  {
             return false;
         }
         ElementDTO elementDTO = (ElementDTO) o;
-        return Objects.equals(this.elementId, elementDTO.elementId) &&
+        return Objects.equals(this.id, elementDTO.id) &&
             Objects.equals(this.name, elementDTO.name) &&
             Objects.equals(this.displayName, elementDTO.displayName) &&
             Objects.equals(this.description, elementDTO.description);
@@ -134,7 +134,7 @@ public class ElementDTO  {
 
     @Override
     public int hashCode() {
-        return Objects.hash(elementId, name, displayName, description);
+        return Objects.hash(id, name, displayName, description);
     }
 
     @Override
@@ -143,7 +143,7 @@ public class ElementDTO  {
         StringBuilder sb = new StringBuilder();
         sb.append("class ElementDTO {\n");
         
-        sb.append("    elementId: ").append(toIndentedString(elementId)).append("\n");
+        sb.append("    id: ").append(toIndentedString(id)).append("\n");
         sb.append("    name: ").append(toIndentedString(name)).append("\n");
         sb.append("    displayName: ").append(toIndentedString(displayName)).append("\n");
         sb.append("    description: ").append(toIndentedString(description)).append("\n");

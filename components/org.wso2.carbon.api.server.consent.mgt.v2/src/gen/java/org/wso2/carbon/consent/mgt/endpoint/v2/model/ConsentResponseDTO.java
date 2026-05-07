@@ -35,7 +35,7 @@ import javax.xml.bind.annotation.*;
 @ApiModel(description = "Response returned when consent is recorded")
 public class ConsentResponseDTO  {
   
-    private String consentId;
+    private String id;
     private String language;
     private String subjectId;
     private String tenantDomain;
@@ -78,20 +78,20 @@ public enum StateEnum {
     /**
     * Unique identifier for this consent
     **/
-    public ConsentResponseDTO consentId(String consentId) {
+    public ConsentResponseDTO id(String id) {
 
-        this.consentId = consentId;
+        this.id = id;
         return this;
     }
     
     @ApiModelProperty(example = "f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2", value = "Unique identifier for this consent")
-    @JsonProperty("consentId")
+    @JsonProperty("id")
     @Valid
-    public String getConsentId() {
-        return consentId;
+    public String getId() {
+        return id;
     }
-    public void setConsentId(String consentId) {
-        this.consentId = consentId;
+    public void setId(String id) {
+        this.id = id;
     }
 
     /**
@@ -201,7 +201,7 @@ public enum StateEnum {
             return false;
         }
         ConsentResponseDTO consentResponseDTO = (ConsentResponseDTO) o;
-        return Objects.equals(this.consentId, consentResponseDTO.consentId) &&
+        return Objects.equals(this.id, consentResponseDTO.id) &&
             Objects.equals(this.language, consentResponseDTO.language) &&
             Objects.equals(this.subjectId, consentResponseDTO.subjectId) &&
             Objects.equals(this.tenantDomain, consentResponseDTO.tenantDomain) &&
@@ -211,7 +211,7 @@ public enum StateEnum {
 
     @Override
     public int hashCode() {
-        return Objects.hash(consentId, language, subjectId, tenantDomain, state, validityTime);
+        return Objects.hash(id, language, subjectId, tenantDomain, state, validityTime);
     }
 
     @Override
@@ -220,7 +220,7 @@ public enum StateEnum {
         StringBuilder sb = new StringBuilder();
         sb.append("class ConsentResponseDTO {\n");
         
-        sb.append("    consentId: ").append(toIndentedString(consentId)).append("\n");
+        sb.append("    id: ").append(toIndentedString(id)).append("\n");
         sb.append("    language: ").append(toIndentedString(language)).append("\n");
         sb.append("    subjectId: ").append(toIndentedString(subjectId)).append("\n");
         sb.append("    tenantDomain: ").append(toIndentedString(tenantDomain)).append("\n");

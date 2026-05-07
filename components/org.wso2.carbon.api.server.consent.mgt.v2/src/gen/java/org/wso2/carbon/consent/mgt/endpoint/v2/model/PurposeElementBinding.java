@@ -33,28 +33,28 @@ import javax.xml.bind.annotation.*;
 
 public class PurposeElementBinding  {
   
-    private UUID elementId;
+    private UUID id;
     private Boolean mandatory;
 
     /**
     * ID of the consent element
     **/
-    public PurposeElementBinding elementId(UUID elementId) {
+    public PurposeElementBinding id(UUID id) {
 
-        this.elementId = elementId;
+        this.id = id;
         return this;
     }
     
     @ApiModelProperty(example = "f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2", required = true, value = "ID of the consent element")
-    @JsonProperty("elementId")
+    @JsonProperty("id")
     @Valid
-    @NotNull(message = "Property elementId cannot be null.")
+    @NotNull(message = "Property id cannot be null.")
 
-    public UUID getElementId() {
-        return elementId;
+    public UUID getId() {
+        return id;
     }
-    public void setElementId(UUID elementId) {
-        this.elementId = elementId;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     /**
@@ -88,13 +88,13 @@ public class PurposeElementBinding  {
             return false;
         }
         PurposeElementBinding purposeElementBinding = (PurposeElementBinding) o;
-        return Objects.equals(this.elementId, purposeElementBinding.elementId) &&
+        return Objects.equals(this.id, purposeElementBinding.id) &&
             Objects.equals(this.mandatory, purposeElementBinding.mandatory);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(elementId, mandatory);
+        return Objects.hash(id, mandatory);
     }
 
     @Override
@@ -103,7 +103,7 @@ public class PurposeElementBinding  {
         StringBuilder sb = new StringBuilder();
         sb.append("class PurposeElementBinding {\n");
         
-        sb.append("    elementId: ").append(toIndentedString(elementId)).append("\n");
+        sb.append("    id: ").append(toIndentedString(id)).append("\n");
         sb.append("    mandatory: ").append(toIndentedString(mandatory)).append("\n");
         sb.append("}");
         return sb.toString();

@@ -23,6 +23,7 @@ public class ConsentPurpose {
 
     private String purpose;
     private int purposeId;
+    private String uuid;
     private String purposeDescription;
     private List<String> purposeCategory;
     private String consentType;
@@ -135,6 +136,16 @@ public class ConsentPurpose {
     public void setPurposeId(int purposeId) {
 
         this.purposeId = purposeId;
+    }
+
+    public String getUuid() {
+
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+
+        this.uuid = uuid;
     }
 
     public String getPurposeDescription() {

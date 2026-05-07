@@ -209,7 +209,7 @@ public class ConsentsApiServiceImplTest {
     @Test
     public void testConsentsList() {
 
-        Response response = consentsApiService.consentsList(null, null, null, null, null, 10, 0);
+        Response response = consentsApiService.consentsList(null, null, null, null, null, 10, null, null);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         Assert.assertNotNull(response.getEntity());
@@ -218,7 +218,7 @@ public class ConsentsApiServiceImplTest {
     @Test
     public void testConsentsListWithDefaultPagination() {
 
-        Response response = consentsApiService.consentsList(null, null, null, null, null, null, null);
+        Response response = consentsApiService.consentsList(null, null, null, null, null, 10, null, null);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         Assert.assertNotNull(response.getEntity());
@@ -227,11 +227,11 @@ public class ConsentsApiServiceImplTest {
     @Test
     public void testConsentsListEmpty() {
 
-        Response response = consentsApiService.consentsList(null, null, null, null, null, 10, 0);
+        Response response = consentsApiService.consentsList(null, null, null, null, null, 10, null, null);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         ConsentListResponse list = (ConsentListResponse) response.getEntity();
-        Assert.assertEquals(list.getCount().intValue(), 0);
+        Assert.assertEquals(list.getTotalResults().intValue(), 0);
     }
 
     @Test
@@ -259,10 +259,10 @@ public class ConsentsApiServiceImplTest {
         ElementCreateRequest elementReq = new ElementCreateRequest();
         elementReq.setName("CONSENT_TEST_EMAIL_" + System.nanoTime());
         Response elemResp = elementsApiService.elementsCreate(elementReq);
-        UUID elementId = ((ElementDTO) elemResp.getEntity()).getElementId();
+        UUID elementId = ((ElementDTO) elemResp.getEntity()).getId();
 
         PurposeElementBinding binding = new PurposeElementBinding();
-        binding.setElementId(elementId);
+        binding.setId(elementId);
         binding.setMandatory(false);
 
         PurposeCreateRequest purposeReq = new PurposeCreateRequest();
@@ -271,7 +271,7 @@ public class ConsentsApiServiceImplTest {
         purposeReq.setVersion("v1");
         purposeReq.setElements(List.of(binding));
         Response purposeResp = purposesApiService.purposesCreate(purposeReq);
-        UUID purposeId = ((PurposeDTO) purposeResp.getEntity()).getPurposeId();
+        UUID purposeId = ((PurposeDTO) purposeResp.getEntity()).getId();
 
         return new UUID[]{purposeId, elementId};
     }
@@ -284,10 +284,10 @@ public class ConsentsApiServiceImplTest {
         UUID elementId = ids[1];
 
         ElementTerminationInfo elementInfo = new ElementTerminationInfo();
-        elementInfo.setElementId(elementId);
+        elementInfo.setId(elementId);
 
         ConsentPurposeBinding purposeBinding = new ConsentPurposeBinding();
-        purposeBinding.setPurposeId(purposeId);
+        purposeBinding.setId(purposeId);
         purposeBinding.setElements(List.of(elementInfo));
 
         ConsentCreateRequest request = new ConsentCreateRequest();
@@ -299,7 +299,7 @@ public class ConsentsApiServiceImplTest {
 
         Assert.assertEquals(response.getStatus(), Response.Status.CREATED.getStatusCode());
         ConsentResponseDTO dto = (ConsentResponseDTO) response.getEntity();
-        Assert.assertNotNull(dto.getConsentId());
+        Assert.assertNotNull(dto.getId());
         Assert.assertEquals(dto.getLanguage(), "EN");
     }
 
@@ -311,10 +311,10 @@ public class ConsentsApiServiceImplTest {
         UUID elementId = ids[1];
 
         ElementTerminationInfo elementInfo = new ElementTerminationInfo();
-        elementInfo.setElementId(elementId);
+        elementInfo.setId(elementId);
 
         ConsentPurposeBinding purposeBinding = new ConsentPurposeBinding();
-        purposeBinding.setPurposeId(purposeId);
+        purposeBinding.setId(purposeId);
         purposeBinding.setElements(List.of(elementInfo));
 
         ConsentCreateRequest request = new ConsentCreateRequest();
@@ -323,7 +323,7 @@ public class ConsentsApiServiceImplTest {
         request.setPurposes(List.of(purposeBinding));
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         Response response = consentsApiService.consentsGet(consentId);
 
@@ -339,10 +339,10 @@ public class ConsentsApiServiceImplTest {
         UUID elementId = ids[1];
 
         ElementTerminationInfo elementInfo = new ElementTerminationInfo();
-        elementInfo.setElementId(elementId);
+        elementInfo.setId(elementId);
 
         ConsentPurposeBinding purposeBinding = new ConsentPurposeBinding();
-        purposeBinding.setPurposeId(purposeId);
+        purposeBinding.setId(purposeId);
         purposeBinding.setElements(List.of(elementInfo));
 
         ConsentCreateRequest request = new ConsentCreateRequest();
@@ -351,7 +351,7 @@ public class ConsentsApiServiceImplTest {
         request.setPurposes(List.of(purposeBinding));
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         Response response = consentsApiService.consentsRevoke(consentId);
 
@@ -363,7 +363,7 @@ public class ConsentsApiServiceImplTest {
 
         UUID[] ids = createPurposeWithElement();
         Response created = consentsApiService.consentsCreate(buildConsentRequest(ids[0], ids[1]));
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         consentsApiService.consentsRevoke(consentId);
         // Second revoke on an already-REVOKED consent is idempotent — returns 204.
@@ -383,11 +383,11 @@ public class ConsentsApiServiceImplTest {
         // Create a consent for this purpose.
         consentsApiService.consentsCreate(buildConsentRequest(purposeId, elementId));
 
-        Response response = consentsApiService.consentsList(null, null, null, purposeId, null, 10, 0);
+        Response response = consentsApiService.consentsList(null, null, null, purposeId, null, 10, null, null);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         ConsentListResponse list = (ConsentListResponse) response.getEntity();
-        Assert.assertTrue(list.getCount() >= 1, "At least one consent should match the purpose ID");
+        Assert.assertTrue(list.getTotalResults() >= 1, "At least one consent should match the purpose ID");
     }
 
     @Test
@@ -401,32 +401,32 @@ public class ConsentsApiServiceImplTest {
         PurposeVersionCreateRequest versionReq = new PurposeVersionCreateRequest();
         versionReq.setVersion("v1.0");
         Response versionResp = purposesApiService.purposesVersionsCreate(purposeId, versionReq);
-        UUID versionId = ((PurposeVersionDTO) versionResp.getEntity()).getVersionId();
+        UUID versionId = ((PurposeVersionDTO) versionResp.getEntity()).getId();
 
         // Explicitly promote the version as latest — addPurposeVersion never auto-promotes.
         SetLatestVersionRequest setLatestReq = new SetLatestVersionRequest();
-        setLatestReq.setVersionId(versionId);
+        setLatestReq.setId(versionId);
         purposesApiService.purposesSetLatestVersion(purposeId, setLatestReq);
 
         // Consent created after setLatestVersion → PURPOSE_VERSION_ID is populated.
         consentsApiService.consentsCreate(buildConsentRequest(purposeId, elementId));
 
-        Response response = consentsApiService.consentsList(null, null, null, purposeId, versionId, 10, 0);
+        Response response = consentsApiService.consentsList(null, null, null, purposeId, versionId, 10, null, null);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         ConsentListResponse list = (ConsentListResponse) response.getEntity();
-        Assert.assertEquals(list.getCount().intValue(), 1,
+        Assert.assertEquals(list.getTotalResults().intValue(), 1,
                 "Exactly one consent should be bound to the created version");
     }
 
     @Test
     public void testConsentsListWithPurposeVersionIdFilter_noMatch() {
 
-        Response response = consentsApiService.consentsList(null, null, null, null, UUID.randomUUID(), 10, 0);
+        Response response = consentsApiService.consentsList(null, null, null, null, UUID.randomUUID(), 10, null, null);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         ConsentListResponse list = (ConsentListResponse) response.getEntity();
-        Assert.assertEquals(list.getCount().intValue(), 0,
+        Assert.assertEquals(list.getTotalResults().intValue(), 0,
                 "No consents should match an unknown version ID");
     }
 
@@ -437,10 +437,10 @@ public class ConsentsApiServiceImplTest {
     private ConsentCreateRequest buildConsentRequest(UUID purposeId, UUID elementId) {
 
         ElementTerminationInfo elementInfo = new ElementTerminationInfo();
-        elementInfo.setElementId(elementId);
+        elementInfo.setId(elementId);
 
         ConsentPurposeBinding purposeBinding = new ConsentPurposeBinding();
-        purposeBinding.setPurposeId(purposeId);
+        purposeBinding.setId(purposeId);
         purposeBinding.setElements(List.of(elementInfo));
 
         ConsentCreateRequest request = new ConsentCreateRequest();
@@ -461,7 +461,7 @@ public class ConsentsApiServiceImplTest {
 
         Response created = consentsApiService.consentsCreate(request);
         Assert.assertEquals(created.getStatus(), Response.Status.CREATED.getStatusCode());
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         Response get = consentsApiService.consentsGet(consentId);
         Assert.assertEquals(get.getStatus(), Response.Status.OK.getStatusCode());
@@ -479,7 +479,7 @@ public class ConsentsApiServiceImplTest {
 
         Response created = consentsApiService.consentsCreate(request);
         Assert.assertEquals(created.getStatus(), Response.Status.CREATED.getStatusCode());
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         Response get = consentsApiService.consentsGet(consentId);
         ConsentDTO dto = (ConsentDTO) get.getEntity();
@@ -498,8 +498,8 @@ public class ConsentsApiServiceImplTest {
         Assert.assertEquals(firstCreated.getStatus(), Response.Status.CREATED.getStatusCode());
         Assert.assertEquals(secondCreated.getStatus(), Response.Status.CREATED.getStatusCode());
 
-        String firstConsentId = ((ConsentResponseDTO) firstCreated.getEntity()).getConsentId();
-        String secondConsentId = ((ConsentResponseDTO) secondCreated.getEntity()).getConsentId();
+        String firstConsentId = ((ConsentResponseDTO) firstCreated.getEntity()).getId();
+        String secondConsentId = ((ConsentResponseDTO) secondCreated.getEntity()).getId();
 
         Response firstGet = consentsApiService.consentsGet(firstConsentId);
         Response secondGet = consentsApiService.consentsGet(secondConsentId);
@@ -519,7 +519,7 @@ public class ConsentsApiServiceImplTest {
 
         Response created = consentsApiService.consentsCreate(request);
         Assert.assertEquals(created.getStatus(), Response.Status.CREATED.getStatusCode());
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         Response get = consentsApiService.consentsGet(consentId);
         ConsentDTO dto = (ConsentDTO) get.getEntity();
@@ -539,7 +539,7 @@ public class ConsentsApiServiceImplTest {
         request.setAuthorizations(List.of("admin")); // calling user must be in authz list
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         AuthorizationCreateRequest authRequest = new AuthorizationCreateRequest();
         authRequest.setState(AuthorizationCreateRequest.StateEnum.APPROVED);
@@ -559,7 +559,7 @@ public class ConsentsApiServiceImplTest {
         request.setAuthorizations(List.of("admin"));
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         AuthorizationCreateRequest authRequest = new AuthorizationCreateRequest();
         authRequest.setState(AuthorizationCreateRequest.StateEnum.APPROVED);
@@ -583,7 +583,7 @@ public class ConsentsApiServiceImplTest {
         // no validityTime, no authorizations → ACTIVE immediately
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         Response validateResponse = consentsApiService.consentsValidate(consentId);
 
@@ -600,7 +600,7 @@ public class ConsentsApiServiceImplTest {
         request.setValidityTime(1000L); // milliseconds in the past (epoch 1000ms = Jan 1970)
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         Response validateResponse = consentsApiService.consentsValidate(consentId);
 
@@ -625,7 +625,7 @@ public class ConsentsApiServiceImplTest {
         request.setAuthorizations(List.of("admin"));
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         AuthorizationCreateRequest authRequest = new AuthorizationCreateRequest();
         authRequest.setState(AuthorizationCreateRequest.StateEnum.REJECTED);
@@ -653,7 +653,7 @@ public class ConsentsApiServiceImplTest {
         request.setAuthorizations(List.of("admin"));
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         AuthorizationCreateRequest rejectReq = new AuthorizationCreateRequest();
         rejectReq.setState(AuthorizationCreateRequest.StateEnum.REJECTED);
@@ -680,7 +680,7 @@ public class ConsentsApiServiceImplTest {
         request.setAuthorizations(java.util.Arrays.asList("admin", "approver2@test.com"));
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         // Only first approver approves.
         AuthorizationCreateRequest authRequest = new AuthorizationCreateRequest();
@@ -711,7 +711,7 @@ public class ConsentsApiServiceImplTest {
         request.setValidityTime(1000L); // already expired (epoch 1970)
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         // Trigger expiry
         consentsApiService.consentsValidate(consentId);
@@ -733,7 +733,7 @@ public class ConsentsApiServiceImplTest {
         request.setAuthorizations(List.of("admin"));
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         // Reject to move to REJECTED state
         AuthorizationCreateRequest rejectReq = new AuthorizationCreateRequest();
@@ -754,7 +754,7 @@ public class ConsentsApiServiceImplTest {
 
         UUID[] ids = createPurposeWithElement();
         Response created = consentsApiService.consentsCreate(buildConsentRequest(ids[0], ids[1]));
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         consentsApiService.consentsRevoke(consentId);
 
@@ -802,10 +802,10 @@ public class ConsentsApiServiceImplTest {
         ElementCreateRequest elementReq = new ElementCreateRequest();
         elementReq.setName("VER_CONS_ELEM_" + System.nanoTime());
         Response elemResp = elementsApiService.elementsCreate(elementReq);
-        UUID elementId = ((ElementDTO) elemResp.getEntity()).getElementId();
+        UUID elementId = ((ElementDTO) elemResp.getEntity()).getId();
 
         PurposeElementBinding binding = new PurposeElementBinding();
-        binding.setElementId(elementId);
+        binding.setId(elementId);
         binding.setMandatory(false);
 
         // Create purpose with v1.0 as the initial (and latest) version.
@@ -815,14 +815,14 @@ public class ConsentsApiServiceImplTest {
         purposeReq.setVersion("v1.0");
         purposeReq.setElements(List.of(binding));
         PurposeDTO createdPurpose = (PurposeDTO) purposesApiService.purposesCreate(purposeReq).getEntity();
-        UUID purposeId = createdPurpose.getPurposeId();
-        UUID v1Id = createdPurpose.getLatestVersion().getVersionId();
+        UUID purposeId = createdPurpose.getId();
+        UUID v1Id = createdPurpose.getLatestVersion().getId();
 
         // Consent is created now — it references v1.0 (the current latest version).
         ElementTerminationInfo elementInfo = new ElementTerminationInfo();
-        elementInfo.setElementId(elementId);
+        elementInfo.setId(elementId);
         ConsentPurposeBinding purposeBinding = new ConsentPurposeBinding();
-        purposeBinding.setPurposeId(purposeId);
+        purposeBinding.setId(purposeId);
         purposeBinding.setElements(List.of(elementInfo));
         ConsentCreateRequest consentReq = new ConsentCreateRequest();
         consentReq.setServiceId("test-service");
@@ -834,9 +834,9 @@ public class ConsentsApiServiceImplTest {
         PurposeVersionCreateRequest v2Req = new PurposeVersionCreateRequest();
         v2Req.setVersion("v2.0");
         UUID v2Id = ((PurposeVersionDTO) purposesApiService.purposesVersionsCreate(purposeId, v2Req)
-                .getEntity()).getVersionId();
+                .getEntity()).getId();
         SetLatestVersionRequest setLatestReq = new SetLatestVersionRequest();
-        setLatestReq.setVersionId(v2Id);
+        setLatestReq.setId(v2Id);
         purposesApiService.purposesSetLatestVersion(purposeId, setLatestReq);
 
         // v1.0 is NOT the latest but HAS a consent — deletion must be rejected.
@@ -857,7 +857,7 @@ public class ConsentsApiServiceImplTest {
         // No authorizations → consent is ACTIVE immediately.
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         AuthorizationCreateRequest authRequest = new AuthorizationCreateRequest();
         authRequest.setState(AuthorizationCreateRequest.StateEnum.APPROVED);
@@ -883,7 +883,7 @@ public class ConsentsApiServiceImplTest {
         request.setValidityTime(1000L); // milliseconds in the past (epoch 1000ms = Jan 1970)
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         // Call GET without calling validate first — lazy expiry logic should trigger
         Response getResponse = consentsApiService.consentsGet(consentId);
@@ -906,7 +906,7 @@ public class ConsentsApiServiceImplTest {
         // No authorizations — consent is ACTIVE immediately
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         // Revoke the consent
         Response revokeResponse = consentsApiService.consentsRevoke(consentId);
@@ -994,7 +994,7 @@ public class ConsentsApiServiceImplTest {
         request.setAuthorizations(List.of("admin")); // calling user is "admin"
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         Response revokeResponse = consentsApiService.consentsRevoke(consentId);
 
@@ -1013,7 +1013,7 @@ public class ConsentsApiServiceImplTest {
         request.setAuthorizations(List.of("other-user@test.com")); // "admin" is NOT in list
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         Response revokeResponse = consentsApiService.consentsRevoke(consentId);
 
@@ -1032,7 +1032,7 @@ public class ConsentsApiServiceImplTest {
         request.setAuthorizations(List.of("other-user@test.com")); // "admin" is NOT in list
 
         Response created = consentsApiService.consentsCreate(request);
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         AuthorizationCreateRequest authRequest = new AuthorizationCreateRequest();
         authRequest.setState(AuthorizationCreateRequest.StateEnum.APPROVED);
@@ -1076,7 +1076,7 @@ public class ConsentsApiServiceImplTest {
 
         Response created = consentsApiService.consentsCreate(request);
         Assert.assertEquals(created.getStatus(), Response.Status.CREATED.getStatusCode());
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         Response get = consentsApiService.consentsGet(consentId);
         ConsentDTO dto = (ConsentDTO) get.getEntity();
@@ -1099,7 +1099,7 @@ public class ConsentsApiServiceImplTest {
 
         Response created = consentsApiService.consentsCreate(request);
         Assert.assertEquals(created.getStatus(), Response.Status.CREATED.getStatusCode());
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         Response get = consentsApiService.consentsGet(consentId);
         ConsentDTO dto = (ConsentDTO) get.getEntity();
@@ -1122,7 +1122,7 @@ public class ConsentsApiServiceImplTest {
 
         Response created = consentsApiService.consentsCreate(request);
         Assert.assertEquals(created.getStatus(), Response.Status.CREATED.getStatusCode());
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
         Response get = consentsApiService.consentsGet(consentId);
         ConsentDTO dto = (ConsentDTO) get.getEntity();
@@ -1164,15 +1164,15 @@ public class ConsentsApiServiceImplTest {
         UUID[] ids2 = createPurposeWithElement();
 
         ElementTerminationInfo elementInfo1 = new ElementTerminationInfo();
-        elementInfo1.setElementId(ids1[1]);
+        elementInfo1.setId(ids1[1]);
         ConsentPurposeBinding binding1 = new ConsentPurposeBinding();
-        binding1.setPurposeId(ids1[0]);
+        binding1.setId(ids1[0]);
         binding1.setElements(List.of(elementInfo1));
 
         ElementTerminationInfo elementInfo2 = new ElementTerminationInfo();
-        elementInfo2.setElementId(ids2[1]);
+        elementInfo2.setId(ids2[1]);
         ConsentPurposeBinding binding2 = new ConsentPurposeBinding();
-        binding2.setPurposeId(ids2[0]);
+        binding2.setId(ids2[0]);
         binding2.setElements(List.of(elementInfo2));
 
         ConsentCreateRequest request = new ConsentCreateRequest();
@@ -1182,14 +1182,14 @@ public class ConsentsApiServiceImplTest {
 
         Response created = consentsApiService.consentsCreate(request);
         Assert.assertEquals(created.getStatus(), Response.Status.CREATED.getStatusCode());
-        String consentId = ((ConsentResponseDTO) created.getEntity()).getConsentId();
+        String consentId = ((ConsentResponseDTO) created.getEntity()).getId();
 
-        Response listResponse = consentsApiService.consentsList(null, null, null, null, null, 10, 0);
+        Response listResponse = consentsApiService.consentsList(null, null, null, null, null, 10, null, null);
         Assert.assertEquals(listResponse.getStatus(), Response.Status.OK.getStatusCode());
         ConsentListResponse listDTO = (ConsentListResponse) listResponse.getEntity();
 
-        long matchingCount = listDTO.getItems().stream()
-                .filter(s -> consentId.equals(s.getConsentId()))
+        long matchingCount = listDTO.getConsents().stream()
+                .filter(s -> consentId.equals(s.getId()))
                 .count();
         Assert.assertEquals(matchingCount, 1,
                 "A consent with multiple purposes must appear exactly once in the list");
@@ -1207,22 +1207,22 @@ public class ConsentsApiServiceImplTest {
         Assert.assertEquals(created.getStatus(), Response.Status.CREATED.getStatusCode());
 
         // List by "admin" (the calling user is "admin" by test setup)
-        Response response = consentsApiService.consentsList("admin", null, null, null, null, 10, 0);
+        Response response = consentsApiService.consentsList("admin", null, null, null, null, 10, null, null);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         ConsentListResponse list = (ConsentListResponse) response.getEntity();
-        Assert.assertTrue(list.getCount() >= 1, "At least one consent should match the subject ID");
+        Assert.assertTrue(list.getTotalResults() >= 1, "At least one consent should match the subject ID");
     }
 
     @Test
     public void testConsentsList_withSubjectIdFilter_noMatch() {
 
         Response response = consentsApiService.consentsList("nonexistent-user@test.com", null, null, null, null,
-                10, 0);
+                10, null, null);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         ConsentListResponse list = (ConsentListResponse) response.getEntity();
-        Assert.assertEquals(list.getCount().intValue(), 0, "No consents should match an unknown subject ID");
+        Assert.assertEquals(list.getTotalResults().intValue(), 0, "No consents should match an unknown subject ID");
     }
 
     @Test
@@ -1236,11 +1236,11 @@ public class ConsentsApiServiceImplTest {
         Response created = consentsApiService.consentsCreate(request);
         Assert.assertEquals(created.getStatus(), Response.Status.CREATED.getStatusCode());
 
-        Response response = consentsApiService.consentsList(null, serviceId, null, null, null, 10, 0);
+        Response response = consentsApiService.consentsList(null, serviceId, null, null, null, 10, null, null);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         ConsentListResponse list = (ConsentListResponse) response.getEntity();
-        Assert.assertEquals(list.getCount().intValue(), 1, "Exactly one consent should match the unique service ID");
+        Assert.assertEquals(list.getTotalResults().intValue(), 1, "Exactly one consent should match the unique service ID");
     }
 
     @Test
@@ -1249,12 +1249,12 @@ public class ConsentsApiServiceImplTest {
         UUID[] ids = createPurposeWithElement();
         consentsApiService.consentsCreate(buildConsentRequest(ids[0], ids[1]));
 
-        Response response = consentsApiService.consentsList(null, null, "ACTIVE", null, null, 10, 0);
+        Response response = consentsApiService.consentsList(null, null, "ACTIVE", null, null, 10, null, null);
 
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         ConsentListResponse list = (ConsentListResponse) response.getEntity();
-        Assert.assertTrue(list.getCount() >= 1, "At least one ACTIVE consent should be returned");
-        list.getItems().forEach(item ->
+        Assert.assertTrue(list.getTotalResults() >= 1, "At least one ACTIVE consent should be returned");
+        list.getConsents().forEach(item ->
                 Assert.assertEquals(item.getState(), ConsentSummaryDTO.StateEnum.ACTIVE,
                         "All listed consents should be ACTIVE when filtering by state=ACTIVE"));
     }
@@ -1274,9 +1274,9 @@ public class ConsentsApiServiceImplTest {
 
         // Bind element2 under purpose1 — cross-purpose element usage.
         ElementTerminationInfo elementInfo = new ElementTerminationInfo();
-        elementInfo.setElementId(element2Id);
+        elementInfo.setId(element2Id);
         ConsentPurposeBinding binding = new ConsentPurposeBinding();
-        binding.setPurposeId(purpose1Id);
+        binding.setId(purpose1Id);
         binding.setElements(List.of(elementInfo));
 
         ConsentCreateRequest request = new ConsentCreateRequest();
@@ -1288,6 +1288,6 @@ public class ConsentsApiServiceImplTest {
 
         Assert.assertEquals(response.getStatus(), Response.Status.CREATED.getStatusCode(),
                 "Creating a consent with an element from a different purpose should succeed");
-        Assert.assertNotNull(((ConsentResponseDTO) response.getEntity()).getConsentId());
+        Assert.assertNotNull(((ConsentResponseDTO) response.getEntity()).getId());
     }
 }

@@ -20,7 +20,6 @@ package org.wso2.carbon.consent.mgt.endpoint.v2.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.endpoint.v2.PurposesApiService;
@@ -52,7 +51,7 @@ public class PurposesApiServiceImpl implements PurposesApiService {
 
         try {
             PurposeDTO dto = purposesService.createPurpose(purposeCreateRequest);
-            URI location = URI.create("purposes/" + dto.getPurposeId());
+            URI location = URI.create("purposes/" + dto.getId());
             return Response.created(location).entity(dto).build();
         } catch (ConsentManagementClientException e) {
             return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
@@ -92,12 +91,10 @@ public class PurposesApiServiceImpl implements PurposesApiService {
     }
 
     @Override
-    public Response purposesList(String filter, Integer limit, Integer offset) {
+    public Response purposesList(String filter, Integer limit, String after, String before) {
 
         try {
-            int resolvedLimit = (limit != null) ? limit : ConsentConstants.DEFAULT_LIMIT;
-            int resolvedOffset = (offset != null) ? offset : ConsentConstants.DEFAULT_OFFSET;
-            return purposesService.listPurposes(filter, resolvedLimit, resolvedOffset);
+            return purposesService.listPurposes(filter, limit, after, before);
         } catch (ConsentManagementClientException e) {
             return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
         } catch (ConsentManagementException e) {
@@ -126,7 +123,7 @@ public class PurposesApiServiceImpl implements PurposesApiService {
 
         try {
             PurposeVersionDTO dto = purposesService.createPurposeVersion(purposeId, purposeVersionCreateRequest);
-            URI location = URI.create("purposes/" + purposeId + "/versions/" + dto.getVersionId());
+            URI location = URI.create("purposes/" + purposeId + "/versions/" + dto.getId());
             return Response.created(location).entity(dto).build();
         } catch (ConsentManagementClientException e) {
             return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
@@ -166,12 +163,10 @@ public class PurposesApiServiceImpl implements PurposesApiService {
     }
 
     @Override
-    public Response purposesVersionsList(UUID purposeId, Integer limit, Integer offset) {
+    public Response purposesVersionsList(UUID purposeId, Integer limit, String after, String before) {
 
         try {
-            int resolvedLimit = (limit != null) ? limit : ConsentConstants.DEFAULT_LIMIT;
-            int resolvedOffset = (offset != null) ? offset : ConsentConstants.DEFAULT_OFFSET;
-            return purposesService.listPurposeVersions(purposeId, resolvedLimit, resolvedOffset);
+            return purposesService.listPurposeVersions(purposeId, limit, after, before);
         } catch (ConsentManagementClientException e) {
             return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
         } catch (ConsentManagementException e) {

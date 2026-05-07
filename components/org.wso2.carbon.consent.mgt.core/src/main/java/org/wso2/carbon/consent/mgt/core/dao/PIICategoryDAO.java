@@ -18,7 +18,9 @@ package org.wso2.carbon.consent.mgt.core.dao;
 
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -63,21 +65,22 @@ public interface PIICategoryDAO {
      * @throws ConsentManagementException If error occurs while searching the {@link PIICategory}.
      */
     List<PIICategory> listPIICategories(int limit, int offset, int tenantId) throws ConsentManagementException;
+
     /**
-     * Lists PII categories with optional filter tree.
+     * Lists PII categories using cursor-based pagination with ExpressionNode filter list (V2 API).
      *
-     * @param filterTree Filter tree from FilterTreeBuilder (null for no filtering)
-     * @param limit      Maximum results
-     * @param offset     Pagination offset
-     * @param tenantId   Tenant ID
-     * @return List of PII categories matching filter
+     * @param expressionNodes Filter + cursor nodes
+     * @param limit           Maximum results (no offset)
+     * @param tenantId        Tenant ID
+     * @return List of matching PII categories
      * @throws ConsentManagementException if operation fails
      */
-    default List<PIICategory> listPIICategories(org.wso2.carbon.identity.core.model.Node filterTree, int limit,
-                                                int offset, int tenantId) throws ConsentManagementException {
+    default List<PIICategory> listPIICategories(List<ExpressionNode> expressionNodes, int limit, int tenantId)
+            throws ConsentManagementException {
 
-        return java.util.Collections.emptyList();
+        return Collections.emptyList();
     }
+
     /**
      * Delete {@link PIICategory} for a given ID.
      *

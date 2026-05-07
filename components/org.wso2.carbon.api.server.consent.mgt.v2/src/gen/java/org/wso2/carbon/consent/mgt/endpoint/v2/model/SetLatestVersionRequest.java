@@ -33,27 +33,27 @@ import javax.xml.bind.annotation.*;
 
 public class SetLatestVersionRequest  {
   
-    private UUID versionId;
+    private UUID id;
 
     /**
     * ID of the purpose version to set as the latest version
     **/
-    public SetLatestVersionRequest versionId(UUID versionId) {
+    public SetLatestVersionRequest id(UUID id) {
 
-        this.versionId = versionId;
+        this.id = id;
         return this;
     }
     
     @ApiModelProperty(example = "f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2", required = true, value = "ID of the purpose version to set as the latest version")
-    @JsonProperty("versionId")
+    @JsonProperty("id")
     @Valid
-    @NotNull(message = "Property versionId cannot be null.")
+    @NotNull(message = "Property id cannot be null.")
 
-    public UUID getVersionId() {
-        return versionId;
+    public UUID getId() {
+        return id;
     }
-    public void setVersionId(UUID versionId) {
-        this.versionId = versionId;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
 
@@ -68,12 +68,12 @@ public class SetLatestVersionRequest  {
             return false;
         }
         SetLatestVersionRequest setLatestVersionRequest = (SetLatestVersionRequest) o;
-        return Objects.equals(this.versionId, setLatestVersionRequest.versionId);
+        return Objects.equals(this.id, setLatestVersionRequest.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(versionId);
+        return Objects.hash(id);
     }
 
     @Override
@@ -82,7 +82,7 @@ public class SetLatestVersionRequest  {
         StringBuilder sb = new StringBuilder();
         sb.append("class SetLatestVersionRequest {\n");
         
-        sb.append("    versionId: ").append(toIndentedString(versionId)).append("\n");
+        sb.append("    id: ").append(toIndentedString(id)).append("\n");
         sb.append("}");
         return sb.toString();
     }

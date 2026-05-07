@@ -20,7 +20,6 @@ package org.wso2.carbon.consent.mgt.endpoint.v2.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.endpoint.v2.ConsentsApiService;
@@ -64,7 +63,7 @@ public class ConsentsApiServiceImpl implements ConsentsApiService {
 
         try {
             ConsentResponseDTO responseDTO = receiptsService.createConsent(consentCreateRequest);
-            URI location = URI.create("consents/" + responseDTO.getConsentId());
+            URI location = URI.create("consents/" + responseDTO.getId());
             return Response.created(location).entity(responseDTO).build();
         } catch (ConsentManagementClientException e) {
             return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
@@ -90,13 +89,10 @@ public class ConsentsApiServiceImpl implements ConsentsApiService {
     }
 
     @Override
-    public Response consentsList(String subjectId, String serviceId, String state, UUID purposeId, UUID purposeVersionId, Integer limit, Integer offset) {
+    public Response consentsList(String subjectId, String serviceId, String state, UUID purposeId, UUID purposeVersionId, Integer limit, String after, String before) {
 
         try {
-            int resolvedLimit = (limit != null) ? limit : ConsentConstants.DEFAULT_LIMIT;
-            int resolvedOffset = (offset != null) ? offset : ConsentConstants.DEFAULT_OFFSET;
-            return receiptsService.listConsents(subjectId, serviceId, state, purposeId, purposeVersionId,
-                    resolvedLimit, resolvedOffset);
+            return receiptsService.listConsents(subjectId, serviceId, state, purposeId, purposeVersionId, limit, after, before);
         } catch (ConsentManagementClientException e) {
             return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
         } catch (ConsentManagementException e) {

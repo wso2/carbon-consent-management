@@ -26,7 +26,7 @@ import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
-import org.wso2.carbon.identity.core.model.Node;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -507,13 +507,12 @@ public interface ConsentManager {
     /**
      * Lists purposes with optional filter tree (V2 API).
      *
-     * @param filterTree Filter tree from FilterTreeBuilder (null for no filtering)
+     * @param expressionNodes Filter expression tree from FilterTreeBuilder (null for no filtering).
      * @param limit      Maximum results
-     * @param offset     Pagination offset
      * @return List of purposes matching filter
      * @throws ConsentManagementException if operation fails
      */
-    default List<Purpose> listPurposes(Node filterTree, int limit, int offset)
+    default List<Purpose> listPurposes(List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
         return Collections.emptyList();
@@ -522,13 +521,12 @@ public interface ConsentManager {
     /**
      * Lists PII categories with optional filter tree (V2 API).
      *
-     * @param filterTree Filter tree from FilterTreeBuilder (null for no filtering)
+     * @param expressionNodes Filter expression tree from FilterTreeBuilder (null for no filtering).
      * @param limit      Maximum results
-     * @param offset     Pagination offset
      * @return List of PII categories matching filter
      * @throws ConsentManagementException if operation fails
      */
-    default List<PIICategory> listPIICategories(Node filterTree, int limit, int offset)
+    default List<PIICategory> listPIICategories(List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
         return Collections.emptyList();
@@ -543,12 +541,12 @@ public interface ConsentManager {
      * @param purposeId        Filter by purpose UUID string (null for no filter)
      * @param purposeVersionId Filter by purpose version UUID string (null for no filter)
      * @param limit            Maximum results
-     * @param offset           Pagination offset
      * @return List of receipts matching filter
      * @throws ConsentManagementException if operation fails
      */
     default List<Receipt> listReceipts(String subjectId, String serviceId, String state,
-                               String purposeId, String purposeVersionId, int limit, int offset)
+                               String purposeId, String purposeVersionId,
+                               String after, String before, int limit)
             throws ConsentManagementException {
 
         return Collections.emptyList();

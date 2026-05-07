@@ -39,7 +39,7 @@ import javax.xml.bind.annotation.*;
 
 public class PurposeDTO  {
   
-    private UUID purposeId;
+    private UUID id;
     private String name;
     private String description;
     private String type;
@@ -52,20 +52,20 @@ public class PurposeDTO  {
     /**
     * ID of the purpose
     **/
-    public PurposeDTO purposeId(UUID purposeId) {
+    public PurposeDTO id(UUID id) {
 
-        this.purposeId = purposeId;
+        this.id = id;
         return this;
     }
     
     @ApiModelProperty(example = "f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2", value = "ID of the purpose")
-    @JsonProperty("purposeId")
+    @JsonProperty("id")
     @Valid
-    public UUID getPurposeId() {
-        return purposeId;
+    public UUID getId() {
+        return id;
     }
-    public void setPurposeId(UUID purposeId) {
-        this.purposeId = purposeId;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     /**
@@ -210,7 +210,7 @@ public class PurposeDTO  {
             return false;
         }
         PurposeDTO purposeDTO = (PurposeDTO) o;
-        return Objects.equals(this.purposeId, purposeDTO.purposeId) &&
+        return Objects.equals(this.id, purposeDTO.id) &&
             Objects.equals(this.name, purposeDTO.name) &&
             Objects.equals(this.description, purposeDTO.description) &&
             Objects.equals(this.type, purposeDTO.type) &&
@@ -221,7 +221,7 @@ public class PurposeDTO  {
 
     @Override
     public int hashCode() {
-        return Objects.hash(purposeId, name, description, type, latestVersion, elements, properties);
+        return Objects.hash(id, name, description, type, latestVersion, elements, properties);
     }
 
     @Override
@@ -230,7 +230,7 @@ public class PurposeDTO  {
         StringBuilder sb = new StringBuilder();
         sb.append("class PurposeDTO {\n");
         
-        sb.append("    purposeId: ").append(toIndentedString(purposeId)).append("\n");
+        sb.append("    id: ").append(toIndentedString(id)).append("\n");
         sb.append("    name: ").append(toIndentedString(name)).append("\n");
         sb.append("    description: ").append(toIndentedString(description)).append("\n");
         sb.append("    type: ").append(toIndentedString(type)).append("\n");

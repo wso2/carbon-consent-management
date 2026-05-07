@@ -24,6 +24,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.ArrayList;
 import java.util.List;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.PaginationLink;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeVersionSummaryDTO;
 import javax.validation.constraints.*;
 
@@ -38,73 +39,82 @@ import javax.xml.bind.annotation.*;
 @ApiModel(description = "Paginated list of purpose versions")
 public class PurposeVersionListResponse  {
   
-    private Integer startIndex;
-    private Integer count;
-    private List<PurposeVersionSummaryDTO> items = null;
+    private Integer totalResults;
+    private List<PaginationLink> links = null;
+
+    private List<PurposeVersionSummaryDTO> versions = null;
 
 
     /**
-    * Starting index of the returned records
+    * Total number of results matching the query
     **/
-    public PurposeVersionListResponse startIndex(Integer startIndex) {
+    public PurposeVersionListResponse totalResults(Integer totalResults) {
 
-        this.startIndex = startIndex;
+        this.totalResults = totalResults;
         return this;
     }
     
-    @ApiModelProperty(example = "0", value = "Starting index of the returned records")
-    @JsonProperty("startIndex")
+    @ApiModelProperty(example = "2", value = "Total number of results matching the query")
+    @JsonProperty("totalResults")
     @Valid
-    public Integer getStartIndex() {
-        return startIndex;
+    public Integer getTotalResults() {
+        return totalResults;
     }
-    public void setStartIndex(Integer startIndex) {
-        this.startIndex = startIndex;
+    public void setTotalResults(Integer totalResults) {
+        this.totalResults = totalResults;
     }
 
     /**
-    * Number of records returned
+    * Pagination links for next/previous pages
     **/
-    public PurposeVersionListResponse count(Integer count) {
+    public PurposeVersionListResponse links(List<PaginationLink> links) {
 
-        this.count = count;
+        this.links = links;
         return this;
     }
     
-    @ApiModelProperty(example = "2", value = "Number of records returned")
-    @JsonProperty("count")
+    @ApiModelProperty(value = "Pagination links for next/previous pages")
+    @JsonProperty("links")
     @Valid
-    public Integer getCount() {
-        return count;
+    public List<PaginationLink> getLinks() {
+        return links;
     }
-    public void setCount(Integer count) {
-        this.count = count;
+    public void setLinks(List<PaginationLink> links) {
+        this.links = links;
     }
 
-    /**
+    public PurposeVersionListResponse addLinksItem(PaginationLink linksItem) {
+        if (this.links == null) {
+            this.links = new ArrayList<>();
+        }
+        this.links.add(linksItem);
+        return this;
+    }
+
+        /**
     * List of purpose versions
     **/
-    public PurposeVersionListResponse items(List<PurposeVersionSummaryDTO> items) {
+    public PurposeVersionListResponse versions(List<PurposeVersionSummaryDTO> versions) {
 
-        this.items = items;
+        this.versions = versions;
         return this;
     }
     
-    @ApiModelProperty(example = "[{\"versionId\":\"a1b2c3d4-1234-5678-abcd-ef1234567890\",\"version\":\"v1.0\",\"description\":\"Initial version\"},{\"versionId\":\"b2c3d4e5-2345-6789-bcde-f01234567892\",\"version\":\"v2.0\",\"description\":\"Added new consent elements for enhanced user authentication\"}]", value = "List of purpose versions")
-    @JsonProperty("items")
+    @ApiModelProperty(example = "[{\"id\":\"a1b2c3d4-1234-5678-abcd-ef1234567890\",\"version\":\"v1.0\",\"description\":\"Initial version\"},{\"id\":\"b2c3d4e5-2345-6789-bcde-f01234567892\",\"version\":\"v2.0\",\"description\":\"Added new consent elements for enhanced user authentication\"}]", value = "List of purpose versions")
+    @JsonProperty("Versions")
     @Valid
-    public List<PurposeVersionSummaryDTO> getItems() {
-        return items;
+    public List<PurposeVersionSummaryDTO> getVersions() {
+        return versions;
     }
-    public void setItems(List<PurposeVersionSummaryDTO> items) {
-        this.items = items;
+    public void setVersions(List<PurposeVersionSummaryDTO> versions) {
+        this.versions = versions;
     }
 
-    public PurposeVersionListResponse addItemsItem(PurposeVersionSummaryDTO itemsItem) {
-        if (this.items == null) {
-            this.items = new ArrayList<>();
+    public PurposeVersionListResponse addVersionsItem(PurposeVersionSummaryDTO versionsItem) {
+        if (this.versions == null) {
+            this.versions = new ArrayList<>();
         }
-        this.items.add(itemsItem);
+        this.versions.add(versionsItem);
         return this;
     }
 
@@ -120,14 +130,14 @@ public class PurposeVersionListResponse  {
             return false;
         }
         PurposeVersionListResponse purposeVersionListResponse = (PurposeVersionListResponse) o;
-        return Objects.equals(this.startIndex, purposeVersionListResponse.startIndex) &&
-            Objects.equals(this.count, purposeVersionListResponse.count) &&
-            Objects.equals(this.items, purposeVersionListResponse.items);
+        return Objects.equals(this.totalResults, purposeVersionListResponse.totalResults) &&
+            Objects.equals(this.links, purposeVersionListResponse.links) &&
+            Objects.equals(this.versions, purposeVersionListResponse.versions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(startIndex, count, items);
+        return Objects.hash(totalResults, links, versions);
     }
 
     @Override
@@ -136,9 +146,9 @@ public class PurposeVersionListResponse  {
         StringBuilder sb = new StringBuilder();
         sb.append("class PurposeVersionListResponse {\n");
         
-        sb.append("    startIndex: ").append(toIndentedString(startIndex)).append("\n");
-        sb.append("    count: ").append(toIndentedString(count)).append("\n");
-        sb.append("    items: ").append(toIndentedString(items)).append("\n");
+        sb.append("    totalResults: ").append(toIndentedString(totalResults)).append("\n");
+        sb.append("    links: ").append(toIndentedString(links)).append("\n");
+        sb.append("    versions: ").append(toIndentedString(versions)).append("\n");
         sb.append("}");
         return sb.toString();
     }

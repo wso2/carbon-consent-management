@@ -504,8 +504,17 @@ public class ReceiptDAOImplTest {
             receiptDAO.addReceipt(receiptInputs.get(0));
             receiptDAO.addReceipt(receiptInputs.get(1));
 
+            String after = null;
+            if (offset > 0) {
+            String firstReceiptId = receiptInputs.get(0).getConsentReceiptId();
+            String secondReceiptId = receiptInputs.get(1).getConsentReceiptId();
+            String cursorSource = firstReceiptId.compareTo(secondReceiptId) < 0 ? firstReceiptId : secondReceiptId;
+            after = java.util.Base64.getEncoder().encodeToString(
+                cursorSource.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            }
+
             List<Receipt> results = receiptDAO.listReceipts(subjectId, serviceId, state, purposeId,
-                    purposeVersionId, limit, offset, tenantId);
+                    purposeVersionId, after, null, limit, tenantId);
 
             Assert.assertNotNull(results);
             Assert.assertEquals(results.size(), expectedCount,
@@ -529,7 +538,7 @@ public class ReceiptDAOImplTest {
             receiptDAO.addReceipt(receiptInputs.get(0));
             receiptDAO.addReceipt(receiptInputs.get(1));
 
-            List<Receipt> results = receiptDAO.listReceipts(null, null, null, null, null, 100, 0,
+            List<Receipt> results = receiptDAO.listReceipts(null, null, null, null, null, null, null, 100,
                     SUPER_TENANT_ID);
 
             Assert.assertNotNull(results);
@@ -553,7 +562,7 @@ public class ReceiptDAOImplTest {
 
             // A random UUID that doesn't exist as a purposeVersionId.
             String unknownVersionId = UUID.randomUUID().toString();
-            List<Receipt> results = receiptDAO.listReceipts(null, null, null, null, unknownVersionId, 10, 0,
+            List<Receipt> results = receiptDAO.listReceipts(null, null, null, null, unknownVersionId, null, null, 10,
                     SUPER_TENANT_ID);
 
             Assert.assertNotNull(results);
@@ -575,7 +584,7 @@ public class ReceiptDAOImplTest {
             ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             receiptDAO.addReceipt(receiptInputs.get(0));
 
-            List<Receipt> results = receiptDAO.listReceipts("subject1", null, null, null, null, 10, 0,
+            List<Receipt> results = receiptDAO.listReceipts("subject1", null, null, null, null, null, null, 10,
                     SUPER_TENANT_ID);
 
             Assert.assertNotNull(results);

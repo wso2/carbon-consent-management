@@ -20,7 +20,6 @@ package org.wso2.carbon.consent.mgt.endpoint.v2.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.endpoint.v2.ElementsApiService;
@@ -49,7 +48,7 @@ public class ElementsApiServiceImpl implements ElementsApiService {
 
         try {
             ElementDTO dto = elementsService.createElement(elementCreateRequest);
-            URI location = URI.create("elements/" + dto.getElementId());
+            URI location = URI.create("elements/" + dto.getId());
             return Response.created(location).entity(dto).build();
         } catch (ConsentManagementClientException e) {
             return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
@@ -89,12 +88,10 @@ public class ElementsApiServiceImpl implements ElementsApiService {
     }
 
     @Override
-    public Response elementsList(String filter, Integer limit, Integer offset) {
+    public Response elementsList(String filter, Integer limit, String after, String before) {
 
         try {
-            int resolvedLimit = (limit != null) ? limit : ConsentConstants.DEFAULT_LIMIT;
-            int resolvedOffset = (offset != null) ? offset : ConsentConstants.DEFAULT_OFFSET;
-            return elementsService.listElements(filter, resolvedLimit, resolvedOffset);
+            return elementsService.listElements(filter, limit, after, before);
         } catch (ConsentManagementClientException e) {
             return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
         } catch (ConsentManagementException e) {

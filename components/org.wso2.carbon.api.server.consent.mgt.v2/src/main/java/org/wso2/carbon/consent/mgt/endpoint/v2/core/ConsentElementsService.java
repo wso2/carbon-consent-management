@@ -29,6 +29,8 @@ import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementCreateRequest;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementListResponse;
 import org.wso2.carbon.consent.mgt.endpoint.v2.util.FilterAttributeExtractor;
+import org.wso2.carbon.consent.mgt.core.util.FilterQueriesUtil;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -98,21 +100,18 @@ public class ConsentElementsService {
      *
      * @param filterExpression Filter expression string (null for no filtering).
      * @param limit            Maximum results.
-     * @param offset           Pagination offset.
+     * @param after            Cursor for pagination (results after this cursor).
+     * @param before           Cursor for pagination (results before this cursor).
      * @return Response with ElementListResponse.
      * @throws ConsentManagementException if listing fails.
      */
-    public Response listElements(String filterExpression, int limit, int offset) throws ConsentManagementException {
+    public Response listElements(String filterExpression, Integer limit, String after, String before)
+            throws ConsentManagementException {
 
-        Node filterTree = null;
-
-        // Parse filter expression if provided
-        if (StringUtils.isNotEmpty(filterExpression)) {
+        if (StringUtils.isNotBlank(filterExpression)) {
             try {
                 FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filterExpression);
-                filterTree = filterTreeBuilder.buildTree();
-
-                // Validate filter attributes (only "name" is supported)
+                Node filterTree = filterTreeBuilder.buildTree();
                 Set<String> supportedAttrs = new HashSet<>(List.of(FilterConstants.FILTER_ATTR_NAME));
                 FilterAttributeExtractor extractor = new FilterAttributeExtractor();
                 extractor.validateFilterAttributes(filterTree, supportedAttrs);
@@ -121,19 +120,19 @@ public class ConsentElementsService {
             }
         }
 
-        // Pass filterTree to manager
-        List<PIICategory> categories = consentManager.listPIICategories(filterTree, limit, offset);
-        ElementListResponse listResponse = new ElementListResponse();
+        List<ExpressionNode> expressionNodes = FilterQueriesUtil.getExpressionNodes(filterExpression, after, before);
+        List<PIICategory> categories = consentManager.listPIICategories(expressionNodes, limit);
         List<ElementDTO> items = new ArrayList<>();
         if (categories != null) {
             for (PIICategory cat : categories) {
                 items.add(toElementDTO(cat));
             }
         }
-        listResponse.setStartIndex(offset);
-        listResponse.setCount(items.size());
-        listResponse.setItems(items);
 
+        ElementListResponse listResponse = new ElementListResponse();
+        listResponse.setTotalResults(items.size());
+        listResponse.setLinks(Collections.emptyList());
+        listResponse.setElements(items);
         return Response.ok(listResponse).build();
     }
 
@@ -154,7 +153,7 @@ public class ConsentElementsService {
 
         ElementDTO dto = new ElementDTO();
         if (StringUtils.isNotBlank(cat.getUuid())) {
-            dto.setElementId(UUID.fromString(cat.getUuid()));
+            dto.setId(UUID.fromString(cat.getUuid()));
         }
         dto.setName(cat.getName());
         dto.setDisplayName(cat.getDisplayName());

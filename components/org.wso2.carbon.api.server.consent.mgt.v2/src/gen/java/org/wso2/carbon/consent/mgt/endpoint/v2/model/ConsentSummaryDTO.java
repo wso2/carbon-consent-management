@@ -35,7 +35,7 @@ import javax.xml.bind.annotation.*;
 @ApiModel(description = "Minimal consent information for list responses")
 public class ConsentSummaryDTO  {
   
-    private String consentId;
+    private String id;
     private String subjectId;
     private String serviceId;
 
@@ -78,20 +78,20 @@ public enum StateEnum {
     /**
     * Unique identifier for the consent
     **/
-    public ConsentSummaryDTO consentId(String consentId) {
+    public ConsentSummaryDTO id(String id) {
 
-        this.consentId = consentId;
+        this.id = id;
         return this;
     }
     
     @ApiModelProperty(example = "f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2", value = "Unique identifier for the consent")
-    @JsonProperty("consentId")
+    @JsonProperty("id")
     @Valid
-    public String getConsentId() {
-        return consentId;
+    public String getId() {
+        return id;
     }
-    public void setConsentId(String consentId) {
-        this.consentId = consentId;
+    public void setId(String id) {
+        this.id = id;
     }
 
     /**
@@ -199,7 +199,7 @@ public enum StateEnum {
             return false;
         }
         ConsentSummaryDTO consentSummaryDTO = (ConsentSummaryDTO) o;
-        return Objects.equals(this.consentId, consentSummaryDTO.consentId) &&
+        return Objects.equals(this.id, consentSummaryDTO.id) &&
             Objects.equals(this.subjectId, consentSummaryDTO.subjectId) &&
             Objects.equals(this.serviceId, consentSummaryDTO.serviceId) &&
             Objects.equals(this.state, consentSummaryDTO.state) &&
@@ -209,7 +209,7 @@ public enum StateEnum {
 
     @Override
     public int hashCode() {
-        return Objects.hash(consentId, subjectId, serviceId, state, timestamp, validityTime);
+        return Objects.hash(id, subjectId, serviceId, state, timestamp, validityTime);
     }
 
     @Override
@@ -218,7 +218,7 @@ public enum StateEnum {
         StringBuilder sb = new StringBuilder();
         sb.append("class ConsentSummaryDTO {\n");
         
-        sb.append("    consentId: ").append(toIndentedString(consentId)).append("\n");
+        sb.append("    id: ").append(toIndentedString(id)).append("\n");
         sb.append("    subjectId: ").append(toIndentedString(subjectId)).append("\n");
         sb.append("    serviceId: ").append(toIndentedString(serviceId)).append("\n");
         sb.append("    state: ").append(toIndentedString(state)).append("\n");

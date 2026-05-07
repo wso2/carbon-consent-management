@@ -26,16 +26,19 @@ import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
-import org.wso2.carbon.consent.mgt.core.util.FilterSqlBuilder;
+import org.wso2.carbon.consent.mgt.core.util.FilterQueryBuilder;
+import org.wso2.carbon.consent.mgt.core.util.FilterQueriesUtil;
 import org.wso2.carbon.consent.mgt.core.util.JdbcUtils;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -89,6 +92,16 @@ public class PurposeDAOImpl implements PurposeDAO {
     private static final String SQL_FILTER_STRING_ANY = "%";
     private static final String QUERY_FILTER_STRING_ANY = "*";
     private static final String QUERY_FILTER_STRING_ANY_ESCAPED = "\\*";
+
+    private static final Map<String, String> PURPOSE_ATTR_COL_MAP;
+
+    static {
+        PURPOSE_ATTR_COL_MAP = new LinkedHashMap<>();
+        PURPOSE_ATTR_COL_MAP.put(FilterConstants.FILTER_ATTR_NAME, FilterConstants.DB_COL_NAME);
+        PURPOSE_ATTR_COL_MAP.put(FilterConstants.FILTER_ATTR_TYPE, FilterConstants.DB_COL_GROUP_TYPE);
+        PURPOSE_ATTR_COL_MAP.put(FilterQueriesUtil.AFTER, "UUID");
+        PURPOSE_ATTR_COL_MAP.put(FilterQueriesUtil.BEFORE, "UUID");
+    }
 
     public PurposeDAOImpl() {
 
@@ -173,7 +186,7 @@ public class PurposeDAOImpl implements PurposeDAO {
 
                 return null;
             });
-        } catch (Exception e) {
+        } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE, purpose.getName(), e);
         }
 
@@ -330,75 +343,42 @@ public class PurposeDAOImpl implements PurposeDAO {
     }
 
     @Override
-    public List<Purpose> listPurposes(Node filterTree, int limit, int offset, int tenantId)
+    public List<Purpose> listPurposes(List<ExpressionNode> expressionNodes, int limit, int tenantId)
             throws ConsentManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         List<Purpose> purposes;
         try {
-            // Map filter attributes to database column names before building SQL
-            if (filterTree != null) {
-                filterTree = mapFilterAttributes(filterTree);
-            }
+            FilterQueryBuilder filterQueryBuilder =
+                    FilterQueriesUtil.buildFilterQueryBuilder(expressionNodes, PURPOSE_ATTR_COL_MAP);
+            String filterQuery = filterQueryBuilder.getFilterQuery();
+            Map<Integer, String> filterParams = filterQueryBuilder.getFilterAttributeValue();
 
-            // Build filter WHERE clause if filterTree provided
-            List<Object> filterParams = new ArrayList<>();
-            String filterWhereClause = "";
-            if (filterTree != null) {
-                FilterSqlBuilder filterSqlBuilder = new FilterSqlBuilder();
-                String builtClause = filterSqlBuilder.buildWhereClause(filterTree, filterParams);
-                if (builtClause != null && !builtClause.isEmpty()) {
-                    filterWhereClause = " AND " + builtClause;
-                } else {
-                    throw new ConsentManagementClientException(
-                            "Invalid filter expression: one or more filter conditions could not be resolved.",
-                            ErrorMessages.ERROR_CODE_INVALID_FILTER_EXPRESSION.getCode());
-                }
-            }
-
-            // Determine database type and select appropriate query
             String query;
-            int finalLimit = limit;
-            int finalOffset = offset;
-
             if (isH2MySqlOrPostgresDB()) {
                 query = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, TENANT_ID, UUID, " +
-                        "LATEST_VERSION_ID FROM CM_PURPOSE WHERE TENANT_ID = ?" + filterWhereClause +
-                        " ORDER BY ID ASC LIMIT ? OFFSET ?";
+                        "LATEST_VERSION_ID FROM CM_PURPOSE WHERE TENANT_ID = ?" + filterQuery +
+                        " ORDER BY UUID ASC LIMIT ?";
             } else if (isDB2DB()) {
-                finalOffset = offset + limit;
-                finalLimit = offset + 1;
                 query = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, TENANT_ID, UUID, " +
-                        "LATEST_VERSION_ID FROM (SELECT ROW_NUMBER() OVER (ORDER BY ID) AS rn, p.* " +
-                        "FROM CM_PURPOSE AS p WHERE p.TENANT_ID = ?" + filterWhereClause + ") " +
-                        "WHERE rn BETWEEN ? AND ?";
+                        "LATEST_VERSION_ID FROM CM_PURPOSE WHERE TENANT_ID = ?" + filterQuery +
+                        " ORDER BY UUID ASC FETCH FIRST ? ROWS ONLY";
             } else if (isMSSqlDB()) {
-                finalOffset = limit + offset;
-                finalLimit = offset + 1;
                 query = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, TENANT_ID, UUID, " +
-                        "LATEST_VERSION_ID FROM (SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, " +
-                        "GROUP_TYPE, TENANT_ID, UUID, LATEST_VERSION_ID, ROW_NUMBER() OVER (ORDER BY ID) " +
-                        "AS RowNum FROM CM_PURPOSE WHERE TENANT_ID = ?" + filterWhereClause + ") AS P " +
-                        "WHERE P.RowNum BETWEEN ? AND ?";
+                        "LATEST_VERSION_ID FROM CM_PURPOSE WHERE TENANT_ID = ?" + filterQuery +
+                        " ORDER BY UUID ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
             } else if (isInformixDB()) {
-                // Informix
                 throw new ConsentManagementServerException("This method is not supported for Informix database.",
                         ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode());
             } else {
                 // Oracle
-                finalLimit = offset + limit;
                 query = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, TENANT_ID, UUID, " +
-                        "LATEST_VERSION_ID FROM (SELECT ROW_NUMBER() OVER (ORDER BY ID) AS RN, ID, NAME, " +
-                        "DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, TENANT_ID, UUID, LATEST_VERSION_ID " +
-                        "FROM CM_PURPOSE WHERE TENANT_ID = ?" + filterWhereClause +
-                        ") WHERE RN <= ? AND RN > ?";
+                        "LATEST_VERSION_ID FROM CM_PURPOSE WHERE TENANT_ID = ?" + filterQuery +
+                        " ORDER BY UUID ASC FETCH FIRST ? ROWS ONLY";
             }
 
-            final int paramLimit = finalLimit;
-            final int paramOffset = finalOffset;
-            final List<Object> finalFilterParams = filterParams;
-
-            purposes = jdbcTemplate.executeQuery(query,
+            final String finalQuery = query;
+            purposes = jdbcTemplate.executeQuery(finalQuery,
                     (resultSet, rowNumber) -> {
                         Purpose p = new Purpose(resultSet.getInt(1),
                                 resultSet.getString(2),
@@ -413,18 +393,16 @@ public class PurposeDAOImpl implements PurposeDAO {
                     preparedStatement -> {
                         int paramIndex = 1;
                         preparedStatement.setInt(paramIndex++, tenantId);
-
-                        // Set filter parameters
-                        for (Object filterParam : finalFilterParams) {
-                            preparedStatement.setObject(paramIndex++, filterParam);
+                        for (String paramValue : filterParams.values()) {
+                            preparedStatement.setString(paramIndex++, paramValue);
                         }
-
-                        preparedStatement.setInt(paramIndex++, paramLimit);
-                        preparedStatement.setInt(paramIndex, paramOffset);
+                        preparedStatement.setInt(paramIndex, limit);
                     });
+        } catch (ConsentManagementClientException e) {
+            throw e;
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(
-                    String.format("Error listing purposes with filter for tenant %d", tenantId),
+                    String.format("Error listing purposes with cursor for tenant %d", tenantId),
                     ErrorMessages.ERROR_CODE_LIST_PURPOSE.getCode(), e);
         }
         return purposes;
@@ -442,7 +420,7 @@ public class PurposeDAOImpl implements PurposeDAO {
                         preparedStatement -> preparedStatement.setInt(1, id));
                 return null;
             });
-        } catch (Exception e) {
+        } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_PURPOSE, String.valueOf(id), e);
         }
 
@@ -474,7 +452,7 @@ public class PurposeDAOImpl implements PurposeDAO {
                         preparedStatement -> preparedStatement.setInt(1, purposeId));
                 return null;
             });
-        } catch (Exception e) {
+        } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_PURPOSE,
                     String.valueOf(purposeId), e);
         }
@@ -591,7 +569,7 @@ public class PurposeDAOImpl implements PurposeDAO {
 
                 return null;
             });
-        } catch (Exception e) {
+        } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE_VERSION,
                     String.valueOf(purposeVersion.getPurposeId()), e);
         }
@@ -674,7 +652,7 @@ public class PurposeDAOImpl implements PurposeDAO {
                         preparedStatement -> preparedStatement.setString(1, versionUuid));
                 return null;
             });
-        } catch (Exception e) {
+        } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_DELETE_PURPOSE_VERSION,
                     versionUuid, e);
         }
@@ -846,7 +824,7 @@ public class PurposeDAOImpl implements PurposeDAO {
                 });
                 return null;
             });
-        } catch (Exception e) {
+        } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_GET_PURPOSE_VERSION_LIST,
                     String.valueOf(purposeId), e);
         }

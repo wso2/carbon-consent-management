@@ -38,7 +38,7 @@ import javax.xml.bind.annotation.*;
 
 public class PurposeVersionDTO  {
   
-    private UUID versionId;
+    private UUID id;
     private String version;
     private String description;
     private List<PurposeElementDTO> elements = null;
@@ -49,20 +49,20 @@ public class PurposeVersionDTO  {
     /**
     * ID of the purpose version
     **/
-    public PurposeVersionDTO versionId(UUID versionId) {
+    public PurposeVersionDTO id(UUID id) {
 
-        this.versionId = versionId;
+        this.id = id;
         return this;
     }
     
     @ApiModelProperty(example = "f83aa1a3-5d4d-4c0e-84db-c3a4f1e6c8b2", value = "ID of the purpose version")
-    @JsonProperty("versionId")
+    @JsonProperty("id")
     @Valid
-    public UUID getVersionId() {
-        return versionId;
+    public UUID getId() {
+        return id;
     }
-    public void setVersionId(UUID versionId) {
-        this.versionId = versionId;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     /**
@@ -170,7 +170,7 @@ public class PurposeVersionDTO  {
             return false;
         }
         PurposeVersionDTO purposeVersionDTO = (PurposeVersionDTO) o;
-        return Objects.equals(this.versionId, purposeVersionDTO.versionId) &&
+        return Objects.equals(this.id, purposeVersionDTO.id) &&
             Objects.equals(this.version, purposeVersionDTO.version) &&
             Objects.equals(this.description, purposeVersionDTO.description) &&
             Objects.equals(this.elements, purposeVersionDTO.elements) &&
@@ -179,7 +179,7 @@ public class PurposeVersionDTO  {
 
     @Override
     public int hashCode() {
-        return Objects.hash(versionId, version, description, elements, properties);
+        return Objects.hash(id, version, description, elements, properties);
     }
 
     @Override
@@ -188,7 +188,7 @@ public class PurposeVersionDTO  {
         StringBuilder sb = new StringBuilder();
         sb.append("class PurposeVersionDTO {\n");
         
-        sb.append("    versionId: ").append(toIndentedString(versionId)).append("\n");
+        sb.append("    id: ").append(toIndentedString(id)).append("\n");
         sb.append("    version: ").append(toIndentedString(version)).append("\n");
         sb.append("    description: ").append(toIndentedString(description)).append("\n");
         sb.append("    elements: ").append(toIndentedString(elements)).append("\n");
