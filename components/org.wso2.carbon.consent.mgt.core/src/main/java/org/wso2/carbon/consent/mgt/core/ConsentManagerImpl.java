@@ -216,6 +216,19 @@ public class ConsentManagerImpl implements ConsentManager {
         return populatePiiCategories(purposeResponse);
     }
 
+    @Override
+    public Purpose addPurposeWithUuid(Purpose purpose) throws ConsentManagementException {
+
+        validateInputParameters(purpose);
+        Purpose purposeResponse = getPurposeDAO(purposeDAOs).addPurposeWithUuid(purpose);
+        Map<String, Object> auditData = new HashMap<>();
+        auditData.put(PURPOSE_NAME_FIELD, purposeResponse.getName());
+        auditData.put(PURPOSE_GROUP_FIELD, purposeResponse.getGroup());
+        triggerAuditLog(String.valueOf(purposeResponse.getId()), TARGET_PURPOSE,
+                ADD_PURPOSE_ACTION, auditData);
+        return populatePiiCategories(purposeResponse);
+    }
+
     /**
      * This API is used to get the purpose by purpose Id.
      *
@@ -559,6 +572,21 @@ public class ConsentManagerImpl implements ConsentManager {
         return category;
     }
 
+    @Override
+    public PIICategory addPIICategoryWithUuid(PIICategory piiCategory) throws ConsentManagementException {
+
+        validateInputParameters(piiCategory);
+        PIICategory category = getPiiCategoryDAO(piiCategoryDAOs).addPIICategoryWithUuid(piiCategory);
+        if (log.isDebugEnabled()) {
+            log.debug("PII category added successfully with the name: " + category.getName());
+        }
+        Map<String, Object> auditData = new HashMap<>();
+        auditData.put(PII_CATEGORY_NAME_FIELD, category.getName());
+        triggerAuditLog(String.valueOf(category.getId()), TARGET_PII_CATEGORY,
+                ADD_PII_CATEGORY_ACTION, auditData);
+        return category;
+    }
+
     /**
      * This API is used ot get PII category by name.
      *
@@ -741,6 +769,25 @@ public class ConsentManagerImpl implements ConsentManager {
     public Receipt getReceipt(String receiptId) throws ConsentManagementException {
 
         Receipt receipt = getReceiptsDAO(receiptDAOs).getReceipt(receiptId);
+
+        if (receipt == null || receipt.getConsentReceiptId() == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No receipt found with the Id: " + receiptId);
+            }
+            String message = String.format(ERROR_CODE_RECEIPT_ID_INVALID.getMessage(), receiptId) + " in tenant: " +
+                    ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_RECEIPT_ID_INVALID.getCode());
+        }
+        populateTenantDomain(receipt);
+        setPIIControllerInfo(receipt);
+        setPublicKey(receipt);
+        return receipt;
+    }
+
+    @Override
+    public Receipt getReceiptWithExtendedSchema(String receiptId) throws ConsentManagementException {
+
+        Receipt receipt = getReceiptsDAO(receiptDAOs).getReceiptWithExtendedSchema(receiptId);
 
         if (receipt == null || receipt.getConsentReceiptId() == null) {
             if (log.isDebugEnabled()) {
@@ -1033,7 +1080,7 @@ public class ConsentManagerImpl implements ConsentManager {
         }
         List<PurposePIICategory> purposePIICategories = new ArrayList<>();
         purpose.getPurposePIICategories().forEach(rethrowConsumer(
-                piiCategory -> purposePIICategories.add(getPurposePIICategory(piiCategory))));
+                piiCategory -> purposePIICategories.add(getPurposePIICategoryWithUuid(piiCategory))));
         purpose.setPurposePIICategories(purposePIICategories);
         if (purpose.getLatestVersionId() != null) {
             PurposeVersion latestVersion =
@@ -1085,7 +1132,7 @@ public class ConsentManagerImpl implements ConsentManager {
     public Object[] addPurpose(Purpose purpose, PurposeVersion firstVersion)
             throws ConsentManagementException {
 
-        Purpose createdPurpose = addPurpose(purpose);
+        Purpose createdPurpose = addPurposeWithUuid(purpose);
 
         PurposeVersion createdVersion = addPurposeVersion(createdPurpose.getUuid(), firstVersion, true);
         createdPurpose.setLatestVersion(createdVersion);
@@ -1783,6 +1830,15 @@ public class ConsentManagerImpl implements ConsentManager {
         PurposePIICategory purposePIICategoryResult = new PurposePIICategory(piiCategory,
                 purposePIICategory.getMandatory());
         return purposePIICategoryResult;
+    }
+
+    private PurposePIICategory getPurposePIICategoryWithUuid(PurposePIICategory purposePIICategory)
+            throws ConsentManagementException {
+
+        PIICategory piiCategory = getPiiCategoryDAO(piiCategoryDAOs)
+                .getPIICategoryByIdWithUuid(purposePIICategory.getId());
+
+        return new PurposePIICategory(piiCategory, purposePIICategory.getMandatory());
     }
 
     private boolean isUserNameCaseSensitive(String username) throws ConsentManagementException {

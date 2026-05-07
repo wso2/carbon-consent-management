@@ -481,7 +481,7 @@ public class PurposeDAOImplTest {
             when(dataSource.getConnection()).thenReturn(spyConnection);
 
             PurposeDAO purposeDAO = new PurposeDAOImpl();
-            Purpose purpose = purposeDAO.addPurpose(purposes.get(0));
+            Purpose purpose = purposeDAO.addPurposeWithUuid(purposes.get(0));
 
             PurposeVersion version1 = new PurposeVersion();
             version1.setPurposeId(purpose.getId());

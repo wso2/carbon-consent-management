@@ -73,7 +73,7 @@ public class ConsentElementsService {
         String displayName = StringUtils.isNotBlank(request.getDisplayName()) ? request.getDisplayName() : request.getName();
         PIICategory piiCategory = new PIICategory(request.getName(), request.getDescription(), false, displayName);
         piiCategory.setTenantId(ConsentUtils.getTenantIdFromCarbonContext());
-        PIICategory created = consentManager.addPIICategory(piiCategory);
+        PIICategory created = consentManager.addPIICategoryWithUuid(piiCategory);
         return toElementDTO(created);
     }
 

@@ -342,7 +342,7 @@ public class ConsentManagerImplTest {
                 TEST_PURPOSE_GROUP_TYPE);
         purpose.setTenantId(-1234);
 
-        return consentManager.addPurpose(purpose);
+        return consentManager.addPurposeWithUuid(purpose);
     }
 
     @Test
@@ -469,7 +469,7 @@ public class ConsentManagerImplTest {
 
         // Insert a new PIICategory and capture the returned value which contains the generated UUID.
         PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
-        PIICategory inserted = piiCategoryDAO.addPIICategory(new PIICategory("UUID_TEST_PII", "Desc", true, -1234));
+        PIICategory inserted = piiCategoryDAO.addPIICategoryWithUuid(new PIICategory("UUID_TEST_PII", "Desc", true, -1234));
         String uuid = inserted.getUuid();
         Assert.assertNotNull(uuid);
 

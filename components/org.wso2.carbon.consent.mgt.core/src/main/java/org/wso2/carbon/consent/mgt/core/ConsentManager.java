@@ -553,4 +553,31 @@ public interface ConsentManager {
 
         return Collections.emptyList();
     }
+
+    /**
+     * Add a new Purpose with UUID column (requires extended schema). Falls back to
+     * {@link #addPurpose(Purpose)} for implementations that do not override.
+     */
+    default Purpose addPurposeWithUuid(Purpose purpose) throws ConsentManagementException {
+
+        return addPurpose(purpose);
+    }
+
+    /**
+     * Add a new PII category with UUID column (requires extended schema). Falls back to
+     * {@link #addPIICategory(PIICategory)} for implementations that do not override.
+     */
+    default PIICategory addPIICategoryWithUuid(PIICategory piiCategory) throws ConsentManagementException {
+
+        return addPIICategory(piiCategory);
+    }
+
+    /**
+     * Retrieve a receipt using extended schema (requires UUID/version columns). Falls back to
+     * {@link #getReceipt(String)} for implementations that do not override.
+     */
+    default Receipt getReceiptWithExtendedSchema(String receiptId) throws ConsentManagementException {
+
+        return getReceipt(receiptId);
+    }
 }

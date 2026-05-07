@@ -50,7 +50,9 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURP
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_VERSION_PROPERTIES;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_VERSION_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PURPOSE_VERSIONS_BY_PURPOSE_ID_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_ID_WITH_UUID_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_NAME_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_NAME_WITH_UUID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_BY_UUID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_PII_CAT_SQL;
@@ -64,12 +66,18 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_VERSION_PII_CAT_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_VERSION_PROPERTY;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_VERSION_WITH_UUID_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PURPOSE_WITH_UUID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_PURPOSE_PII_ASSOC_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_DB2;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_DB2_WITH_UUID;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_INFORMIX;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_INFORMIX_WITH_UUID;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_MSSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_MSSQL_WITH_UUID;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_MYSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_MYSQL_WITH_UUID;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_ORACLE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PURPOSE_ORACLE_WITH_UUID;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PURPOSE_VERSIONS_WITH_UUID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_PURPOSE_DESCRIPTION_SQL;
@@ -101,6 +109,43 @@ public class PurposeDAOImpl implements PurposeDAO {
 
     @Override
     public Purpose addPurpose(Purpose purpose) throws ConsentManagementException {
+
+        Purpose purposeResult;
+        int insertedId;
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            insertedId = jdbcTemplate.executeInsert(INSERT_PURPOSE_SQL, (preparedStatement -> {
+                preparedStatement.setString(1, purpose.getName());
+                preparedStatement.setString(2, purpose.getDescription());
+                preparedStatement.setString(3, purpose.getGroup());
+                preparedStatement.setString(4, purpose.getGroupType());
+                preparedStatement.setInt(5, purpose.getTenantId());
+            }), purpose, true);
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE, purpose.getName(), e);
+        }
+
+        purpose.getPurposePIICategories().forEach(rethrowConsumer(piiCategory -> {
+            try {
+                jdbcTemplate.executeInsert(INSERT_RECEIPT_PURPOSE_PII_ASSOC_SQL, (preparedStatement -> {
+                    preparedStatement.setInt(1, insertedId);
+                    preparedStatement.setInt(2, piiCategory.getId());
+                    preparedStatement.setInt(3, piiCategory.getMandatory() ? 1 : 0);
+                }), piiCategory, false);
+            } catch (DataAccessException e) {
+                throw ConsentUtils.handleServerException(ErrorMessages
+                        .ERROR_CODE_ADD_PURPOSE_PII_ASSOC, String.valueOf(insertedId), e);
+            }
+        }));
+        purposeResult = new Purpose(insertedId, purpose.getName(), purpose.getDescription(), purpose.getGroup(),
+                purpose.getGroupType(), purpose.getTenantId(), purpose
+                .getPurposePIICategories());
+        return purposeResult;
+    }
+
+    @Override
+    public Purpose addPurposeWithUuid(Purpose purpose) throws ConsentManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         final int[] insertedIdHolder = new int[1];
@@ -155,6 +200,41 @@ public class PurposeDAOImpl implements PurposeDAO {
         Purpose purpose;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_ID_SQL, (resultSet, rowNumber) ->
+                            new Purpose(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
+                                    resultSet.getString(4), resultSet.getString(5),
+                                    resultSet.getInt(6)),
+                    preparedStatement -> preparedStatement.setInt(1, id));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_ID, String.valueOf(id), e);
+        }
+
+        if (purpose != null) {
+            try {
+                List<PurposePIICategory> piiCategories = new ArrayList<>();
+                jdbcTemplate.executeQuery(GET_PURPOSE_PII_CAT_SQL, (resultSet, rowNumber) ->
+                                piiCategories.add(new PurposePIICategory(
+                                        resultSet.getInt(1),
+                                        resultSet.getInt(2) == 1)),
+                        preparedStatement -> preparedStatement.setInt(1, purpose.getId()));
+                purpose.setPurposePIICategories(piiCategories);
+            } catch (DataAccessException e) {
+                throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_ID, String.valueOf(id), e);
+            }
+        }
+        return purpose;
+    }
+
+    @Override
+    public Purpose getPurposeByIdWithUuid(int id) throws ConsentManagementException {
+
+        if (id == 0) {
+            throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_PURPOSE_ID_REQUIRED, null);
+        }
+
+        Purpose purpose;
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
             purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_ID_WITH_UUID_SQL, (resultSet, rowNumber) -> {
                 Purpose p = new Purpose(resultSet.getInt(1), resultSet.getString(2), resultSet.getString(3),
                         resultSet.getString(4), resultSet.getString(5), resultSet.getInt(6), resultSet.getString(7));
@@ -201,6 +281,45 @@ public class PurposeDAOImpl implements PurposeDAO {
         Purpose purpose;
 
         try {
+            purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_NAME_SQL,
+                    (resultSet, rowNumber) -> new Purpose(resultSet.getInt(1),
+                            resultSet.getString(2),
+                            resultSet.getString(3),
+                            resultSet.getString(4),
+                            resultSet.getString(5),
+                            resultSet.getInt(6)),
+                    preparedStatement -> {
+                        preparedStatement.setString(1, name);
+                        preparedStatement.setString(2, group);
+                        preparedStatement.setString(3, groupType);
+                        preparedStatement.setInt(4, tenantId);
+                    });
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PURPOSE_BY_NAME, name, e);
+        }
+        return purpose;
+    }
+
+    @Override
+    public Purpose getPurposeByNameWithUuid(String name, String group, String groupType, int tenantId)
+            throws ConsentManagementException {
+
+        if (StringUtils.isBlank(name)) {
+            throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_PURPOSE_NAME_REQUIRED, null);
+        }
+
+        if (StringUtils.isBlank(group)) {
+            throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_PURPOSE_GROUP_REQUIRED, null);
+        }
+
+        if (StringUtils.isBlank(groupType)) {
+            throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_PURPOSE_GROUP_TYPE_REQUIRED, null);
+        }
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        Purpose purpose;
+
+        try {
             purpose = jdbcTemplate.fetchSingleRecord(GET_PURPOSE_BY_NAME_WITH_UUID_SQL,
                     (resultSet, rowNumber) -> {
                         Purpose p = new Purpose(resultSet.getInt(1), resultSet.getString(2),
@@ -230,6 +349,72 @@ public class PurposeDAOImpl implements PurposeDAO {
     @Override
     public List<Purpose> listPurposes(String group, String groupType, int limit, int offset, int tenantId) throws
             ConsentManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        List<Purpose> purposes;
+        try {
+
+            if (StringUtils.isEmpty(group)) {
+                group = SQL_FILTER_STRING_ANY;
+            } else if (group.contains(QUERY_FILTER_STRING_ANY)) {
+                group = group.replaceAll(QUERY_FILTER_STRING_ANY_ESCAPED, SQL_FILTER_STRING_ANY);
+            }
+
+            if (StringUtils.isEmpty(groupType)) {
+                groupType = SQL_FILTER_STRING_ANY;
+            } else if (groupType.contains(QUERY_FILTER_STRING_ANY)) {
+                groupType = groupType.replaceAll(QUERY_FILTER_STRING_ANY_ESCAPED, SQL_FILTER_STRING_ANY);
+            }
+
+            String query;
+            if (isH2MySqlOrPostgresDB()) {
+                query = LIST_PAGINATED_PURPOSE_MYSQL;
+            } else if (isDB2DB()) {
+                query = LIST_PAGINATED_PURPOSE_DB2;
+                int initialOffset = offset;
+                offset = offset + limit;
+                limit = initialOffset + 1;
+            } else if (isMSSqlDB()) {
+                int initialOffset = offset;
+                offset = limit + offset;
+                limit = initialOffset + 1;
+                query = LIST_PAGINATED_PURPOSE_MSSQL;
+            } else if (isInformixDB()) {
+                query = LIST_PAGINATED_PURPOSE_INFORMIX;
+            } else {
+                //oracle
+                query = LIST_PAGINATED_PURPOSE_ORACLE;
+                limit = offset + limit;
+            }
+            int finalLimit = limit;
+            int finalOffset = offset;
+            String finalGroup = group;
+            String finalGroupType = groupType;
+
+            purposes = jdbcTemplate.executeQuery(query,
+                    (resultSet, rowNumber) -> new Purpose(resultSet.getInt(1),
+                            resultSet.getString(2),
+                            resultSet.getString(3),
+                            resultSet.getString(4),
+                            resultSet.getString(5),
+                            resultSet.getInt(6)),
+                    preparedStatement -> {
+                        preparedStatement.setInt(1, tenantId);
+                        preparedStatement.setString(2, finalGroup);
+                        preparedStatement.setString(3, finalGroupType);
+                        preparedStatement.setInt(4, finalLimit);
+                        preparedStatement.setInt(5, finalOffset);
+                    });
+        } catch (DataAccessException e) {
+            throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_PURPOSE.getMessage(),
+                    group, groupType, limit, offset), ErrorMessages.ERROR_CODE_LIST_PURPOSE.getCode(), e);
+        }
+        return purposes;
+    }
+
+    @Override
+    public List<Purpose> listPurposesWithUuid(String group, String groupType, int limit, int offset, int tenantId)
+            throws ConsentManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         List<Purpose> purposes;
@@ -639,12 +824,6 @@ public class PurposeDAOImpl implements PurposeDAO {
         }
     }
 
-    /**
-     * Check whether the {@link Purpose} by ID is used in a receipt
-     *
-     * @param uuid ID of the {@link Purpose} to be validated
-     * @return true if purpose is used, false otherwise.
-     */
     @Override
     public Purpose getPurposeByUuid(String uuid, int tenantId) throws ConsentManagementException {
 
@@ -817,6 +996,12 @@ public class PurposeDAOImpl implements PurposeDAO {
         }
     }
 
+    /**
+     * Check whether the {@link Purpose} by ID is used in a receipt
+     *
+     * @param id ID of the {@link Purpose} to be validated
+     * @return true if purpose is used, false otherwise.
+     */
     @Override
     public boolean isPurposeUsed(int id) throws ConsentManagementServerException {
 

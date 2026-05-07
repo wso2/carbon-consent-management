@@ -83,14 +83,14 @@ public interface ReceiptDAO {
     }
 
     /**
-     * Search {@link Receipt} items for a given criteria.
+     *  Search {@link Receipt} items for a given criteria.
      *
-     * @param limit             Maximum number of results expected.
-     * @param offset            Result offset.
-     * @param piiPrincipalId    Identifier of the principal subject.
-     * @param spTenantId        Tenant domain of the service.
-     * @param service           Service name.
-     * @param state             State of the {@link Receipt}.
+     * @param limit Maximum number of results expected.
+     * @param offset Result offset.
+     * @param piiPrincipalId Identifier of the principal subject.
+     * @param spTenantId Tenant domain of the service.
+     * @param service Service name.
+     * @param state State of the {@link Receipt}.
      * @param principalTenantId Tenant ID of the principal.
      * @return A list of {@link ReceiptListResponse}
      * @throws ConsentManagementException If error occurs while searching {@link Receipt} items.
@@ -101,10 +101,9 @@ public interface ReceiptDAO {
 
     /**
      * Check whether a receipt exists with the given criteria.
-     *
-     * @param receiptId      Consent Receipt Id.
+     * @param receiptId Consent Receipt Id.
      * @param piiPrincipalId PII Principal Id.
-     * @param tenantId       PII Principal tenant Id.
+     * @param tenantId PII Principal tenant Id.
      * @return true if a receiept exists.
      * @throws ConsentManagementException If error occurs while checking {@link ConsentManagementException}
      */
@@ -156,5 +155,14 @@ public interface ReceiptDAO {
             throws ConsentManagementException {
 
         return Collections.emptyList();
+    }
+
+    /**
+     * Retrieve {@link Receipt} by receipt ID using extended schema (requires UUID/version columns).
+     * Falls back to {@link #getReceipt(String)} for implementations that do not override.
+     */
+    default Receipt getReceiptWithExtendedSchema(String receiptId) throws ConsentManagementException {
+
+        return getReceipt(receiptId);
     }
 }

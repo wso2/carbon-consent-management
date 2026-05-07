@@ -130,11 +130,11 @@ public class ConsentReceiptsService {
      */
     public Response getConsent(String receiptId) throws ConsentManagementException {
 
-        Receipt receipt = consentManager.getReceipt(receiptId);
+        Receipt receipt = consentManager.getReceiptWithExtendedSchema(receiptId);
         // Lazy expiry on GET — validate status and re-fetch if state changed
         String latestState = consentManager.validateConsentStatus(receiptId);
         if (!latestState.equals(receipt.getState())) {
-            receipt = consentManager.getReceipt(receiptId);  // re-fetch only if state changed
+            receipt = consentManager.getReceiptWithExtendedSchema(receiptId);  // re-fetch only if state changed
         }
         return Response.ok(toConsentDTO(receipt)).build();
     }
@@ -189,7 +189,7 @@ public class ConsentReceiptsService {
      */
     public Response revokeConsent(String receiptId) throws ConsentManagementException {
 
-        Receipt receipt = consentManager.getReceipt(receiptId);
+        Receipt receipt = consentManager.getReceiptWithExtendedSchema(receiptId);
         String currentState = StringUtils.isNotBlank(receipt.getState()) ? receipt.getState() : ACTIVE_STATE;
         // Idempotent: already revoked is treated as success
         if (REVOKE_STATE.equals(currentState)) {
@@ -360,7 +360,7 @@ public class ConsentReceiptsService {
     public Response authorizeConsent(String consentId, AuthorizationCreateRequest request)
             throws ConsentManagementException {
 
-        Receipt receipt = consentManager.getReceipt(consentId);
+        Receipt receipt = consentManager.getReceiptWithExtendedSchema(consentId);
         String currentState = StringUtils.isNotBlank(receipt.getState()) ? receipt.getState() : ACTIVE_STATE;
         if (!PENDING_STATE.equals(currentState)) {
             throw handleClientException(ERROR_CODE_CONSENT_INVALID_STATE_FOR_AUTHORIZE, consentId);
@@ -409,7 +409,7 @@ public class ConsentReceiptsService {
         ConsentValidateResponse validateResponse = new ConsentValidateResponse();
         validateResponse.setState(ConsentValidateResponse.StateEnum.fromValue(status));
 
-        Receipt receipt = consentManager.getReceipt(consentId);
+        Receipt receipt = consentManager.getReceiptWithExtendedSchema(consentId);
         if (receipt != null) {
             validateResponse.setValidityTime(receipt.getValidityTime());
         }

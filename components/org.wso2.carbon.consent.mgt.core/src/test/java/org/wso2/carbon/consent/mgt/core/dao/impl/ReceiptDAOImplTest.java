@@ -96,8 +96,8 @@ public class ReceiptDAOImplTest {
             PurposeDAO purposeDAO = new PurposeDAOImpl();
             Purpose purpose1 = new Purpose("P1", "D1", "SIGNUP", "RESIDENT", -1234);
             Purpose purpose2 = new Purpose("P2", "D3", "JIT", "IDP", -1234);
-            purposeDAO.addPurpose(purpose1);
-            purposeDAO.addPurpose(purpose2);
+            purposeDAO.addPurposeWithUuid(purpose1);
+            purposeDAO.addPurposeWithUuid(purpose2);
 
             PurposeCategoryDAO purposeCategoryDAO = new PurposeCategoryDAOImpl();
             PurposeCategory purposeCategory = new PurposeCategory("PC1", "D1", -1234);

@@ -179,6 +179,12 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 .getResult();
     }
 
+    @Override
+    public Purpose addPurposeWithUuid(Purpose purpose) throws ConsentManagementException {
+
+        return consentManager.addPurposeWithUuid(purpose);
+    }
+
     public Purpose getPurpose(int purposeId) throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
@@ -516,6 +522,12 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 .getResult();
     }
 
+    @Override
+    public PIICategory addPIICategoryWithUuid(PIICategory piiCategory) throws ConsentManagementException {
+
+        return consentManager.addPIICategoryWithUuid(piiCategory);
+    }
+
     public PIICategory getPIICategoryByName(String name) throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
@@ -713,6 +725,12 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 })
                 .intercept(POST_GET_RECEIPT, properties -> properties.put(RECEIPT_ID, receiptId))
                 .getResult();
+    }
+
+    @Override
+    public Receipt getReceiptWithExtendedSchema(String receiptId) throws ConsentManagementException {
+
+        return consentManager.getReceiptWithExtendedSchema(receiptId);
     }
 
     public List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String spTenantDomain,

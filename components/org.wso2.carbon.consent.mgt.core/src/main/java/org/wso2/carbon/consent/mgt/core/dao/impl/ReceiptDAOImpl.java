@@ -65,8 +65,10 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CAT
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_BASIC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_SP_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_STATE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_RECEIPT_V2_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_SP_PURPOSE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_SP_PURPOSE_WITH_VERSION_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_CONSENT_AUTHORIZATION_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_RECEIPT_PROPERTIES_SQL;
@@ -164,7 +166,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             });
         } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_CONSENT_RECEIPT,
-                    receiptInput.getPiiPrincipalId(), e);
+                                                     receiptInput.getPiiPrincipalId(), e);
         }
     }
 
@@ -206,6 +208,45 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             receipt = jdbcTemplate.withTransaction(template -> {
+                Receipt internalReceipt = template.fetchSingleRecord(GET_RECEIPT_SQL, (resultSet, rowNumber) -> {
+                    Receipt receiptInfo = new Receipt();
+                    receiptInfo.setConsentReceiptId(receiptId);
+                    receiptInfo.setVersion(resultSet.getString(1));
+                    receiptInfo.setJurisdiction(resultSet.getString(2));
+                    receiptInfo.setConsentTimestamp(resultSet.getTimestamp(3).getTime());
+                    receiptInfo.setCollectionMethod(resultSet.getString(4));
+                    receiptInfo.setLanguage(resultSet.getString(5));
+                    receiptInfo.setPiiPrincipalId(resultSet.getString(6));
+                    receiptInfo.setTenantId(resultSet.getInt(7));
+                    receiptInfo.setPolicyUrl(resultSet.getString(8));
+                    receiptInfo.setState(resultSet.getString(9));
+                    receiptInfo.setPiiController(resultSet.getString(10));
+                    return receiptInfo;
+                }, preparedStatement -> {
+                    preparedStatement.setString(1, receiptId);
+                });
+
+                if (internalReceipt != null) {
+                    internalReceipt.setServices(getServiceInfoOfReceipt(receiptId, receiptContext));
+                    setReceiptSensitivity(receiptContext, internalReceipt);
+                }
+                return internalReceipt;
+            });
+        } catch (TransactionException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
+                                                     String.valueOf(receiptId), e);
+        }
+        return receipt;
+    }
+
+    @Override
+    public Receipt getReceiptWithExtendedSchema(String receiptId) throws ConsentManagementException {
+
+        ReceiptContext receiptContext = new ReceiptContext();
+        Receipt receipt;
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            receipt = jdbcTemplate.withTransaction(template -> {
                 Receipt internalReceipt = template.fetchSingleRecord(GET_RECEIPT_V2_SQL, (resultSet, rowNumber) -> {
                     Receipt receiptInfo = new Receipt();
                     receiptInfo.setConsentReceiptId(receiptId);
@@ -229,7 +270,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 });
 
                 if (internalReceipt != null) {
-                    internalReceipt.setServices(getServiceInfoOfReceipt(receiptId, receiptContext));
+                    internalReceipt.setServices(getServiceInfoOfReceiptWithVersion(receiptId, receiptContext));
                     setReceiptSensitivity(receiptContext, internalReceipt);
                 }
                 return internalReceipt;
@@ -249,7 +290,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
             String receipt = jdbcTemplate.withTransaction(template -> template.fetchSingleRecord
                     (GET_RECEIPT_BASIC_SQL, (resultSet, rowNumber) ->
-                            resultSet.getString(1), preparedStatement -> {
+                    resultSet.getString(1), preparedStatement -> {
                         preparedStatement.setString(1, receiptId);
                         preparedStatement.setString(2, piiPrincipalId);
                         preparedStatement.setInt(3, tenantId);
@@ -277,7 +318,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             });
         } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_REVOKE_RECEIPT,
-                    receiptId, e);
+                                                     receiptId, e);
         }
     }
 
@@ -325,15 +366,15 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             }
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SEARCH_RECEIPTS,
-                    piiPrincipalId, e);
+                                                     piiPrincipalId, e);
         }
         return receiptListResponses;
     }
 
     protected List<ReceiptListResponse> searchReceipt(int limit, int offset, int spTenantId,
-                                                      JdbcTemplate jdbcTemplate, int piiPrincipalTenantId,
-                                                      String finalPiiPrincipalId, String finalService,
-                                                      String finalState) throws DataAccessException {
+                                                    JdbcTemplate jdbcTemplate, int piiPrincipalTenantId,
+                                                    String finalPiiPrincipalId, String finalService,
+                                                    String finalState) throws DataAccessException {
 
         String query;
         List<ReceiptListResponse> receiptListResponses;
@@ -420,8 +461,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     }
 
     protected List<ReceiptListResponse> searchReceiptWithoutPrincipleTenant(int limit, int offset, int spTenantId,
-                                                                            JdbcTemplate jdbcTemplate, String finalPiiPrincipalId,
-                                                                            String finalService, String finalState)
+                                                    JdbcTemplate jdbcTemplate, String finalPiiPrincipalId,
+                                                    String finalService, String finalState)
             throws DataAccessException {
 
         String query;
@@ -464,9 +505,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     }
 
     protected List<ReceiptListResponse> searchWithoutPrincipleAndSPTenantDomain(int limit, int offset,
-                                                                                JdbcTemplate jdbcTemplate,
-                                                                                String finalPiiPrincipalId, String finalService,
-                                                                                String finalState) throws DataAccessException {
+                                                         JdbcTemplate jdbcTemplate,
+                                                         String finalPiiPrincipalId, String finalService,
+                                                         String finalState) throws DataAccessException {
 
         String query;
         List<ReceiptListResponse> receiptListResponses;
@@ -543,7 +584,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             });
         } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_RECEIPT,
-                    receiptInput.getPiiPrincipalId(), e);
+                                                     receiptInput.getPiiPrincipalId(), e);
         }
     }
 
@@ -562,7 +603,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             }), receiptServiceInput, true));
         } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_RECEIPT_SP_ASSOC,
-                    receiptServiceInput.getService(), e);
+                                                     receiptServiceInput.getService(), e);
         }
         return receiptToSPAssocId;
     }
@@ -599,7 +640,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             }
         } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_SP_TO_PURPOSE_ASSOC,
-                    String.valueOf(receiptPurposeInput.getPurposeName()), e);
+                                                     String.valueOf(receiptPurposeInput.getPurposeName()), e);
         }
         return spToPurposeAssocId;
     }
@@ -692,13 +733,87 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             });
         } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
-                    consentReceiptId, e);
+                                                     consentReceiptId, e);
         }
         return receiptServices;
     }
 
     private List<ConsentPurpose> getPurposeInfoOfService(int receiptToServiceId, String consentReceiptId,
                                                          ReceiptContext receiptContext)
+            throws ConsentManagementException {
+
+        List<ConsentPurpose> consentPurposes;
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            consentPurposes = jdbcTemplate.withTransaction(template -> {
+                List<ConsentPurpose> internalConsentPurposes = template.executeQuery(GET_SP_PURPOSE_SQL,
+                                                                                         (resultSet, rowNumber) -> {
+                    ConsentPurpose consentPurpose = new ConsentPurpose();
+                    consentPurpose.setServiceToPurposeId(resultSet.getInt(1));
+                    consentPurpose.setConsentType(resultSet.getString(2));
+                    consentPurpose.setPrimaryPurpose(resultSet.getInt(3) == 1);
+                    consentPurpose.setTermination(resultSet.getString(4));
+                    consentPurpose.setThirdPartyDisclosure(resultSet.getInt(5) == 1);
+                    consentPurpose.setThirdPartyName(resultSet.getString(6));
+                    consentPurpose.setPurpose(resultSet.getString(7));
+                    consentPurpose.setPurposeDescription(resultSet.getString(8));
+                    consentPurpose.setPurposeId(resultSet.getInt(9));
+                    return consentPurpose;
+                }, preparedStatement -> preparedStatement.setInt(1, receiptToServiceId));
+
+                if (internalConsentPurposes != null) {
+                    internalConsentPurposes.forEach(rethrowConsumer(consentPurpose -> {
+                        consentPurpose.setPiiCategory(getPIICategoryInfoOfPurpose(
+                                consentPurpose.getServiceToPurposeId(), consentReceiptId, receiptContext));
+                        consentPurpose.setPurposeCategory(getPurposeCategoryInfoOfPurpose(
+                                consentPurpose.getServiceToPurposeId(), consentReceiptId));
+                    }));
+                }
+                return internalConsentPurposes;
+            });
+        } catch (TransactionException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_PURPOSE_INFO,
+                                                     consentReceiptId, e);
+        }
+        return consentPurposes;
+    }
+
+    protected List<ReceiptService> getServiceInfoOfReceiptWithVersion(String consentReceiptId,
+                                                                      ReceiptContext receiptContext)
+            throws ConsentManagementServerException {
+
+        List<ReceiptService> receiptServices;
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+
+        try {
+            receiptServices = jdbcTemplate.withTransaction(template -> {
+                List<ReceiptService> internalReceiptServices = template.executeQuery(GET_RECEIPT_SP_SQL,
+                        (resultSet, rowNumber) -> {
+                            ReceiptService receiptService = new ReceiptService();
+                            receiptService.setReceiptToServiceId(resultSet.getInt(1));
+                            receiptService.setService(resultSet.getString(2));
+                            receiptService.setTenantId(resultSet.getInt(3));
+                            receiptService.setSpDisplayName(resultSet.getString(4));
+                            receiptService.setSpDescription(resultSet.getString(5));
+                            return receiptService;
+                        }, preparedStatement -> preparedStatement.setString(1, consentReceiptId));
+
+                if (internalReceiptServices != null) {
+                    internalReceiptServices.forEach(rethrowConsumer(receiptService -> receiptService.setPurposes(
+                            getPurposeInfoOfServiceWithVersion(receiptService.getReceiptToServiceId(),
+                                    consentReceiptId, receiptContext))));
+                }
+                return internalReceiptServices;
+            });
+        } catch (TransactionException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
+                    consentReceiptId, e);
+        }
+        return receiptServices;
+    }
+
+    private List<ConsentPurpose> getPurposeInfoOfServiceWithVersion(int receiptToServiceId, String consentReceiptId,
+                                                                    ReceiptContext receiptContext)
             throws ConsentManagementException {
 
         List<ConsentPurpose> consentPurposes;
@@ -762,7 +877,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     }), preparedStatement -> preparedStatement.setInt(1, serviceToPurposeId)));
         } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
-                    consentReceiptId, e);
+                                                     consentReceiptId, e);
         }
     }
 
@@ -777,7 +892,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             ));
         } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
-                    consentReceiptId, e);
+                                                     consentReceiptId, e);
         }
     }
 

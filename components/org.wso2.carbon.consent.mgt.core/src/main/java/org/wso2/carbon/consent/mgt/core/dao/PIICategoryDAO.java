@@ -128,4 +128,38 @@ public interface PIICategoryDAO {
 
         return null;
     }
+
+    /**
+     * Add a {@link PIICategory} with UUID column (requires extended schema). Falls back to
+     * {@link #addPIICategory(PIICategory)} for implementations that do not override.
+     */
+    default PIICategory addPIICategoryWithUuid(PIICategory piiCategory) throws ConsentManagementException {
+
+        return addPIICategory(piiCategory);
+    }
+
+    /**
+     * Retrieve {@link PIICategory} by ID with UUID column (requires extended schema).
+     */
+    default PIICategory getPIICategoryByIdWithUuid(int id) throws ConsentManagementException {
+
+        return getPIICategoryById(id);
+    }
+
+    /**
+     * List {@link PIICategory} items with UUID column (requires extended schema).
+     */
+    default List<PIICategory> listPIICategoriesWithUuid(int limit, int offset, int tenantId)
+            throws ConsentManagementException {
+
+        return listPIICategories(limit, offset, tenantId);
+    }
+
+    /**
+     * Get {@link PIICategory} by name with UUID column (requires extended schema).
+     */
+    default PIICategory getPIICategoryByNameWithUuid(String name, int tenantId) throws ConsentManagementException {
+
+        return getPIICategoryByName(name, tenantId);
+    }
 }
