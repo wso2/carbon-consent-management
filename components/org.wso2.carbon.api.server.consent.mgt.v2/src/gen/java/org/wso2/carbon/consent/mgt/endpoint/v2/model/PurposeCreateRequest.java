@@ -108,7 +108,7 @@ public class PurposeCreateRequest  {
     }
 
     /**
-    * Optional initial version label for the purpose (e.g., \&quot;v1.0\&quot;)
+    * Initial version label for the purpose (e.g., \&quot;v1.0\&quot;)
     **/
     public PurposeCreateRequest version(String version) {
 
@@ -120,7 +120,7 @@ public class PurposeCreateRequest  {
     @JsonProperty("version")
     @Valid
     @NotNull(message = "Property version cannot be null.")
-    @Size(min=1,max=100)
+ @Size(min=1,max=100)
     public String getVersion() {
         return version;
     }
@@ -156,7 +156,7 @@ public class PurposeCreateRequest  {
     }
 
         /**
-    * Free-form key-value properties applied to the initial version snapshot. Only stored if a version label is also provided.
+    * Free-form key-value properties applied to the initial version snapshot; these properties are persisted with the initial version.
     **/
     public PurposeCreateRequest properties(Map<String, String> properties) {
 
@@ -164,7 +164,7 @@ public class PurposeCreateRequest  {
         return this;
     }
     
-    @ApiModelProperty(example = "{\"policy_url\":\"https://example.com/privacy-policy\",\"retentionPeriod\":\"365\"}", value = "Free-form key-value properties applied to the initial version snapshot. Only stored if a version label is also provided.")
+    @ApiModelProperty(example = "{\"policy_url\":\"https://example.com/privacy-policy\",\"retentionPeriod\":\"365\"}", value = "Free-form key-value properties applied to the initial version snapshot; these properties are persisted with the initial version.")
     @JsonProperty("properties")
     @Valid
     public Map<String, String> getProperties() {
