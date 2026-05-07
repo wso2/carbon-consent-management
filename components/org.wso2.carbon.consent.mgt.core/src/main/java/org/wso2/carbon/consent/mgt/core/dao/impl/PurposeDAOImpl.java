@@ -673,18 +673,21 @@ public class PurposeDAOImpl implements PurposeDAO {
                     preparedStatement.setString(5, versionUuid);
                 }), purposeVersion, false);
 
-                purposeVersion.getPurposePIICategories().forEach(rethrowConsumer(piiCategory -> {
-                    try {
-                        template.executeInsert(INSERT_PURPOSE_VERSION_PII_CAT_ASSOC_SQL, (preparedStatement -> {
-                            preparedStatement.setString(1, versionUuid);
-                            preparedStatement.setInt(2, piiCategory.getId());
-                            preparedStatement.setInt(3, piiCategory.getMandatory() ? 1 : 0);
-                        }), piiCategory, false);
-                    } catch (DataAccessException e) {
-                        throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE_VERSION,
-                                versionUuid, e);
-                    }
-                }));
+                List<PurposePIICategory> purposePIICategories = purposeVersion.getPurposePIICategories();
+                if (purposePIICategories != null && !purposePIICategories.isEmpty()) {
+                    purposePIICategories.forEach(rethrowConsumer(piiCategory -> {
+                        try {
+                            template.executeInsert(INSERT_PURPOSE_VERSION_PII_CAT_ASSOC_SQL, (preparedStatement -> {
+                                preparedStatement.setString(1, versionUuid);
+                                preparedStatement.setInt(2, piiCategory.getId());
+                                preparedStatement.setInt(3, piiCategory.getMandatory() ? 1 : 0);
+                            }), piiCategory, false);
+                        } catch (DataAccessException e) {
+                            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE_VERSION,
+                                    versionUuid, e);
+                        }
+                    }));
+                }
 
                 Map<String, String> properties = purposeVersion.getProperties();
                 if (properties != null && !properties.isEmpty()) {
@@ -708,12 +711,15 @@ public class PurposeDAOImpl implements PurposeDAO {
                         // Sync purpose PII categories to match this version.
                         template.executeUpdate(DELETE_PURPOSE_PII_CAT_ASSOC_BY_PURPOSE_ID_SQL,
                                 preparedStatement -> preparedStatement.setInt(1, purposeVersion.getPurposeId()));
-                        for (PurposePIICategory cat : purposeVersion.getPurposePIICategories()) {
-                            template.executeInsert(INSERT_RECEIPT_PURPOSE_PII_ASSOC_SQL, preparedStatement -> {
-                                preparedStatement.setInt(1, purposeVersion.getPurposeId());
-                                preparedStatement.setInt(2, cat.getId());
-                                preparedStatement.setInt(3, cat.getMandatory() ? 1 : 0);
-                            }, cat, false);
+                        List<PurposePIICategory> versionPIICategories = purposeVersion.getPurposePIICategories();
+                        if (versionPIICategories != null && !versionPIICategories.isEmpty()) {
+                            for (PurposePIICategory cat : versionPIICategories) {
+                                template.executeInsert(INSERT_RECEIPT_PURPOSE_PII_ASSOC_SQL, preparedStatement -> {
+                                    preparedStatement.setInt(1, purposeVersion.getPurposeId());
+                                    preparedStatement.setInt(2, cat.getId());
+                                    preparedStatement.setInt(3, cat.getMandatory() ? 1 : 0);
+                                }, cat, false);
+                            }
                         }
                         // Sync purpose description to match this version.
                         template.executeUpdate(UPDATE_PURPOSE_DESCRIPTION_SQL, preparedStatement -> {

@@ -365,6 +365,10 @@ public class ConsentManagerImpl implements ConsentManager {
             return;
         }
 
+        if (getPurposeDAO(purposeDAOs).isPurposeUsed(purpose.getId())) {
+            throw handleClientException(ERROR_CODE_PURPOSE_IS_ASSOCIATED, String.valueOf(purpose.getId()));
+        }
+
         for (PurposeVersion version : versions) {
             if (getPurposeDAO(purposeDAOs).isPurposeVersionUsed(version.getUuid())) {
                 throw handleClientException(ERROR_CODE_PURPOSE_HAS_VERSIONS_WITH_CONSENTS, purpose.getName());
@@ -1235,6 +1239,13 @@ public class ConsentManagerImpl implements ConsentManager {
     @Override
     public void authorizeConsent(String consentId, String userId, String authStatus)
             throws ConsentManagementException {
+
+        if (!APPROVED_STATE.equals(authStatus) && !REJECTED_STATE.equals(authStatus) &&
+                !REVOKE_STATE.equals(authStatus)) {
+            throw handleClientException(ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET,
+                    "Invalid authorization status: " + authStatus + ". Status must be one of: " +
+                    APPROVED_STATE + ", " + REJECTED_STATE + ", " + REVOKE_STATE);
+        }
 
         ReceiptDAO receiptDAO = getReceiptsDAO(receiptDAOs);
         long now = System.currentTimeMillis();

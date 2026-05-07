@@ -182,7 +182,20 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     @Override
     public Purpose addPurposeWithUuid(Purpose purpose) throws ConsentManagementException {
 
-        return consentManager.addPurposeWithUuid(purpose);
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<Purpose, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
+                .executeWith(new OperationDelegate<Purpose>() {
+                    @Override
+                    public Purpose execute() throws ConsentManagementException {
+
+                        return consentManager.addPurposeWithUuid(purpose);
+                    }
+                })
+                .intercept(POST_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
+                .getResult();
     }
 
     public Purpose getPurpose(int purposeId) throws ConsentManagementException {
@@ -525,7 +538,20 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     @Override
     public PIICategory addPIICategoryWithUuid(PIICategory piiCategory) throws ConsentManagementException {
 
-        return consentManager.addPIICategoryWithUuid(piiCategory);
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<PIICategory, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_ADD_PII_CATEGORY, properties -> properties.put(PII_CATEGORY, piiCategory))
+                .executeWith(new OperationDelegate<PIICategory>() {
+                    @Override
+                    public PIICategory execute() throws ConsentManagementException {
+
+                        return consentManager.addPIICategoryWithUuid(piiCategory);
+                    }
+                })
+                .intercept(POST_ADD_PII_CATEGORY, properties -> properties.put(PII_CATEGORY, piiCategory))
+                .getResult();
     }
 
     public PIICategory getPIICategoryByName(String name) throws ConsentManagementException {
@@ -1161,7 +1187,26 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     public List<Purpose> listPurposes(Node filterTree, int limit, int offset)
             throws ConsentManagementException {
 
-        return consentManager.listPurposes(filterTree, limit, offset);
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<List<Purpose>, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_GET_PURPOSE_LIST, properties -> {
+                    properties.put(LIMIT, limit);
+                    properties.put(OFFSET, offset);
+                })
+                .executeWith(new OperationDelegate<List<Purpose>>() {
+                    @Override
+                    public List<Purpose> execute() throws ConsentManagementException {
+
+                        return consentManager.listPurposes(filterTree, limit, offset);
+                    }
+                })
+                .intercept(POST_GET_PURPOSE_LIST, properties -> {
+                    properties.put(LIMIT, limit);
+                    properties.put(OFFSET, offset);
+                })
+                .getResult();
     }
 
     /**
@@ -1177,7 +1222,26 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     public List<PIICategory> listPIICategories(Node filterTree, int limit, int offset)
             throws ConsentManagementException {
 
-        return consentManager.listPIICategories(filterTree, limit, offset);
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<List<PIICategory>, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_GET_PII_CATEGORY_LIST, properties -> {
+                    properties.put(LIMIT, limit);
+                    properties.put(OFFSET, offset);
+                })
+                .executeWith(new OperationDelegate<List<PIICategory>>() {
+                    @Override
+                    public List<PIICategory> execute() throws ConsentManagementException {
+
+                        return consentManager.listPIICategories(filterTree, limit, offset);
+                    }
+                })
+                .intercept(POST_GET_PII_CATEGORY_LIST, properties -> {
+                    properties.put(LIMIT, limit);
+                    properties.put(OFFSET, offset);
+                })
+                .getResult();
     }
 
     /**
@@ -1193,7 +1257,30 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                                       String purposeVersionId, int limit, int offset)
             throws ConsentManagementException {
 
-        return consentManager.listReceipts(subjectId, serviceId, state, purposeId, purposeVersionId,
-                limit, offset);
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<List<Receipt>, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        return template.intercept(PRE_LIST_RECEIPTS, properties -> {
+                    properties.put(SERVICE, serviceId);
+                    properties.put(STATE, state);
+                    properties.put(LIMIT, limit);
+                    properties.put(OFFSET, offset);
+                })
+                .executeWith(new OperationDelegate<List<Receipt>>() {
+                    @Override
+                    public List<Receipt> execute() throws ConsentManagementException {
+
+                        return consentManager.listReceipts(subjectId, serviceId, state, purposeId, purposeVersionId,
+                                limit, offset);
+                    }
+                })
+                .intercept(POST_LIST_RECEIPTS, properties -> {
+                    properties.put(SERVICE, serviceId);
+                    properties.put(STATE, state);
+                    properties.put(LIMIT, limit);
+                    properties.put(OFFSET, offset);
+                })
+                .getResult();
     }
 }
