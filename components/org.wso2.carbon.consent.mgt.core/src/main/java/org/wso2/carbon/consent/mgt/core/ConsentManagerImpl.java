@@ -226,7 +226,7 @@ public class ConsentManagerImpl implements ConsentManager {
         auditData.put(PURPOSE_GROUP_FIELD, purposeResponse.getGroup());
         triggerAuditLog(String.valueOf(purposeResponse.getId()), TARGET_PURPOSE,
                 ADD_PURPOSE_ACTION, auditData);
-        return populatePiiCategories(purposeResponse);
+        return populatePiiCategoriesWithUuid(purposeResponse);
     }
 
     /**
@@ -1825,11 +1825,25 @@ public class ConsentManagerImpl implements ConsentManager {
         return purposeResponse;
     }
 
+    private Purpose populatePiiCategoriesWithUuid(Purpose purposeResponse) {
+
+        List<PurposePIICategory> purposePIICategories = new ArrayList<>();
+        purposeResponse.getPurposePIICategories().forEach(rethrowConsumer(
+                piiCategory -> purposePIICategories.add(getPurposePIICategoryWithUuid(piiCategory))));
+        purposeResponse.setPurposePIICategories(purposePIICategories);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Purpose created successfully with the name: " + purposeResponse.getName());
+        }
+
+        return purposeResponse;
+    }
+
     private PurposeVersion populatePiiCategories(PurposeVersion purposeVersionResponse) {
 
         List<PurposePIICategory> purposePIICategories = new ArrayList<>();
         purposeVersionResponse.getPurposePIICategories().forEach(rethrowConsumer(
-                piiCategory -> purposePIICategories.add(getPurposePIICategory(piiCategory))));
+                piiCategory -> purposePIICategories.add(getPurposePIICategoryWithUuid(piiCategory))));
         purposeVersionResponse.setPurposePIICategories(purposePIICategories);
         return purposeVersionResponse;
     }

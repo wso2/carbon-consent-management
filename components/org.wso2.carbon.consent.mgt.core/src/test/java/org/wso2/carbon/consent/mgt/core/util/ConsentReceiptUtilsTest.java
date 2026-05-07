@@ -311,7 +311,7 @@ public class ConsentReceiptUtilsTest {
         PIICategory result = ConsentReceiptUtils.getDefaultPiiCategory("CONSENT_TYPE", consentManager);
 
         Assert.assertEquals(result.getId(), (Integer) 3);
-        verify(consentManager, never()).addPIICategory(any());
+        verify(consentManager, never()).addPIICategoryWithUuid(any());
     }
 
     @Test
@@ -323,12 +323,12 @@ public class ConsentReceiptUtilsTest {
         when(consentManager.getPIICategoryByName("CONSENT_TYPE")).thenThrow(notFound);
 
         PIICategory created = new PIICategory(7, "CONSENT_TYPE", null, false, -1234, "CONSENT_TYPE");
-        when(consentManager.addPIICategory(any(PIICategory.class))).thenReturn(created);
+        when(consentManager.addPIICategoryWithUuid(any(PIICategory.class))).thenReturn(created);
 
         PIICategory result = ConsentReceiptUtils.getDefaultPiiCategory("CONSENT_TYPE", consentManager);
 
         Assert.assertEquals(result.getId(), (Integer) 7);
-        verify(consentManager).addPIICategory(any(PIICategory.class));
+        verify(consentManager).addPIICategoryWithUuid(any(PIICategory.class));
     }
 
     @Test(expectedExceptions = ConsentManagementClientException.class)

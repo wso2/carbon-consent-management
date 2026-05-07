@@ -145,21 +145,4 @@ public interface PIICategoryDAO {
 
         return getPIICategoryById(id);
     }
-
-    /**
-     * List {@link PIICategory} items with UUID column (requires extended schema).
-     */
-    default List<PIICategory> listPIICategoriesWithUuid(int limit, int offset, int tenantId)
-            throws ConsentManagementException {
-
-        return listPIICategories(limit, offset, tenantId);
-    }
-
-    /**
-     * Get {@link PIICategory} by name with UUID column (requires extended schema).
-     */
-    default PIICategory getPIICategoryByNameWithUuid(String name, int tenantId) throws ConsentManagementException {
-
-        return getPIICategoryByName(name, tenantId);
-    }
 }

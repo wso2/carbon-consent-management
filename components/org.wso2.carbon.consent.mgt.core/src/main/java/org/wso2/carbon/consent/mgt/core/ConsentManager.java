@@ -560,7 +560,7 @@ public interface ConsentManager {
      */
     default Purpose addPurposeWithUuid(Purpose purpose) throws ConsentManagementException {
 
-        return addPurpose(purpose);
+        return null;
     }
 
     /**
@@ -569,7 +569,7 @@ public interface ConsentManager {
      */
     default PIICategory addPIICategoryWithUuid(PIICategory piiCategory) throws ConsentManagementException {
 
-        return addPIICategory(piiCategory);
+        return null;
     }
 
     /**
@@ -578,6 +578,6 @@ public interface ConsentManager {
      */
     default Receipt getReceiptWithExtendedSchema(String receiptId) throws ConsentManagementException {
 
-        return getReceipt(receiptId);
+        return null;
     }
 }

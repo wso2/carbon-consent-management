@@ -170,7 +170,7 @@ public class ConsentReceiptUtils {
         } catch (ConsentManagementClientException e) {
             if (isInvalidPIICategoryError(e)) {
                 PIICategory piiCategoryInput = new PIICategory(consentType, null, false, consentType);
-                piiCategory = consentManager.addPIICategory(piiCategoryInput);
+                piiCategory = consentManager.addPIICategoryWithUuid(piiCategoryInput);
             } else {
                 throw e;
             }

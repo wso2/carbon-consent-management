@@ -41,19 +41,13 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_SP_PURP
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PII_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PII_CATEGORY_WITH_UUID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_DB2;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_DB2_WITH_UUID;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_INFORMIX;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_INFORMIX_WITH_UUID;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_MSSQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_MSSQL_WITH_UUID;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_MYSQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_MYSQL_WITH_UUID;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_ORACLE;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_ORACLE_WITH_UUID;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PII_CATEGORY_BY_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PII_CATEGORY_BY_ID_WITH_UUID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PII_CATEGORY_BY_NAME_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PII_CATEGORY_BY_NAME_WITH_UUID_SQL;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isDB2DB;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isH2MySqlOrPostgresDB;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isInformixDB;
@@ -218,58 +212,6 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     }
 
     @Override
-    public List<PIICategory> listPIICategoriesWithUuid(int limit, int offset, int tenantId)
-            throws ConsentManagementException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        List<PIICategory> piiCategories;
-
-        try {
-            String query;
-            if (isH2MySqlOrPostgresDB()) {
-                query = LIST_PAGINATED_PII_CATEGORY_MYSQL_WITH_UUID;
-            } else if (isDB2DB()) {
-                query = LIST_PAGINATED_PII_CATEGORY_DB2_WITH_UUID;
-                int initialOffset = offset;
-                offset = offset + limit;
-                limit = initialOffset + 1;
-            } else if (isMSSqlDB()) {
-                query = LIST_PAGINATED_PII_CATEGORY_MSSQL_WITH_UUID;
-                int initialOffset = offset;
-                offset = limit + offset;
-                limit = initialOffset + 1;
-            } else if (isInformixDB()) {
-                query = LIST_PAGINATED_PII_CATEGORY_INFORMIX_WITH_UUID;
-            } else {
-                //oracle
-                query = LIST_PAGINATED_PII_CATEGORY_ORACLE_WITH_UUID;
-                limit = offset + limit;
-            }
-            int finalLimit = limit;
-            int finalOffset = offset;
-
-            piiCategories = jdbcTemplate.executeQuery(query,
-                    (resultSet, rowNumber) -> new PIICategory(resultSet.getInt(1),
-                            resultSet.getString(2),
-                            resultSet.getString(3),
-                            resultSet.getInt(4) == 1,
-                            resultSet.getInt(5),
-                            resultSet.getString(6),
-                            resultSet.getString(7)),
-                    preparedStatement -> {
-                        preparedStatement.setInt(1, tenantId);
-                        preparedStatement.setInt(2, finalLimit);
-                        preparedStatement.setInt(3, finalOffset);
-                    });
-        } catch (DataAccessException e) {
-            throw new ConsentManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_PII_CATEGORY
-                    .getMessage(), limit, offset),
-                    ErrorMessages.ERROR_CODE_LIST_PII_CATEGORY.getCode(), e);
-        }
-        return piiCategories;
-    }
-
-    @Override
     public List<PIICategory> listPIICategories(Node filterTree, int limit, int offset, int tenantId)
             throws ConsentManagementException {
 
@@ -406,31 +348,6 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
                                     resultSet.getInt(4) == 1,
                                     resultSet.getInt(5),
                                     resultSet.getString(6)),
-                    preparedStatement -> {
-                        preparedStatement.setString(1, name);
-                        preparedStatement.setInt(2, tenantId);
-                    });
-        } catch (DataAccessException e) {
-            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PII_CATEGORY_BY_NAME, name, e);
-        }
-        return piiCategory;
-    }
-
-    @Override
-    public PIICategory getPIICategoryByNameWithUuid(String name, int tenantId) throws ConsentManagementException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        PIICategory piiCategory;
-
-        try {
-            piiCategory = jdbcTemplate.fetchSingleRecord(SELECT_PII_CATEGORY_BY_NAME_WITH_UUID_SQL,
-                    (resultSet, rowNumber) -> new PIICategory(resultSet.getInt(1),
-                            resultSet.getString(2),
-                            resultSet.getString(3),
-                            resultSet.getInt(4) == 1,
-                            resultSet.getInt(5),
-                            resultSet.getString(6),
-                            resultSet.getString(7)),
                     preparedStatement -> {
                         preparedStatement.setString(1, name);
                         preparedStatement.setInt(2, tenantId);

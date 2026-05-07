@@ -121,32 +121,6 @@ public interface PurposeDAO {
     }
 
     /**
-     * Retrieve {@link Purpose} by ID with UUID columns (requires extended schema).
-     */
-    default Purpose getPurposeByIdWithUuid(int id) throws ConsentManagementException {
-
-        return getPurposeById(id);
-    }
-
-    /**
-     * Get {@link Purpose} by name with UUID columns (requires extended schema).
-     */
-    default Purpose getPurposeByNameWithUuid(String name, String group, String groupType, int tenantId)
-            throws ConsentManagementException {
-
-        return getPurposeByName(name, group, groupType, tenantId);
-    }
-
-    /**
-     * List {@link Purpose} items with UUID columns (requires extended schema).
-     */
-    default List<Purpose> listPurposesWithUuid(String group, String groupType, int limit, int offset, int tenantId)
-            throws ConsentManagementException {
-
-        return listPurposes(group, groupType, limit, offset, tenantId);
-    }
-
-    /**
      * Delete {@link Purpose} for a given ID.
      *
      * @param id ID of the {@link Purpose} to be deleted.
