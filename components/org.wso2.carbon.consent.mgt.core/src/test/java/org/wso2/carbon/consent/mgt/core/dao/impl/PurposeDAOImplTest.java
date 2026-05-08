@@ -517,13 +517,13 @@ public class PurposeDAOImplTest {
             when(dataSource.getConnection()).thenReturn(spyConnection);
 
             PurposeDAO purposeDAO = new PurposeDAOImpl();
-            purposeDAO.addPurpose(purposes.get(0));
-            purposeDAO.addPurpose(purposes.get(1));
+            purposeDAO.addPurposeWithUuid(purposes.get(0));
+            purposeDAO.addPurposeWithUuid(purposes.get(1));
 
             // DB is pre-seeded with a DEFAULT purpose, so 2 added + 1 pre-existing = 3
             List<Purpose> all = purposeDAO.listPurposes(java.util.Collections.emptyList(), 10, -1234);
 
-            Assert.assertTrue(all.size() >= 2);
+            Assert.assertEquals(all.size(), 3);
         }
     }
 

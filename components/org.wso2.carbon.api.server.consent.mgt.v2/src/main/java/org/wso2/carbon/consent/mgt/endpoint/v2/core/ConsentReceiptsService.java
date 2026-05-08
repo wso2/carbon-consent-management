@@ -37,10 +37,12 @@ import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptService;
 import org.wso2.carbon.consent.mgt.core.util.ConsentReceiptUtils;
+import org.wso2.carbon.consent.mgt.core.util.FilterQueriesUtil;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.AuthorizationCreateRequest;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.AuthorizationDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ConsentCreateRequest;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ConsentListResponse;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.PaginationLink;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ConsentPurposeBinding;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ConsentDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ConsentSummaryDTO;
@@ -163,7 +165,7 @@ public class ConsentReceiptsService {
                 state,
                 purposeId != null ? purposeId.toString() : null,
                 purposeVersionId != null ? purposeVersionId.toString() : null,
-                after, before, limit);
+                after, before, limit + 1);
 
         if (receipts == null) {
             receipts = Collections.emptyList();
@@ -174,9 +176,33 @@ public class ConsentReceiptsService {
             summaries.add(toConsentSummaryDTO(receipt));
         }
 
+        boolean hasNextPage = summaries.size() > limit;
+        if (hasNextPage) {
+            summaries = summaries.subList(0, limit);
+        }
+
+        List<PaginationLink> links = new ArrayList<>();
+        String basePath = "/api/identity/consent-mgt/v2.0/consents";
+
+        if (hasNextPage && !summaries.isEmpty()) {
+            String nextCursor = FilterQueriesUtil.encodeCursor(summaries.get(summaries.size() - 1).getId());
+            PaginationLink nextLink = new PaginationLink();
+            nextLink.setRel("next");
+            nextLink.setHref(basePath + "?after=" + nextCursor + "&limit=" + limit);
+            links.add(nextLink);
+        }
+
+        if (StringUtils.isNotBlank(after) && !summaries.isEmpty()) {
+            String prevCursor = FilterQueriesUtil.encodeCursor(summaries.get(0).getId());
+            PaginationLink prevLink = new PaginationLink();
+            prevLink.setRel("previous");
+            prevLink.setHref(basePath + "?before=" + prevCursor + "&limit=" + limit);
+            links.add(prevLink);
+        }
+
         ConsentListResponse listResponse = new ConsentListResponse();
         listResponse.setTotalResults(summaries.size());
-        listResponse.setLinks(Collections.emptyList());
+        listResponse.setLinks(links);
         listResponse.setConsents(summaries);
         return Response.ok(listResponse).build();
     }

@@ -41,6 +41,7 @@ import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHold
 import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementCreateRequest;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementDTO;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.PaginationLink;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeCreateRequest;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeElementBinding;
@@ -60,8 +61,10 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -877,5 +880,163 @@ public class PurposesApiServiceImplTest {
         PurposeVersionDTO dto = (PurposeVersionDTO) getResponse.getEntity();
         Assert.assertNotNull(dto.getProperties());
         Assert.assertEquals(dto.getProperties().get("legalBasis"), "legitimate_interest");
+    }
+
+    // =========================================================================
+    // PAGINATION: PURPOSES LIST
+    // =========================================================================
+
+    /**
+     * With fewer results than the limit, no "next" link is produced.
+     */
+    @Test
+    public void testPurposesList_fewerThanLimit_noNextLink() {
+
+        long suffix = System.nanoTime();
+        for (int i = 0; i < 3; i++) {
+            PurposeCreateRequest req = new PurposeCreateRequest();
+            req.setName("Pag-Few-" + i + "-" + suffix);
+            req.setType("PAG_FEW_" + suffix);
+            req.setVersion("v1");
+            purposesApiService.purposesCreate(req);
+        }
+
+        Response response = purposesApiService.purposesList("type eq \"PAG_FEW_" + suffix + "\"", 5, null, null);
+
+        Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+        PurposeListResponse list = (PurposeListResponse) response.getEntity();
+        Assert.assertEquals(list.getTotalResults().intValue(), 3);
+        Assert.assertTrue(list.getLinks() == null || list.getLinks().isEmpty(),
+                "No 'next' link expected when results fit within the limit");
+    }
+
+    /**
+     * With more results than the limit, a "next" link is returned and the item count is capped at limit.
+     */
+    @Test
+    public void testPurposesList_moreThanLimit_hasNextLinkAndCappedCount() {
+
+        long suffix = System.nanoTime();
+        for (int i = 0; i < 4; i++) {
+            PurposeCreateRequest req = new PurposeCreateRequest();
+            req.setName("Pag-More-" + i + "-" + suffix);
+            req.setType("PAG_MORE_" + suffix);
+            req.setVersion("v1");
+            purposesApiService.purposesCreate(req);
+        }
+
+        Response response = purposesApiService.purposesList("type eq \"PAG_MORE_" + suffix + "\"", 2, null, null);
+
+        Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+        PurposeListResponse list = (PurposeListResponse) response.getEntity();
+        Assert.assertEquals(list.getTotalResults().intValue(), 2,
+                "totalResults should equal the limit when there are more results");
+        Assert.assertNotNull(list.getLinks());
+        Assert.assertFalse(list.getLinks().isEmpty(), "A 'next' link must be present when results exceed the limit");
+        PaginationLink nextLink = list.getLinks().stream()
+                .filter(l -> "next".equals(l.getRel())).findFirst().orElse(null);
+        Assert.assertNotNull(nextLink, "A link with rel='next' must be present");
+    }
+
+    /**
+     * The "next" link href contains the correct query parameters: after cursor and limit.
+     */
+    @Test
+    public void testPurposesList_nextLinkHref_containsAfterCursorAndLimit() {
+
+        long suffix = System.nanoTime();
+        for (int i = 0; i < 3; i++) {
+            PurposeCreateRequest req = new PurposeCreateRequest();
+            req.setName("Pag-Href-" + i + "-" + suffix);
+            req.setType("PAG_HREF_" + suffix);
+            req.setVersion("v1");
+            purposesApiService.purposesCreate(req);
+        }
+
+        int limit = 2;
+        Response response = purposesApiService.purposesList("type eq \"PAG_HREF_" + suffix + "\"", limit, null, null);
+
+        PurposeListResponse list = (PurposeListResponse) response.getEntity();
+        PaginationLink nextLink = list.getLinks().stream()
+                .filter(l -> "next".equals(l.getRel())).findFirst().orElseThrow();
+
+        Assert.assertTrue(nextLink.getHref().contains("after="), "Next link href must contain 'after=' cursor param");
+        Assert.assertTrue(nextLink.getHref().contains("limit=" + limit), "Next link href must contain 'limit=' param");
+
+        // The cursor must decode to the UUID of the last item on the current page.
+        String afterParam = nextLink.getHref().replaceAll(".*after=([^&]+).*", "$1");
+        String decodedCursor = new String(Base64.getDecoder().decode(afterParam), StandardCharsets.UTF_8);
+        String lastItemId = list.getPurposes().get(list.getPurposes().size() - 1).getId().toString();
+        Assert.assertEquals(decodedCursor, lastItemId, "Cursor must be the UUID of the last item on the current page");
+    }
+
+    /**
+     * Requesting the next page via the "after" cursor returns the remaining items
+     * and produces a "previous" link.
+     */
+    @Test
+    public void testPurposesList_withAfterCursor_returnRemainingItemsAndPreviousLink() {
+
+        long suffix = System.nanoTime();
+        for (int i = 0; i < 3; i++) {
+            PurposeCreateRequest req = new PurposeCreateRequest();
+            req.setName("Pag-After-" + i + "-" + suffix);
+            req.setType("PAG_AFTER_" + suffix);
+            req.setVersion("v1");
+            purposesApiService.purposesCreate(req);
+        }
+
+        // First page: limit=2 → 2 items + next link.
+        Response firstPage = purposesApiService.purposesList("type eq \"PAG_AFTER_" + suffix + "\"", 2, null, null);
+        PurposeListResponse firstList = (PurposeListResponse) firstPage.getEntity();
+        PaginationLink nextLink = firstList.getLinks().stream()
+                .filter(l -> "next".equals(l.getRel())).findFirst().orElseThrow();
+        String afterCursor = nextLink.getHref().replaceAll(".*after=([^&]+).*", "$1");
+
+        // Second page using the cursor.
+        Response secondPage = purposesApiService.purposesList("type eq \"PAG_AFTER_" + suffix + "\"", 2, afterCursor, null);
+
+        Assert.assertEquals(secondPage.getStatus(), Response.Status.OK.getStatusCode());
+        PurposeListResponse secondList = (PurposeListResponse) secondPage.getEntity();
+        Assert.assertEquals(secondList.getTotalResults().intValue(), 1,
+                "Second page should contain the remaining 1 item");
+
+        // Items on page 2 must not overlap with items on page 1.
+        List<UUID> firstIds = firstList.getPurposes().stream().map(PurposeSummaryDTO::getId).toList();
+        secondList.getPurposes().forEach(item ->
+                Assert.assertFalse(firstIds.contains(item.getId()),
+                        "Second page must not contain items from the first page"));
+
+        // A "previous" link must be present on the second page.
+        Assert.assertNotNull(secondList.getLinks());
+        PaginationLink prevLink = secondList.getLinks().stream()
+                .filter(l -> "previous".equals(l.getRel())).findFirst().orElse(null);
+        Assert.assertNotNull(prevLink, "A 'previous' link must be present when paginating forward");
+        Assert.assertTrue(prevLink.getHref().contains("before="), "Previous link href must contain 'before=' param");
+    }
+
+    /**
+     * Exactly limit results → no "next" link (boundary condition).
+     */
+    @Test
+    public void testPurposesList_exactlyLimitResults_noNextLink() {
+
+        long suffix = System.nanoTime();
+        for (int i = 0; i < 3; i++) {
+            PurposeCreateRequest req = new PurposeCreateRequest();
+            req.setName("Pag-Exact-" + i + "-" + suffix);
+            req.setType("PAG_EXACT_" + suffix);
+            req.setVersion("v1");
+            purposesApiService.purposesCreate(req);
+        }
+
+        Response response = purposesApiService.purposesList("type eq \"PAG_EXACT_" + suffix + "\"", 3, null, null);
+
+        Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+        PurposeListResponse list = (PurposeListResponse) response.getEntity();
+        Assert.assertEquals(list.getTotalResults().intValue(), 3);
+        boolean hasNext = list.getLinks() != null &&
+                list.getLinks().stream().anyMatch(l -> "next".equals(l.getRel()));
+        Assert.assertFalse(hasNext, "No 'next' link expected when result count equals the limit exactly");
     }
 }

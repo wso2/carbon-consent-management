@@ -50,8 +50,10 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -74,6 +76,7 @@ import org.wso2.carbon.consent.mgt.endpoint.v2.core.ConsentReceiptsService;
 import org.wso2.carbon.consent.mgt.endpoint.v2.factories.ConsentReceiptsServiceFactory;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ConsentListResponse;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ConsentSummaryDTO;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.PaginationLink;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeVersionCreateRequest;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeVersionDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.SetLatestVersionRequest;
@@ -1289,5 +1292,155 @@ public class ConsentsApiServiceImplTest {
         Assert.assertEquals(response.getStatus(), Response.Status.CREATED.getStatusCode(),
                 "Creating a consent with an element from a different purpose should succeed");
         Assert.assertNotNull(((ConsentResponseDTO) response.getEntity()).getId());
+    }
+
+    // =========================================================================
+    // PAGINATION: CONSENTS LIST
+    // =========================================================================
+
+    /**
+     * Fewer consents than limit → no "next" link.
+     */
+    @Test
+    public void testConsentsList_fewerThanLimit_noNextLink() {
+
+        String serviceId = "pag-few-svc-" + System.nanoTime();
+        for (int i = 0; i < 2; i++) {
+            UUID[] ids = createPurposeWithElement();
+            ConsentCreateRequest req = buildConsentRequest(ids[0], ids[1]);
+            req.setServiceId(serviceId);
+            consentsApiService.consentsCreate(req);
+        }
+
+        Response response = consentsApiService.consentsList(null, serviceId, null, null, null, 5, null, null);
+
+        Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+        ConsentListResponse list = (ConsentListResponse) response.getEntity();
+        Assert.assertEquals(list.getTotalResults().intValue(), 2);
+        boolean hasNext = list.getLinks() != null &&
+                list.getLinks().stream().anyMatch(l -> "next".equals(l.getRel()));
+        Assert.assertFalse(hasNext, "No 'next' link expected when results fit within the limit");
+    }
+
+    /**
+     * More consents than limit → item count capped at limit and "next" link present.
+     */
+    @Test
+    public void testConsentsList_moreThanLimit_hasNextLinkAndCappedCount() {
+
+        String serviceId = "pag-more-svc-" + System.nanoTime();
+        for (int i = 0; i < 4; i++) {
+            UUID[] ids = createPurposeWithElement();
+            ConsentCreateRequest req = buildConsentRequest(ids[0], ids[1]);
+            req.setServiceId(serviceId);
+            consentsApiService.consentsCreate(req);
+        }
+
+        Response response = consentsApiService.consentsList(null, serviceId, null, null, null, 2, null, null);
+
+        Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+        ConsentListResponse list = (ConsentListResponse) response.getEntity();
+        Assert.assertEquals(list.getTotalResults().intValue(), 2,
+                "totalResults should equal the limit when there are more results");
+        Assert.assertNotNull(list.getLinks());
+        PaginationLink nextLink = list.getLinks().stream()
+                .filter(l -> "next".equals(l.getRel())).findFirst().orElse(null);
+        Assert.assertNotNull(nextLink, "A link with rel='next' must be present when results exceed the limit");
+    }
+
+    /**
+     * The "next" link href contains after cursor (decodable to the last item's ID) and limit.
+     */
+    @Test
+    public void testConsentsList_nextLinkHref_containsAfterCursorAndLimit() {
+
+        String serviceId = "pag-href-svc-" + System.nanoTime();
+        for (int i = 0; i < 3; i++) {
+            UUID[] ids = createPurposeWithElement();
+            ConsentCreateRequest req = buildConsentRequest(ids[0], ids[1]);
+            req.setServiceId(serviceId);
+            consentsApiService.consentsCreate(req);
+        }
+
+        int limit = 2;
+        Response response = consentsApiService.consentsList(null, serviceId, null, null, null, limit, null, null);
+
+        ConsentListResponse list = (ConsentListResponse) response.getEntity();
+        PaginationLink nextLink = list.getLinks().stream()
+                .filter(l -> "next".equals(l.getRel())).findFirst().orElseThrow();
+
+        Assert.assertTrue(nextLink.getHref().contains("after="), "Next link href must contain 'after=' cursor param");
+        Assert.assertTrue(nextLink.getHref().contains("limit=" + limit), "Next link href must contain 'limit=' param");
+
+        String afterParam = nextLink.getHref().replaceAll(".*after=([^&]+).*", "$1");
+        String decodedCursor = new String(Base64.getDecoder().decode(afterParam), StandardCharsets.UTF_8);
+        String lastItemId = list.getConsents().get(list.getConsents().size() - 1).getId();
+        Assert.assertEquals(decodedCursor, lastItemId, "Cursor must decode to the ID of the last item on the page");
+    }
+
+    /**
+     * Requesting page 2 via the "after" cursor returns remaining items and a "previous" link.
+     */
+    @Test
+    public void testConsentsList_withAfterCursor_returnsRemainingItemsAndPreviousLink() {
+
+        String serviceId = "pag-after-svc-" + System.nanoTime();
+        for (int i = 0; i < 3; i++) {
+            UUID[] ids = createPurposeWithElement();
+            ConsentCreateRequest req = buildConsentRequest(ids[0], ids[1]);
+            req.setServiceId(serviceId);
+            consentsApiService.consentsCreate(req);
+        }
+
+        // First page: limit=2 → 2 items + next link.
+        Response firstPage = consentsApiService.consentsList(null, serviceId, null, null, null, 2, null, null);
+        ConsentListResponse firstList = (ConsentListResponse) firstPage.getEntity();
+        PaginationLink nextLink = firstList.getLinks().stream()
+                .filter(l -> "next".equals(l.getRel())).findFirst().orElseThrow();
+        String afterCursor = nextLink.getHref().replaceAll(".*after=([^&]+).*", "$1");
+
+        // Second page via cursor.
+        Response secondPage = consentsApiService.consentsList(null, serviceId, null, null, null, 2, afterCursor, null);
+
+        Assert.assertEquals(secondPage.getStatus(), Response.Status.OK.getStatusCode());
+        ConsentListResponse secondList = (ConsentListResponse) secondPage.getEntity();
+        Assert.assertEquals(secondList.getTotalResults().intValue(), 1,
+                "Second page should contain the remaining 1 consent");
+
+        // Items must not overlap.
+        List<String> firstIds = firstList.getConsents().stream().map(ConsentSummaryDTO::getId).toList();
+        secondList.getConsents().forEach(item ->
+                Assert.assertFalse(firstIds.contains(item.getId()),
+                        "Second page must not repeat items from the first page"));
+
+        // "previous" link must be present.
+        PaginationLink prevLink = secondList.getLinks().stream()
+                .filter(l -> "previous".equals(l.getRel())).findFirst().orElse(null);
+        Assert.assertNotNull(prevLink, "A 'previous' link must be present when paginating forward");
+        Assert.assertTrue(prevLink.getHref().contains("before="), "Previous link href must contain 'before=' param");
+    }
+
+    /**
+     * Exactly limit consents → no "next" link (boundary condition).
+     */
+    @Test
+    public void testConsentsList_exactlyLimitResults_noNextLink() {
+
+        String serviceId = "pag-exact-svc-" + System.nanoTime();
+        for (int i = 0; i < 3; i++) {
+            UUID[] ids = createPurposeWithElement();
+            ConsentCreateRequest req = buildConsentRequest(ids[0], ids[1]);
+            req.setServiceId(serviceId);
+            consentsApiService.consentsCreate(req);
+        }
+
+        Response response = consentsApiService.consentsList(null, serviceId, null, null, null, 3, null, null);
+
+        Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+        ConsentListResponse list = (ConsentListResponse) response.getEntity();
+        Assert.assertEquals(list.getTotalResults().intValue(), 3);
+        boolean hasNext = list.getLinks() != null &&
+                list.getLinks().stream().anyMatch(l -> "next".equals(l.getRel()));
+        Assert.assertFalse(hasNext, "No 'next' link expected when result count equals the limit exactly");
     }
 }

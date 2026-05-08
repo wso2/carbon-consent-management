@@ -28,6 +28,7 @@ import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.PaginationLink;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeCreateRequest;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.PurposeDTOLatestVersion;
@@ -150,7 +151,7 @@ public class ConsentPurposesService {
         }
 
         List<ExpressionNode> expressionNodes = FilterQueriesUtil.getExpressionNodes(filterExpression, after, before);
-        List<Purpose> purposes = consentManager.listPurposes(expressionNodes, limit);
+        List<Purpose> purposes = consentManager.listPurposes(expressionNodes, limit + 1);
 
         List<PurposeSummaryDTO> items = new ArrayList<>();
         if (purposes != null) {
@@ -162,9 +163,33 @@ public class ConsentPurposesService {
             }
         }
 
+        boolean hasNextPage = items.size() > limit;
+        if (hasNextPage) {
+            items = items.subList(0, limit);
+        }
+
+        List<PaginationLink> links = new ArrayList<>();
+        String basePath = "/api/identity/consent-mgt/v2.0/purposes";
+
+        if (hasNextPage && !items.isEmpty()) {
+            String nextCursor = FilterQueriesUtil.encodeCursor(items.get(items.size() - 1).getId().toString());
+            PaginationLink nextLink = new PaginationLink();
+            nextLink.setRel("next");
+            nextLink.setHref(basePath + "?after=" + nextCursor + "&limit=" + limit);
+            links.add(nextLink);
+        }
+
+        if (StringUtils.isNotBlank(after) && !items.isEmpty()) {
+            String prevCursor = FilterQueriesUtil.encodeCursor(items.get(0).getId().toString());
+            PaginationLink prevLink = new PaginationLink();
+            prevLink.setRel("previous");
+            prevLink.setHref(basePath + "?before=" + prevCursor + "&limit=" + limit);
+            links.add(prevLink);
+        }
+
         PurposeListResponse listResponse = new PurposeListResponse();
         listResponse.setTotalResults(items.size());
-        listResponse.setLinks(Collections.emptyList());
+        listResponse.setLinks(links);
         listResponse.setPurposes(items);
         return Response.ok(listResponse).build();
     }

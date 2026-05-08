@@ -330,8 +330,8 @@ public class PIICategoryDAOImplTest {
             when(dataSource.getConnection()).thenReturn(spyConnection);
 
             PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
-            piiCategoryDAO.addPIICategory(piiCategories.get(0));
-            piiCategoryDAO.addPIICategory(piiCategories.get(1));
+            piiCategoryDAO.addPIICategoryWithUuid(piiCategories.get(0));
+            piiCategoryDAO.addPIICategoryWithUuid(piiCategories.get(1));
 
             List<PIICategory> all = piiCategoryDAO.listPIICategories(java.util.Collections.emptyList(), 10, -1234);
 

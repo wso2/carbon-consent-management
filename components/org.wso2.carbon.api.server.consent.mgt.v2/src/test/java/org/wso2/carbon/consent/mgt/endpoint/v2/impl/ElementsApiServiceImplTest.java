@@ -42,6 +42,7 @@ import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementCreateRequest;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementListResponse;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.PaginationLink;
 import org.wso2.carbon.consent.mgt.endpoint.v2.util.TestUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
@@ -51,9 +52,12 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.Collections;
+import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 import javax.sql.DataSource;
 import javax.ws.rs.core.Response;
@@ -363,5 +367,108 @@ public class ElementsApiServiceImplTest {
         Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
         ElementListResponse list = (ElementListResponse) response.getEntity();
         Assert.assertTrue(list.getElements().size() >= 2, "No filter should return all created elements");
+    }
+
+    @Test
+    public void testElementsList_fewerThanLimit_noNextLink() {
+
+        String prefix = "elem-pag-few-" + System.nanoTime();
+        for (int i = 0; i < 2; i++) {
+            ElementCreateRequest request = new ElementCreateRequest();
+            request.setName(prefix + "-" + i);
+            elementsApiService.elementsCreate(request);
+        }
+
+        Response response = elementsApiService.elementsList("name co \"" + prefix + "\"", 5, null, null);
+
+        Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+        ElementListResponse list = (ElementListResponse) response.getEntity();
+        Assert.assertEquals(list.getTotalResults().intValue(), 2);
+        boolean hasNext = list.getLinks() != null && list.getLinks().stream().anyMatch(link -> "next".equals(link.getRel()));
+        Assert.assertFalse(hasNext, "No 'next' link expected when results fit within the limit");
+    }
+
+    @Test
+    public void testElementsList_moreThanLimit_hasNextLinkAndCappedCount() {
+
+        String prefix = "elem-pag-more-" + System.nanoTime();
+        for (int i = 0; i < 4; i++) {
+            ElementCreateRequest request = new ElementCreateRequest();
+            request.setName(prefix + "-" + i);
+            elementsApiService.elementsCreate(request);
+        }
+
+        Response response = elementsApiService.elementsList("name co \"" + prefix + "\"", 2, null, null);
+
+        Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+        ElementListResponse list = (ElementListResponse) response.getEntity();
+        Assert.assertEquals(list.getTotalResults().intValue(), 2,
+                "totalResults should equal the limit when there are more results");
+        Assert.assertNotNull(list.getLinks());
+        PaginationLink nextLink = list.getLinks().stream()
+                .filter(link -> "next".equals(link.getRel())).findFirst().orElse(null);
+        Assert.assertNotNull(nextLink, "A link with rel='next' must be present when results exceed the limit");
+    }
+
+    @Test
+    public void testElementsList_nextLinkHref_containsAfterCursorAndLimit() {
+
+        String prefix = "elem-pag-href-" + System.nanoTime();
+        for (int i = 0; i < 3; i++) {
+            ElementCreateRequest request = new ElementCreateRequest();
+            request.setName(prefix + "-" + i);
+            elementsApiService.elementsCreate(request);
+        }
+
+        int limit = 2;
+        Response response = elementsApiService.elementsList("name co \"" + prefix + "\"", limit, null, null);
+
+        ElementListResponse list = (ElementListResponse) response.getEntity();
+        PaginationLink nextLink = list.getLinks().stream()
+                .filter(link -> "next".equals(link.getRel())).findFirst().orElseThrow();
+
+        Assert.assertTrue(nextLink.getHref().contains("after="), "Next link href must contain 'after=' cursor param");
+        Assert.assertTrue(nextLink.getHref().contains("limit=" + limit), "Next link href must contain 'limit=' param");
+
+        String afterParam = nextLink.getHref().replaceAll(".*after=([^&]+).*", "$1");
+        String decodedCursor = new String(Base64.getDecoder().decode(afterParam), StandardCharsets.UTF_8);
+        String lastItemId = list.getElements().get(list.getElements().size() - 1).getId().toString();
+        Assert.assertEquals(decodedCursor, lastItemId,
+                "Cursor must decode to the UUID of the last item on the current page");
+    }
+
+    @Test
+    public void testElementsList_withAfterCursor_returnsRemainingItemsAndPreviousLink() {
+
+        String prefix = "elem-pag-after-" + System.nanoTime();
+        for (int i = 0; i < 3; i++) {
+            ElementCreateRequest request = new ElementCreateRequest();
+            request.setName(prefix + "-" + i);
+            elementsApiService.elementsCreate(request);
+        }
+
+        Response firstPage = elementsApiService.elementsList("name co \"" + prefix + "\"", 2, null, null);
+        ElementListResponse firstList = (ElementListResponse) firstPage.getEntity();
+        PaginationLink nextLink = firstList.getLinks().stream()
+                .filter(link -> "next".equals(link.getRel())).findFirst().orElseThrow();
+        String afterCursor = nextLink.getHref().replaceAll(".*after=([^&]+).*", "$1");
+
+        Response secondPage = elementsApiService.elementsList("name co \"" + prefix + "\"", 2, afterCursor, null);
+
+        Assert.assertEquals(secondPage.getStatus(), Response.Status.OK.getStatusCode());
+        ElementListResponse secondList = (ElementListResponse) secondPage.getEntity();
+        Assert.assertEquals(secondList.getTotalResults().intValue(), 1,
+                "Second page should contain the remaining 1 element");
+
+        List<UUID> firstIds = firstList.getElements().stream().map(ElementDTO::getId).toList();
+        secondList.getElements().forEach(item ->
+                Assert.assertFalse(firstIds.contains(item.getId()),
+                        "Second page must not contain items from the first page"));
+
+        Assert.assertNotNull(secondList.getLinks());
+        PaginationLink prevLink = secondList.getLinks().stream()
+                .filter(link -> "previous".equals(link.getRel())).findFirst().orElse(null);
+        Assert.assertNotNull(prevLink, "A 'previous' link must be present when paginating forward");
+        Assert.assertTrue(prevLink.getHref().contains("before="), "Previous link href must contain 'before=' param");
     }
 }

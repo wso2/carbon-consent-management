@@ -25,6 +25,7 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
+import org.wso2.carbon.consent.mgt.endpoint.v2.model.PaginationLink;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementCreateRequest;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementDTO;
 import org.wso2.carbon.consent.mgt.endpoint.v2.model.ElementListResponse;
@@ -121,7 +122,7 @@ public class ConsentElementsService {
         }
 
         List<ExpressionNode> expressionNodes = FilterQueriesUtil.getExpressionNodes(filterExpression, after, before);
-        List<PIICategory> categories = consentManager.listPIICategories(expressionNodes, limit);
+        List<PIICategory> categories = consentManager.listPIICategories(expressionNodes, limit + 1);
         List<ElementDTO> items = new ArrayList<>();
         if (categories != null) {
             for (PIICategory cat : categories) {
@@ -129,9 +130,33 @@ public class ConsentElementsService {
             }
         }
 
+        boolean hasNextPage = items.size() > limit;
+        if (hasNextPage) {
+            items = items.subList(0, limit);
+        }
+
+        List<PaginationLink> links = new ArrayList<>();
+        String basePath = "/api/identity/consent-mgt/v2.0/elements";
+
+        if (hasNextPage && !items.isEmpty()) {
+            String nextCursor = FilterQueriesUtil.encodeCursor(items.get(items.size() - 1).getId().toString());
+            PaginationLink nextLink = new PaginationLink();
+            nextLink.setRel("next");
+            nextLink.setHref(basePath + "?after=" + nextCursor + "&limit=" + limit);
+            links.add(nextLink);
+        }
+
+        if (StringUtils.isNotBlank(after) && !items.isEmpty()) {
+            String prevCursor = FilterQueriesUtil.encodeCursor(items.get(0).getId().toString());
+            PaginationLink prevLink = new PaginationLink();
+            prevLink.setRel("previous");
+            prevLink.setHref(basePath + "?before=" + prevCursor + "&limit=" + limit);
+            links.add(prevLink);
+        }
+
         ElementListResponse listResponse = new ElementListResponse();
         listResponse.setTotalResults(items.size());
-        listResponse.setLinks(Collections.emptyList());
+        listResponse.setLinks(links);
         listResponse.setElements(items);
         return Response.ok(listResponse).build();
     }
