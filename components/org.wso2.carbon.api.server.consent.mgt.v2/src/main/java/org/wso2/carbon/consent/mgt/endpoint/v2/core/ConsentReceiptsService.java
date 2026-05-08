@@ -66,6 +66,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_SUBJECT_MISMATCH;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_USER_NOT_IN_AUTHORIZATION_LIST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_ELEMENT_UUID_NOT_FOUND;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.FilterConstants;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleClientException;
 
 /**
@@ -187,16 +188,20 @@ public class ConsentReceiptsService {
         if (hasNextPage && !summaries.isEmpty()) {
             String nextCursor = FilterQueriesUtil.encodeCursor(summaries.get(summaries.size() - 1).getId());
             PaginationLink nextLink = new PaginationLink();
-            nextLink.setRel("next");
-            nextLink.setHref(basePath + "?after=" + nextCursor + "&limit=" + limit);
+            nextLink.setRel(FilterConstants.LINK_REL_NEXT);
+            String nextHref = basePath + "?" + FilterConstants.FILTER_ATTR_AFTER + "=" + nextCursor + "&"
+                    + FilterConstants.PARAM_LIMIT + "=" + limit;
+            nextLink.setHref(nextHref);
             links.add(nextLink);
         }
 
         if (StringUtils.isNotBlank(after) && !summaries.isEmpty()) {
             String prevCursor = FilterQueriesUtil.encodeCursor(summaries.get(0).getId());
             PaginationLink prevLink = new PaginationLink();
-            prevLink.setRel("previous");
-            prevLink.setHref(basePath + "?before=" + prevCursor + "&limit=" + limit);
+            prevLink.setRel(FilterConstants.LINK_REL_PREVIOUS);
+            String prevHref = basePath + "?" + FilterConstants.FILTER_ATTR_BEFORE + "=" + prevCursor + "&"
+                    + FilterConstants.PARAM_LIMIT + "=" + limit;
+            prevLink.setHref(prevHref);
             links.add(prevLink);
         }
 

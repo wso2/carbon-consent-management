@@ -19,6 +19,7 @@
 package org.wso2.carbon.consent.mgt.core.util;
 
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
@@ -33,6 +34,7 @@ import java.util.Map;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_FILTER_EXPRESSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_UNSUPPORTED_FILTER_ATTRIBUTE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.FilterConstants;
 
 /**
  * Utility for building FilterQueryBuilder instances from ExpressionNode lists.
@@ -40,10 +42,29 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
  */
 public class FilterQueriesUtil {
 
-    public static final String AFTER = "after";
-    public static final String BEFORE = "before";
+    private static final String OP_EQ = "eq";
+    private static final String OP_NE = "ne";
+    private static final String OP_SW = "sw";
+    private static final String OP_CO = "co";
+    private static final String OP_EW = "ew";
+    private static final String OP_GE = "ge";
+    private static final String OP_LE = "le";
+    private static final String OP_GT = "gt";
+    private static final String OP_LT = "lt";
 
-    private FilterQueriesUtil() {}
+    private static final String SQL_OP_EQUALS = "=";
+    private static final String SQL_OP_NOT_EQUALS = "!=";
+    private static final String SQL_OP_LIKE = "LIKE";
+    private static final String SQL_OP_GTE = ">=";
+    private static final String SQL_OP_LTE = "<=";
+    private static final String SQL_OP_GT = ">";
+    private static final String SQL_OP_LT = "<";
+
+    private static final String LIKE_WILDCARD_START = "%";
+    private static final String LIKE_WILDCARD_END = "%";
+
+    private FilterQueriesUtil() {
+    }
 
     /**
      * Converts a filter string and optional cursor params into a flat ExpressionNode list.
@@ -69,16 +90,16 @@ public class FilterQueriesUtil {
 
         if (StringUtils.isNotBlank(after)) {
             ExpressionNode node = new ExpressionNode();
-            node.setAttributeValue(AFTER);
-            node.setOperation("gt");
+            node.setAttributeValue(FilterConstants.FILTER_ATTR_AFTER);
+            node.setOperation(OP_GT);
             node.setValue(new String(Base64.getDecoder().decode(after), StandardCharsets.UTF_8));
             nodes.add(node);
         }
 
         if (StringUtils.isNotBlank(before)) {
             ExpressionNode node = new ExpressionNode();
-            node.setAttributeValue(BEFORE);
-            node.setOperation("lt");
+            node.setAttributeValue(FilterConstants.FILTER_ATTR_BEFORE);
+            node.setOperation(OP_LT);
             node.setValue(new String(Base64.getDecoder().decode(before), StandardCharsets.UTF_8));
             nodes.add(node);
         }
@@ -127,6 +148,7 @@ public class FilterQueriesUtil {
      * Base64-encodes a string value to use as an opaque cursor.
      */
     public static String encodeCursor(String value) {
+
         return Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -134,10 +156,12 @@ public class FilterQueriesUtil {
      * Decodes a base64 cursor to its original string value.
      */
     public static String decodeCursor(String cursor) {
+
         return new String(Base64.getDecoder().decode(cursor), StandardCharsets.UTF_8);
     }
 
     private static void collectExpressionNodes(Node node, List<ExpressionNode> expressions) {
+
         if (node instanceof ExpressionNode) {
             expressions.add((ExpressionNode) node);
         } else if (node instanceof OperationNode) {
@@ -148,29 +172,33 @@ public class FilterQueriesUtil {
     }
 
     private static String toSqlOperator(String op) {
+
         if (op == null) {
-            return "=";
+            return SQL_OP_EQUALS;
         }
         switch (op.toLowerCase()) {
-            case "eq": return "=";
-            case "ne": return "!=";
-            case "sw": case "co": case "ew": return "LIKE";
-            case "ge": return ">=";
-            case "le": return "<=";
-            case "gt": return ">";
-            case "lt": return "<";
-            default: return "=";
+            case OP_EQ: return SQL_OP_EQUALS;
+            case OP_NE: return SQL_OP_NOT_EQUALS;
+            case OP_SW:
+            case OP_CO:
+            case OP_EW: return SQL_OP_LIKE;
+            case OP_GE: return SQL_OP_GTE;
+            case OP_LE: return SQL_OP_LTE;
+            case OP_GT: return SQL_OP_GT;
+            case OP_LT: return SQL_OP_LT;
+            default: return SQL_OP_EQUALS;
         }
     }
 
     private static String toSqlValue(String op, String value) {
+
         if (op == null || value == null) {
             return value;
         }
         switch (op.toLowerCase()) {
-            case "sw": return value + "%";
-            case "co": return "%" + value + "%";
-            case "ew": return "%" + value;
+            case OP_SW: return value + LIKE_WILDCARD_END;
+            case OP_CO: return LIKE_WILDCARD_START + value + LIKE_WILDCARD_END;
+            case OP_EW: return LIKE_WILDCARD_START + value;
             default: return value;
         }
     }

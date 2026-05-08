@@ -303,24 +303,19 @@ public class ConsentConstants {
         // Filter attribute names (API level - camelCase)
         public static final String FILTER_ATTR_TYPE = "type";
         public static final String FILTER_ATTR_NAME = "name";
+        public static final String FILTER_ATTR_AFTER = "after";
+        public static final String FILTER_ATTR_BEFORE = "before";
 
         // Database column names (SQL level - UPPERCASE)
         public static final String DB_COL_NAME = "NAME";
         public static final String DB_COL_GROUP_TYPE = "GROUP_TYPE";
 
-        // Filter operators
-        public static final String OP_EQ = "eq";
-        public static final String OP_SW = "sw";
-        public static final String OP_CO = "co";
-        public static final String OP_EW = "ew";
+        // Pagination link relations
+        public static final String LINK_REL_NEXT = "next";
+        public static final String LINK_REL_PREVIOUS = "previous";
 
-        // SQL operators
-        public static final String SQL_OP_EQUALS = "=";
-        public static final String SQL_OP_LIKE = "LIKE";
-
-        // Like pattern wildcards
-        public static final String LIKE_WILDCARD_START = "%";
-        public static final String LIKE_WILDCARD_END = "%";
+        // Pagination query parameter limit
+        public static final String PARAM_LIMIT = "limit";
     }
 
     /**

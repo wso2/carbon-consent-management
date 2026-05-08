@@ -37,7 +37,6 @@ import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.base.IdentityException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -73,7 +72,8 @@ public class ConsentElementsService {
      */
     public ElementDTO createElement(ElementCreateRequest request) throws ConsentManagementException {
 
-        String displayName = StringUtils.isNotBlank(request.getDisplayName()) ? request.getDisplayName() : request.getName();
+        String displayName = StringUtils.isNotBlank(request.getDisplayName()) ? request.getDisplayName()
+                : request.getName();
         PIICategory piiCategory = new PIICategory(request.getName(), request.getDescription(), false, displayName);
         piiCategory.setTenantId(ConsentUtils.getTenantIdFromCarbonContext());
         PIICategory created = consentManager.addPIICategoryWithUuid(piiCategory);
@@ -141,16 +141,20 @@ public class ConsentElementsService {
         if (hasNextPage && !items.isEmpty()) {
             String nextCursor = FilterQueriesUtil.encodeCursor(items.get(items.size() - 1).getId().toString());
             PaginationLink nextLink = new PaginationLink();
-            nextLink.setRel("next");
-            nextLink.setHref(basePath + "?after=" + nextCursor + "&limit=" + limit);
+            nextLink.setRel(FilterConstants.LINK_REL_NEXT);
+            String nextHref = basePath + "?" + FilterConstants.FILTER_ATTR_AFTER + "=" + nextCursor + "&"
+                    + FilterConstants.PARAM_LIMIT + "=" + limit;
+            nextLink.setHref(nextHref);
             links.add(nextLink);
         }
 
         if (StringUtils.isNotBlank(after) && !items.isEmpty()) {
             String prevCursor = FilterQueriesUtil.encodeCursor(items.get(0).getId().toString());
             PaginationLink prevLink = new PaginationLink();
-            prevLink.setRel("previous");
-            prevLink.setHref(basePath + "?before=" + prevCursor + "&limit=" + limit);
+            prevLink.setRel(FilterConstants.LINK_REL_PREVIOUS);
+            String prevHref = basePath + "?" + FilterConstants.FILTER_ATTR_BEFORE + "=" + prevCursor + "&"
+                    + FilterConstants.PARAM_LIMIT + "=" + limit;
+            prevLink.setHref(prevHref);
             links.add(prevLink);
         }
 

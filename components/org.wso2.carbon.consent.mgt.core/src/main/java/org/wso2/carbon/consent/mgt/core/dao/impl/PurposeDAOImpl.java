@@ -33,8 +33,6 @@ import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
-import org.wso2.carbon.identity.core.model.Node;
-import org.wso2.carbon.identity.core.model.OperationNode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -99,8 +97,8 @@ public class PurposeDAOImpl implements PurposeDAO {
         PURPOSE_ATTR_COL_MAP = new LinkedHashMap<>();
         PURPOSE_ATTR_COL_MAP.put(FilterConstants.FILTER_ATTR_NAME, FilterConstants.DB_COL_NAME);
         PURPOSE_ATTR_COL_MAP.put(FilterConstants.FILTER_ATTR_TYPE, FilterConstants.DB_COL_GROUP_TYPE);
-        PURPOSE_ATTR_COL_MAP.put(FilterQueriesUtil.AFTER, "UUID");
-        PURPOSE_ATTR_COL_MAP.put(FilterQueriesUtil.BEFORE, "UUID");
+        PURPOSE_ATTR_COL_MAP.put(FilterConstants.FILTER_ATTR_AFTER, "UUID");
+        PURPOSE_ATTR_COL_MAP.put(FilterConstants.FILTER_ATTR_BEFORE, "UUID");
     }
 
     public PurposeDAOImpl() {
@@ -872,40 +870,5 @@ public class PurposeDAOImpl implements PurposeDAO {
                     .ERROR_CODE_RETRIEVE_RECEIPTS_ASSOCIATED_WITH_PURPOSE, versionUuid, e);
         }
         return (count > 0);
-    }
-
-    /**
-     * Maps filter attribute names to database column names.
-     * Recursively traverses the filter tree and replaces known attribute name mappings.
-     * This is necessary because the API filter attributes (e.g., "type") may differ
-     * from the actual database column names (e.g., "GROUP_TYPE").
-     *
-     * @param node The filter tree node (can be ExpressionNode or OperationNode)
-     * @return The same node with attribute names mapped to database column names
-     */
-    private Node mapFilterAttributes(Node node) {
-
-        if (node == null) {
-            return null;
-        }
-
-        if (node instanceof ExpressionNode) {
-            ExpressionNode exprNode = (ExpressionNode) node;
-            String attribute = exprNode.getAttributeValue();
-
-            // Map filter attribute names to database column names
-            if (FilterConstants.FILTER_ATTR_NAME.equalsIgnoreCase(attribute)) {
-                exprNode.setAttributeValue(FilterConstants.DB_COL_NAME);
-            } else if (FilterConstants.FILTER_ATTR_TYPE.equalsIgnoreCase(attribute)) {
-                exprNode.setAttributeValue(FilterConstants.DB_COL_GROUP_TYPE);
-            }
-            return exprNode;
-        } else if (node instanceof OperationNode) {
-            OperationNode opNode = (OperationNode) node;
-            mapFilterAttributes(opNode.getLeftNode());
-            mapFilterAttributes(opNode.getRightNode());
-            return opNode;
-        }
-        return node;
     }
 }

@@ -31,18 +31,22 @@ public class FilterQueryBuilder {
     private String filterQuery = "";
 
     public void setFilterAttributeValue(int count, String value) {
+
         stringParameters.put(count, value);
     }
 
     public Map<Integer, String> getFilterAttributeValue() {
+
         return stringParameters;
     }
 
     public String getFilterQuery() {
+
         return filterQuery;
     }
 
     public void setFilterQuery(String filter) {
+
         this.filterQuery = filter;
     }
 }

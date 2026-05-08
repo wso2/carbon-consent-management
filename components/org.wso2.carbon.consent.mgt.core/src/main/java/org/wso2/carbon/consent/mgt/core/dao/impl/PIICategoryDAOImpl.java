@@ -68,8 +68,8 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     static {
         ELEMENT_ATTR_COL_MAP = new LinkedHashMap<>();
         ELEMENT_ATTR_COL_MAP.put(FilterConstants.FILTER_ATTR_NAME, FilterConstants.DB_COL_NAME);
-        ELEMENT_ATTR_COL_MAP.put(FilterQueriesUtil.AFTER, "UUID");
-        ELEMENT_ATTR_COL_MAP.put(FilterQueriesUtil.BEFORE, "UUID");
+        ELEMENT_ATTR_COL_MAP.put(FilterConstants.FILTER_ATTR_AFTER, "UUID");
+        ELEMENT_ATTR_COL_MAP.put(FilterConstants.FILTER_ATTR_BEFORE, "UUID");
     }
 
     public PIICategoryDAOImpl() {
