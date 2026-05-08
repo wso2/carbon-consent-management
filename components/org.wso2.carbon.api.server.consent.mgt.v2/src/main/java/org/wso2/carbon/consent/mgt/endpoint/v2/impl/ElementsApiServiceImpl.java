@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.consent.mgt.endpoint.v2.impl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.endpoint.v2.ElementsApiService;
@@ -35,7 +33,7 @@ import javax.ws.rs.core.Response;
 
 public class ElementsApiServiceImpl implements ElementsApiService {
 
-    private static final Log LOG = LogFactory.getLog(ElementsApiServiceImpl.class);
+    private static final String ELEMENTS_PATH = "elements/";
     private final ConsentElementsService elementsService;
 
     public ElementsApiServiceImpl() {
@@ -48,14 +46,14 @@ public class ElementsApiServiceImpl implements ElementsApiService {
 
         try {
             ElementDTO dto = elementsService.createElement(elementCreateRequest);
-            URI location = URI.create("elements/" + dto.getId());
+            URI location = URI.create(ELEMENTS_PATH + dto.getId());
             return Response.created(location).entity(dto).build();
         } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e);
         } catch (Exception e) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e);
         }
     }
 
@@ -65,11 +63,11 @@ public class ElementsApiServiceImpl implements ElementsApiService {
         try {
             return elementsService.deleteElement(elementId);
         } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e);
         } catch (Exception e) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e);
         }
     }
 
@@ -79,11 +77,11 @@ public class ElementsApiServiceImpl implements ElementsApiService {
         try {
             return elementsService.getElement(elementId);
         } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e);
         } catch (Exception e) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e);
         }
     }
 
@@ -93,11 +91,11 @@ public class ElementsApiServiceImpl implements ElementsApiService {
         try {
             return elementsService.listElements(filter, limit, after, before);
         } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e);
         } catch (Exception e) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e);
         }
     }
 }

@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.consent.mgt.endpoint.v2.impl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.endpoint.v2.PurposesApiService;
@@ -38,7 +36,8 @@ import javax.ws.rs.core.Response;
 
 public class PurposesApiServiceImpl implements PurposesApiService {
 
-    private static final Log LOG = LogFactory.getLog(PurposesApiServiceImpl.class);
+    private static final String PURPOSES_PATH = "purposes/";
+    private static final String VERSIONS_PATH = "/versions/";
     private final ConsentPurposesService purposesService;
 
     public PurposesApiServiceImpl() {
@@ -51,14 +50,14 @@ public class PurposesApiServiceImpl implements PurposesApiService {
 
         try {
             PurposeDTO dto = purposesService.createPurpose(purposeCreateRequest);
-            URI location = URI.create("purposes/" + dto.getId());
+            URI location = URI.create(PURPOSES_PATH + dto.getId());
             return Response.created(location).entity(dto).build();
         } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e);
         } catch (Exception e) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e);
         }
     }
 
@@ -68,11 +67,11 @@ public class PurposesApiServiceImpl implements PurposesApiService {
         try {
             return purposesService.deletePurpose(purposeId);
         } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e);
         } catch (Exception e) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e);
         }
     }
 
@@ -82,11 +81,11 @@ public class PurposesApiServiceImpl implements PurposesApiService {
         try {
             return purposesService.getPurpose(purposeId);
         } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e);
         } catch (Exception e) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e);
         }
     }
 
@@ -96,11 +95,11 @@ public class PurposesApiServiceImpl implements PurposesApiService {
         try {
             return purposesService.listPurposes(filter, limit, after, before);
         } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e);
         } catch (Exception e) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e);
         }
     }
 
@@ -110,11 +109,11 @@ public class PurposesApiServiceImpl implements PurposesApiService {
         try {
             return purposesService.setLatestVersion(purposeId, setLatestVersionRequest);
         } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e);
         } catch (Exception e) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e);
         }
     }
 
@@ -123,14 +122,14 @@ public class PurposesApiServiceImpl implements PurposesApiService {
 
         try {
             PurposeVersionDTO dto = purposesService.createPurposeVersion(purposeId, purposeVersionCreateRequest);
-            URI location = URI.create("purposes/" + purposeId + "/versions/" + dto.getId());
+            URI location = URI.create(PURPOSES_PATH + purposeId + VERSIONS_PATH + dto.getId());
             return Response.created(location).entity(dto).build();
         } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e);
         } catch (Exception e) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e);
         }
     }
 
@@ -140,11 +139,11 @@ public class PurposesApiServiceImpl implements PurposesApiService {
         try {
             return purposesService.deletePurposeVersion(purposeId, versionId);
         } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e);
         } catch (Exception e) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e);
         }
     }
 
@@ -154,11 +153,11 @@ public class PurposesApiServiceImpl implements PurposesApiService {
         try {
             return purposesService.getPurposeVersion(purposeId, versionId);
         } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e);
         } catch (Exception e) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e);
         }
     }
 
@@ -168,11 +167,11 @@ public class PurposesApiServiceImpl implements PurposesApiService {
         try {
             return purposesService.listPurposeVersions(purposeId, limit, after, before);
         } catch (ConsentManagementClientException e) {
-            return ConsentV2EndpointUtils.handleBadRequestResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleBadRequestResponse(e);
         } catch (ConsentManagementException e) {
-            return ConsentV2EndpointUtils.handleServerErrorResponse(e, LOG);
+            return ConsentV2EndpointUtils.handleServerErrorResponse(e);
         } catch (Exception e) {
-            return ConsentV2EndpointUtils.handleUnexpectedServerError(e, LOG);
+            return ConsentV2EndpointUtils.handleUnexpectedServerError(e);
         }
     }
 }
