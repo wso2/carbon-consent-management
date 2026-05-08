@@ -30,10 +30,6 @@ public class ConsentConstants {
     public static final String STATUS_INTERNAL_SERVER_ERROR_DESCRIPTION_DEFAULT = "The server encountered "
             + "an internal error. Please contact administrator.";
     public static final String STATUS_BAD_REQUEST_MESSAGE_DEFAULT = "Bad Request";
-    public static final String STATUS_NOT_FOUND_MESSAGE_DEFAULT = "Not Found";
-    public static final String STATUS_CONFLICT_MESSAGE_DEFAULT = "Conflict";
-    public static final String STATUS_UNAUTHORIZED_MESSAGE_DEFAULT = "Unauthorized";
-    public static final String STATUS_FORBIDDEN_MESSAGE_DEFAULT = "Forbidden";
     public static final String PURPOSE_SEARCH_LIMIT_PATH = "SearchLimits.Purpose";
     public static final String CONSENT_RESOURCE_PATH = "consents";
     public static final String PURPOSE_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "purposes";
@@ -49,7 +45,6 @@ public class ConsentConstants {
     public static final String APPROVED_STATE = "APPROVED";
     public static final String EXPIRED_STATE = "EXPIRED";
     public static final Integer DEFAULT_LIMIT = 10;
-    public static final Integer DEFAULT_OFFSET = 0;
 
     public static final String PURPOSE = "PURPOSE";
     public static final String PURPOSE_CATEGORY = "PURPOSE_CATEGORY";
@@ -264,9 +259,10 @@ public class ConsentConstants {
                 "Purpose '%s' cannot be deleted: one or more of its versions are associated with active consents."),
         ERROR_CODE_CONSENT_REJECTED_WITH_AUTHORIZATIONS("CM_00117",
                 "Cannot create a rejected consent when authorizations are present."),
-        ERROR_CODE_UNSUPPORTED_FILTER_ATTRIBUTE("CM_40001",
+        ERROR_CODE_INVALID_QUERY_PARAM("CM_00118", "Invalid query parameter: %s. Please provide valid query parameters."),
+        ERROR_CODE_UNSUPPORTED_FILTER_ATTRIBUTE("CM_00119",
                 "Unsupported filter attribute: %s. Supported attributes for this endpoint are documented in the API specification."),
-        ERROR_CODE_INVALID_FILTER_EXPRESSION("CM_40002",
+        ERROR_CODE_INVALID_FILTER_EXPRESSION("CM_00120",
                 "Invalid filter expression: %s. Ensure filter syntax follows the SCIM filter specification (e.g., 'name eq value', 'name sw Data and type eq Policy').");
 
         private final String code;
@@ -309,13 +305,6 @@ public class ConsentConstants {
         // Database column names (SQL level - UPPERCASE)
         public static final String DB_COL_NAME = "NAME";
         public static final String DB_COL_GROUP_TYPE = "GROUP_TYPE";
-
-        // Pagination link relations
-        public static final String LINK_REL_NEXT = "next";
-        public static final String LINK_REL_PREVIOUS = "previous";
-
-        // Pagination query parameter limit
-        public static final String PARAM_LIMIT = "limit";
     }
 
     /**

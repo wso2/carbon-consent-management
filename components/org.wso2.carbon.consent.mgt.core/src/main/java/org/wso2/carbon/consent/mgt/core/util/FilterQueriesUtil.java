@@ -19,7 +19,6 @@
 package org.wso2.carbon.consent.mgt.core.util;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.consent.mgt.core.constant.ConsentConstants;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
@@ -142,22 +141,6 @@ public class FilterQueriesUtil {
 
         queryBuilder.setFilterQuery(filterQuery.toString());
         return queryBuilder;
-    }
-
-    /**
-     * Base64-encodes a string value to use as an opaque cursor.
-     */
-    public static String encodeCursor(String value) {
-
-        return Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
-    }
-
-    /**
-     * Decodes a base64 cursor to its original string value.
-     */
-    public static String decodeCursor(String cursor) {
-
-        return new String(Base64.getDecoder().decode(cursor), StandardCharsets.UTF_8);
     }
 
     private static void collectExpressionNodes(Node node, List<ExpressionNode> expressions) {
