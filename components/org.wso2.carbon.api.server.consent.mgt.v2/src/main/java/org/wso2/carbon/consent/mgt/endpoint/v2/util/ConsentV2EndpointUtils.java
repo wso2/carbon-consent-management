@@ -18,22 +18,19 @@
 
 package org.wso2.carbon.consent.mgt.endpoint.v2.util;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
-import org.slf4j.MDC;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
-import org.wso2.carbon.consent.mgt.endpoint.v2.model.ErrorDTO;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.consent.mgt.endpoint.v2.error.ErrorResponse;
+
+import javax.ws.rs.core.Response;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
-import javax.ws.rs.core.Response;
-
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.CORRELATION_ID_MDC;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_ELEMENT_UUID_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_NO_USER_FOUND;
@@ -71,6 +68,8 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.STATUS_
  * Utility class for the V2 Consent Management REST API.
  */
 public class ConsentV2EndpointUtils {
+
+    private static final Log LOG = LogFactory.getLog(ConsentV2EndpointUtils.class);
 
     private static final Set<String> NOT_FOUND_CODES = new HashSet<>(Arrays.asList(
             ERROR_CODE_PURPOSE_ID_INVALID.getCode(),
@@ -122,28 +121,14 @@ public class ConsentV2EndpointUtils {
     }
 
     /**
-     * Retrieves the correlation ID from MDC for request tracing.
-     * Falls back to a generated UUID if no correlation ID exists.
-     *
-     * @return Correlation ID from MDC or new UUID.
-     */
-    private static String getCorrelationId() {
-
-        String correlationId = MDC.get(CORRELATION_ID_MDC);
-        return StringUtils.isNotBlank(correlationId) ? correlationId : UUID.randomUUID().toString();
-    }
-
-    /**
      * Handles a ConsentManagementClientException and returns an appropriate JAX-RS Response.
      *
-     * @param e   Client exception.
-     * @param log Logger.
+     * @param e Client exception.
      * @return HTTP Response with error body.
      */
-    public static Response handleBadRequestResponse(ConsentManagementClientException e, Log log) {
+    public static Response handleBadRequestResponse(ConsentManagementClientException e) {
 
         String code = e.getErrorCode();
-        String traceId = getCorrelationId();
 
         Response.Status status;
         String defaultMessage;
@@ -165,51 +150,47 @@ public class ConsentV2EndpointUtils {
             defaultMessage = STATUS_BAD_REQUEST_MESSAGE_DEFAULT;
         }
 
-        ErrorDTO errorDTO = buildErrorDTO(code, defaultMessage, e.getMessage(), traceId);
-        return Response.status(status).entity(errorDTO).build();
+        ErrorResponse errorResponse = new ErrorResponse.Builder()
+                .withCode(code)
+                .withMessage(defaultMessage)
+                .withDescription(e.getMessage())
+                .build(LOG, e.getMessage());
+
+        return Response.status(status).entity(errorResponse).build();
     }
 
     /**
      * Handles a ConsentManagementException (server error) and returns a 500 response.
      *
-     * @param e   Server exception.
-     * @param log Logger.
+     * @param e Server exception.
      * @return HTTP 500 Response.
      */
-    public static Response handleServerErrorResponse(ConsentManagementException e, Log log) {
+    public static Response handleServerErrorResponse(ConsentManagementException e) {
 
-        String traceId = getCorrelationId();
-        MDC.put(CORRELATION_ID_MDC, traceId);
-        log.error("Server error: ", e);
-        ErrorDTO errorDTO = buildErrorDTO(e.getErrorCode(), STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT,
-                STATUS_INTERNAL_SERVER_ERROR_DESCRIPTION_DEFAULT, traceId);
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorDTO).build();
+        ErrorResponse errorResponse = new ErrorResponse.Builder()
+                .withCode(e.getErrorCode())
+                .withMessage(STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT)
+                .withDescription(STATUS_INTERNAL_SERVER_ERROR_DESCRIPTION_DEFAULT)
+                .build(LOG, e, e.getMessage());
+
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse).build();
     }
 
     /**
      * Handles an unexpected exception and returns a 500 response.
      *
-     * @param e   Exception.
-     * @param log Logger.
+     * @param e Exception.
      * @return HTTP 500 Response.
      */
-    public static Response handleUnexpectedServerError(Exception e, Log log) {
+    public static Response handleUnexpectedServerError(Exception e) {
 
-        String traceId = getCorrelationId();
-        MDC.put(CORRELATION_ID_MDC, traceId);
-        log.error("Unexpected error: " + e.getMessage(), e);
-        ErrorDTO errorDTO = buildErrorDTO(ERROR_CODE_UNEXPECTED.getCode(), ERROR_CODE_UNEXPECTED.getMessage(),
-                STATUS_INTERNAL_SERVER_ERROR_DESCRIPTION_DEFAULT, traceId);
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorDTO).build();
+        ErrorResponse errorResponse = new ErrorResponse.Builder()
+                .withCode(ERROR_CODE_UNEXPECTED.getCode())
+                .withMessage(ERROR_CODE_UNEXPECTED.getMessage())
+                .withDescription(STATUS_INTERNAL_SERVER_ERROR_DESCRIPTION_DEFAULT)
+                .build(LOG, e, e.getMessage());
+
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse).build();
     }
 
-    private static ErrorDTO buildErrorDTO(String code, String message, String description, String traceId) {
-
-        ErrorDTO errorDTO = new ErrorDTO();
-        errorDTO.setCode(code);
-        errorDTO.setMessage(message);
-        errorDTO.setDescription(description);
-        errorDTO.setTraceId(traceId);
-        return errorDTO;
-    }
 }
