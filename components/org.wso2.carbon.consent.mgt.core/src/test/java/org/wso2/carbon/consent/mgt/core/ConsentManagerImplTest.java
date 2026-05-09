@@ -341,6 +341,7 @@ public class ConsentManagerImplTest {
         Purpose purpose = new Purpose(TEST_PURPOSE_NAME, TEST_PURPOSE_DESCRIPTION, TEST_PURPOSE_GROUP,
                 TEST_PURPOSE_GROUP_TYPE);
         purpose.setTenantId(-1234);
+        purpose.setVersion("initial");
 
         return consentManager.addPurposeWithUuid(purpose);
     }
@@ -362,7 +363,7 @@ public class ConsentManagerImplTest {
         Assert.assertEquals(result.getDescription(), "Version 1 description");
 
         List<PurposeVersion> versions = consentManager.listPurposeVersions(purpose.getUuid());
-        Assert.assertEquals(versions.size(), 1);
+        Assert.assertEquals(versions.size(), 2); // "initial" (from creation) + "v1"
     }
 
     @Test
@@ -383,7 +384,7 @@ public class ConsentManagerImplTest {
         Assert.assertEquals(result.getVersion(), "v2");
 
         List<PurposeVersion> versions = consentManager.listPurposeVersions(purpose.getUuid());
-        Assert.assertEquals(versions.size(), 2);
+        Assert.assertEquals(versions.size(), 3); // "initial" (from creation) + "v1" + "v2"
     }
 
     @Test
@@ -403,7 +404,7 @@ public class ConsentManagerImplTest {
 
         List<PurposeVersion> versions = consentManager.listPurposeVersions(purpose.getUuid());
 
-        Assert.assertEquals(versions.size(), 2);
+        Assert.assertEquals(versions.size(), 3); // "initial" (from creation) + "v1" + "v2"
     }
 
     @Test
@@ -439,8 +440,8 @@ public class ConsentManagerImplTest {
         consentManager.deletePurposeVersion(purpose.getUuid(), added.getUuid());
 
         List<PurposeVersion> versions = consentManager.listPurposeVersions(purpose.getUuid());
-        Assert.assertEquals(versions.size(), 1);
-        Assert.assertEquals(versions.get(0).getVersion(), "v1");
+        Assert.assertEquals(versions.size(), 2); // "initial" (from creation) + "v1" remain
+        Assert.assertTrue(versions.stream().anyMatch(v -> "v1".equals(v.getVersion())));
     }
 
     @Test
@@ -494,14 +495,9 @@ public class ConsentManagerImplTest {
         Purpose purpose = new Purpose("VersionedOnCreate", "Created with first version",
                 "TEST_GROUP", "SYSTEM", Collections.emptyList());
         purpose.setTenantId(-1234);
+        purpose.setVersion("v1.0");
 
-        PurposeVersion firstVersion = new PurposeVersion();
-        firstVersion.setVersion("v1.0");
-        firstVersion.setDescription("Initial version");
-        firstVersion.setTenantId(-1234);
-        firstVersion.setPurposePIICategories(Collections.emptyList());
-
-        Purpose createdPurpose = consentManager.addPurpose(purpose, firstVersion);
+        Purpose createdPurpose = consentManager.addPurposeWithUuid(purpose);
 
         Assert.assertNotNull(createdPurpose);
         Assert.assertEquals(createdPurpose.getName(), "VersionedOnCreate");

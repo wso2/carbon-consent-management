@@ -90,7 +90,6 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.EXPIRED_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_IS_ASSOCIATED;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CAT_NAME_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_COLLECTION_METHOD_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_PRINCIPAL_ID_REQUIRED;
@@ -100,15 +99,12 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CAT_NAME_INVALID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_GROUP_REQUIRED;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_GROUP_TYPE_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_HAS_VERSIONS_WITH_CONSENTS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_MANDATORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_IS_ASSOCIATED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_INVALID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_PII_CONSTRAINT_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_UUID_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_VERSION_LABEL_ALREADY_EXISTS;
@@ -196,8 +192,18 @@ public class ConsentManagerImpl implements ConsentManager {
     public Purpose addPurposeWithUuid(Purpose purpose) throws ConsentManagementException {
 
         validateInputParameters(purpose);
-        Purpose purposeResponse = getPurposeDAO(purposeDAOs).addPurposeWithUuid(purpose);
-        return populatePiiCategoriesWithUuid(purposeResponse);
+        Purpose createdPurpose = getPurposeDAO(purposeDAOs).addPurposeWithUuid(purpose);
+
+        PurposeVersion firstVersion = new PurposeVersion();
+        firstVersion.setVersion(purpose.getVersion());
+        firstVersion.setDescription(purpose.getDescription());
+        firstVersion.setTenantId(purpose.getTenantId());
+        firstVersion.setPurposePIICategories(purpose.getPurposePIICategories());
+        firstVersion.setProperties(purpose.getProperties());
+
+        PurposeVersion createdVersion = addPurposeVersion(createdPurpose.getUuid(), firstVersion, true);
+        createdPurpose.setLatestVersion(createdVersion);
+        return createdPurpose;
     }
 
     /**
@@ -1079,16 +1085,6 @@ public class ConsentManagerImpl implements ConsentManager {
         getPurposeDAO(purposeDAOs).updateLatestVersionId(purposeId, version.getUuid(), tenantId);
     }
 
-    @Override
-    public Purpose addPurpose(Purpose purpose, PurposeVersion firstVersion)
-            throws ConsentManagementException {
-
-        Purpose createdPurpose = addPurposeWithUuid(purpose);
-        PurposeVersion createdVersion = addPurposeVersion(createdPurpose.getUuid(), firstVersion, true);
-        createdPurpose.setLatestVersion(createdVersion);
-        return createdPurpose;
-    }
-
     /**
      * Lists purposes with tree-based filtering and pagination.
      *
@@ -1724,20 +1720,6 @@ public class ConsentManagerImpl implements ConsentManager {
         List<PurposePIICategory> purposePIICategories = new ArrayList<>();
         purposeResponse.getPurposePIICategories().forEach(rethrowConsumer(
                 piiCategory -> purposePIICategories.add(getPurposePIICategory(piiCategory))));
-        purposeResponse.setPurposePIICategories(purposePIICategories);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Purpose created successfully with the name: " + purposeResponse.getName());
-        }
-
-        return purposeResponse;
-    }
-
-    private Purpose populatePiiCategoriesWithUuid(Purpose purposeResponse) {
-
-        List<PurposePIICategory> purposePIICategories = new ArrayList<>();
-        purposeResponse.getPurposePIICategories().forEach(rethrowConsumer(
-                piiCategory -> purposePIICategories.add(getPurposePIICategoryWithUuid(piiCategory))));
         purposeResponse.setPurposePIICategories(purposePIICategories);
 
         if (log.isDebugEnabled()) {

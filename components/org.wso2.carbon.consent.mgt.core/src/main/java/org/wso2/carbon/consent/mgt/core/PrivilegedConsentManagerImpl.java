@@ -1242,46 +1242,6 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
         }
     }
 
-    @Override
-    public Purpose addPurpose(Purpose purpose, PurposeVersion firstVersion)
-            throws ConsentManagementException {
-
-        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
-        List<ConsentManagementListener> listeners =
-                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
-        for (ConsentManagementListener listener : listeners) {
-            if (listener.isEnable()) {
-                listener.preAddPurpose(purpose.getUuid(), purpose.getName(), tenantDomain);
-            }
-        }
-        ConsentEventPublisherProxy.getInstance().publishPreAddPurposeWithException(
-                purpose.getUuid(), purpose.getName(), tenantDomain);
-
-        ConsentMessageContext context = new ConsentMessageContext();
-        ConsentInterceptorTemplate<Purpose, ConsentManagementException>
-                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
-
-        Purpose result = template.intercept(PRE_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
-                .executeWith(new OperationDelegate<Purpose>() {
-                    @Override
-                    public Purpose execute() throws ConsentManagementException {
-
-                        return consentManager.addPurpose(purpose, firstVersion);
-                    }
-                })
-                .intercept(POST_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
-                .getResult();
-
-        ConsentEventPublisherProxy.getInstance().publishPostAddPurpose(
-                result.getUuid(), result.getName(), tenantDomain);
-        for (ConsentManagementListener listener : listeners) {
-            if (listener.isEnable()) {
-                listener.postAddPurpose(result.getUuid(), result.getName(), tenantDomain);
-            }
-        }
-        return result;
-    }
-
     private void populateProperties(int limit, int offset, String piiPrincipalId, String spTenantDomain, String
             service, String state, Map<String, Object> properties) {
 

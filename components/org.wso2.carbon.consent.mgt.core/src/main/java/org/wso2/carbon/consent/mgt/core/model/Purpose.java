@@ -18,6 +18,7 @@ package org.wso2.carbon.consent.mgt.core.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The model representing a purpose of a given consent.
@@ -36,6 +37,8 @@ public class Purpose {
     private String uuid;
     private String latestVersionId;
     private PurposeVersion latestVersion;
+    private String version;
+    private Map<String, String> properties;
 
     public void setId(Integer id) {
 
@@ -234,5 +237,25 @@ public class Purpose {
     public void setLatestVersion(PurposeVersion latestVersion) {
 
         this.latestVersion = latestVersion;
+    }
+
+    public String getVersion() {
+
+        return version;
+    }
+
+    public void setVersion(String version) {
+
+        this.version = version;
+    }
+
+    public Map<String, String> getProperties() {
+
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+
+        this.properties = properties;
     }
 }

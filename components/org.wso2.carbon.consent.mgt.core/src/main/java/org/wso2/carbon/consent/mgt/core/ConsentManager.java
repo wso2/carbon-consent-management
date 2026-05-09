@@ -458,20 +458,6 @@ public interface ConsentManager {
     }
 
     /**
-     * This API is used to create a purpose and its first version atomically.
-     *
-     * @param purpose      Purpose to create.
-     * @param firstVersion First version to associate with the purpose.
-     * @return The created Purpose with latestVersion populated.
-     * @throws ConsentManagementException Consent Management Exception.
-     */
-    default Purpose addPurpose(Purpose purpose, PurposeVersion firstVersion)
-            throws ConsentManagementException {
-
-        return null;
-    }
-
-    /**
      * Authorize or update a consent authorization record (V2 API).
      *
      * @param consentId  Consent receipt ID.
