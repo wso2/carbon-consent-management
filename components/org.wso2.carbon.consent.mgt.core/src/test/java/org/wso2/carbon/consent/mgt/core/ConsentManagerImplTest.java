@@ -501,14 +501,12 @@ public class ConsentManagerImplTest {
         firstVersion.setTenantId(-1234);
         firstVersion.setPurposePIICategories(Collections.emptyList());
 
-        Object[] result = consentManager.addPurpose(purpose, firstVersion);
+        Purpose createdPurpose = consentManager.addPurpose(purpose, firstVersion);
 
-        Assert.assertNotNull(result);
-        Assert.assertEquals(result.length, 2);
-        Purpose createdPurpose = (Purpose) result[0];
-        PurposeVersion createdVersion = (PurposeVersion) result[1];
+        Assert.assertNotNull(createdPurpose);
         Assert.assertEquals(createdPurpose.getName(), "VersionedOnCreate");
-        Assert.assertEquals(createdVersion.getVersion(), "v1.0");
+        Assert.assertNotNull(createdPurpose.getLatestVersion());
+        Assert.assertEquals(createdPurpose.getLatestVersion().getVersion(), "v1.0");
 
         List<PurposeVersion> versions = consentManager.listPurposeVersions(createdPurpose.getUuid());
         Assert.assertEquals(versions.size(), 1);

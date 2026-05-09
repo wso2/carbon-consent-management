@@ -1243,7 +1243,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     }
 
     @Override
-    public Object[] addPurpose(Purpose purpose, PurposeVersion firstVersion)
+    public Purpose addPurpose(Purpose purpose, PurposeVersion firstVersion)
             throws ConsentManagementException {
 
         String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
@@ -1258,13 +1258,13 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 purpose.getUuid(), purpose.getName(), tenantDomain);
 
         ConsentMessageContext context = new ConsentMessageContext();
-        ConsentInterceptorTemplate<Object[], ConsentManagementException>
+        ConsentInterceptorTemplate<Purpose, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
-        Object[] result = template.intercept(PRE_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
-                .executeWith(new OperationDelegate<Object[]>() {
+        Purpose result = template.intercept(PRE_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
+                .executeWith(new OperationDelegate<Purpose>() {
                     @Override
-                    public Object[] execute() throws ConsentManagementException {
+                    public Purpose execute() throws ConsentManagementException {
 
                         return consentManager.addPurpose(purpose, firstVersion);
                     }
@@ -1273,10 +1273,10 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 .getResult();
 
         ConsentEventPublisherProxy.getInstance().publishPostAddPurpose(
-                purpose.getUuid(), purpose.getName(), tenantDomain);
+                result.getUuid(), result.getName(), tenantDomain);
         for (ConsentManagementListener listener : listeners) {
             if (listener.isEnable()) {
-                listener.postAddPurpose(purpose.getUuid(), purpose.getName(), tenantDomain);
+                listener.postAddPurpose(result.getUuid(), result.getName(), tenantDomain);
             }
         }
         return result;

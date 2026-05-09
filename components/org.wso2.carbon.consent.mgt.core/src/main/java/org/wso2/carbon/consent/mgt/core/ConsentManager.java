@@ -462,10 +462,10 @@ public interface ConsentManager {
      *
      * @param purpose      Purpose to create.
      * @param firstVersion First version to associate with the purpose.
-     * @return Array where [0] is the created Purpose and [1] is the created PurposeVersion.
+     * @return The created Purpose with latestVersion populated.
      * @throws ConsentManagementException Consent Management Exception.
      */
-    default Object[] addPurpose(Purpose purpose, PurposeVersion firstVersion)
+    default Purpose addPurpose(Purpose purpose, PurposeVersion firstVersion)
             throws ConsentManagementException {
 
         return null;

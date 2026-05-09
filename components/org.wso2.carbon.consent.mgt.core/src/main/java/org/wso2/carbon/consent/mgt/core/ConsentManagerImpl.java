@@ -1080,14 +1080,13 @@ public class ConsentManagerImpl implements ConsentManager {
     }
 
     @Override
-    public Object[] addPurpose(Purpose purpose, PurposeVersion firstVersion)
+    public Purpose addPurpose(Purpose purpose, PurposeVersion firstVersion)
             throws ConsentManagementException {
 
         Purpose createdPurpose = addPurposeWithUuid(purpose);
-
         PurposeVersion createdVersion = addPurposeVersion(createdPurpose.getUuid(), firstVersion, true);
         createdPurpose.setLatestVersion(createdVersion);
-        return new Object[]{createdPurpose, createdVersion};
+        return createdPurpose;
     }
 
     /**
