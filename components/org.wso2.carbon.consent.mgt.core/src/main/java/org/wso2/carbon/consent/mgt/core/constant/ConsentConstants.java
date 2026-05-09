@@ -263,7 +263,8 @@ public class ConsentConstants {
         ERROR_CODE_UNSUPPORTED_FILTER_ATTRIBUTE("CM_00119",
                 "Unsupported filter attribute: %s. Supported attributes for this endpoint are documented in the API specification."),
         ERROR_CODE_INVALID_FILTER_EXPRESSION("CM_00120",
-                "Invalid filter expression: %s. Ensure filter syntax follows the SCIM filter specification (e.g., 'name eq value', 'name sw Data and type eq Policy').");
+                "Invalid filter expression: %s. Ensure filter syntax follows the SCIM filter specification (e.g., 'name eq value', 'name sw Data and type eq Policy')."),
+        ERROR_CODE_EVENT_PUBLISHING("CM_00121", "Error while publishing event: %s");
 
         private final String code;
         private final String message;

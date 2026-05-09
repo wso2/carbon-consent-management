@@ -42,9 +42,12 @@ import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeCategoryDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.ReceiptDAOImpl;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementRuntimeException;
+import org.wso2.carbon.consent.mgt.core.listener.ConsentManagementAuditLogger;
+import org.wso2.carbon.consent.mgt.core.listener.ConsentManagementListener;
 import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.consent.mgt.core.util.ConsentDBInitializer;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
@@ -110,6 +113,8 @@ public class ConsentManagerComponent {
                     (configHolder, consentMgtInterceptors), null);
             bundleContext.registerService(PrivilegedConsentManager.class.getName(),
                     new PrivilegedConsentManagerImpl(configHolder, consentMgtInterceptors), null);
+            bundleContext.registerService(ConsentManagementListener.class.getName(),
+                    new ConsentManagementAuditLogger(), null);
             log.debug("ConsentManagerComponent is activated.");
         } catch (Throwable e) {
             log.error("Error while activating ConsentManagerComponent.", e);
@@ -300,6 +305,52 @@ public class ConsentManagerComponent {
             log.debug("Consent Management Interceptor is unregistered in ConsentManager service.");
         }
         consentMgtInterceptors.remove(interceptor);
+    }
+
+    @Reference(
+            name = "consent.management.listener",
+            service = ConsentManagementListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetConsentManagementListener"
+    )
+    protected void setConsentManagementListener(ConsentManagementListener listener) {
+
+        ConsentManagerComponentDataHolder.getInstance().addConsentManagementListener(listener);
+        if (log.isDebugEnabled()) {
+            log.debug("ConsentManagementListener is registered: " + listener.getClass().getName());
+        }
+    }
+
+    protected void unsetConsentManagementListener(ConsentManagementListener listener) {
+
+        ConsentManagerComponentDataHolder.getInstance().removeConsentManagementListener(listener);
+        if (log.isDebugEnabled()) {
+            log.debug("ConsentManagementListener is unregistered: " + listener.getClass().getName());
+        }
+    }
+
+    @Reference(
+            name = "identity.event.service",
+            service = IdentityEventService.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdentityEventService"
+    )
+    protected void setIdentityEventService(IdentityEventService identityEventService) {
+
+        ConsentManagerComponentDataHolder.getInstance().setIdentityEventService(identityEventService);
+        if (log.isDebugEnabled()) {
+            log.debug("IdentityEventService is registered in ConsentManager service.");
+        }
+    }
+
+    protected void unsetIdentityEventService(IdentityEventService identityEventService) {
+
+        ConsentManagerComponentDataHolder.getInstance().setIdentityEventService(null);
+        if (log.isDebugEnabled()) {
+            log.debug("IdentityEventService is unregistered in ConsentManager service.");
+        }
     }
 
     private DataSource initDataSource(ConsentConfigParser configParser) {

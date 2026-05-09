@@ -33,6 +33,9 @@ import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
+import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
+import org.wso2.carbon.consent.mgt.core.listener.ConsentManagementListener;
+import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.util.List;
@@ -163,11 +166,22 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
 
     public Purpose addPurpose(Purpose purpose) throws ConsentManagementException {
 
+        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+        List<ConsentManagementListener> listeners =
+                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.preAddPurpose(purpose.getUuid(), purpose.getName(), tenantDomain);
+            }
+        }
+        ConsentEventPublisherProxy.getInstance().publishPreAddPurposeWithException(
+                purpose.getUuid(), purpose.getName(), tenantDomain);
+
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Purpose, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
-        return template.intercept(PRE_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
+        Purpose result = template.intercept(PRE_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
                 .executeWith(new OperationDelegate<Purpose>() {
                     @Override
                     public Purpose execute() throws ConsentManagementException {
@@ -177,16 +191,36 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 })
                 .intercept(POST_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
                 .getResult();
+
+        ConsentEventPublisherProxy.getInstance().publishPostAddPurpose(
+                result.getUuid(), result.getName(), tenantDomain);
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.postAddPurpose(result.getUuid(), result.getName(), tenantDomain);
+            }
+        }
+        return result;
     }
 
     @Override
     public Purpose addPurposeWithUuid(Purpose purpose) throws ConsentManagementException {
 
+        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+        List<ConsentManagementListener> listeners =
+                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.preAddPurpose(purpose.getUuid(), purpose.getName(), tenantDomain);
+            }
+        }
+        ConsentEventPublisherProxy.getInstance().publishPreAddPurposeWithException(
+                purpose.getUuid(), purpose.getName(), tenantDomain);
+
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Purpose, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
-        return template.intercept(PRE_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
+        Purpose result = template.intercept(PRE_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
                 .executeWith(new OperationDelegate<Purpose>() {
                     @Override
                     public Purpose execute() throws ConsentManagementException {
@@ -196,6 +230,15 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 })
                 .intercept(POST_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
                 .getResult();
+
+        ConsentEventPublisherProxy.getInstance().publishPostAddPurpose(
+                result.getUuid(), result.getName(), tenantDomain);
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.postAddPurpose(result.getUuid(), result.getName(), tenantDomain);
+            }
+        }
+        return result;
     }
 
     public Purpose getPurpose(int purposeId) throws ConsentManagementException {
@@ -291,6 +334,17 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
 
     public void deletePurpose(int purposeId) throws ConsentManagementException {
 
+        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+        String purposeIdStr = String.valueOf(purposeId);
+        List<ConsentManagementListener> listeners =
+                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.preDeletePurpose(purposeIdStr, tenantDomain);
+            }
+        }
+        ConsentEventPublisherProxy.getInstance().publishPreDeletePurposeWithException(purposeIdStr, tenantDomain);
+
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Void, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
@@ -305,10 +359,27 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     }
                 })
                 .intercept(POST_DELETE_PURPOSE, properties -> properties.put(PURPOSE_ID, purposeId));
+
+        ConsentEventPublisherProxy.getInstance().publishPostDeletePurpose(purposeIdStr, tenantDomain);
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.postDeletePurpose(purposeIdStr, tenantDomain);
+            }
+        }
     }
 
     @Override
     public void deletePurpose(String uuid) throws ConsentManagementException {
+
+        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+        List<ConsentManagementListener> listeners =
+                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.preDeletePurpose(uuid, tenantDomain);
+            }
+        }
+        ConsentEventPublisherProxy.getInstance().publishPreDeletePurposeWithException(uuid, tenantDomain);
 
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Void, ConsentManagementException>
@@ -324,6 +395,13 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     }
                 })
                 .intercept(POST_DELETE_PURPOSE, properties -> properties.put(PURPOSE_UUID, uuid));
+
+        ConsentEventPublisherProxy.getInstance().publishPostDeletePurpose(uuid, tenantDomain);
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.postDeletePurpose(uuid, tenantDomain);
+            }
+        }
     }
 
     /**
@@ -719,11 +797,22 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
 
     public AddReceiptResponse addConsent(ReceiptInput receiptInput) throws ConsentManagementException {
 
+        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+        List<ConsentManagementListener> listeners =
+                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.preAddConsent(receiptInput, tenantDomain);
+            }
+        }
+        ConsentEventPublisherProxy.getInstance().publishPreAddConsentWithException(receiptInput, tenantDomain);
+
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<AddReceiptResponse, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
-        return template.intercept(PRE_ADD_RECEIPT, properties -> properties.put(RECEIPT_INPUT, receiptInput))
+        AddReceiptResponse result = template
+                .intercept(PRE_ADD_RECEIPT, properties -> properties.put(RECEIPT_INPUT, receiptInput))
                 .executeWith(new OperationDelegate<AddReceiptResponse>() {
                     @Override
                     public AddReceiptResponse execute() throws ConsentManagementException {
@@ -733,6 +822,14 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 })
                 .intercept(POST_ADD_RECEIPT, properties -> properties.put(RECEIPT_INPUT, receiptInput))
                 .getResult();
+
+        ConsentEventPublisherProxy.getInstance().publishPostAddConsent(receiptInput, tenantDomain);
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.postAddConsent(receiptInput, tenantDomain);
+            }
+        }
+        return result;
     }
 
     public Receipt getReceipt(String receiptId) throws ConsentManagementException {
@@ -813,6 +910,16 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
 
     public void revokeReceipt(String receiptId) throws ConsentManagementException {
 
+        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+        List<ConsentManagementListener> listeners =
+                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.preRevokeConsent(receiptId, tenantDomain);
+            }
+        }
+        ConsentEventPublisherProxy.getInstance().publishPreRevokeConsentWithException(receiptId, tenantDomain);
+
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Void, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
@@ -827,9 +934,26 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     }
                 })
                 .intercept(POST_REVOKE_RECEIPT, properties -> properties.put(RECEIPT_ID, receiptId));
+
+        ConsentEventPublisherProxy.getInstance().publishPostRevokeConsent(receiptId, tenantDomain);
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.postRevokeConsent(receiptId, tenantDomain);
+            }
+        }
     }
 
     public void deleteReceipt(String receiptId) throws ConsentManagementException {
+
+        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+        List<ConsentManagementListener> listeners =
+                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.preDeleteConsent(receiptId, tenantDomain);
+            }
+        }
+        ConsentEventPublisherProxy.getInstance().publishPreDeleteConsentWithException(receiptId, tenantDomain);
 
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Void, ConsentManagementException>
@@ -845,6 +969,13 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     }
                 })
                 .intercept(POST_DELETE_RECEIPT, properties -> properties.put(RECEIPT_ID, receiptId));
+
+        ConsentEventPublisherProxy.getInstance().publishPostDeleteConsent(receiptId, tenantDomain);
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.postDeleteConsent(receiptId, tenantDomain);
+            }
+        }
     }
 
     /**
@@ -936,6 +1067,17 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     @Override
     public void deletePurposeVersion(String purposeUuid, String versionUuid) throws ConsentManagementException {
 
+        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+        List<ConsentManagementListener> listeners =
+                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.preDeletePurposeVersion(purposeUuid, versionUuid, tenantDomain);
+            }
+        }
+        ConsentEventPublisherProxy.getInstance().publishPreDeletePurposeVersionWithException(
+                purposeUuid, versionUuid, tenantDomain);
+
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Void, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
@@ -956,17 +1098,36 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     properties.put(PURPOSE_ID, purposeUuid);
                     properties.put(VERSION_ID, versionUuid);
                 });
+
+        ConsentEventPublisherProxy.getInstance().publishPostDeletePurposeVersion(
+                purposeUuid, versionUuid, tenantDomain);
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.postDeletePurposeVersion(purposeUuid, versionUuid, tenantDomain);
+            }
+        }
     }
 
     @Override
     public PurposeVersion addPurposeVersion(String purposeUuid, PurposeVersion purposeVersion, boolean setAsLatest)
             throws ConsentManagementException {
 
+        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+        List<ConsentManagementListener> listeners =
+                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.preAddPurposeVersion(purposeUuid, purposeVersion, tenantDomain);
+            }
+        }
+        ConsentEventPublisherProxy.getInstance().publishPreAddPurposeVersionWithException(
+                purposeUuid, purposeVersion, tenantDomain);
+
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<PurposeVersion, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
-        return template.intercept(PRE_ADD_PURPOSE_VERSION, properties -> {
+        PurposeVersion result = template.intercept(PRE_ADD_PURPOSE_VERSION, properties -> {
                     properties.put(PURPOSE_ID, purposeUuid);
                     properties.put("PURPOSE_VERSION", purposeVersion);
                 })
@@ -982,6 +1143,14 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     properties.put("PURPOSE_VERSION", purposeVersion);
                 })
                 .getResult();
+
+        ConsentEventPublisherProxy.getInstance().publishPostAddPurposeVersion(purposeUuid, result, tenantDomain);
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.postAddPurposeVersion(purposeUuid, result, tenantDomain);
+            }
+        }
+        return result;
     }
 
     @Override
@@ -1032,6 +1201,17 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     @Override
     public void setLatestPurposeVersion(int purposeId, String versionLabel) throws ConsentManagementException {
 
+        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+        List<ConsentManagementListener> listeners =
+                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.preSetLatestPurposeVersion(purposeId, versionLabel, tenantDomain);
+            }
+        }
+        ConsentEventPublisherProxy.getInstance().publishPreSetLatestPurposeVersionWithException(
+                purposeId, versionLabel, tenantDomain);
+
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Void, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
@@ -1052,17 +1232,36 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     properties.put(PURPOSE_ID, purposeId);
                     properties.put(PURPOSE_VERSION_LABEL, versionLabel);
                 });
+
+        ConsentEventPublisherProxy.getInstance().publishPostSetLatestPurposeVersion(
+                purposeId, versionLabel, tenantDomain);
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.postSetLatestPurposeVersion(purposeId, versionLabel, tenantDomain);
+            }
+        }
     }
 
     @Override
     public Object[] addPurpose(Purpose purpose, PurposeVersion firstVersion)
             throws ConsentManagementException {
 
+        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+        List<ConsentManagementListener> listeners =
+                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.preAddPurpose(purpose.getUuid(), purpose.getName(), tenantDomain);
+            }
+        }
+        ConsentEventPublisherProxy.getInstance().publishPreAddPurposeWithException(
+                purpose.getUuid(), purpose.getName(), tenantDomain);
+
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Object[], ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
-        return template.intercept(PRE_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
+        Object[] result = template.intercept(PRE_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
                 .executeWith(new OperationDelegate<Object[]>() {
                     @Override
                     public Object[] execute() throws ConsentManagementException {
@@ -1072,6 +1271,15 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 })
                 .intercept(POST_ADD_PURPOSE, properties -> properties.put(PURPOSE, purpose))
                 .getResult();
+
+        ConsentEventPublisherProxy.getInstance().publishPostAddPurpose(
+                purpose.getUuid(), purpose.getName(), tenantDomain);
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.postAddPurpose(purpose.getUuid(), purpose.getName(), tenantDomain);
+            }
+        }
+        return result;
     }
 
     private void populateProperties(int limit, int offset, String piiPrincipalId, String spTenantDomain, String
@@ -1097,17 +1305,20 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
         properties.put(PRINCIPAL_TENANT_DOMAIN, principalTenantDomain);
     }
 
-    /**
-     * Updates authorization status for a user on a consent.
-     *
-     * @param consentId  Consent receipt ID.
-     * @param userId     User ID for authorization.
-     * @param authStatus Authorization status (APPROVED, REJECTED, or REVOKED).
-     * @throws ConsentManagementException if authorization fails.
-     */
     @Override
     public void authorizeConsent(String consentId, String userId, String authStatus)
             throws ConsentManagementException {
+
+        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+        List<ConsentManagementListener> listeners =
+                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.preAuthorizeConsent(consentId, userId, authStatus, tenantDomain);
+            }
+        }
+        ConsentEventPublisherProxy.getInstance().publishPreAuthorizeConsentWithException(
+                consentId, userId, authStatus, tenantDomain);
 
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Void, ConsentManagementException>
@@ -1131,15 +1342,16 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     properties.put("USER_ID", userId);
                     properties.put("AUTH_STATUS", authStatus);
                 });
+
+        ConsentEventPublisherProxy.getInstance().publishPostAuthorizeConsent(
+                consentId, userId, authStatus, tenantDomain);
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.postAuthorizeConsent(consentId, userId, authStatus, tenantDomain);
+            }
+        }
     }
 
-    /**
-     * Retrieves authorization records for a consent.
-     *
-     * @param consentId Consent receipt ID.
-     * @return List of authorization records.
-     * @throws ConsentManagementException if retrieval fails.
-     */
     @Override
     public List<ConsentAuthorization> getConsentAuthorizations(String consentId)
             throws ConsentManagementException {
@@ -1147,13 +1359,6 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
         return consentManager.getConsentAuthorizations(consentId);
     }
 
-    /**
-     * Validates and updates consent status based on validity time.
-     *
-     * @param consentId Consent receipt ID.
-     * @return Current consent status (PENDING, ACTIVE, REJECTED, REVOKED, or EXPIRED).
-     * @throws ConsentManagementException if validation fails.
-     */
     @Override
     public String validateConsentStatus(String consentId)
             throws ConsentManagementException {
@@ -1174,15 +1379,6 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 .getResult();
     }
 
-    /**
-     * Lists purposes matching a filter tree.
-     *
-     * @param filterTree Filter tree for advanced filtering
-     * @param limit      Maximum number of results
-     * @param offset     Pagination offset
-     * @return List of purposes matching the filter
-     * @throws ConsentManagementException if listing fails
-     */
     @Override
     public List<Purpose> listPurposes(List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
@@ -1207,15 +1403,6 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 .getResult();
     }
 
-    /**
-     * Lists PII categories matching a filter tree.
-     *
-     * @param filterTree Filter tree for advanced filtering
-     * @param limit      Maximum number of results
-     * @param offset     Pagination offset
-     * @return List of PII categories matching the filter
-     * @throws ConsentManagementException if listing fails
-     */
     @Override
     public List<PIICategory> listPIICategories(List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
@@ -1240,14 +1427,6 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 .getResult();
     }
 
-    /**
-     * Lists receipts (consents) matching a filter tree.
-     *
-     * @param limit  Maximum number of results
-     * @param offset Pagination offset
-     * @return List of receipts matching the filter
-     * @throws ConsentManagementException if listing fails
-     */
     @Override
     public List<Receipt> listReceipts(String subjectId, String serviceId, String state, String purposeId,
                                       String purposeVersionId, String after, String before, int limit)

@@ -1655,32 +1655,11 @@ public class ConsentManagerImpl implements ConsentManager {
 
     private void validateInputParameters(Purpose purpose) throws ConsentManagementException {
 
-        if (isBlank(purpose.getName())) {
-            if (log.isDebugEnabled()) {
-                log.debug("Purpose name cannot be empty");
-            }
-            throw handleClientException(ERROR_CODE_PURPOSE_NAME_REQUIRED, null);
-        }
-
         if (isPurposeExists(purpose.getName(), purpose.getGroup(), purpose.getGroupType())) {
             if (log.isDebugEnabled()) {
                 log.debug("A purpose already exists with name: " + purpose.getName());
             }
             throw handleClientException(ERROR_CODE_PURPOSE_ALREADY_EXIST, purpose.getName());
-        }
-
-        if (isBlank(purpose.getGroup())) {
-            if (log.isDebugEnabled()) {
-                log.debug("Purpose group is empty for: " + purpose.getName());
-            }
-            throw handleClientException(ERROR_CODE_PURPOSE_GROUP_REQUIRED, null);
-        }
-
-        if (isBlank(purpose.getGroupType())) {
-            if (log.isDebugEnabled()) {
-                log.debug("Purpose group type is empty for: " + purpose.getName());
-            }
-            throw handleClientException(ERROR_CODE_PURPOSE_GROUP_TYPE_REQUIRED, null);
         }
 
         // Set authenticated user's tenant id if it is not set.
@@ -1709,13 +1688,6 @@ public class ConsentManagerImpl implements ConsentManager {
     }
 
     private void validateInputParameters(PIICategory piiCategory) throws ConsentManagementException {
-
-        if (isBlank(piiCategory.getName())) {
-            if (log.isDebugEnabled()) {
-                log.debug("PII Category name cannot be empty");
-            }
-            throw handleClientException(ERROR_CODE_PII_CATEGORY_NAME_REQUIRED, null);
-        }
 
         if (isPIICategoryExists(piiCategory.getName())) {
             if (log.isDebugEnabled()) {
