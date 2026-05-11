@@ -1121,7 +1121,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
             }
         }
         ConsentEventPublisherProxy.getInstance().publishPreAddPurposeVersionWithException(
-                purposeUuid, purposeVersion, tenantDomain);
+                purposeUuid, purposeVersion, setAsLatest, tenantDomain);
 
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<PurposeVersion, ConsentManagementException>
@@ -1144,7 +1144,8 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 })
                 .getResult();
 
-        ConsentEventPublisherProxy.getInstance().publishPostAddPurposeVersion(purposeUuid, result, tenantDomain);
+        ConsentEventPublisherProxy.getInstance().publishPostAddPurposeVersion(purposeUuid, result, setAsLatest,
+                tenantDomain);
         for (ConsentManagementListener listener : listeners) {
             if (listener.isEnable()) {
                 listener.postAddPurposeVersion(purposeUuid, result, tenantDomain);

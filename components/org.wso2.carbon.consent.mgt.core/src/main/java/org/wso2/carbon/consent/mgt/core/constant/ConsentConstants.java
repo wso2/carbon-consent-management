@@ -72,6 +72,9 @@ public class ConsentConstants {
     public static final String GROUP = "GROUP";
     public static final String GROUP_TYPE = "GROUP_TYPE";
     public static final String PURPOSE_VERSION_LABEL = "PURPOSE_VERSION_LABEL";
+    public static final String PURPOSE_VERSION = "PURPOSE_VERSION";
+    public static final String AUTHZ_STATUS = "AUTHZ_STATUS";
+    public static final String SET_AS_LATEST = "SET_AS_LATEST";
 
     public static final String MY_SQL = "MySQL";
     public static final String MARIADB = "MariaDB";
