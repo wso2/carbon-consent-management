@@ -23,6 +23,7 @@ public class ConsentPurpose {
 
     private String purpose;
     private int purposeId;
+    private String uuid;
     private String purposeDescription;
     private List<String> purposeCategory;
     private String consentType;
@@ -32,6 +33,7 @@ public class ConsentPurpose {
     private boolean thirdPartyDisclosure;
     private String thirdPartyName;
     private int serviceToPurposeId;
+    private String purposeVersionId;
 
     public String getPurpose() {
 
@@ -136,6 +138,16 @@ public class ConsentPurpose {
         this.purposeId = purposeId;
     }
 
+    public String getUuid() {
+
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+
+        this.uuid = uuid;
+    }
+
     public String getPurposeDescription() {
 
         return purposeDescription;
@@ -144,5 +156,15 @@ public class ConsentPurpose {
     public void setPurposeDescription(String purposeDescription) {
 
         this.purposeDescription = purposeDescription;
+    }
+
+    public String getPurposeVersionId() {
+
+        return purposeVersionId;
+    }
+
+    public void setPurposeVersionId(String purposeVersionId) {
+
+        this.purposeVersionId = purposeVersionId;
     }
 }

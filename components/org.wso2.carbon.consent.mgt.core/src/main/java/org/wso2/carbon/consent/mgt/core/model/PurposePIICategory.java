@@ -26,7 +26,7 @@ public class PurposePIICategory extends PIICategory {
     public PurposePIICategory(PIICategory piiCategory, Boolean mandatory) {
 
         super(piiCategory.getId(), piiCategory.getName(), piiCategory.getDescription(), piiCategory.getSensitive(),
-              piiCategory.getTenantId(), piiCategory.getDisplayName());
+              piiCategory.getTenantId(), piiCategory.getDisplayName(), piiCategory.getUuid());
         this.mandatory = mandatory;
     }
 

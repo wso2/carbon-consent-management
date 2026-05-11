@@ -16,6 +16,13 @@
 
 package org.wso2.carbon.consent.mgt.core.internal;
 
+import org.wso2.carbon.consent.mgt.core.listener.ConsentManagementListener;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import javax.sql.DataSource;
 
 /**
@@ -25,6 +32,8 @@ public class ConsentManagerComponentDataHolder {
 
     private static ConsentManagerComponentDataHolder instance = new ConsentManagerComponentDataHolder();
     private DataSource dataSource;
+    private IdentityEventService identityEventService;
+    private List<ConsentManagementListener> consentManagementListeners = new ArrayList<>();
 
     public static ConsentManagerComponentDataHolder getInstance() {
 
@@ -39,5 +48,31 @@ public class ConsentManagerComponentDataHolder {
     public void setDataSource(DataSource dataSource) {
 
         this.dataSource = dataSource;
+    }
+
+    public IdentityEventService getIdentityEventService() {
+
+        return identityEventService;
+    }
+
+    public void setIdentityEventService(IdentityEventService identityEventService) {
+
+        this.identityEventService = identityEventService;
+    }
+
+    public List<ConsentManagementListener> getConsentManagementListeners() {
+
+        return Collections.unmodifiableList(consentManagementListeners);
+    }
+
+    public void addConsentManagementListener(ConsentManagementListener listener) {
+
+        consentManagementListeners.add(listener);
+        consentManagementListeners.sort(Comparator.comparingInt(ConsentManagementListener::getDefaultOrderId));
+    }
+
+    public void removeConsentManagementListener(ConsentManagementListener listener) {
+
+        consentManagementListeners.remove(listener);
     }
 }

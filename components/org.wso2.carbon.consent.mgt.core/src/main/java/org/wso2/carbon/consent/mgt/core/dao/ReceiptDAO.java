@@ -17,10 +17,12 @@
 package org.wso2.carbon.consent.mgt.core.dao;
 
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -107,4 +109,66 @@ public interface ReceiptDAO {
      */
     boolean isReceiptExist(String receiptId, String piiPrincipalId, int tenantId) throws ConsentManagementException;
 
+    default void insertConsentAuthorization(ConsentAuthorization authorization)
+            throws ConsentManagementException {
+    }
+
+    default void addReceiptWithAuthorizations(ReceiptInput receiptInput, List<ConsentAuthorization> authorizations)
+            throws ConsentManagementException {
+
+    }
+
+    default List<ConsentAuthorization> getConsentAuthorizations(String consentReceiptId)
+            throws ConsentManagementException {
+
+        return Collections.emptyList();
+    }
+
+    default ConsentAuthorization getConsentAuthorizationByUser(String consentReceiptId, String userId)
+            throws ConsentManagementException {
+
+        return null;
+    }
+
+    default void updateConsentAuthorization(String consentReceiptId, String userId, String status, long updatedTime)
+            throws ConsentManagementException {
+    }
+
+    default void updateReceiptState(String consentReceiptId, String state)
+            throws ConsentManagementException {
+    }
+
+    default String getReceiptState(String consentReceiptId)
+            throws ConsentManagementException {
+
+        return null;
+    }
+
+    default Long getReceiptValidityTime(String consentReceiptId)
+            throws ConsentManagementException {
+
+        return null;
+    }
+
+    /**
+     * Lists receipts using cursor-based pagination (V2 API).
+     * Either {@code after} or {@code before} may be provided; both are base64-encoded
+     * CONSENT_RECEIPT_ID values from a previous page.
+     */
+    default List<Receipt> listReceipts(String subjectId, String serviceId, String state,
+                                       String purposeId, String purposeVersionId,
+                                       String after, String before, int limit, int tenantId)
+            throws ConsentManagementException {
+
+        return Collections.emptyList();
+    }
+
+    /**
+     * Retrieve {@link Receipt} by receipt ID using extended schema (requires UUID/version columns).
+     * Falls back to {@link #getReceipt(String)} for implementations that do not override.
+     */
+    default Receipt getReceiptWithExtendedSchema(String receiptId) throws ConsentManagementException {
+
+        return getReceipt(receiptId);
+    }
 }

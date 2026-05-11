@@ -27,6 +27,7 @@
             <class name="org.wso2.carbon.consent.mgt.core.InterceptingConsentManagerTest"/>
             <class name="org.wso2.carbon.consent.mgt.core.ConsentManagerImplTest"/>
             <class name="org.wso2.carbon.consent.mgt.core.util.ConsentDBInitializerTest"/>
+            <class name="org.wso2.carbon.consent.mgt.core.util.ConsentReceiptUtilsTest"/>
         </classes>
     </test>
 </suite>

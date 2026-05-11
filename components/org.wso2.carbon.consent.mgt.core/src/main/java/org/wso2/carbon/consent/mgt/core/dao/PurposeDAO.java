@@ -19,7 +19,12 @@ package org.wso2.carbon.consent.mgt.core.dao;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.identity.core.model.Node;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -93,6 +98,32 @@ public interface PurposeDAO {
             ConsentManagementException;
 
     /**
+     * Lists purposes using cursor-based pagination with ExpressionNode filter list (V2 API).
+     * Cursor nodes ({@code after}/{@code before}) are expected to be embedded in the list
+     * by the caller via {@code FilterQueriesUtil.getExpressionNodes}.
+     *
+     * @param expressionNodes Filter + cursor nodes (may be empty for no filtering/no cursor)
+     * @param limit           Maximum results (no offset — cursor replaces it)
+     * @param tenantId        Tenant ID
+     * @return List of matching purposes
+     * @throws ConsentManagementException if operation fails
+     */
+    default List<Purpose> listPurposes(List<ExpressionNode> expressionNodes, int limit, int tenantId)
+            throws ConsentManagementException {
+
+        return Collections.emptyList();
+    }
+
+    /**
+     * Add a {@link Purpose} with UUID column (requires extended schema). Falls back to
+     * {@link #addPurpose(Purpose)} for implementations that do not override.
+     */
+    default Purpose addPurposeWithUuid(Purpose purpose) throws ConsentManagementException {
+
+        return addPurpose(purpose);
+    }
+
+    /**
      * Delete {@link Purpose} for a given ID.
      *
      * @param id ID of the {@link Purpose} to be deleted.
@@ -100,6 +131,16 @@ public interface PurposeDAO {
      * @throws ConsentManagementException If error occurs while deleting the {@link Purpose}
      */
     int deletePurpose(int id) throws ConsentManagementException;
+
+    /**
+     * Delete a {@link Purpose} and all of its versions in a single transaction.
+     *
+     * @param purposeId DB ID of the {@link Purpose} to be deleted.
+     * @throws ConsentManagementException If error occurs while deleting.
+     */
+    default void deletePurposeWithVersions(int purposeId) throws ConsentManagementException {
+
+    }
 
     /**
      * Delete all {@link Purpose} of a given tenant id.
@@ -118,5 +159,106 @@ public interface PurposeDAO {
      * @return
      */
     boolean isPurposeUsed(int id) throws ConsentManagementServerException;
+
+    /**
+     * Check whether a {@link PurposeVersion} is used in any receipt.
+     *
+     * @param versionUuid UUID of the {@link PurposeVersion} to be validated
+     * @return true if the version is used, false otherwise
+     */
+    default boolean isPurposeVersionUsed(String versionUuid) throws ConsentManagementServerException {
+
+        return false;
+    }
+
+    /**
+     * Add a new version for a {@link Purpose}.
+     *
+     * @param purposeVersion {@link PurposeVersion} to insert.
+     * @param setAsLatest    Whether to set the new version as the latest version.
+     * @return Inserted {@link PurposeVersion}.
+     * @throws ConsentManagementException If error occurs while adding the {@link PurposeVersion}.
+     */
+    default PurposeVersion addPurposeVersion(PurposeVersion purposeVersion, boolean setAsLatest)
+            throws ConsentManagementException {
+
+        return null;
+    }
+
+    /**
+     * List all versions for a given purpose UUID.
+     *
+     * @param uuid UUID of the {@link Purpose}.
+     * @return List of {@link PurposeVersion} entries.
+     * @throws ConsentManagementException If error occurs while listing {@link PurposeVersion}.
+     */
+    default List<PurposeVersion> listPurposeVersions(String uuid) throws ConsentManagementException {
+
+        return new ArrayList<>();
+    }
+
+    /**
+     * Delete a {@link PurposeVersion} by its UUID.
+     *
+     * @param versionUuid UUID of the {@link PurposeVersion} to delete.
+     * @throws ConsentManagementException If error occurs while deleting the {@link PurposeVersion}.
+     */
+    default void deletePurposeVersion(String versionUuid) throws ConsentManagementException {
+
+    }
+
+    /**
+     * Retrieve a {@link Purpose} by its UUID.
+     *
+     * @param uuid     UUID of the {@link Purpose}.
+     * @param tenantId Tenant ID.
+     * @return Purpose for the given UUID, or {@code null} if not found.
+     * @throws ConsentManagementException If error occurs while retrieving the {@link Purpose}.
+     */
+    default Purpose getPurposeByUuid(String uuid, int tenantId) throws ConsentManagementException {
+
+        return null;
+    }
+
+    /**
+     * Retrieve a {@link PurposeVersion} by its UUID.
+     *
+     * @param uuid UUID of the {@link PurposeVersion}.
+     * @return PurposeVersion for the given UUID, or {@code null} if not found.
+     * @throws ConsentManagementException If error occurs.
+     */
+    default PurposeVersion getPurposeVersionByUuid(String uuid) throws ConsentManagementException {
+
+        return null;
+    }
+
+    /**
+     * Retrieve a {@link PurposeVersion} by purpose UUID and version label string.
+     *
+     * @param purposeUUID UUID of the purpose.
+     * @param version     Version label string.
+     * @param tenantId    Tenant ID.
+     * @return PurposeVersion, or {@code null} if not found.
+     * @throws ConsentManagementException If error occurs.
+     */
+    default PurposeVersion getPurposeVersionByLabel(String purposeUUID, String version, int tenantId)
+            throws ConsentManagementException {
+
+        return null;
+    }
+
+    /**
+     * Atomically syncs a purpose's PII category associations to match those of the given version,
+     * and updates the purpose's LATEST_VERSION_ID.
+     *
+     * @param purposeId   DB ID of the purpose.
+     * @param versionUuid UUID of the version to set as latest.
+     * @param tenantId    Tenant ID.
+     * @throws ConsentManagementException If error occurs.
+     */
+    default void updateLatestVersionId(int purposeId, String versionUuid, int tenantId)
+            throws ConsentManagementException {
+
+    }
 
 }

@@ -16,6 +16,9 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
+/**
+ * Represents a PII (Personally Identifiable Information) category. Referred to as "Element" in the V2 API.
+ */
 public class PIICategory {
 
     private Integer id;
@@ -26,6 +29,7 @@ public class PIICategory {
 
     private int tenantId;
     private String tenantDomain;
+    private String uuid;
 
     public PIICategory(Integer id) {
 
@@ -40,6 +44,12 @@ public class PIICategory {
         this.sensitive = sensitive;
         this.tenantId = tenantId;
         this.displayName = displayName;
+    }
+
+    public PIICategory(Integer id, String name, String description, Boolean sensitive, int tenantId, String displayName, String uuid) {
+
+        this(id, name, description, sensitive, tenantId, displayName);
+        this.uuid = uuid;
     }
 
     public PIICategory(String name, String description, Boolean sensitive, String displayName) {
@@ -117,5 +127,15 @@ public class PIICategory {
     public void setDisplayName(String displayName) {
 
         this.displayName = displayName;
+    }
+
+    public String getUuid() {
+
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+
+        this.uuid = uuid;
     }
 }

@@ -70,13 +70,18 @@ public class TestUtils {
 
     public static void initiateH2Base() throws Exception {
 
+        initiateH2Base(H2_SCRIPT_NAME);
+    }
+
+    public static void initiateH2Base(String schemaFile) throws Exception {
+
         BasicDataSource dataSource = new BasicDataSource();
         dataSource.setDriverClassName("org.h2.Driver");
         dataSource.setUsername("username");
         dataSource.setPassword("password");
         dataSource.setUrl("jdbc:h2:mem:test" + DB_NAME);
         try (Connection connection = dataSource.getConnection()) {
-            connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + getFilePath(H2_SCRIPT_NAME) + "'");
+            connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + getFilePath(schemaFile) + "'");
         }
         dataSourceMap.put(DB_NAME, dataSource);
     }

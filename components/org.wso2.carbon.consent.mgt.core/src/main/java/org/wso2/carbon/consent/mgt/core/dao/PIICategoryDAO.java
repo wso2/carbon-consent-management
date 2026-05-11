@@ -18,7 +18,9 @@ package org.wso2.carbon.consent.mgt.core.dao;
 
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -65,6 +67,21 @@ public interface PIICategoryDAO {
     List<PIICategory> listPIICategories(int limit, int offset, int tenantId) throws ConsentManagementException;
 
     /**
+     * Lists PII categories using cursor-based pagination with ExpressionNode filter list (V2 API).
+     *
+     * @param expressionNodes Filter + cursor nodes
+     * @param limit           Maximum results (no offset)
+     * @param tenantId        Tenant ID
+     * @return List of matching PII categories
+     * @throws ConsentManagementException if operation fails
+     */
+    default List<PIICategory> listPIICategories(List<ExpressionNode> expressionNodes, int limit, int tenantId)
+            throws ConsentManagementException {
+
+        return Collections.emptyList();
+    }
+
+    /**
      * Delete {@link PIICategory} for a given ID.
      *
      * @param id ID of the {@link PIICategory} to be deleted.
@@ -101,4 +118,34 @@ public interface PIICategoryDAO {
      * @return
      */
     boolean isPIICategoryUsed(int id) throws ConsentManagementException;
+
+    /**
+     * Retrieve a {@link PIICategory} by its UUID.
+     *
+     * @param uuid     UUID of the {@link PIICategory}.
+     * @param tenantId Tenant ID.
+     * @return PIICategory for the given UUID, or {@code null} if not found.
+     * @throws ConsentManagementException If error occurs while retrieving the {@link PIICategory}.
+     */
+    default PIICategory getPIICategoryByUuid(String uuid, int tenantId) throws ConsentManagementException {
+
+        return null;
+    }
+
+    /**
+     * Add a {@link PIICategory} with UUID column (requires extended schema). Falls back to
+     * {@link #addPIICategory(PIICategory)} for implementations that do not override.
+     */
+    default PIICategory addPIICategoryWithUuid(PIICategory piiCategory) throws ConsentManagementException {
+
+        return addPIICategory(piiCategory);
+    }
+
+    /**
+     * Retrieve {@link PIICategory} by ID with UUID column (requires extended schema).
+     */
+    default PIICategory getPIICategoryByIdWithUuid(int id) throws ConsentManagementException {
+
+        return getPIICategoryById(id);
+    }
 }

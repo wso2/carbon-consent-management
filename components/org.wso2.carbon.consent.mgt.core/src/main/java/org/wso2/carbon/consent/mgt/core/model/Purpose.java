@@ -18,6 +18,7 @@ package org.wso2.carbon.consent.mgt.core.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The model representing a purpose of a given consent.
@@ -33,6 +34,11 @@ public class Purpose {
     private List<PurposePIICategory> purposePIICategories = new ArrayList<>();
     private int tenantId;
     private String tenantDomain;
+    private String uuid;
+    private String latestVersionId;
+    private PurposeVersion latestVersion;
+    private String version;
+    private Map<String, String> properties;
 
     public void setId(Integer id) {
 
@@ -47,6 +53,12 @@ public class Purpose {
         this.group = group;
         this.groupType = groupType;
         this.tenantId = tenantId;
+    }
+
+    public Purpose(Integer id, String name, String description, String group, String groupType, int tenantId, String uuid) {
+
+        this(id, name, description, group, groupType, tenantId);
+        this.uuid = uuid;
     }
 
     public Purpose(Integer id, String name) {
@@ -85,13 +97,15 @@ public class Purpose {
     public Purpose(Integer id, String name, String description, String group,
                    String groupType, int tenantId, List<PurposePIICategory> purposePIICategories) {
 
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.group = group;
-        this.groupType = groupType;
-        this.tenantId = tenantId;
+        this(id, name, description, group, groupType, tenantId);
         this.purposePIICategories = purposePIICategories;
+    }
+
+    public Purpose(Integer id, String name, String description, String group,
+                   String groupType, int tenantId, List<PurposePIICategory> purposePIICategories, String uuid) {
+
+        this(id, name, description, group, groupType, tenantId, purposePIICategories);
+        this.uuid = uuid;
     }
 
     public Purpose(Integer id, String name, String description, int tenantId) {
@@ -193,5 +207,55 @@ public class Purpose {
     public void setGroupType(String groupType) {
 
         this.groupType = groupType;
+    }
+
+    public String getUuid() {
+
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+
+        this.uuid = uuid;
+    }
+
+    public String getLatestVersionId() {
+
+        return latestVersionId;
+    }
+
+    public void setLatestVersionId(String latestVersionId) {
+
+        this.latestVersionId = latestVersionId;
+    }
+
+    public PurposeVersion getLatestVersion() {
+
+        return latestVersion;
+    }
+
+    public void setLatestVersion(PurposeVersion latestVersion) {
+
+        this.latestVersion = latestVersion;
+    }
+
+    public String getVersion() {
+
+        return version;
+    }
+
+    public void setVersion(String version) {
+
+        this.version = version;
+    }
+
+    public Map<String, String> getProperties() {
+
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+
+        this.properties = properties;
     }
 }

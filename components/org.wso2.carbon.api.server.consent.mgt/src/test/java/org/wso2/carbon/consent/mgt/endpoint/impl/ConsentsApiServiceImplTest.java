@@ -103,11 +103,16 @@ public class ConsentsApiServiceImplTest {
     private MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil;
     private AutoCloseable mockitoCloseable;
 
+    protected String getSchemaFile() {
+
+        return TestUtils.H2_SCRIPT_NAME;
+    }
+
     @BeforeMethod
     public void setUp() throws Exception {
 
         mockitoCloseable = MockitoAnnotations.openMocks(this);
-        initiateH2Base();
+        initiateH2Base(getSchemaFile());
         String carbonHome = Paths.get(System.getProperty("user.dir"), "target", "test-classes").toString();
         System.setProperty(CarbonBaseConstants.CARBON_HOME, carbonHome);
         System.setProperty(CarbonBaseConstants.CARBON_CONFIG_DIR_PATH, Paths.get(carbonHome, "conf").toString());
