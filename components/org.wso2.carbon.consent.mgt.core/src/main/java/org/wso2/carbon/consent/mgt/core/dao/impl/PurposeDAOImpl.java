@@ -504,9 +504,10 @@ public class PurposeDAOImpl implements PurposeDAO {
                     purposePIICategories.forEach(rethrowConsumer(piiCategory -> {
                         try {
                             template.executeInsert(INSERT_PURPOSE_VERSION_PII_CAT_ASSOC_SQL, (preparedStatement -> {
-                                preparedStatement.setString(1, versionUuid);
-                                preparedStatement.setInt(2, piiCategory.getId());
-                                preparedStatement.setInt(3, piiCategory.getMandatory() ? 1 : 0);
+                                preparedStatement.setInt(1, purposeVersion.getTenantId());
+                                preparedStatement.setString(2, versionUuid);
+                                preparedStatement.setInt(3, piiCategory.getId());
+                                preparedStatement.setInt(4, piiCategory.getMandatory() ? 1 : 0);
                             }), piiCategory, false);
                         } catch (DataAccessException e) {
                             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PURPOSE_VERSION,
