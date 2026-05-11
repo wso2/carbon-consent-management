@@ -60,7 +60,6 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
     private static final String DATA_VERSION_LABEL = "versionLabel";
     private static final String DATA_PII_PRINCIPAL_ID = "piiPrincipalId";
     private static final String DATA_STATE = "state";
-    private static final String DATA_SERVICE_COUNT = "serviceCount";
     private static final String DATA_SERVICE_NAMES = "serviceNames";
     private static final String DATA_PURPOSE_NAMES = "purposeNames";
     private static final String DATA_USER_ID = "userId";
@@ -124,7 +123,6 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
         data.put(DATA_PII_PRINCIPAL_ID, LoggerUtils.getMaskedContent(receiptInput.getPiiPrincipalId()));
         data.put(DATA_STATE, receiptInput.getState());
         if (receiptInput.getServices() != null) {
-            data.put(DATA_SERVICE_COUNT, receiptInput.getServices().size());
             JSONArray serviceNames = extractServiceNames(receiptInput);
             if (serviceNames.length() > 0) {
                 data.put(DATA_SERVICE_NAMES, serviceNames);
