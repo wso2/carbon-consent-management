@@ -171,11 +171,11 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
         for (ConsentManagementListener listener : listeners) {
             if (listener.isEnable()) {
-                listener.preAddPurpose(purpose.getUuid(), purpose.getName(), tenantDomain);
+                listener.preAddPurpose(String.valueOf(purpose.getId()), purpose.getName(), tenantDomain);
             }
         }
         ConsentEventPublisherProxy.getInstance().publishPreAddPurposeWithException(
-                purpose.getUuid(), purpose.getName(), tenantDomain);
+                String.valueOf(purpose.getId()), purpose.getName(), tenantDomain);
 
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Purpose, ConsentManagementException>
