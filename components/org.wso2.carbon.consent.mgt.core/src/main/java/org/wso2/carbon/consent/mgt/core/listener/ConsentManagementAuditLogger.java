@@ -81,11 +81,12 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
     @Override
     public void postAddPurpose(Purpose purpose, String tenantDomain) {
 
-        JSONObject data = new JSONObject();
-        if (purpose != null && StringUtils.isNotBlank(purpose.getName())) {
-            data.put(DATA_NAME, purpose.getName());
+        if (purpose == null) {
+            return;
         }
-        String purposeId = purpose != null ? purpose.getUuid() : String.valueOf(purpose.getId());
+        JSONObject data = new JSONObject();
+        data.put(DATA_NAME, purpose.getName());
+        String purposeId = StringUtils.isNotBlank(purpose.getUuid()) ? purpose.getUuid() : String.valueOf(purpose.getId());
         buildAuditLog(purposeId, TARGET_PURPOSE, ACTION_ADD_PURPOSE, data);
     }
 
@@ -98,11 +99,12 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
     @Override
     public void postAddPurposeVersion(String purposeUuid, PurposeVersion purposeVersion, String tenantDomain) {
 
+        if (purposeVersion == null) {
+            return;
+        }
         JSONObject data = new JSONObject();
         data.put(DATA_PURPOSE_ID, purposeUuid);
-        if (purposeVersion != null) {
-            data.put(DATA_VERSION_LABEL, purposeVersion.getVersion());
-        }
+        data.put(DATA_VERSION_LABEL, purposeVersion.getVersion());
         String versionUuid = purposeVersion != null ? purposeVersion.getUuid() : purposeUuid;
         buildAuditLog(versionUuid, TARGET_PURPOSE_VERSION, ACTION_ADD_PURPOSE_VERSION, data);
     }

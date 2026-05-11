@@ -40,7 +40,6 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GROUP;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GROUP_TYPE;
