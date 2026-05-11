@@ -19,6 +19,7 @@
 package org.wso2.carbon.consent.mgt.core.listener;
 
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 
@@ -32,10 +33,10 @@ public interface ConsentManagementListener {
 
     boolean isEnable();
 
-    void preAddPurpose(String purposeUuid, String purposeName, String tenantDomain)
+    void preAddPurpose(Purpose purpose, String tenantDomain)
             throws ConsentManagementException;
 
-    void postAddPurpose(String purposeUuid, String purposeName, String tenantDomain)
+    void postAddPurpose(Purpose purpose, String tenantDomain)
             throws ConsentManagementException;
 
     void preDeletePurpose(String purposeUuid, String tenantDomain)

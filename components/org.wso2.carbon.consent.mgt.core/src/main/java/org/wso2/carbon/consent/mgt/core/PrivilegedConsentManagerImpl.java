@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GROUP;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GROUP_TYPE;
@@ -171,7 +172,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
         for (ConsentManagementListener listener : listeners) {
             if (listener.isEnable()) {
-                listener.preAddPurpose(String.valueOf(purpose.getId()), purpose.getName(), tenantDomain);
+                listener.preAddPurpose(purpose, tenantDomain);
             }
         }
         ConsentEventPublisherProxy.getInstance().publishPreAddPurposeWithException(
@@ -193,10 +194,10 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 .getResult();
 
         ConsentEventPublisherProxy.getInstance().publishPostAddPurpose(
-                result.getUuid(), result.getName(), tenantDomain);
+                String.valueOf(result.getId()), result.getName(), tenantDomain);
         for (ConsentManagementListener listener : listeners) {
             if (listener.isEnable()) {
-                listener.postAddPurpose(result.getUuid(), result.getName(), tenantDomain);
+                listener.postAddPurpose(result, tenantDomain);
             }
         }
         return result;
@@ -210,7 +211,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
         for (ConsentManagementListener listener : listeners) {
             if (listener.isEnable()) {
-                listener.preAddPurpose(purpose.getUuid(), purpose.getName(), tenantDomain);
+                listener.preAddPurpose(purpose, tenantDomain);
             }
         }
         ConsentEventPublisherProxy.getInstance().publishPreAddPurposeWithException(
@@ -235,7 +236,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 result.getUuid(), result.getName(), tenantDomain);
         for (ConsentManagementListener listener : listeners) {
             if (listener.isEnable()) {
-                listener.postAddPurpose(result.getUuid(), result.getName(), tenantDomain);
+                listener.postAddPurpose(result, tenantDomain);
             }
         }
         return result;

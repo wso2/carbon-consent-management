@@ -21,6 +21,7 @@ package org.wso2.carbon.consent.mgt.core.listener;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
@@ -78,13 +79,14 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
     }
 
     @Override
-    public void postAddPurpose(String purposeUuid, String purposeName, String tenantDomain) {
+    public void postAddPurpose(Purpose purpose, String tenantDomain) {
 
         JSONObject data = new JSONObject();
-        if (StringUtils.isNotBlank(purposeName)) {
-            data.put(DATA_NAME, purposeName);
+        if (purpose != null && StringUtils.isNotBlank(purpose.getName())) {
+            data.put(DATA_NAME, purpose.getName());
         }
-        buildAuditLog(purposeUuid, TARGET_PURPOSE, ACTION_ADD_PURPOSE, data);
+        String purposeId = purpose != null ? purpose.getUuid() : String.valueOf(purpose.getId());
+        buildAuditLog(purposeId, TARGET_PURPOSE, ACTION_ADD_PURPOSE, data);
     }
 
     @Override

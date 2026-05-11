@@ -19,6 +19,7 @@
 package org.wso2.carbon.consent.mgt.core.listener;
 
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
@@ -41,13 +42,13 @@ public abstract class AbstractConsentManagementListener implements ConsentManage
     }
 
     @Override
-    public void preAddPurpose(String purposeUuid, String purposeName, String tenantDomain)
+    public void preAddPurpose(Purpose purpose, String tenantDomain)
             throws ConsentManagementException {
 
     }
 
     @Override
-    public void postAddPurpose(String purposeUuid, String purposeName, String tenantDomain)
+    public void postAddPurpose(Purpose purpose, String tenantDomain)
             throws ConsentManagementException {
 
     }
