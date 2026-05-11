@@ -1154,32 +1154,6 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     }
 
     @Override
-    public PurposeVersion getPurposeVersionByLabel(int purposeId, String versionLabel)
-            throws ConsentManagementException {
-
-        ConsentMessageContext context = new ConsentMessageContext();
-        ConsentInterceptorTemplate<PurposeVersion, ConsentManagementException>
-                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
-
-        return template.intercept(PRE_GET_PURPOSE_VERSION, properties -> {
-                    properties.put(PURPOSE_ID, purposeId);
-                    properties.put("PURPOSE_VERSION_LABEL", versionLabel);
-                })
-                .executeWith(new OperationDelegate<PurposeVersion>() {
-                    @Override
-                    public PurposeVersion execute() throws ConsentManagementException {
-
-                        return consentManager.getPurposeVersionByLabel(purposeId, versionLabel);
-                    }
-                })
-                .intercept(POST_GET_PURPOSE_VERSION, properties -> {
-                    properties.put(PURPOSE_ID, purposeId);
-                    properties.put("PURPOSE_VERSION_LABEL", versionLabel);
-                })
-                .getResult();
-    }
-
-    @Override
     public Purpose getPurposeByUuid(String uuid) throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
@@ -1199,45 +1173,45 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     }
 
     @Override
-    public void setLatestPurposeVersion(int purposeId, String versionLabel) throws ConsentManagementException {
+    public void setLatestPurposeVersion(String purposeUUID, String versionLabel) throws ConsentManagementException {
 
         String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
         List<ConsentManagementListener> listeners =
                 ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
         for (ConsentManagementListener listener : listeners) {
             if (listener.isEnable()) {
-                listener.preSetLatestPurposeVersion(purposeId, versionLabel, tenantDomain);
+                listener.preSetLatestPurposeVersion(purposeUUID, versionLabel, tenantDomain);
             }
         }
         ConsentEventPublisherProxy.getInstance().publishPreSetLatestPurposeVersionWithException(
-                purposeId, versionLabel, tenantDomain);
+                purposeUUID, versionLabel, tenantDomain);
 
         ConsentMessageContext context = new ConsentMessageContext();
         ConsentInterceptorTemplate<Void, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
         template.intercept(PRE_SET_LATEST_PURPOSE_VERSION, properties -> {
-                    properties.put(PURPOSE_ID, purposeId);
+                    properties.put(PURPOSE_ID, purposeUUID);
                     properties.put(PURPOSE_VERSION_LABEL, versionLabel);
                 })
                 .executeWith(new OperationDelegate<Void>() {
                     @Override
                     public Void execute() throws ConsentManagementException {
 
-                        consentManager.setLatestPurposeVersion(purposeId, versionLabel);
+                        consentManager.setLatestPurposeVersion(purposeUUID, versionLabel);
                         return null;
                     }
                 })
                 .intercept(POST_SET_LATEST_PURPOSE_VERSION, properties -> {
-                    properties.put(PURPOSE_ID, purposeId);
+                    properties.put(PURPOSE_ID, purposeUUID);
                     properties.put(PURPOSE_VERSION_LABEL, versionLabel);
                 });
 
         ConsentEventPublisherProxy.getInstance().publishPostSetLatestPurposeVersion(
-                purposeId, versionLabel, tenantDomain);
+                purposeUUID, versionLabel, tenantDomain);
         for (ConsentManagementListener listener : listeners) {
             if (listener.isEnable()) {
-                listener.postSetLatestPurposeVersion(purposeId, versionLabel, tenantDomain);
+                listener.postSetLatestPurposeVersion(purposeUUID, versionLabel, tenantDomain);
             }
         }
     }

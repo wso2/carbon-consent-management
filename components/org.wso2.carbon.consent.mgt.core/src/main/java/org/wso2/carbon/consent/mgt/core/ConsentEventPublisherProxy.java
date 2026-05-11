@@ -152,21 +152,21 @@ public class ConsentEventPublisherProxy {
         doPublishEvent(new Event(POST_DELETE_PURPOSE_VERSION, props));
     }
 
-    public void publishPreSetLatestPurposeVersionWithException(int purposeId, String versionLabel,
+    public void publishPreSetLatestPurposeVersionWithException(String purposeUUID, String versionLabel,
                                                                String tenantDomain)
             throws ConsentManagementException {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_ID, purposeId);
+        props.put(PURPOSE_ID, purposeUUID);
         props.put(PURPOSE_VERSION_LABEL, versionLabel);
         props.put(TENANT_DOMAIN, tenantDomain);
         doPublishEventWithException(new Event(PRE_SET_LATEST_PURPOSE_VERSION, props));
     }
 
-    public void publishPostSetLatestPurposeVersion(int purposeId, String versionLabel, String tenantDomain) {
+    public void publishPostSetLatestPurposeVersion(String purposeUUID, String versionLabel, String tenantDomain) {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_ID, purposeId);
+        props.put(PURPOSE_ID, purposeUUID);
         props.put(PURPOSE_VERSION_LABEL, versionLabel);
         props.put(TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_SET_LATEST_PURPOSE_VERSION, props));

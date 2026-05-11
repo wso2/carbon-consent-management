@@ -1052,30 +1052,18 @@ public class ConsentManagerImpl implements ConsentManager {
     }
 
     @Override
-    public PurposeVersion getPurposeVersionByLabel(int purposeId, String versionLabel)
-            throws ConsentManagementException {
+    public void setLatestPurposeVersion(String purposeUUID, String versionLabel) throws ConsentManagementException {
 
-        PurposeVersion version = getPurposeDAO(purposeDAOs).getPurposeVersionByLabel(purposeId, versionLabel,
-                getTenantIdFromCarbonContext());
-        if (version == null) {
-            throw handleClientException(ERROR_CODE_PURPOSE_VERSION_LABEL_NOT_FOUND, versionLabel);
-        }
-        return version;
-    }
-
-    @Override
-    public void setLatestPurposeVersion(int purposeId, String versionLabel) throws ConsentManagementException {
-
-        if (purposeId <= 0) {
+        if (StringUtils.isBlank(purposeUUID)) {
             throw handleClientException(ERROR_CODE_PURPOSE_ID_REQUIRED, null);
         }
         int tenantId = getTenantIdFromCarbonContext();
-        PurposeVersion version = getPurposeDAO(purposeDAOs).getPurposeVersionByLabel(purposeId, versionLabel,
+        PurposeVersion version = getPurposeDAO(purposeDAOs).getPurposeVersionByLabel(purposeUUID, versionLabel,
                 tenantId);
         if (version == null) {
             throw handleClientException(ERROR_CODE_PURPOSE_VERSION_LABEL_NOT_FOUND, versionLabel);
         }
-        getPurposeDAO(purposeDAOs).updateLatestVersionId(purposeId, version.getUuid(), tenantId);
+        getPurposeDAO(purposeDAOs).updateLatestVersionId(version.getPurposeId(), version.getUuid(), tenantId);
     }
 
     /**

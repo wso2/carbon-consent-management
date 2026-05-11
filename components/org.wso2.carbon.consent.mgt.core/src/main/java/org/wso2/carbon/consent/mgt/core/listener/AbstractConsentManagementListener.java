@@ -125,13 +125,13 @@ public abstract class AbstractConsentManagementListener implements ConsentManage
     }
 
     @Override
-    public void preSetLatestPurposeVersion(int purposeId, String versionLabel, String tenantDomain)
+    public void preSetLatestPurposeVersion(String purposeUUID, String versionLabel, String tenantDomain)
             throws ConsentManagementException {
 
     }
 
     @Override
-    public void postSetLatestPurposeVersion(int purposeId, String versionLabel, String tenantDomain)
+    public void postSetLatestPurposeVersion(String purposeUUID, String versionLabel, String tenantDomain)
             throws ConsentManagementException {
 
     }

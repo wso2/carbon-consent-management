@@ -150,11 +150,11 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
     }
 
     @Override
-    public void postSetLatestPurposeVersion(int purposeId, String versionLabel, String tenantDomain) {
+    public void postSetLatestPurposeVersion(String purposeUUID, String versionLabel, String tenantDomain) {
 
         JSONObject data = new JSONObject();
         data.put(DATA_VERSION_LABEL, versionLabel);
-        buildAuditLog(String.valueOf(purposeId), TARGET_PURPOSE, ACTION_SET_LATEST_PURPOSE_VERSION, data);
+        buildAuditLog(purposeUUID, TARGET_PURPOSE, ACTION_SET_LATEST_PURPOSE_VERSION, data);
     }
 
     @Override

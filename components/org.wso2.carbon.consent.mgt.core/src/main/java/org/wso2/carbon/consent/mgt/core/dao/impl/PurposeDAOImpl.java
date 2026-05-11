@@ -746,7 +746,7 @@ public class PurposeDAOImpl implements PurposeDAO {
     }
 
     @Override
-    public PurposeVersion getPurposeVersionByLabel(int purposeId, String version, int tenantId)
+    public PurposeVersion getPurposeVersionByLabel(String purposeUUID, String version, int tenantId)
             throws ConsentManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
@@ -759,13 +759,13 @@ public class PurposeDAOImpl implements PurposeDAO {
                                 resultSet.getString(5));
                         return pv;
                     }, preparedStatement -> {
-                        preparedStatement.setInt(1, purposeId);
+                        preparedStatement.setString(1, purposeUUID);
                         preparedStatement.setString(2, version);
                         preparedStatement.setInt(3, tenantId);
                     });
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_GET_PURPOSE_VERSION_LIST,
-                    String.valueOf(purposeId), e);
+                    purposeUUID, e);
         }
         return purposeVersion;
     }

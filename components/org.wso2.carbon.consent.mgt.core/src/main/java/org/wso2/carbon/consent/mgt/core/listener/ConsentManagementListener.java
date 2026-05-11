@@ -74,10 +74,10 @@ public interface ConsentManagementListener {
     void postDeleteConsent(String receiptId, String tenantDomain)
             throws ConsentManagementException;
 
-    void preSetLatestPurposeVersion(int purposeId, String versionLabel, String tenantDomain)
+    void preSetLatestPurposeVersion(String purposeUUID, String versionLabel, String tenantDomain)
             throws ConsentManagementException;
 
-    void postSetLatestPurposeVersion(int purposeId, String versionLabel, String tenantDomain)
+    void postSetLatestPurposeVersion(String purposeUUID, String versionLabel, String tenantDomain)
             throws ConsentManagementException;
 
     void preAuthorizeConsent(String consentId, String userId, String authStatus, String tenantDomain)

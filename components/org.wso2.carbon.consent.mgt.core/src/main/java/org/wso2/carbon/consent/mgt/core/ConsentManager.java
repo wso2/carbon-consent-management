@@ -430,27 +430,13 @@ public interface ConsentManager {
     }
 
     /**
-     * This API is used to get a specific version of a purpose by its version label string.
-     *
-     * @param purposeId    DB ID of the purpose.
-     * @param versionLabel Version label string (e.g. "v1.0", "2024-Q1").
-     * @return PurposeVersion matching the label.
-     * @throws ConsentManagementException Consent Management Exception.
-     */
-    default PurposeVersion getPurposeVersionByLabel(int purposeId, String versionLabel)
-            throws ConsentManagementException {
-
-        return null;
-    }
-
-    /**
      * This API is used to set the latest version of a purpose by version label.
      *
-     * @param purposeId    DB ID of the purpose.
+     * @param purposeUUID  UUID of the purpose.
      * @param versionLabel Version label string to set as latest.
      * @throws ConsentManagementException Consent Management Exception.
      */
-    default void setLatestPurposeVersion(int purposeId, String versionLabel) throws ConsentManagementException {
+    default void setLatestPurposeVersion(String purposeUUID, String versionLabel) throws ConsentManagementException {
 
     }
 

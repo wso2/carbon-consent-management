@@ -233,15 +233,15 @@ public interface PurposeDAO {
     }
 
     /**
-     * Retrieve a {@link PurposeVersion} by purpose ID and version label string.
+     * Retrieve a {@link PurposeVersion} by purpose UUID and version label string.
      *
-     * @param purposeId Purpose DB ID.
-     * @param version   Version label string.
-     * @param tenantId  Tenant ID.
+     * @param purposeUUID UUID of the purpose.
+     * @param version     Version label string.
+     * @param tenantId    Tenant ID.
      * @return PurposeVersion, or {@code null} if not found.
      * @throws ConsentManagementException If error occurs.
      */
-    default PurposeVersion getPurposeVersionByLabel(int purposeId, String version, int tenantId)
+    default PurposeVersion getPurposeVersionByLabel(String purposeUUID, String version, int tenantId)
             throws ConsentManagementException {
 
         return null;
