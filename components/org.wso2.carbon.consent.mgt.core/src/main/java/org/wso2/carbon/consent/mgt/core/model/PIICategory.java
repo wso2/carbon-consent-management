@@ -16,6 +16,9 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
+/**
+ * Represents a PII (Personally Identifiable Information) category. Referred to as "Element" in the V2 API.
+ */
 public class PIICategory {
 
     private Integer id;

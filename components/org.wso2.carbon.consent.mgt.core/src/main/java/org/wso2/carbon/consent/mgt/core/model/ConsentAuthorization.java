@@ -23,15 +23,19 @@ package org.wso2.carbon.consent.mgt.core.model;
  */
 public class ConsentAuthorization {
 
+    public enum AuthorizationStatus {
+        PENDING, APPROVED, REJECTED, REVOKED
+    }
+
     private String consentReceiptId;
     private String userId;
-    private String status;
+    private AuthorizationStatus status;
     private long updatedTime;
 
     public ConsentAuthorization() {
     }
 
-    public ConsentAuthorization(String consentReceiptId, String userId, String status, long updatedTime) {
+    public ConsentAuthorization(String consentReceiptId, String userId, AuthorizationStatus status, long updatedTime) {
 
         this.consentReceiptId = consentReceiptId;
         this.userId = userId;
@@ -59,12 +63,12 @@ public class ConsentAuthorization {
         this.userId = userId;
     }
 
-    public String getStatus() {
+    public AuthorizationStatus getStatus() {
 
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(AuthorizationStatus status) {
 
         this.status = status;
     }

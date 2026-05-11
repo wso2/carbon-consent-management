@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -63,7 +63,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.VERSION
  */
 public class ConsentEventPublisherProxy {
 
-    private static final Log log = LogFactory.getLog(ConsentEventPublisherProxy.class);
+    private static final Log LOG = LogFactory.getLog(ConsentEventPublisherProxy.class);
     private static final ConsentEventPublisherProxy proxy = new ConsentEventPublisherProxy();
     private static final String TENANT_DOMAIN = "tenantDomain";
     private static final String PURPOSE_VERSION = "purposeVersion";
@@ -76,8 +76,6 @@ public class ConsentEventPublisherProxy {
 
         return proxy;
     }
-
-    // ---- Purpose ----
 
     public void publishPreAddPurposeWithException(String purposeUuid, String purposeName, String tenantDomain)
             throws ConsentManagementException {
@@ -114,8 +112,6 @@ public class ConsentEventPublisherProxy {
         props.put(TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_DELETE_PURPOSE, props));
     }
-
-    // ---- Purpose Version ----
 
     public void publishPreAddPurposeVersionWithException(String purposeUuid, PurposeVersion purposeVersion,
                                                          String tenantDomain) throws ConsentManagementException {
@@ -156,8 +152,6 @@ public class ConsentEventPublisherProxy {
         doPublishEvent(new Event(POST_DELETE_PURPOSE_VERSION, props));
     }
 
-    // ---- Set Latest Purpose Version ----
-
     public void publishPreSetLatestPurposeVersionWithException(int purposeId, String versionLabel,
                                                                String tenantDomain)
             throws ConsentManagementException {
@@ -177,8 +171,6 @@ public class ConsentEventPublisherProxy {
         props.put(TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_SET_LATEST_PURPOSE_VERSION, props));
     }
-
-    // ---- Authorize Consent ----
 
     public void publishPreAuthorizeConsentWithException(String consentId, String userId, String authStatus,
                                                         String tenantDomain)
@@ -202,8 +194,6 @@ public class ConsentEventPublisherProxy {
         props.put(TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_AUTHORIZE_CONSENT, props));
     }
-
-    // ---- Consent ----
 
     public void publishPreAddConsentWithException(ReceiptInput receiptInput, String tenantDomain)
             throws ConsentManagementException {
@@ -262,8 +252,8 @@ public class ConsentEventPublisherProxy {
             IdentityEventService eventService =
                     ConsentManagerComponentDataHolder.getInstance().getIdentityEventService();
             if (eventService != null) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Publishing event: " + event.getEventName());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Publishing event: " + event.getEventName());
                 }
                 eventService.handleEvent(event);
             }
@@ -280,13 +270,13 @@ public class ConsentEventPublisherProxy {
             IdentityEventService eventService =
                     ConsentManagerComponentDataHolder.getInstance().getIdentityEventService();
             if (eventService != null) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Publishing event: " + event.getEventName());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Publishing event: " + event.getEventName());
                 }
                 eventService.handleEvent(event);
             }
         } catch (IdentityEventException e) {
-            log.error("Error while publishing event: " + event.getEventName(), e);
+            LOG.error("Error while publishing event: " + event.getEventName(), e);
         }
     }
 }

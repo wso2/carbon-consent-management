@@ -90,7 +90,6 @@ public interface ConsentManager {
      * @return Filtered list of Purpose elements
      * @throws ConsentManagementException Consent Management Exception.
      */
-    @Deprecated
     List<Purpose> listPurposes(String group, String groupType, int limit, int offset) throws ConsentManagementException;
 
     /**
@@ -222,7 +221,6 @@ public interface ConsentManager {
      * @return 200 Ok. Returns filtered list of PII category elements.
      * @throws ConsentManagementException Consent Management Exception.
      */
-    @Deprecated
     List<PIICategory> listPIICategories(int limit, int offset) throws ConsentManagementException;
 
     /**
@@ -328,7 +326,6 @@ public interface ConsentManager {
     /**
      * This API is used to check whether a receipt exists for the user identified by the tenantAwareUser name in the
      * provided tenant.
-     *
      * @param receiptId           Consent Receipt ID
      * @param tenantAwareUsername Tenant aware username
      * @param tenantId            User tenant id

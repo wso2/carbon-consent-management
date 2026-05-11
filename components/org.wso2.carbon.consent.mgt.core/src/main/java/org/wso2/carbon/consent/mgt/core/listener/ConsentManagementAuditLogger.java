@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -85,13 +85,13 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
         if (StringUtils.isNotBlank(purposeName)) {
             data.put(DATA_NAME, purposeName);
         }
-        triggerAuditLogEvent(buildAuditLog(purposeUuid, TARGET_PURPOSE, ACTION_ADD_PURPOSE, data));
+        buildAuditLog(purposeUuid, TARGET_PURPOSE, ACTION_ADD_PURPOSE, data);
     }
 
     @Override
     public void postDeletePurpose(String purposeUuid, String tenantDomain) {
 
-        triggerAuditLogEvent(buildAuditLog(purposeUuid, TARGET_PURPOSE, ACTION_DELETE_PURPOSE, null));
+        buildAuditLog(purposeUuid, TARGET_PURPOSE, ACTION_DELETE_PURPOSE, null);
     }
 
     @Override
@@ -102,8 +102,8 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
         if (purposeVersion != null) {
             data.put(DATA_VERSION_LABEL, purposeVersion.getVersion());
         }
-        String versionId = purposeVersion != null ? purposeVersion.getUuid() : purposeUuid;
-        triggerAuditLogEvent(buildAuditLog(versionId, TARGET_PURPOSE_VERSION, ACTION_ADD_PURPOSE_VERSION, data));
+        String versionUuid = purposeVersion != null ? purposeVersion.getUuid() : purposeUuid;
+        buildAuditLog(versionUuid, TARGET_PURPOSE_VERSION, ACTION_ADD_PURPOSE_VERSION, data);
     }
 
     @Override
@@ -111,7 +111,7 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
 
         JSONObject data = new JSONObject();
         data.put(DATA_PURPOSE_ID, purposeUuid);
-        triggerAuditLogEvent(buildAuditLog(versionUuid, TARGET_PURPOSE_VERSION, ACTION_DELETE_PURPOSE_VERSION, data));
+        buildAuditLog(versionUuid, TARGET_PURPOSE_VERSION, ACTION_DELETE_PURPOSE_VERSION, data);
     }
 
     @Override
@@ -134,20 +134,19 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
                 data.put(DATA_PURPOSE_NAMES, purposeNames);
             }
         }
-        triggerAuditLogEvent(buildAuditLog(receiptInput.getConsentReceiptId(), TARGET_CONSENT,
-                ACTION_ADD_CONSENT, data));
+        buildAuditLog(receiptInput.getConsentReceiptId(), TARGET_CONSENT, ACTION_ADD_CONSENT, data);
     }
 
     @Override
     public void postRevokeConsent(String receiptId, String tenantDomain) {
 
-        triggerAuditLogEvent(buildAuditLog(receiptId, TARGET_CONSENT, ACTION_REVOKE_CONSENT, null));
+        buildAuditLog(receiptId, TARGET_CONSENT, ACTION_REVOKE_CONSENT, null);
     }
 
     @Override
     public void postDeleteConsent(String receiptId, String tenantDomain) {
 
-        triggerAuditLogEvent(buildAuditLog(receiptId, TARGET_CONSENT, ACTION_DELETE_CONSENT, null));
+        buildAuditLog(receiptId, TARGET_CONSENT, ACTION_DELETE_CONSENT, null);
     }
 
     @Override
@@ -155,8 +154,7 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
 
         JSONObject data = new JSONObject();
         data.put(DATA_VERSION_LABEL, versionLabel);
-        triggerAuditLogEvent(buildAuditLog(String.valueOf(purposeId), TARGET_PURPOSE_VERSION,
-                ACTION_SET_LATEST_PURPOSE_VERSION, data));
+        buildAuditLog(String.valueOf(purposeId), TARGET_PURPOSE, ACTION_SET_LATEST_PURPOSE_VERSION, data);
     }
 
     @Override
@@ -169,23 +167,23 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
         if (StringUtils.isNotBlank(authStatus)) {
             data.put(DATA_AUTH_STATUS, authStatus);
         }
-        triggerAuditLogEvent(buildAuditLog(consentId, TARGET_CONSENT, ACTION_AUTHORIZE_CONSENT, data));
+        buildAuditLog(consentId, TARGET_CONSENT, ACTION_AUTHORIZE_CONSENT, data);
     }
 
-    private AuditLog.AuditLogBuilder buildAuditLog(String targetId, String targetType, String action,
+    private void buildAuditLog(String targetId, String targetType, String action,
                                                     JSONObject data) {
 
         String initiatorId = getInitiatorId();
-        AuditLog.AuditLogBuilder builder = new AuditLog.AuditLogBuilder(
+        AuditLog.AuditLogBuilder auditLogBuilder = new AuditLog.AuditLogBuilder(
                 initiatorId,
                 LoggerUtils.getInitiatorType(initiatorId),
                 targetId,
                 targetType,
                 action);
         if (data != null && data.length() > 0) {
-            builder.data(jsonObjectToMap(data));
+            auditLogBuilder.data(jsonObjectToMap(data));
         }
-        return builder;
+        triggerAuditLogEvent(auditLogBuilder);
     }
 
     private static String getInitiatorId() {

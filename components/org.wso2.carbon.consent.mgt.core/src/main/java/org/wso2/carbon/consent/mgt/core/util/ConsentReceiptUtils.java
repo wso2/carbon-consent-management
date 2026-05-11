@@ -43,6 +43,8 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_UUID_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REJECTED_STATE;
 import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleClientException;
+import static org.wso2.carbon.consent.mgt.core.util.ConsentUtils.handleServerException;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_ADD_PII_CATEGORY;
 
 /**
  * Utility methods for building consent receipt input objects and related operations. This class provides helper 
@@ -171,6 +173,9 @@ public class ConsentReceiptUtils {
             if (isInvalidPIICategoryError(e)) {
                 PIICategory piiCategoryInput = new PIICategory(consentType, null, false, consentType);
                 piiCategory = consentManager.addPIICategoryWithUuid(piiCategoryInput);
+                if (piiCategory == null) {
+                    throw handleClientException(ERROR_CODE_ADD_PII_CATEGORY, consentType);
+                }
             } else {
                 throw e;
             }

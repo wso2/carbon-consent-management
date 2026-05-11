@@ -1106,7 +1106,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             jdbcTemplate.executeInsert(INSERT_CONSENT_AUTHORIZATION_SQL, preparedStatement -> {
                 preparedStatement.setString(1, authorization.getConsentReceiptId());
                 preparedStatement.setString(2, authorization.getUserId());
-                preparedStatement.setString(3, authorization.getStatus());
+                preparedStatement.setString(3, authorization.getStatus().name());
                 preparedStatement.setLong(4, authorization.getUpdatedTime());
             }, authorization, false);
         } catch (DataAccessException e) {
@@ -1149,7 +1149,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     template.executeInsert(INSERT_CONSENT_AUTHORIZATION_SQL, preparedStatement -> {
                         preparedStatement.setString(1, authorization.getConsentReceiptId());
                         preparedStatement.setString(2, authorization.getUserId());
-                        preparedStatement.setString(3, authorization.getStatus());
+                        preparedStatement.setString(3, authorization.getStatus().name());
                         preparedStatement.setLong(4, authorization.getUpdatedTime());
                     }, authorization, false);
                 }
@@ -1172,7 +1172,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         ConsentAuthorization auth = new ConsentAuthorization();
                         auth.setConsentReceiptId(resultSet.getString(1));
                         auth.setUserId(resultSet.getString(2));
-                        auth.setStatus(resultSet.getString(3));
+                        auth.setStatus(ConsentAuthorization.AuthorizationStatus.valueOf(resultSet.getString(3)));
                         auth.setUpdatedTime(resultSet.getLong(4));
                         return auth;
                     },
@@ -1194,7 +1194,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         ConsentAuthorization auth = new ConsentAuthorization();
                         auth.setConsentReceiptId(resultSet.getString(1));
                         auth.setUserId(resultSet.getString(2));
-                        auth.setStatus(resultSet.getString(3));
+                        auth.setStatus(ConsentAuthorization.AuthorizationStatus.valueOf(resultSet.getString(3)));
                         auth.setUpdatedTime(resultSet.getLong(4));
                         return auth;
                     },

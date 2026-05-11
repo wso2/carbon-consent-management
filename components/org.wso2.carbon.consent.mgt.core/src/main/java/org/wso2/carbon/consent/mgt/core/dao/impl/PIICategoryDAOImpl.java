@@ -45,6 +45,10 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_SP_PURPOSE_COUNT_ASSOCIATED_WITH_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PII_CATEGORY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PII_CATEGORY_WITH_UUID_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_FILTERED_PII_CATEGORY_DB2;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_FILTERED_PII_CATEGORY_MSSQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_FILTERED_PII_CATEGORY_MYSQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_FILTERED_PII_CATEGORY_ORACLE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_DB2;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_INFORMIX;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINATED_PII_CATEGORY_MSSQL;
@@ -239,25 +243,16 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
 
             String query;
             if (isH2MySqlOrPostgresDB()) {
-                query = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, TENANT_ID, DISPLAY_NAME, UUID " +
-                        "FROM CM_PII_CATEGORY WHERE TENANT_ID = ?" + filterQuery +
-                        " ORDER BY UUID ASC LIMIT ?";
+                query = String.format(LIST_FILTERED_PII_CATEGORY_MYSQL, filterQuery);
             } else if (isDB2DB()) {
-                query = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, TENANT_ID, DISPLAY_NAME, UUID " +
-                        "FROM CM_PII_CATEGORY WHERE TENANT_ID = ?" + filterQuery +
-                        " ORDER BY UUID ASC FETCH FIRST ? ROWS ONLY";
+                query = String.format(LIST_FILTERED_PII_CATEGORY_DB2, filterQuery);
             } else if (isMSSqlDB()) {
-                query = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, TENANT_ID, DISPLAY_NAME, UUID " +
-                        "FROM CM_PII_CATEGORY WHERE TENANT_ID = ?" + filterQuery +
-                        " ORDER BY UUID ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+                query = String.format(LIST_FILTERED_PII_CATEGORY_MSSQL, filterQuery);
             } else if (isInformixDB()) {
                 throw new ConsentManagementServerException("This method is not supported for Informix database.",
                         ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode());
             } else {
-                // Oracle
-                query = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, TENANT_ID, DISPLAY_NAME, UUID " +
-                        "FROM CM_PII_CATEGORY WHERE TENANT_ID = ?" + filterQuery +
-                        " ORDER BY UUID ASC FETCH FIRST ? ROWS ONLY";
+                query = String.format(LIST_FILTERED_PII_CATEGORY_ORACLE, filterQuery);
             }
 
             categories = jdbcTemplate.executeQuery(query,
@@ -276,8 +271,6 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
                         }
                         preparedStatement.setInt(paramIndex, limit);
                     });
-        } catch (ConsentManagementClientException e) {
-            throw e;
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(
                     String.format("Error listing PII categories with cursor for tenant %d", tenantId),

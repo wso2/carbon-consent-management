@@ -92,10 +92,6 @@ import static org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils.spyConnec
 
 public class ConsentsApiServiceImplTest {
 
-    protected String getSchemaFile() {
-        return TestUtils.H2_SCRIPT_NAME;
-    }
-
     private Connection connection;
 
     @Mock
@@ -106,6 +102,11 @@ public class ConsentsApiServiceImplTest {
     private MockedStatic<KeyStoreManager> mockedKeyStoreManager;
     private MockedStatic<IdentityTenantUtil> mockedIdentityTenantUtil;
     private AutoCloseable mockitoCloseable;
+
+    protected String getSchemaFile() {
+
+        return TestUtils.H2_SCRIPT_NAME;
+    }
 
     @BeforeMethod
     public void setUp() throws Exception {

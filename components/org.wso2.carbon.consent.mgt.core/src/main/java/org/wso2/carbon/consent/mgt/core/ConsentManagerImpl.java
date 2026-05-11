@@ -705,7 +705,7 @@ public class ConsentManagerImpl implements ConsentManager {
             receiptInput.setState(PENDING_STATE);
             long now = System.currentTimeMillis();
             for (String userId : authorizations) {
-                authorizationsList.add(new ConsentAuthorization(receiptInput.getConsentReceiptId(), userId, PENDING_STATE, now));
+                authorizationsList.add(new ConsentAuthorization(receiptInput.getConsentReceiptId(), userId, ConsentAuthorization.AuthorizationStatus.PENDING, now));
             }
         }
 
@@ -957,12 +957,7 @@ public class ConsentManagerImpl implements ConsentManager {
             throw handleClientException(ERROR_CODE_PURPOSE_ID_REQUIRED, null);
         }
 
-        // Confirm the purpose exists.
-        Purpose purpose = getPurposeByUuid(uuid);
-        if (purpose == null) {
-            throw handleClientException(ERROR_CODE_PURPOSE_ID_INVALID, uuid);
-        }
-
+        getPurposeByUuid(uuid); // throws if purpose does not exist
         return getPurposeDAO(purposeDAOs).listPurposeVersions(uuid);
     }
 
@@ -981,10 +976,8 @@ public class ConsentManagerImpl implements ConsentManager {
             throw handleClientException(ERROR_CODE_PURPOSE_ID_REQUIRED, null);
         }
 
+        // Confirm the purpose exists
         Purpose purpose = getPurposeByUuid(purposeUuid);
-        if (purpose == null) {
-            throw handleClientException(ERROR_CODE_PURPOSE_ID_INVALID, purposeUuid);
-        }
 
         PurposeVersion version = getPurposeDAO(purposeDAOs).getPurposeVersionByUuid(versionUuid);
         if (version == null) {
@@ -1186,7 +1179,7 @@ public class ConsentManagerImpl implements ConsentManager {
         if (existing != null) {
             receiptDAO.updateConsentAuthorization(consentId, userId, authStatus, now);
         } else {
-            receiptDAO.insertConsentAuthorization(new ConsentAuthorization(consentId, userId, authStatus, now));
+            receiptDAO.insertConsentAuthorization(new ConsentAuthorization(consentId, userId, ConsentAuthorization.AuthorizationStatus.valueOf(authStatus), now));
         }
 
         String currentState = receiptDAO.getReceiptState(consentId);
@@ -1195,7 +1188,7 @@ public class ConsentManagerImpl implements ConsentManager {
                 receiptDAO.updateReceiptState(consentId, REJECTED_STATE);
             } else if (APPROVED_STATE.equals(authStatus)) {
                 List<ConsentAuthorization> all = receiptDAO.getConsentAuthorizations(consentId);
-                boolean allApproved = all.stream().allMatch(a -> APPROVED_STATE.equals(a.getStatus()));
+                boolean allApproved = all.stream().allMatch(a -> ConsentAuthorization.AuthorizationStatus.APPROVED.equals(a.getStatus()));
                 if (allApproved) {
                     receiptDAO.updateReceiptState(consentId, ACTIVE_STATE);
                 }

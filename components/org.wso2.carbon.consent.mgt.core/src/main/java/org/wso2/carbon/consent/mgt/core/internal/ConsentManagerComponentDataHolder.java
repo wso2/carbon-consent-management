@@ -20,6 +20,7 @@ import org.wso2.carbon.consent.mgt.core.listener.ConsentManagementListener;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import javax.sql.DataSource;
@@ -61,7 +62,7 @@ public class ConsentManagerComponentDataHolder {
 
     public List<ConsentManagementListener> getConsentManagementListeners() {
 
-        return consentManagementListeners;
+        return Collections.unmodifiableList(consentManagementListeners);
     }
 
     public void addConsentManagementListener(ConsentManagementListener listener) {

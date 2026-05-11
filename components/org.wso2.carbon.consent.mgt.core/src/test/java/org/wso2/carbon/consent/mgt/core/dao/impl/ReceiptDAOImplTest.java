@@ -465,10 +465,6 @@ public class ReceiptDAOImplTest {
         }
     }
 
-    // =========================================================================
-    // listReceipts (V2 explicit-param query)
-    // =========================================================================
-
     @DataProvider(name = "listReceiptsProvider")
     public Object[][] provideListReceiptsData() {
 

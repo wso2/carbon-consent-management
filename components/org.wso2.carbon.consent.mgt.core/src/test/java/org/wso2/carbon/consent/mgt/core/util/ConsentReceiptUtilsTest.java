@@ -75,8 +75,6 @@ public class ConsentReceiptUtilsTest {
         mockCloseable.close();
     }
 
-    // --- buildReceiptInput ---
-
     @Test
     public void testBuildReceiptInput_sameUserNoAuthorizations() throws ConsentManagementException {
 
@@ -299,8 +297,6 @@ public class ConsentReceiptUtilsTest {
                 LANG, SUBJECT_ID, TENANT_DOMAIN, null, false,
                 null, null, SERVICE_ID, List.of(binding), consentManager);
     }
-
-    // --- getDefaultPiiCategory ---
 
     @Test
     public void testGetDefaultPiiCategory_existingCategory_returnsIt() throws ConsentManagementException {

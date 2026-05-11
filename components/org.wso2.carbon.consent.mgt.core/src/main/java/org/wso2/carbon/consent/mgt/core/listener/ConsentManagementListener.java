@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com).
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com).
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -32,8 +32,6 @@ public interface ConsentManagementListener {
 
     boolean isEnable();
 
-    // ---- Purpose ----
-
     void preAddPurpose(String purposeUuid, String purposeName, String tenantDomain)
             throws ConsentManagementException;
 
@@ -46,8 +44,6 @@ public interface ConsentManagementListener {
     void postDeletePurpose(String purposeUuid, String tenantDomain)
             throws ConsentManagementException;
 
-    // ---- Purpose Version ----
-
     void preAddPurposeVersion(String purposeUuid, PurposeVersion purposeVersion, String tenantDomain)
             throws ConsentManagementException;
 
@@ -59,8 +55,6 @@ public interface ConsentManagementListener {
 
     void postDeletePurposeVersion(String purposeUuid, String versionUuid, String tenantDomain)
             throws ConsentManagementException;
-
-    // ---- Consent ----
 
     void preAddConsent(ReceiptInput receiptInput, String tenantDomain)
             throws ConsentManagementException;
@@ -80,15 +74,11 @@ public interface ConsentManagementListener {
     void postDeleteConsent(String receiptId, String tenantDomain)
             throws ConsentManagementException;
 
-    // ---- Set Latest Purpose Version ----
-
     void preSetLatestPurposeVersion(int purposeId, String versionLabel, String tenantDomain)
             throws ConsentManagementException;
 
     void postSetLatestPurposeVersion(int purposeId, String versionLabel, String tenantDomain)
             throws ConsentManagementException;
-
-    // ---- Authorize Consent ----
 
     void preAuthorizeConsent(String consentId, String userId, String authStatus, String tenantDomain)
             throws ConsentManagementException;
