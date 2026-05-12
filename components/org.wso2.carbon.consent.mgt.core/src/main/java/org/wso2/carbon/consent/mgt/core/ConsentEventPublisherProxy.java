@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
+import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
@@ -54,8 +55,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.Interce
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_REVOKE_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_SET_LATEST_PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_ID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_NAME;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_UUID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_VERSION_LABEL;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_ID;
@@ -79,21 +79,19 @@ public class ConsentEventPublisherProxy {
         return proxy;
     }
 
-    public void publishPreAddPurposeWithException(String purposeUuid, String purposeName, String tenantDomain)
+    public void publishPreAddPurposeWithException(Purpose purpose, String tenantDomain)
             throws ConsentManagementException {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
-        props.put(PURPOSE_NAME, purposeName);
+        props.put(PURPOSE, purpose);
         props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEventWithException(new Event(PRE_ADD_PURPOSE, props));
     }
 
-    public void publishPostAddPurpose(String purposeUuid, String purposeName, String tenantDomain) {
+    public void publishPostAddPurpose(Purpose purpose, String tenantDomain) {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
-        props.put(PURPOSE_NAME, purposeName);
+        props.put(PURPOSE, purpose);
         props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_ADD_PURPOSE, props));
     }
@@ -102,7 +100,7 @@ public class ConsentEventPublisherProxy {
             throws ConsentManagementException {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
+        props.put(PURPOSE_ID, purposeUuid);
         props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEventWithException(new Event(PRE_DELETE_PURPOSE, props));
     }
@@ -110,7 +108,7 @@ public class ConsentEventPublisherProxy {
     public void publishPostDeletePurpose(String purposeUuid, String tenantDomain) {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
+        props.put(PURPOSE_ID, purposeUuid);
         props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_DELETE_PURPOSE, props));
     }
@@ -120,7 +118,7 @@ public class ConsentEventPublisherProxy {
                                                          String tenantDomain) throws ConsentManagementException {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
+        props.put(PURPOSE_ID, purposeUuid);
         props.put(PURPOSE_VERSION, purposeVersion);
         props.put(SET_AS_LATEST, setAsLatest);
         props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
@@ -131,7 +129,7 @@ public class ConsentEventPublisherProxy {
                                              boolean setAsLatest, String tenantDomain) {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
+        props.put(PURPOSE_ID, purposeUuid);
         props.put(PURPOSE_VERSION, purposeVersion);
         props.put(SET_AS_LATEST, setAsLatest);
         props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
@@ -142,7 +140,7 @@ public class ConsentEventPublisherProxy {
                                                             String tenantDomain) throws ConsentManagementException {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
+        props.put(PURPOSE_ID, purposeUuid);
         props.put(VERSION_ID, versionUuid);
         props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEventWithException(new Event(PRE_DELETE_PURPOSE_VERSION, props));
@@ -151,7 +149,7 @@ public class ConsentEventPublisherProxy {
     public void publishPostDeletePurposeVersion(String purposeUuid, String versionUuid, String tenantDomain) {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
+        props.put(PURPOSE_ID, purposeUuid);
         props.put(VERSION_ID, versionUuid);
         props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_DELETE_PURPOSE_VERSION, props));
