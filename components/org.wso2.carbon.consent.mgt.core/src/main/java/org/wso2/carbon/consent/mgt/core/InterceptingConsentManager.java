@@ -237,6 +237,27 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
     }
 
     /**
+     * Get a consent receipt (V2 extended schema) after validating it belongs to the accessing tenant.
+     *
+     * @param receiptId Consent receipt ID.
+     * @return Receipt if it belongs to the accessing tenant.
+     * @throws ConsentManagementException if the receipt belongs to a different tenant.
+     */
+    @Override
+    public Receipt getReceiptWithExtendedSchema(String receiptId) throws ConsentManagementException {
+
+        Receipt receipt = super.getReceiptWithExtendedSchema(receiptId);
+
+        if (isCrossTenantOperation(ConsentUtils.getTenantDomainFromCarbonContext(), receipt.getTenantDomain())) {
+            String message = String.format(ERROR_CODE_RECEIPT_ID_INVALID.getMessage(), receiptId) + " in tenant: " +
+                    ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_RECEIPT_ID_INVALID.getCode());
+        }
+
+        return receipt;
+    }
+
+    /**
      * Validate whether the accessing tenant domain is same as the resource tenant domain.
      *
      * @param accessingTenantDomain - Accessing tenant domain.
