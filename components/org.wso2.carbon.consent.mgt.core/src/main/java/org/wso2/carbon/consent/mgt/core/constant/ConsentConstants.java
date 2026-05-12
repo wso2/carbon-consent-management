@@ -310,6 +310,7 @@ public class ConsentConstants {
         public static final String FILTER_ATTR_BEFORE = "before";
 
         // Database column names (SQL level - UPPERCASE)
+        public static final String DB_COL_ID = "ID";
         public static final String DB_COL_NAME = "NAME";
         public static final String DB_COL_GROUP_TYPE = "GROUP_TYPE";
     }

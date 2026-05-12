@@ -387,19 +387,19 @@ public class SQLConstants {
             "TENANT_ID, DISPLAY_NAME, UUID FROM CM_PII_CATEGORY WHERE UUID = ? AND TENANT_ID = ?";
 
     public static final String LIST_FILTERED_PII_CATEGORY_MYSQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
-            "TENANT_ID, DISPLAY_NAME, UUID FROM CM_PII_CATEGORY WHERE TENANT_ID = ?%s ORDER BY UUID ASC LIMIT ?";
+            "TENANT_ID, DISPLAY_NAME, UUID FROM CM_PII_CATEGORY WHERE TENANT_ID = ?%s ORDER BY ID ASC LIMIT ?";
 
     public static final String LIST_FILTERED_PII_CATEGORY_DB2 = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
             "TENANT_ID, DISPLAY_NAME, UUID FROM CM_PII_CATEGORY WHERE TENANT_ID = ?%s " +
-            "ORDER BY UUID ASC FETCH FIRST ? ROWS ONLY";
+            "ORDER BY ID ASC FETCH FIRST ? ROWS ONLY";
 
     public static final String LIST_FILTERED_PII_CATEGORY_MSSQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
             "TENANT_ID, DISPLAY_NAME, UUID FROM CM_PII_CATEGORY WHERE TENANT_ID = ?%s " +
-            "ORDER BY UUID ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+            "ORDER BY ID ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
 
     public static final String LIST_FILTERED_PII_CATEGORY_ORACLE = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
             "TENANT_ID, DISPLAY_NAME, UUID FROM CM_PII_CATEGORY WHERE TENANT_ID = ?%s " +
-            "ORDER BY UUID ASC FETCH FIRST ? ROWS ONLY";
+            "ORDER BY ID ASC FETCH FIRST ? ROWS ONLY";
 
     public static final String INSERT_PURPOSE_VERSION_WITH_UUID_SQL = "INSERT INTO CM_PURPOSE_VERSION " +
             "(PURPOSE_ID, VERSION, DESCRIPTION, TENANT_ID, UUID) VALUES (?, ?, ?, ?, ?)";
@@ -518,17 +518,17 @@ public class SQLConstants {
             "    AND p.UUID LIKE ? AND COALESCE(spa.PURPOSE_VERSION_ID, '') LIKE ?";
 
     public static final String LIST_RECEIPTS_SQL_TAIL =
-            " ORDER BY sub_ts ASC, sub_id ASC LIMIT ?" +
+            " ORDER BY sub_ts ASC LIMIT ?" +
             "  ) inner_receipts" +
-            ") ORDER BY r.CONSENT_TIMESTAMP ASC, r.CONSENT_RECEIPT_ID ASC";
+            ") ORDER BY r.CONSENT_TIMESTAMP ASC";
 
     public static final String LIST_RECEIPTS_SQL_TAIL_MSSQL =
-            " ORDER BY sub_ts ASC, sub_id ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY" +
+            " ORDER BY sub_ts ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY" +
             "  ) inner_receipts" +
-            ") ORDER BY r.CONSENT_TIMESTAMP ASC, r.CONSENT_RECEIPT_ID ASC";
+            ") ORDER BY r.CONSENT_TIMESTAMP ASC";
 
     public static final String LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2 =
-            " ORDER BY sub_ts ASC, sub_id ASC FETCH FIRST ? ROWS ONLY" +
+            " ORDER BY sub_ts ASC FETCH FIRST ? ROWS ONLY" +
             "  ) inner_receipts" +
-            ") ORDER BY r.CONSENT_TIMESTAMP ASC, r.CONSENT_RECEIPT_ID ASC";
+            ") ORDER BY r.CONSENT_TIMESTAMP ASC";
 }
