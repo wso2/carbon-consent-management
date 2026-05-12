@@ -112,6 +112,11 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_VERSION_MISMATCH;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_VERSION_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_VERSION_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_AUTHORIZATION_STATUS;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_NAME_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_GROUP_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_GROUP_TYPE_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_RECEIPT_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_SERVICE_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_TENANT_ID_REQUIRED;
@@ -1155,9 +1160,7 @@ public class ConsentManagerImpl implements ConsentManager {
 
         if (!APPROVED_STATE.equals(authStatus) && !REJECTED_STATE.equals(authStatus) &&
                 !REVOKE_STATE.equals(authStatus)) {
-            throw handleClientException(ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET,
-                    "Invalid authorization status: " + authStatus + ". Status must be one of: " +
-                    APPROVED_STATE + ", " + REJECTED_STATE + ", " + REVOKE_STATE);
+            throw handleClientException(ERROR_CODE_INVALID_AUTHORIZATION_STATUS, authStatus);
         }
 
         ReceiptDAO receiptDAO = getReceiptsDAO(receiptDAOs);
@@ -1631,6 +1634,27 @@ public class ConsentManagerImpl implements ConsentManager {
 
     private void validateInputParameters(Purpose purpose) throws ConsentManagementException {
 
+        if (isBlank(purpose.getName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Purpose name cannot be empty");
+            }
+            throw handleClientException(ERROR_CODE_PURPOSE_NAME_REQUIRED, null);
+        }
+
+        if (isBlank(purpose.getGroup())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Purpose group is empty for: " + purpose.getName());
+            }
+            throw handleClientException(ERROR_CODE_PURPOSE_GROUP_REQUIRED, null);
+        }
+
+        if (isBlank(purpose.getGroupType())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Purpose group type is empty for: " + purpose.getName());
+            }
+            throw handleClientException(ERROR_CODE_PURPOSE_GROUP_TYPE_REQUIRED, null);
+        }
+
         if (isPurposeExists(purpose.getName(), purpose.getGroup(), purpose.getGroupType())) {
             if (log.isDebugEnabled()) {
                 log.debug("A purpose already exists with name: " + purpose.getName());
@@ -1664,6 +1688,13 @@ public class ConsentManagerImpl implements ConsentManager {
     }
 
     private void validateInputParameters(PIICategory piiCategory) throws ConsentManagementException {
+
+        if (isBlank(piiCategory.getName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("PII Category name cannot be empty");
+            }
+            throw handleClientException(ERROR_CODE_PII_CATEGORY_NAME_REQUIRED, null);
+        }
 
         if (isPIICategoryExists(piiCategory.getName())) {
             if (log.isDebugEnabled()) {

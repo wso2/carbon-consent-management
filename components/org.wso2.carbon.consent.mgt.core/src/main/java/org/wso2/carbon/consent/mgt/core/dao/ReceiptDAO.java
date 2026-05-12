@@ -153,7 +153,7 @@ public interface ReceiptDAO {
     /**
      * Lists receipts using cursor-based pagination (V2 API).
      * Either {@code after} or {@code before} may be provided; both are base64-encoded
-     * CONSENT_RECEIPT_ID values from a previous page.
+     * CONSENT_TIMESTAMP epoch-millis values from a previous page.
      */
     default List<Receipt> listReceipts(String subjectId, String serviceId, String state,
                                        String purposeId, String purposeVersionId,

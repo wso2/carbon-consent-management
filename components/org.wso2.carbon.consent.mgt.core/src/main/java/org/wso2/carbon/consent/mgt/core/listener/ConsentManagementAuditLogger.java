@@ -105,8 +105,7 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
         JSONObject data = new JSONObject();
         data.put(DATA_PURPOSE_ID, purposeUuid);
         data.put(DATA_VERSION_LABEL, purposeVersion.getVersion());
-        String versionUuid = purposeVersion != null ? purposeVersion.getUuid() : purposeUuid;
-        buildAuditLog(versionUuid, TARGET_PURPOSE_VERSION, ACTION_ADD_PURPOSE_VERSION, data);
+        buildAuditLog(purposeVersion.getUuid(), TARGET_PURPOSE_VERSION, ACTION_ADD_PURPOSE_VERSION, data);
     }
 
     @Override

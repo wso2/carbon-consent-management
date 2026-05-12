@@ -498,15 +498,18 @@ public class ReceiptDAOImplTest {
 
             ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             receiptDAO.addReceipt(receiptInputs.get(0));
+            if (offset > 0) {
+                Thread.sleep(10);
+            }
             receiptDAO.addReceipt(receiptInputs.get(1));
 
             String after = null;
             if (offset > 0) {
-            String firstReceiptId = receiptInputs.get(0).getConsentReceiptId();
-            String secondReceiptId = receiptInputs.get(1).getConsentReceiptId();
-            String cursorSource = firstReceiptId.compareTo(secondReceiptId) < 0 ? firstReceiptId : secondReceiptId;
-            after = java.util.Base64.getEncoder().encodeToString(
-                cursorSource.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                List<Receipt> firstPage = receiptDAO.listReceipts(null, null, null, null, null,
+                        null, null, 1, tenantId);
+                long firstTs = firstPage.get(0).getConsentTimestamp();
+                after = java.util.Base64.getEncoder().encodeToString(
+                        String.valueOf(firstTs).getBytes(java.nio.charset.StandardCharsets.UTF_8));
             }
 
             List<Receipt> results = receiptDAO.listReceipts(subjectId, serviceId, state, purposeId,

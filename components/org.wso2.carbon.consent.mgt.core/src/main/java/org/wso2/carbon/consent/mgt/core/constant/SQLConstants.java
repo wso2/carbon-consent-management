@@ -498,4 +498,37 @@ public class SQLConstants {
 
     public static final String GET_RECEIPT_STATE_SQL =
             "SELECT STATE, VALIDITY_TIME FROM CM_RECEIPT WHERE CONSENT_RECEIPT_ID = ?";
+
+    public static final String LIST_RECEIPTS_SQL_HEAD =
+            "SELECT r.CONSENT_RECEIPT_ID, r.PII_PRINCIPAL_ID, r.STATE, r.PRINCIPAL_TENANT_ID, " +
+            "r.CONSENT_TIMESTAMP, r.VALIDITY_TIME, " +
+            "(SELECT MIN(rsa2.SP_NAME) FROM CM_RECEIPT_SP_ASSOC rsa2 " +
+            "WHERE rsa2.CONSENT_RECEIPT_ID = r.CONSENT_RECEIPT_ID) AS SP_NAME " +
+            "FROM CM_RECEIPT r " +
+            "WHERE r.PRINCIPAL_TENANT_ID = ? " +
+            "AND r.CONSENT_RECEIPT_ID IN (" +
+            "  SELECT sub_id FROM (" +
+            "    SELECT DISTINCT r2.CONSENT_RECEIPT_ID AS sub_id, r2.CONSENT_TIMESTAMP AS sub_ts " +
+            "    FROM CM_RECEIPT r2 " +
+            "    LEFT JOIN CM_RECEIPT_SP_ASSOC rsa2 ON r2.CONSENT_RECEIPT_ID = rsa2.CONSENT_RECEIPT_ID " +
+            "    LEFT JOIN CM_SP_PURPOSE_ASSOC spa ON rsa2.ID = spa.RECEIPT_SP_ASSOC " +
+            "    LEFT JOIN CM_PURPOSE p ON spa.PURPOSE_ID = p.ID " +
+            "    WHERE r2.PRINCIPAL_TENANT_ID = ? " +
+            "    AND r2.PII_PRINCIPAL_ID LIKE ? AND rsa2.SP_NAME LIKE ? AND r2.STATE LIKE ? " +
+            "    AND p.UUID LIKE ? AND COALESCE(spa.PURPOSE_VERSION_ID, '') LIKE ?";
+
+    public static final String LIST_RECEIPTS_SQL_TAIL =
+            " ORDER BY sub_ts ASC, sub_id ASC LIMIT ?" +
+            "  ) inner_receipts" +
+            ") ORDER BY r.CONSENT_TIMESTAMP ASC, r.CONSENT_RECEIPT_ID ASC";
+
+    public static final String LIST_RECEIPTS_SQL_TAIL_MSSQL =
+            " ORDER BY sub_ts ASC, sub_id ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY" +
+            "  ) inner_receipts" +
+            ") ORDER BY r.CONSENT_TIMESTAMP ASC, r.CONSENT_RECEIPT_ID ASC";
+
+    public static final String LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2 =
+            " ORDER BY sub_ts ASC, sub_id ASC FETCH FIRST ? ROWS ONLY" +
+            "  ) inner_receipts" +
+            ") ORDER BY r.CONSENT_TIMESTAMP ASC, r.CONSENT_RECEIPT_ID ASC";
 }
