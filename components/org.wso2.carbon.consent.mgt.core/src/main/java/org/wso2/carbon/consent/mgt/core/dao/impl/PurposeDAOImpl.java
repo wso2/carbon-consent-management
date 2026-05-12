@@ -356,15 +356,15 @@ public class PurposeDAOImpl implements PurposeDAO {
             if (isH2MySqlOrPostgresDB()) {
                 query = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, TENANT_ID, UUID, " +
                         "LATEST_VERSION_ID FROM CM_PURPOSE WHERE TENANT_ID = ?" + filterQuery +
-                        " ORDER BY ID ASC LIMIT ?";
+                        " AND UUID IS NOT NULL AND UUID <> '' ORDER BY ID ASC LIMIT ?";
             } else if (isDB2DB()) {
                 query = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, TENANT_ID, UUID, " +
                         "LATEST_VERSION_ID FROM CM_PURPOSE WHERE TENANT_ID = ?" + filterQuery +
-                        " ORDER BY ID ASC FETCH FIRST ? ROWS ONLY";
+                        " AND UUID IS NOT NULL AND UUID <> '' ORDER BY ID ASC FETCH FIRST ? ROWS ONLY";
             } else if (isMSSqlDB()) {
                 query = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, TENANT_ID, UUID, " +
                         "LATEST_VERSION_ID FROM CM_PURPOSE WHERE TENANT_ID = ?" + filterQuery +
-                        " ORDER BY ID ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+                        " AND UUID IS NOT NULL AND UUID <> '' ORDER BY ID ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
             } else if (isInformixDB()) {
                 throw new ConsentManagementServerException("This method is not supported for Informix database.",
                         ErrorMessages.ERROR_CODE_DATABASE_QUERY_PERFORMING.getCode());
@@ -372,7 +372,7 @@ public class PurposeDAOImpl implements PurposeDAO {
                 // Oracle
                 query = "SELECT ID, NAME, DESCRIPTION, PURPOSE_GROUP, GROUP_TYPE, TENANT_ID, UUID, " +
                         "LATEST_VERSION_ID FROM CM_PURPOSE WHERE TENANT_ID = ?" + filterQuery +
-                        " ORDER BY ID ASC FETCH FIRST ? ROWS ONLY";
+                        " AND UUID IS NOT NULL AND UUID <> '' ORDER BY ID ASC FETCH FIRST ? ROWS ONLY";
             }
 
             final String finalQuery = query;

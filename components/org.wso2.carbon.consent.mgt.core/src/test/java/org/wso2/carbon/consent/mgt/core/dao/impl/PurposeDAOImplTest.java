@@ -520,10 +520,63 @@ public class PurposeDAOImplTest {
             purposeDAO.addPurposeWithUuid(purposes.get(0));
             purposeDAO.addPurposeWithUuid(purposes.get(1));
 
-            // DB is pre-seeded with a DEFAULT purpose, so 2 added + 1 pre-existing = 3
+            // The pre-seeded DEFAULT purpose has no UUID and is excluded by the cursor query.
             List<Purpose> all = purposeDAO.listPurposes(java.util.Collections.emptyList(), 10, -1234);
 
-            Assert.assertEquals(all.size(), 3);
+            Assert.assertEquals(all.size(), 2);
+        }
+    }
+
+    @Test
+    public void testListPurposesWithCursorExcludesNullUuidPurposes() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
+            purposeDAO.addPurposeWithUuid(purposes.get(0));
+            purposeDAO.addPurpose(purposes.get(1));  // no UUID — legacy record
+
+            List<Purpose> result = purposeDAO.listPurposes(java.util.Collections.emptyList(), 10, -1234);
+
+            Assert.assertEquals(result.size(), 1, "Only purposes with a UUID should be returned");
+            Assert.assertNotNull(result.get(0).getUuid(), "Returned purpose must have a UUID");
+            Assert.assertEquals(result.get(0).getName(), purposes.get(0).getName());
+        }
+    }
+
+    @Test
+    public void testListPurposesWithCursorLimitIsAccurateWhenNullUuidPurposesExist() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PurposeDAO purposeDAO = new PurposeDAOImpl();
+            // Add 3 purposes with UUID and 1 without.
+            Purpose p1 = new Purpose("PA", "DA", "SIGNUP", "RESIDENT", -1234);
+            Purpose p2 = new Purpose("PB", "DB", "SIGNUP", "RESIDENT", -1234);
+            Purpose p3 = new Purpose("PC", "DC", "SIGNUP", "RESIDENT", -1234);
+            Purpose p4 = new Purpose("PD", "DD", "SIGNUP", "RESIDENT", -1234);
+            purposeDAO.addPurposeWithUuid(p1);
+            purposeDAO.addPurposeWithUuid(p2);
+            purposeDAO.addPurpose(p3);              // no UUID
+            purposeDAO.addPurposeWithUuid(p4);
+
+            // With limit=2, exactly 2 UUID purposes should come back (no off-by-one from skipped rows).
+            List<Purpose> page = purposeDAO.listPurposes(java.util.Collections.emptyList(), 2, -1234);
+
+            Assert.assertEquals(page.size(), 2, "Limit must be applied after excluding null-UUID rows");
+            page.forEach(p -> Assert.assertNotNull(p.getUuid(), "Every returned purpose must have a UUID"));
         }
     }
 
