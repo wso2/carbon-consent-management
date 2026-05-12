@@ -23,8 +23,10 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
+import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
@@ -32,6 +34,7 @@ import org.wso2.carbon.identity.event.services.IdentityEventService;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AUTHZ_STATUS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_EVENT_PUBLISHING;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE_VERSION;
@@ -52,10 +55,12 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.Interce
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_REVOKE_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_SET_LATEST_PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_ID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_UUID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_VERSION_LABEL;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_INPUT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.SET_AS_LATEST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.VERSION_ID;
 
 /**
@@ -65,9 +70,6 @@ public class ConsentEventPublisherProxy {
 
     private static final Log LOG = LogFactory.getLog(ConsentEventPublisherProxy.class);
     private static final ConsentEventPublisherProxy proxy = new ConsentEventPublisherProxy();
-    private static final String TENANT_DOMAIN = "tenantDomain";
-    private static final String PURPOSE_VERSION = "purposeVersion";
-    private static final String PURPOSE_NAME = "purposeName";
 
     private ConsentEventPublisherProxy() {
     }
@@ -77,22 +79,20 @@ public class ConsentEventPublisherProxy {
         return proxy;
     }
 
-    public void publishPreAddPurposeWithException(String purposeUuid, String purposeName, String tenantDomain)
+    public void publishPreAddPurposeWithException(Purpose purpose, String tenantDomain)
             throws ConsentManagementException {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
-        props.put(PURPOSE_NAME, purposeName);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(PURPOSE, purpose);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEventWithException(new Event(PRE_ADD_PURPOSE, props));
     }
 
-    public void publishPostAddPurpose(String purposeUuid, String purposeName, String tenantDomain) {
+    public void publishPostAddPurpose(Purpose purpose, String tenantDomain) {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
-        props.put(PURPOSE_NAME, purposeName);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(PURPOSE, purpose);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_ADD_PURPOSE, props));
     }
 
@@ -100,36 +100,39 @@ public class ConsentEventPublisherProxy {
             throws ConsentManagementException {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(PURPOSE_ID, purposeUuid);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEventWithException(new Event(PRE_DELETE_PURPOSE, props));
     }
 
     public void publishPostDeletePurpose(String purposeUuid, String tenantDomain) {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(PURPOSE_ID, purposeUuid);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_DELETE_PURPOSE, props));
     }
 
     public void publishPreAddPurposeVersionWithException(String purposeUuid, PurposeVersion purposeVersion,
+                                                         boolean setAsLatest,
                                                          String tenantDomain) throws ConsentManagementException {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
+        props.put(PURPOSE_ID, purposeUuid);
         props.put(PURPOSE_VERSION, purposeVersion);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(SET_AS_LATEST, setAsLatest);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEventWithException(new Event(PRE_ADD_PURPOSE_VERSION, props));
     }
 
     public void publishPostAddPurposeVersion(String purposeUuid, PurposeVersion purposeVersion,
-                                             String tenantDomain) {
+                                             boolean setAsLatest, String tenantDomain) {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
+        props.put(PURPOSE_ID, purposeUuid);
         props.put(PURPOSE_VERSION, purposeVersion);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(SET_AS_LATEST, setAsLatest);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_ADD_PURPOSE_VERSION, props));
     }
 
@@ -137,18 +140,18 @@ public class ConsentEventPublisherProxy {
                                                             String tenantDomain) throws ConsentManagementException {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
+        props.put(PURPOSE_ID, purposeUuid);
         props.put(VERSION_ID, versionUuid);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEventWithException(new Event(PRE_DELETE_PURPOSE_VERSION, props));
     }
 
     public void publishPostDeletePurposeVersion(String purposeUuid, String versionUuid, String tenantDomain) {
 
         Map<String, Object> props = new HashMap<>();
-        props.put(PURPOSE_UUID, purposeUuid);
+        props.put(PURPOSE_ID, purposeUuid);
         props.put(VERSION_ID, versionUuid);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_DELETE_PURPOSE_VERSION, props));
     }
 
@@ -159,7 +162,7 @@ public class ConsentEventPublisherProxy {
         Map<String, Object> props = new HashMap<>();
         props.put(PURPOSE_ID, purposeUUID);
         props.put(PURPOSE_VERSION_LABEL, versionLabel);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEventWithException(new Event(PRE_SET_LATEST_PURPOSE_VERSION, props));
     }
 
@@ -168,7 +171,7 @@ public class ConsentEventPublisherProxy {
         Map<String, Object> props = new HashMap<>();
         props.put(PURPOSE_ID, purposeUUID);
         props.put(PURPOSE_VERSION_LABEL, versionLabel);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_SET_LATEST_PURPOSE_VERSION, props));
     }
 
@@ -178,9 +181,9 @@ public class ConsentEventPublisherProxy {
 
         Map<String, Object> props = new HashMap<>();
         props.put(RECEIPT_ID, consentId);
-        props.put("USER_ID", userId);
-        props.put("AUTH_STATUS", authStatus);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(IdentityEventConstants.EventProperty.USER_ID, userId);
+        props.put(AUTHZ_STATUS, authStatus);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEventWithException(new Event(PRE_AUTHORIZE_CONSENT, props));
     }
 
@@ -189,9 +192,9 @@ public class ConsentEventPublisherProxy {
 
         Map<String, Object> props = new HashMap<>();
         props.put(RECEIPT_ID, consentId);
-        props.put("USER_ID", userId);
-        props.put("AUTH_STATUS", authStatus);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(IdentityEventConstants.EventProperty.USER_ID, userId);
+        props.put(AUTHZ_STATUS, authStatus);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_AUTHORIZE_CONSENT, props));
     }
 
@@ -200,7 +203,7 @@ public class ConsentEventPublisherProxy {
 
         Map<String, Object> props = new HashMap<>();
         props.put(RECEIPT_INPUT, receiptInput);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEventWithException(new Event(PRE_ADD_RECEIPT, props));
     }
 
@@ -208,7 +211,7 @@ public class ConsentEventPublisherProxy {
 
         Map<String, Object> props = new HashMap<>();
         props.put(RECEIPT_INPUT, receiptInput);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_ADD_RECEIPT, props));
     }
 
@@ -217,7 +220,7 @@ public class ConsentEventPublisherProxy {
 
         Map<String, Object> props = new HashMap<>();
         props.put(RECEIPT_ID, receiptId);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEventWithException(new Event(PRE_REVOKE_RECEIPT, props));
     }
 
@@ -225,7 +228,7 @@ public class ConsentEventPublisherProxy {
 
         Map<String, Object> props = new HashMap<>();
         props.put(RECEIPT_ID, receiptId);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_REVOKE_RECEIPT, props));
     }
 
@@ -234,7 +237,7 @@ public class ConsentEventPublisherProxy {
 
         Map<String, Object> props = new HashMap<>();
         props.put(RECEIPT_ID, receiptId);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEventWithException(new Event(PRE_DELETE_RECEIPT, props));
     }
 
@@ -242,7 +245,7 @@ public class ConsentEventPublisherProxy {
 
         Map<String, Object> props = new HashMap<>();
         props.put(RECEIPT_ID, receiptId);
-        props.put(TENANT_DOMAIN, tenantDomain);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_DELETE_RECEIPT, props));
     }
 

@@ -21,6 +21,7 @@ package org.wso2.carbon.consent.mgt.core.listener;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
@@ -60,7 +61,6 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
     private static final String DATA_VERSION_LABEL = "versionLabel";
     private static final String DATA_PII_PRINCIPAL_ID = "piiPrincipalId";
     private static final String DATA_STATE = "state";
-    private static final String DATA_SERVICE_COUNT = "serviceCount";
     private static final String DATA_SERVICE_NAMES = "serviceNames";
     private static final String DATA_PURPOSE_NAMES = "purposeNames";
     private static final String DATA_USER_ID = "userId";
@@ -79,13 +79,15 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
     }
 
     @Override
-    public void postAddPurpose(String purposeUuid, String purposeName, String tenantDomain) {
+    public void postAddPurpose(Purpose purpose, String tenantDomain) {
 
-        JSONObject data = new JSONObject();
-        if (StringUtils.isNotBlank(purposeName)) {
-            data.put(DATA_NAME, purposeName);
+        if (purpose == null) {
+            return;
         }
-        buildAuditLog(purposeUuid, TARGET_PURPOSE, ACTION_ADD_PURPOSE, data);
+        JSONObject data = new JSONObject();
+        data.put(DATA_NAME, purpose.getName());
+        String purposeId = StringUtils.isNotBlank(purpose.getUuid()) ? purpose.getUuid() : String.valueOf(purpose.getId());
+        buildAuditLog(purposeId, TARGET_PURPOSE, ACTION_ADD_PURPOSE, data);
     }
 
     @Override
@@ -97,11 +99,12 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
     @Override
     public void postAddPurposeVersion(String purposeUuid, PurposeVersion purposeVersion, String tenantDomain) {
 
+        if (purposeVersion == null) {
+            return;
+        }
         JSONObject data = new JSONObject();
         data.put(DATA_PURPOSE_ID, purposeUuid);
-        if (purposeVersion != null) {
-            data.put(DATA_VERSION_LABEL, purposeVersion.getVersion());
-        }
+        data.put(DATA_VERSION_LABEL, purposeVersion.getVersion());
         String versionUuid = purposeVersion != null ? purposeVersion.getUuid() : purposeUuid;
         buildAuditLog(versionUuid, TARGET_PURPOSE_VERSION, ACTION_ADD_PURPOSE_VERSION, data);
     }
@@ -124,7 +127,6 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
         data.put(DATA_PII_PRINCIPAL_ID, LoggerUtils.getMaskedContent(receiptInput.getPiiPrincipalId()));
         data.put(DATA_STATE, receiptInput.getState());
         if (receiptInput.getServices() != null) {
-            data.put(DATA_SERVICE_COUNT, receiptInput.getServices().size());
             JSONArray serviceNames = extractServiceNames(receiptInput);
             if (serviceNames.length() > 0) {
                 data.put(DATA_SERVICE_NAMES, serviceNames);
