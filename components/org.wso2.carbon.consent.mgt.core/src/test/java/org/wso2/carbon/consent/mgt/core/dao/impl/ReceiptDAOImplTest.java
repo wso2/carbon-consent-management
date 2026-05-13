@@ -507,9 +507,8 @@ public class ReceiptDAOImplTest {
             if (offset > 0) {
                 List<Receipt> firstPage = receiptDAO.listReceipts(null, null, null, null, null,
                         null, null, 1, tenantId);
-                long firstTs = firstPage.get(0).getConsentTimestamp();
                 after = java.util.Base64.getEncoder().encodeToString(
-                        String.valueOf(firstTs).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                        firstPage.get(0).getCursor().getBytes(java.nio.charset.StandardCharsets.UTF_8));
             }
 
             List<Receipt> results = receiptDAO.listReceipts(subjectId, serviceId, state, purposeId,

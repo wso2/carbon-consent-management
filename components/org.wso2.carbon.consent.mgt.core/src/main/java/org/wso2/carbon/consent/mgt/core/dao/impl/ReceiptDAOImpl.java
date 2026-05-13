@@ -1299,29 +1299,26 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         final String finalPurposeId = purposeId != null ? purposeId : SQL_FILTER_STRING_ANY;
         final String finalPurposeVersionId = purposeVersionId != null ? purposeVersionId : SQL_FILTER_STRING_ANY;
 
-        // Cursor encodes CONSENT_TIMESTAMP epoch-millis as Base64(long string).
-        // CONSENT_TIMESTAMP is used as the cursor key, matching the ordering column.
-        final Timestamp cursorTs;
-        try {
+        // Cursor encodes CM_RECEIPT.CURSOR_KEY as Base64(integer string).
+        final int[] cursorKeyHolder = {0};
+        final boolean hasCursor = after != null || before != null;
+        if (hasCursor) {
             String rawCursor = after != null ? after : before;
-            if (rawCursor != null) {
+            try {
                 String decoded = new String(Base64.getDecoder().decode(rawCursor), StandardCharsets.UTF_8);
-                cursorTs = new Timestamp(Long.parseLong(decoded));
-            } else {
-                cursorTs = null;
+                cursorKeyHolder[0] = Integer.parseInt(decoded);
+            } catch (IllegalArgumentException e) {
+                throw new org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException(
+                        String.format(ErrorMessages.ERROR_CODE_INVALID_CURSOR_TOKEN.getMessage(), rawCursor),
+                        ErrorMessages.ERROR_CODE_INVALID_CURSOR_TOKEN.getCode());
             }
-        } catch (IllegalArgumentException e) {
-            String rawCursor = after != null ? after : before;
-            throw new org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException(
-                    String.format(ErrorMessages.ERROR_CODE_INVALID_CURSOR_TOKEN.getMessage(), rawCursor),
-                    ErrorMessages.ERROR_CODE_INVALID_CURSOR_TOKEN.getCode());
         }
 
         final String cursorCondition;
         if (after != null) {
-            cursorCondition = " AND r2.CONSENT_TIMESTAMP > ?";
+            cursorCondition = " AND r2.CURSOR_KEY > ?";
         } else if (before != null) {
-            cursorCondition = " AND r2.CONSENT_TIMESTAMP < ?";
+            cursorCondition = " AND r2.CURSOR_KEY < ?";
         } else {
             cursorCondition = "";
         }
@@ -1343,7 +1340,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         if (!resultSet.wasNull()) {
                             receipt.setValidityTime(vt);
                         }
-                        String spName = resultSet.getString(7);
+                        receipt.setCursorKey(resultSet.getInt(7));
+                        String spName = resultSet.getString(8);
                         if (spName != null) {
                             ReceiptService svc = new ReceiptService();
                             svc.setService(spName);
@@ -1360,8 +1358,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         preparedStatement.setString(paramIndex++, finalState);
                         preparedStatement.setString(paramIndex++, finalPurposeId);
                         preparedStatement.setString(paramIndex++, finalPurposeVersionId);
-                        if (after != null || before != null) {
-                            preparedStatement.setTimestamp(paramIndex++, cursorTs);
+                        if (hasCursor) {
+                            preparedStatement.setInt(paramIndex++, cursorKeyHolder[0]);
                         }
                         preparedStatement.setInt(paramIndex, limit);
                     });

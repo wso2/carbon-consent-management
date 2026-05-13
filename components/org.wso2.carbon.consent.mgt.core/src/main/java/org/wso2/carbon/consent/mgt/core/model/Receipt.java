@@ -43,6 +43,7 @@ public class Receipt {
     private int tenantId;
     private Map<String, String> properties;
     private Long validityTime;
+    private int cursorKey;
 
     public String getConsentReceiptId() {
 
@@ -232,6 +233,21 @@ public class Receipt {
     public void setValidityTime(Long validityTime) {
 
         this.validityTime = validityTime;
+    }
+
+    public int getCursorKey() {
+
+        return cursorKey;
+    }
+
+    public void setCursorKey(int cursorKey) {
+
+        this.cursorKey = cursorKey;
+    }
+
+    public String getCursor() {
+
+        return String.valueOf(cursorKey);
     }
 
 }

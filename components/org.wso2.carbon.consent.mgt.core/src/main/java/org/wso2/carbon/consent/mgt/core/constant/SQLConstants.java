@@ -501,14 +501,14 @@ public class SQLConstants {
 
     public static final String LIST_RECEIPTS_SQL_HEAD =
             "SELECT r.CONSENT_RECEIPT_ID, r.PII_PRINCIPAL_ID, r.STATE, r.PRINCIPAL_TENANT_ID, " +
-            "r.CONSENT_TIMESTAMP, r.VALIDITY_TIME, " +
+            "r.CONSENT_TIMESTAMP, r.VALIDITY_TIME, r.CURSOR_KEY, " +
             "(SELECT MIN(rsa2.SP_NAME) FROM CM_RECEIPT_SP_ASSOC rsa2 " +
             "WHERE rsa2.CONSENT_RECEIPT_ID = r.CONSENT_RECEIPT_ID) AS SP_NAME " +
             "FROM CM_RECEIPT r " +
             "WHERE r.PRINCIPAL_TENANT_ID = ? " +
             "AND r.CONSENT_RECEIPT_ID IN (" +
             "  SELECT sub_id FROM (" +
-            "    SELECT DISTINCT r2.CONSENT_RECEIPT_ID AS sub_id, r2.CONSENT_TIMESTAMP AS sub_ts " +
+            "    SELECT DISTINCT r2.CONSENT_RECEIPT_ID AS sub_id, r2.CURSOR_KEY AS sub_ck " +
             "    FROM CM_RECEIPT r2 " +
             "    LEFT JOIN CM_RECEIPT_SP_ASSOC rsa2 ON r2.CONSENT_RECEIPT_ID = rsa2.CONSENT_RECEIPT_ID " +
             "    LEFT JOIN CM_SP_PURPOSE_ASSOC spa ON rsa2.ID = spa.RECEIPT_SP_ASSOC " +
@@ -518,17 +518,17 @@ public class SQLConstants {
             "    AND p.UUID LIKE ? AND COALESCE(spa.PURPOSE_VERSION_ID, '') LIKE ?";
 
     public static final String LIST_RECEIPTS_SQL_TAIL =
-            " ORDER BY sub_ts ASC LIMIT ?" +
+            " ORDER BY sub_ck ASC LIMIT ?" +
             "  ) inner_receipts" +
-            ") ORDER BY r.CONSENT_TIMESTAMP ASC";
+            ") ORDER BY r.CURSOR_KEY ASC";
 
     public static final String LIST_RECEIPTS_SQL_TAIL_MSSQL =
-            " ORDER BY sub_ts ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY" +
+            " ORDER BY sub_ck ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY" +
             "  ) inner_receipts" +
-            ") ORDER BY r.CONSENT_TIMESTAMP ASC";
+            ") ORDER BY r.CURSOR_KEY ASC";
 
     public static final String LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2 =
-            " ORDER BY sub_ts ASC FETCH FIRST ? ROWS ONLY" +
+            " ORDER BY sub_ck ASC FETCH FIRST ? ROWS ONLY" +
             "  ) inner_receipts" +
-            ") ORDER BY r.CONSENT_TIMESTAMP ASC";
+            ") ORDER BY r.CURSOR_KEY ASC";
 }
