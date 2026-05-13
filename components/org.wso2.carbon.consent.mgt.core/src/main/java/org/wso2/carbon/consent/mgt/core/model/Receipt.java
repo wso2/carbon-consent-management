@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +43,7 @@ public class Receipt {
     private String tenantDomain;
     private int tenantId;
     private Map<String, String> properties;
-    private Long validityTime;
+    private Timestamp expiryTime;
     private int cursorKey;
 
     public String getConsentReceiptId() {
@@ -225,14 +226,14 @@ public class Receipt {
         this.properties = properties;
     }
 
-    public Long getValidityTime() {
+    public Timestamp getExpiryTime() {
 
-        return validityTime;
+        return expiryTime;
     }
 
-    public void setValidityTime(Long validityTime) {
+    public void setExpiryTime(Timestamp expiryTime) {
 
-        this.validityTime = validityTime;
+        this.expiryTime = expiryTime;
     }
 
     public int getCursorKey() {

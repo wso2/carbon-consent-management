@@ -61,8 +61,10 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.security.PublicKey;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -1239,7 +1241,7 @@ public class ConsentManagerImpl implements ConsentManager {
 
     /**
      * Validates and updates consent status, checking for expiration.
-     * If consent is ACTIVE and validityTime has passed, updates status to EXPIRED and returns it.
+     * If consent is ACTIVE and expiryTime has passed, updates status to EXPIRED and returns it.
      *
      * @param consentId Consent receipt ID.
      * @return Current status of the consent (PENDING, ACTIVE, REJECTED, REVOKED, or EXPIRED).
@@ -1261,8 +1263,8 @@ public class ConsentManagerImpl implements ConsentManager {
         }
 
         if (ACTIVE_STATE.equals(state)) {
-            Long validityTime = vReceiptDAO.getReceiptValidityTime(consentId);
-            if (validityTime != null && validityTime < System.currentTimeMillis()) {
+            Timestamp expiryTime = vReceiptDAO.getReceiptExpiryTime(consentId);
+            if (expiryTime != null && expiryTime.before(new Date())) {
                 vReceiptDAO.updateReceiptState(consentId, EXPIRED_STATE);
                 return EXPIRED_STATE;
             }

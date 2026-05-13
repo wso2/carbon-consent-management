@@ -32,6 +32,7 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -70,7 +71,7 @@ public class ConsentReceiptUtils {
      * @param language             Language code for the consent receipt.
      * @param subjectId            PII principal (data subject) user ID.
      * @param tenantDomain         Tenant domain of the request.
-     * @param validityTime         Optional validity period in seconds; {@code null} means no expiry.
+     * @param expiryTime         Optional absolute expiry timestamp; {@code null} means no expiry.
      * @param rejected             {@code true} to create the consent in REJECTED state.
      * @param authorizationUserIds List of user IDs required to authorize the consent (delegated consents).
      * @param properties           Optional key-value metadata to attach to the receipt.
@@ -80,8 +81,8 @@ public class ConsentReceiptUtils {
      * @return Fully populated {@link ReceiptInput} ready to pass to the consent management service.
      * @throws ConsentManagementException if any UUID cannot be resolved or a subject mismatch is detected.
      */
-    public static ReceiptInput buildReceiptInput(String language, String subjectId, String tenantDomain, 
-                                                 Long validityTime, boolean rejected, List<String> authorizationUserIds,
+    public static ReceiptInput buildReceiptInput(String language, String subjectId, String tenantDomain,
+                                                 Timestamp expiryTime, boolean rejected, List<String> authorizationUserIds,
                                                  Map<String, String> properties,String serviceId, 
                                                  List<PurposePIICategoryBinding> purposeBindings,
                                                  ConsentManager consentManager)
@@ -97,8 +98,8 @@ public class ConsentReceiptUtils {
         receiptInput.setPiiPrincipalId(subjectId);
         receiptInput.setTenantDomain(tenantDomain);
 
-        if (validityTime != null) {
-            receiptInput.setValidityTime(validityTime);
+        if (expiryTime != null) {
+            receiptInput.setExpiryTime(expiryTime);
         }
         if (authorizationUserIds != null) {
             receiptInput.setAuthorizations(authorizationUserIds);

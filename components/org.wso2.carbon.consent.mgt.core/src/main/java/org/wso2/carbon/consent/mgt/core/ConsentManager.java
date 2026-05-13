@@ -462,7 +462,7 @@ public interface ConsentManager {
     }
 
     /**
-     * Validate consent status — lazily marks EXPIRED if validityTime has passed (V2 API).
+     * Validate consent status — lazily marks EXPIRED if expiryTime has passed (V2 API).
      *
      * @param consentId Consent receipt ID.
      * @return Current effective status string.

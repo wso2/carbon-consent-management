@@ -265,9 +265,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     receiptInfo.setPolicyUrl(resultSet.getString(8));
                     receiptInfo.setState(resultSet.getString(9));
                     receiptInfo.setPiiController(resultSet.getString(10));
-                    long vt = resultSet.getLong(11);
-                    if (!resultSet.wasNull()) {
-                        receiptInfo.setValidityTime(vt);
+                    Timestamp vt = resultSet.getTimestamp(11);
+                    if (vt != null) {
+                        receiptInfo.setExpiryTime(vt);
                     }
                     return receiptInfo;
                 }, preparedStatement -> {
@@ -565,8 +565,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
-                boolean hasValidityTime = receiptInput.getValidityTime() != null;
-                String insertSql = hasValidityTime ? INSERT_RECEIPT_V2_SQL : INSERT_RECEIPT_SQL;
+                boolean hasExpiryTime = receiptInput.getExpiryTime() != null;
+                String insertSql = hasExpiryTime ? INSERT_RECEIPT_V2_SQL : INSERT_RECEIPT_SQL;
                 String initialState = receiptInput.getState() != null ? receiptInput.getState() : ACTIVE_STATE;
                 template.executeInsert(insertSql, (preparedStatement -> {
                     preparedStatement.setString(1, receiptInput.getConsentReceiptId());
@@ -581,8 +581,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     preparedStatement.setString(9, receiptInput.getPolicyUrl());
                     preparedStatement.setString(10, initialState);
                     preparedStatement.setString(11, receiptInput.getPiiControllerInfo());
-                    if (hasValidityTime) {
-                        preparedStatement.setLong(12, receiptInput.getValidityTime());
+                    if (hasExpiryTime) {
+                        preparedStatement.setTimestamp(12, receiptInput.getExpiryTime(),
+                                Calendar.getInstance(TimeZone.getTimeZone(UTC)));
                     }
                 }), receiptInput, false);
                 return null;
@@ -1264,16 +1265,15 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     }
 
     @Override
-    public Long getReceiptValidityTime(String consentReceiptId) throws ConsentManagementException {
+    public Timestamp getReceiptExpiryTime(String consentReceiptId) throws ConsentManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            Long[] result = new Long[1];
+            Timestamp[] result = new Timestamp[1];
             jdbcTemplate.fetchSingleRecord(GET_RECEIPT_STATE_SQL,
                     (resultSet, rowNumber) -> {
                         resultSet.getString(1); // skip STATE column
-                        long vt = resultSet.getLong(2);
-                        result[0] = resultSet.wasNull() ? null : vt;
+                        result[0] = resultSet.getTimestamp(2);
                         return result[0];
                     },
                     preparedStatement -> preparedStatement.setString(1, consentReceiptId));
@@ -1336,9 +1336,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         if (ts != null) {
                             receipt.setConsentTimestamp(ts.getTime());
                         }
-                        long vt = resultSet.getLong(6);
-                        if (!resultSet.wasNull()) {
-                            receipt.setValidityTime(vt);
+                        Timestamp vt = resultSet.getTimestamp(6);
+                        if (vt != null) {
+                            receipt.setExpiryTime(vt);
                         }
                         receipt.setCursorKey(resultSet.getInt(7));
                         String spName = resultSet.getString(8);

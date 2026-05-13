@@ -22,6 +22,7 @@ import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 
@@ -144,7 +145,7 @@ public interface ReceiptDAO {
         return null;
     }
 
-    default Long getReceiptValidityTime(String consentReceiptId)
+    default Timestamp getReceiptExpiryTime(String consentReceiptId)
             throws ConsentManagementException {
 
         return null;
