@@ -110,6 +110,9 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIP
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_MSSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_BEFORE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_MSSQL_BEFORE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2_BEFORE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_CONSENT_AUTHORIZATION_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_RECEIPT_STATE_SQL;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isDB2DB;
@@ -1324,7 +1327,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         }
 
         try {
-            String query = buildCursorReceiptQuery(cursorCondition);
+            String query = buildCursorReceiptQuery(cursorCondition, before != null);
             receipts = jdbcTemplate.executeQuery(query,
                     (resultSet, rowNumber) -> {
                         Receipt receipt = new Receipt();
@@ -1371,15 +1374,15 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         return receipts;
     }
 
-    private String buildCursorReceiptQuery(String cursorCondition) throws DataAccessException {
+    private String buildCursorReceiptQuery(String cursorCondition, boolean isBefore) throws DataAccessException {
 
         String tail;
         if (isH2MySqlOrPostgresDB()) {
-            tail = cursorCondition + LIST_RECEIPTS_SQL_TAIL;
+            tail = cursorCondition + (isBefore ? LIST_RECEIPTS_SQL_TAIL_BEFORE : LIST_RECEIPTS_SQL_TAIL);
         } else if (isMSSqlDB()) {
-            tail = cursorCondition + LIST_RECEIPTS_SQL_TAIL_MSSQL;
+            tail = cursorCondition + (isBefore ? LIST_RECEIPTS_SQL_TAIL_MSSQL_BEFORE : LIST_RECEIPTS_SQL_TAIL_MSSQL);
         } else {
-            tail = cursorCondition + LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2;
+            tail = cursorCondition + (isBefore ? LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2_BEFORE : LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2);
         }
         return LIST_RECEIPTS_SQL_HEAD + tail;
     }

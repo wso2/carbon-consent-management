@@ -531,4 +531,21 @@ public class SQLConstants {
             " ORDER BY sub_ck ASC FETCH FIRST ? ROWS ONLY" +
             "  ) inner_receipts" +
             ") ORDER BY r.CURSOR_KEY ASC";
+
+    // Before-cursor variants: inner query orders DESC to fetch the page immediately preceding
+    // the cursor, outer query re-sorts ASC so results are returned in ascending order.
+    public static final String LIST_RECEIPTS_SQL_TAIL_BEFORE =
+            " ORDER BY sub_ck DESC LIMIT ?" +
+            "  ) inner_receipts" +
+            ") ORDER BY r.CURSOR_KEY ASC";
+
+    public static final String LIST_RECEIPTS_SQL_TAIL_MSSQL_BEFORE =
+            " ORDER BY sub_ck DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY" +
+            "  ) inner_receipts" +
+            ") ORDER BY r.CURSOR_KEY ASC";
+
+    public static final String LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2_BEFORE =
+            " ORDER BY sub_ck DESC FETCH FIRST ? ROWS ONLY" +
+            "  ) inner_receipts" +
+            ") ORDER BY r.CURSOR_KEY ASC";
 }
