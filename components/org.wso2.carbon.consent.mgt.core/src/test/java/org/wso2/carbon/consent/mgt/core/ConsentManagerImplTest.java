@@ -98,6 +98,7 @@ public class ConsentManagerImplTest {
     private MockedStatic<PrivilegedCarbonContext> mockedCarbonContext;
     private MockedStatic<KeyStoreManager> mockedKeyStoreManager;
     private AutoCloseable mockitoCloseable;
+    private PrivilegedCarbonContext privilegedCarbonContext;
 
     private static List<PIICategory> piiCategories = new ArrayList<>();
     private static final String TEST_PURPOSE_NAME = "Test Purpose";
@@ -266,9 +267,11 @@ public class ConsentManagerImplTest {
         setupUserStoreManagerMock(isUserNameCaseSensitive);
 
         consentManager = new ConsentManagerImpl(configurationHolder);
+        when(privilegedCarbonContext.getUsername()).thenReturn(principleID1);
         consentManager.addConsent(receiptInput1);
         String receiptID = receiptInput1.getConsentReceiptId();
         receiptInput1.setPiiPrincipalId("SUBJECT1");
+        when(privilegedCarbonContext.getUsername()).thenReturn("SUBJECT1");
         consentManager.addConsent(receiptInput1);
         if (isUserNameCaseSensitive) {
             Assert.assertEquals(consentManager.getReceipt(receiptID).getState(), "ACTIVE");
@@ -312,7 +315,7 @@ public class ConsentManagerImplTest {
     private void mockCarbonContext() {
 
         mockedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
-        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
         mockedCarbonContext.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(privilegedCarbonContext);
         when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);

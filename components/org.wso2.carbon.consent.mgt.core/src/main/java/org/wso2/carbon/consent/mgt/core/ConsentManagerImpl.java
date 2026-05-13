@@ -77,7 +77,9 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_PURPOSE_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_SERVICE_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CANNOT_DELETE_LATEST_PURPOSE_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_SUBJECT_MISMATCH;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_TYPE_MANDATORY;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_USER_NOT_IN_AUTHORIZATION_LIST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_ELEMENT_UUID_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GETTING_PUBLIC_CERT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GETTING_TENANT_ID;
@@ -704,13 +706,22 @@ public class ConsentManagerImpl implements ConsentManager {
             receiptInput.setPiiPrincipalId(getLowerCaseUserName(receiptInput.getPiiPrincipalId()));
         }
 
+        String currentUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         java.util.List<String> authorizations = receiptInput.getAuthorizations();
+        boolean hasAuthorizations = authorizations != null && !authorizations.isEmpty();
+        boolean subjectMatchesCaller = isUserNameCaseSensitive(currentUser)
+                ? receiptInput.getPiiPrincipalId().equals(currentUser)
+                : receiptInput.getPiiPrincipalId().equalsIgnoreCase(currentUser);
+        if (!subjectMatchesCaller && !hasAuthorizations) {
+            throw handleClientException(ERROR_CODE_CONSENT_SUBJECT_MISMATCH, receiptInput.getPiiPrincipalId());
+        }
         List<ConsentAuthorization> authorizationsList = new ArrayList<>();
         if (authorizations != null && !authorizations.isEmpty()) {
             receiptInput.setState(PENDING_STATE);
             long now = System.currentTimeMillis();
             for (String userId : authorizations) {
-                authorizationsList.add(new ConsentAuthorization(receiptInput.getConsentReceiptId(), userId, ConsentAuthorization.AuthorizationStatus.PENDING, now));
+                authorizationsList.add(new ConsentAuthorization(receiptInput.getConsentReceiptId(), userId,
+                        ConsentAuthorization.AuthorizationStatus.PENDING, now));
             }
         }
 
@@ -1142,11 +1153,14 @@ public class ConsentManagerImpl implements ConsentManager {
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
         }
+        if (StringUtils.isNotBlank(subjectId) && !isUserNameCaseSensitive(subjectId)) {
+            subjectId = getLowerCaseUserName(subjectId);
+        }
         return getReceiptsDAO(receiptDAOs).listReceipts(subjectId, serviceId, state, purposeId,
                 purposeVersionId, after, before, limit, getTenantIdFromCarbonContext());
     }
 
-    /**
+/**
      * Updates authorization status for a user on a consent receipt.
      *
      * @param consentId  Consent receipt ID.
@@ -1165,6 +1179,18 @@ public class ConsentManagerImpl implements ConsentManager {
 
         ReceiptDAO receiptDAO = getReceiptsDAO(receiptDAOs);
         long now = System.currentTimeMillis();
+
+        if (REVOKE_STATE.equals(authStatus)) {
+            List<ConsentAuthorization> auths = receiptDAO.getConsentAuthorizations(consentId);
+            if (auths != null && !auths.isEmpty()) {
+                boolean userInList = isUserNameCaseSensitive(userId)
+                        ? auths.stream().anyMatch(a -> userId.equals(a.getUserId()))
+                        : auths.stream().anyMatch(a -> userId.equalsIgnoreCase(a.getUserId()));
+                if (!userInList) {
+                    throw handleClientException(ERROR_CODE_CONSENT_USER_NOT_IN_AUTHORIZATION_LIST, userId);
+                }
+            }
+        }
 
         ConsentAuthorization existing = receiptDAO.getConsentAuthorizationByUser(consentId, userId);
         if (existing != null) {
