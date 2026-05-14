@@ -18,6 +18,7 @@ package org.wso2.carbon.consent.mgt.core.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +38,7 @@ public class ReceiptInput {
     private int tenantId;
     private Map<String, String> properties;
     private String piiControllerInfo;
-    private Long validityTime;
+    private Timestamp expiryTime;
     private List<String> authorizations;
     private boolean allowMultipleActiveReceipts = false;
 
@@ -171,14 +172,14 @@ public class ReceiptInput {
         this.piiControllerInfo = piiControllerInfo;
     }
 
-    public Long getValidityTime() {
+    public Timestamp getExpiryTime() {
 
-        return validityTime;
+        return expiryTime;
     }
 
-    public void setValidityTime(Long validityTime) {
+    public void setExpiryTime(Timestamp expiryTime) {
 
-        this.validityTime = validityTime;
+        this.expiryTime = expiryTime;
     }
 
     public List<String> getAuthorizations() {

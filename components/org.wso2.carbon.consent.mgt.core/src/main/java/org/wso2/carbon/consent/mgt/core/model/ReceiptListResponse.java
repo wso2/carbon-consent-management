@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
+import java.sql.Timestamp;
+
 /**
  * The model representing a a consent receipt.
  */
@@ -29,7 +31,7 @@ public class ReceiptListResponse {
     private String state;
     private String spDisplayName;
     private String spDescription;
-    private Long validityTime;
+    private Timestamp expiryTime;
 
     public ReceiptListResponse(String consentReceiptId, String language, String piiPrincipalId, int tenantId,
                                String state, String spDisplayName, String spDescription) {
@@ -123,13 +125,13 @@ public class ReceiptListResponse {
         this.spDescription = spDescription;
     }
 
-    public Long getValidityTime() {
+    public Timestamp getExpiryTime() {
 
-        return validityTime;
+        return expiryTime;
     }
 
-    public void setValidityTime(Long validityTime) {
+    public void setExpiryTime(Timestamp expiryTime) {
 
-        this.validityTime = validityTime;
+        this.expiryTime = expiryTime;
     }
 }

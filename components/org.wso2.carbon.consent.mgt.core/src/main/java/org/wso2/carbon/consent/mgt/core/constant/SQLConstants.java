@@ -387,19 +387,19 @@ public class SQLConstants {
             "TENANT_ID, DISPLAY_NAME, UUID FROM CM_PII_CATEGORY WHERE UUID = ? AND TENANT_ID = ?";
 
     public static final String LIST_FILTERED_PII_CATEGORY_MYSQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
-            "TENANT_ID, DISPLAY_NAME, UUID FROM CM_PII_CATEGORY WHERE TENANT_ID = ?%s ORDER BY UUID ASC LIMIT ?";
+            "TENANT_ID, DISPLAY_NAME, UUID FROM CM_PII_CATEGORY WHERE TENANT_ID = ?%s ORDER BY ID ASC LIMIT ?";
 
     public static final String LIST_FILTERED_PII_CATEGORY_DB2 = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
             "TENANT_ID, DISPLAY_NAME, UUID FROM CM_PII_CATEGORY WHERE TENANT_ID = ?%s " +
-            "ORDER BY UUID ASC FETCH FIRST ? ROWS ONLY";
+            "ORDER BY ID ASC FETCH FIRST ? ROWS ONLY";
 
     public static final String LIST_FILTERED_PII_CATEGORY_MSSQL = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
             "TENANT_ID, DISPLAY_NAME, UUID FROM CM_PII_CATEGORY WHERE TENANT_ID = ?%s " +
-            "ORDER BY UUID ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+            "ORDER BY ID ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
 
     public static final String LIST_FILTERED_PII_CATEGORY_ORACLE = "SELECT ID, NAME, DESCRIPTION, IS_SENSITIVE, " +
             "TENANT_ID, DISPLAY_NAME, UUID FROM CM_PII_CATEGORY WHERE TENANT_ID = ?%s " +
-            "ORDER BY UUID ASC FETCH FIRST ? ROWS ONLY";
+            "ORDER BY ID ASC FETCH FIRST ? ROWS ONLY";
 
     public static final String INSERT_PURPOSE_VERSION_WITH_UUID_SQL = "INSERT INTO CM_PURPOSE_VERSION " +
             "(PURPOSE_ID, VERSION, DESCRIPTION, TENANT_ID, UUID) VALUES (?, ?, ?, ?, ?)";
@@ -471,10 +471,10 @@ public class SQLConstants {
 
     public static final String INSERT_RECEIPT_V2_SQL = "INSERT INTO CM_RECEIPT (CONSENT_RECEIPT_ID,VERSION, " +
             "JURISDICTION,CONSENT_TIMESTAMP,COLLECTION_METHOD,LANGUAGE,PII_PRINCIPAL_ID,PRINCIPAL_TENANT_ID, " +
-            "POLICY_URL,STATE,PII_CONTROLLER,VALIDITY_TIME) values (?,?,?,?,?,?,?,?,?,?,?,?)";
+            "POLICY_URL,STATE,PII_CONTROLLER,EXPIRY_TIME) values (?,?,?,?,?,?,?,?,?,?,?,?)";
 
     public static final String GET_RECEIPT_V2_SQL = "SELECT VERSION,JURISDICTION,CONSENT_TIMESTAMP,COLLECTION_METHOD," +
-            "LANGUAGE,PII_PRINCIPAL_ID,PRINCIPAL_TENANT_ID,POLICY_URL,STATE,PII_CONTROLLER,VALIDITY_TIME " +
+            "LANGUAGE,PII_PRINCIPAL_ID,PRINCIPAL_TENANT_ID,POLICY_URL,STATE,PII_CONTROLLER,EXPIRY_TIME " +
             "FROM CM_RECEIPT WHERE CONSENT_RECEIPT_ID =?";
 
     public static final String INSERT_CONSENT_AUTHORIZATION_SQL =
@@ -497,5 +497,55 @@ public class SQLConstants {
             "UPDATE CM_RECEIPT SET STATE = ? WHERE CONSENT_RECEIPT_ID = ?";
 
     public static final String GET_RECEIPT_STATE_SQL =
-            "SELECT STATE, VALIDITY_TIME FROM CM_RECEIPT WHERE CONSENT_RECEIPT_ID = ?";
+            "SELECT STATE, EXPIRY_TIME FROM CM_RECEIPT WHERE CONSENT_RECEIPT_ID = ?";
+
+    public static final String LIST_RECEIPTS_SQL_HEAD =
+            "SELECT r.CONSENT_RECEIPT_ID, r.PII_PRINCIPAL_ID, r.STATE, r.PRINCIPAL_TENANT_ID, " +
+            "r.CONSENT_TIMESTAMP, r.EXPIRY_TIME, r.CURSOR_KEY, " +
+            "(SELECT MIN(rsa2.SP_NAME) FROM CM_RECEIPT_SP_ASSOC rsa2 " +
+            "WHERE rsa2.CONSENT_RECEIPT_ID = r.CONSENT_RECEIPT_ID) AS SP_NAME " +
+            "FROM CM_RECEIPT r " +
+            "WHERE r.PRINCIPAL_TENANT_ID = ? " +
+            "AND r.CONSENT_RECEIPT_ID IN (" +
+            "  SELECT sub_id FROM (" +
+            "    SELECT DISTINCT r2.CONSENT_RECEIPT_ID AS sub_id, r2.CURSOR_KEY AS sub_ck " +
+            "    FROM CM_RECEIPT r2 " +
+            "    LEFT JOIN CM_RECEIPT_SP_ASSOC rsa2 ON r2.CONSENT_RECEIPT_ID = rsa2.CONSENT_RECEIPT_ID " +
+            "    LEFT JOIN CM_SP_PURPOSE_ASSOC spa ON rsa2.ID = spa.RECEIPT_SP_ASSOC " +
+            "    LEFT JOIN CM_PURPOSE p ON spa.PURPOSE_ID = p.ID " +
+            "    WHERE r2.PRINCIPAL_TENANT_ID = ? " +
+            "    AND r2.PII_PRINCIPAL_ID LIKE ? AND rsa2.SP_NAME LIKE ? AND r2.STATE LIKE ? " +
+            "    AND p.UUID LIKE ? AND COALESCE(spa.PURPOSE_VERSION_ID, '') LIKE ?";
+
+    public static final String LIST_RECEIPTS_SQL_TAIL =
+            " ORDER BY sub_ck ASC LIMIT ?" +
+            "  ) inner_receipts" +
+            ") ORDER BY r.CURSOR_KEY ASC";
+
+    public static final String LIST_RECEIPTS_SQL_TAIL_MSSQL =
+            " ORDER BY sub_ck ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY" +
+            "  ) inner_receipts" +
+            ") ORDER BY r.CURSOR_KEY ASC";
+
+    public static final String LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2 =
+            " ORDER BY sub_ck ASC FETCH FIRST ? ROWS ONLY" +
+            "  ) inner_receipts" +
+            ") ORDER BY r.CURSOR_KEY ASC";
+
+    // Before-cursor variants: inner query orders DESC to fetch the page immediately preceding
+    // the cursor, outer query re-sorts ASC so results are returned in ascending order.
+    public static final String LIST_RECEIPTS_SQL_TAIL_BEFORE =
+            " ORDER BY sub_ck DESC LIMIT ?" +
+            "  ) inner_receipts" +
+            ") ORDER BY r.CURSOR_KEY ASC";
+
+    public static final String LIST_RECEIPTS_SQL_TAIL_MSSQL_BEFORE =
+            " ORDER BY sub_ck DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY" +
+            "  ) inner_receipts" +
+            ") ORDER BY r.CURSOR_KEY ASC";
+
+    public static final String LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2_BEFORE =
+            " ORDER BY sub_ck DESC FETCH FIRST ? ROWS ONLY" +
+            "  ) inner_receipts" +
+            ") ORDER BY r.CURSOR_KEY ASC";
 }

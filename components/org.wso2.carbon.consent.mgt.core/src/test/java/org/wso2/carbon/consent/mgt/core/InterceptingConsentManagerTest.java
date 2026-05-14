@@ -92,6 +92,7 @@ public class InterceptingConsentManagerTest {
 
     private Connection connection;
     private ConsentManager consentManager;
+    private PrivilegedCarbonContext privilegedCarbonContext;
 
     @Mock
     KeyStoreManager keyStoreManager;
@@ -183,7 +184,7 @@ public class InterceptingConsentManagerTest {
     private void mockCarbonContext() {
 
         mockedCarbonContext = mockStatic(PrivilegedCarbonContext.class);
-        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+        privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
         mockedCarbonContext.when(PrivilegedCarbonContext::getThreadLocalCarbonContext).thenReturn(privilegedCarbonContext);
         when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
@@ -811,7 +812,9 @@ public class InterceptingConsentManagerTest {
         receiptInput1.setTenantId(tenantId);
         receiptInput1.setProperties(properties);
 
+        when(privilegedCarbonContext.getUsername()).thenReturn(principleID);
         AddReceiptResponse receiptResponse = consentManager.addConsent(receiptInput1);
+        when(privilegedCarbonContext.getUsername()).thenReturn("admin");
 
         Assert.assertNotNull(receiptResponse, "AddReceiptResponse cannot be null.");
         Assert.assertNotNull(receiptResponse.getConsentReceiptId(), "ConsentReceiptId cannot be null.");
@@ -947,11 +950,13 @@ public class InterceptingConsentManagerTest {
         List<AddReceiptResponse> receiptResponses = new ArrayList<>();
 
         for (String principleID : principleIDs) {
+            when(privilegedCarbonContext.getUsername()).thenReturn(principleID);
             receiptInput1.setPiiPrincipalId(principleID);
             AddReceiptResponse receiptResponse = consentManager.addConsent(receiptInput1);
             Assert.assertNotNull(receiptResponse, "AddReceiptResponse cannot be null.");
             receiptResponses.add(receiptResponse);
         }
+        when(privilegedCarbonContext.getUsername()).thenReturn("admin");
 
         return receiptResponses;
     }

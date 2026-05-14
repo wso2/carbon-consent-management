@@ -41,6 +41,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
@@ -62,8 +63,8 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_SP_P
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_SP_PURPOSE_TO_PURPOSE_CAT_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_SP_TO_PURPOSE_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_ACTIVE_RECEIPTS_SQL;
-import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_CONSENT_AUTHORIZATIONS_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_CONSENT_AUTHORIZATION_BY_USER_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_CONSENT_AUTHORIZATIONS_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CAT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CAT_WITH_UUID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_CAT_SQL;
@@ -105,6 +106,13 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECE
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_INFORMIX;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_MSSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_ORACLE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_HEAD;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_MSSQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_BEFORE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_MSSQL_BEFORE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2_BEFORE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_CONSENT_AUTHORIZATION_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_RECEIPT_STATE_SQL;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isDB2DB;
@@ -260,9 +268,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     receiptInfo.setPolicyUrl(resultSet.getString(8));
                     receiptInfo.setState(resultSet.getString(9));
                     receiptInfo.setPiiController(resultSet.getString(10));
-                    long vt = resultSet.getLong(11);
-                    if (!resultSet.wasNull()) {
-                        receiptInfo.setValidityTime(vt);
+                    Timestamp vt = resultSet.getTimestamp(11);
+                    if (vt != null) {
+                        receiptInfo.setExpiryTime(vt);
                     }
                     return receiptInfo;
                 }, preparedStatement -> {
@@ -560,8 +568,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
-                boolean hasValidityTime = receiptInput.getValidityTime() != null;
-                String insertSql = hasValidityTime ? INSERT_RECEIPT_V2_SQL : INSERT_RECEIPT_SQL;
+                boolean hasExpiryTime = receiptInput.getExpiryTime() != null;
+                String insertSql = hasExpiryTime ? INSERT_RECEIPT_V2_SQL : INSERT_RECEIPT_SQL;
                 String initialState = receiptInput.getState() != null ? receiptInput.getState() : ACTIVE_STATE;
                 template.executeInsert(insertSql, (preparedStatement -> {
                     preparedStatement.setString(1, receiptInput.getConsentReceiptId());
@@ -576,8 +584,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     preparedStatement.setString(9, receiptInput.getPolicyUrl());
                     preparedStatement.setString(10, initialState);
                     preparedStatement.setString(11, receiptInput.getPiiControllerInfo());
-                    if (hasValidityTime) {
-                        preparedStatement.setLong(12, receiptInput.getValidityTime());
+                    if (hasExpiryTime) {
+                        preparedStatement.setTimestamp(12, receiptInput.getExpiryTime(),
+                                Calendar.getInstance(TimeZone.getTimeZone(UTC)));
                     }
                 }), receiptInput, false);
                 return null;
@@ -1259,16 +1268,15 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     }
 
     @Override
-    public Long getReceiptValidityTime(String consentReceiptId) throws ConsentManagementException {
+    public Timestamp getReceiptExpiryTime(String consentReceiptId) throws ConsentManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            Long[] result = new Long[1];
+            Timestamp[] result = new Timestamp[1];
             jdbcTemplate.fetchSingleRecord(GET_RECEIPT_STATE_SQL,
                     (resultSet, rowNumber) -> {
                         resultSet.getString(1); // skip STATE column
-                        long vt = resultSet.getLong(2);
-                        result[0] = resultSet.wasNull() ? null : vt;
+                        result[0] = resultSet.getTimestamp(2);
                         return result[0];
                     },
                     preparedStatement -> preparedStatement.setString(1, consentReceiptId));
@@ -1294,22 +1302,32 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         final String finalPurposeId = purposeId != null ? purposeId : SQL_FILTER_STRING_ANY;
         final String finalPurposeVersionId = purposeVersionId != null ? purposeVersionId : SQL_FILTER_STRING_ANY;
 
-        final String afterValue = after != null
-                ? new String(Base64.getDecoder().decode(after), StandardCharsets.UTF_8) : null;
-        final String beforeValue = before != null
-                ? new String(Base64.getDecoder().decode(before), StandardCharsets.UTF_8) : null;
+        // Cursor encodes CM_RECEIPT.CURSOR_KEY as Base64(integer string).
+        final int[] cursorKeyHolder = {0};
+        final boolean hasCursor = after != null || before != null;
+        if (hasCursor) {
+            String rawCursor = after != null ? after : before;
+            try {
+                String decoded = new String(Base64.getDecoder().decode(rawCursor), StandardCharsets.UTF_8);
+                cursorKeyHolder[0] = Integer.parseInt(decoded);
+            } catch (IllegalArgumentException e) {
+                throw new org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException(
+                        String.format(ErrorMessages.ERROR_CODE_INVALID_CURSOR_TOKEN.getMessage(), rawCursor),
+                        ErrorMessages.ERROR_CODE_INVALID_CURSOR_TOKEN.getCode());
+            }
+        }
 
         final String cursorCondition;
-        if (afterValue != null) {
-            cursorCondition = " AND r2.CONSENT_RECEIPT_ID > ?";
-        } else if (beforeValue != null) {
-            cursorCondition = " AND r2.CONSENT_RECEIPT_ID < ?";
+        if (after != null) {
+            cursorCondition = " AND r2.CURSOR_KEY > ?";
+        } else if (before != null) {
+            cursorCondition = " AND r2.CURSOR_KEY < ?";
         } else {
             cursorCondition = "";
         }
 
         try {
-            String query = buildCursorReceiptQuery(cursorCondition);
+            String query = buildCursorReceiptQuery(cursorCondition, before != null);
             receipts = jdbcTemplate.executeQuery(query,
                     (resultSet, rowNumber) -> {
                         Receipt receipt = new Receipt();
@@ -1321,11 +1339,12 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         if (ts != null) {
                             receipt.setConsentTimestamp(ts.getTime());
                         }
-                        long vt = resultSet.getLong(6);
-                        if (!resultSet.wasNull()) {
-                            receipt.setValidityTime(vt);
+                        Timestamp vt = resultSet.getTimestamp(6);
+                        if (vt != null) {
+                            receipt.setExpiryTime(vt);
                         }
-                        String spName = resultSet.getString(7);
+                        receipt.setCursorKey(resultSet.getInt(7));
+                        String spName = resultSet.getString(8);
                         if (spName != null) {
                             ReceiptService svc = new ReceiptService();
                             svc.setService(spName);
@@ -1342,10 +1361,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         preparedStatement.setString(paramIndex++, finalState);
                         preparedStatement.setString(paramIndex++, finalPurposeId);
                         preparedStatement.setString(paramIndex++, finalPurposeVersionId);
-                        if (afterValue != null) {
-                            preparedStatement.setString(paramIndex++, afterValue);
-                        } else if (beforeValue != null) {
-                            preparedStatement.setString(paramIndex++, beforeValue);
+                        if (hasCursor) {
+                            preparedStatement.setInt(paramIndex++, cursorKeyHolder[0]);
                         }
                         preparedStatement.setInt(paramIndex, limit);
                     });
@@ -1357,36 +1374,17 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         return receipts;
     }
 
-    private String buildCursorReceiptQuery(String cursorCondition) throws DataAccessException {
-
-        String head =
-                "SELECT r.CONSENT_RECEIPT_ID, r.PII_PRINCIPAL_ID, r.STATE, r.PRINCIPAL_TENANT_ID, " +
-                "r.CONSENT_TIMESTAMP, r.VALIDITY_TIME, " +
-                "(SELECT MIN(rsa2.SP_NAME) FROM CM_RECEIPT_SP_ASSOC rsa2 " +
-                "WHERE rsa2.CONSENT_RECEIPT_ID = r.CONSENT_RECEIPT_ID) AS SP_NAME " +
-                "FROM CM_RECEIPT r " +
-                "WHERE r.PRINCIPAL_TENANT_ID = ? " +
-                "AND r.CONSENT_RECEIPT_ID IN (" +
-                "  SELECT DISTINCT r2.CONSENT_RECEIPT_ID FROM CM_RECEIPT r2 " +
-                "  LEFT JOIN CM_RECEIPT_SP_ASSOC rsa2 ON r2.CONSENT_RECEIPT_ID = rsa2.CONSENT_RECEIPT_ID " +
-                "  LEFT JOIN CM_SP_PURPOSE_ASSOC spa ON rsa2.ID = spa.RECEIPT_SP_ASSOC " +
-                "  LEFT JOIN CM_PURPOSE p ON spa.PURPOSE_ID = p.ID " +
-                "  WHERE r2.PRINCIPAL_TENANT_ID = ? " +
-                "  AND r2.PII_PRINCIPAL_ID LIKE ? AND rsa2.SP_NAME LIKE ? AND r2.STATE LIKE ? " +
-                "  AND p.UUID LIKE ? AND COALESCE(spa.PURPOSE_VERSION_ID, '') LIKE ?";
+    private String buildCursorReceiptQuery(String cursorCondition, boolean isBefore) throws DataAccessException {
 
         String tail;
         if (isH2MySqlOrPostgresDB()) {
-            tail = cursorCondition + " ORDER BY r2.CONSENT_RECEIPT_ID ASC LIMIT ?) ORDER BY r.CONSENT_RECEIPT_ID ASC";
+            tail = cursorCondition + (isBefore ? LIST_RECEIPTS_SQL_TAIL_BEFORE : LIST_RECEIPTS_SQL_TAIL);
         } else if (isMSSqlDB()) {
-            tail = cursorCondition +
-                    " ORDER BY r2.CONSENT_RECEIPT_ID ASC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY) ORDER BY r.CONSENT_RECEIPT_ID ASC";
+            tail = cursorCondition + (isBefore ? LIST_RECEIPTS_SQL_TAIL_MSSQL_BEFORE : LIST_RECEIPTS_SQL_TAIL_MSSQL);
         } else {
-            // Oracle and DB2
-            tail = cursorCondition +
-                    " ORDER BY r2.CONSENT_RECEIPT_ID ASC FETCH FIRST ? ROWS ONLY) ORDER BY r.CONSENT_RECEIPT_ID ASC";
+            tail = cursorCondition + (isBefore ? LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2_BEFORE : LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2);
         }
-        return head + tail;
+        return LIST_RECEIPTS_SQL_HEAD + tail;
     }
 
 }

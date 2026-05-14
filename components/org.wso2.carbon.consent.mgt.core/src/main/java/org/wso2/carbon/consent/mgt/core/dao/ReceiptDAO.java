@@ -22,6 +22,7 @@ import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 
@@ -144,7 +145,7 @@ public interface ReceiptDAO {
         return null;
     }
 
-    default Long getReceiptValidityTime(String consentReceiptId)
+    default Timestamp getReceiptExpiryTime(String consentReceiptId)
             throws ConsentManagementException {
 
         return null;
@@ -153,7 +154,7 @@ public interface ReceiptDAO {
     /**
      * Lists receipts using cursor-based pagination (V2 API).
      * Either {@code after} or {@code before} may be provided; both are base64-encoded
-     * CONSENT_RECEIPT_ID values from a previous page.
+     * CM_RECEIPT.CURSOR_KEY integer values from a previous page.
      */
     default List<Receipt> listReceipts(String subjectId, String serviceId, String state,
                                        String purposeId, String purposeVersionId,

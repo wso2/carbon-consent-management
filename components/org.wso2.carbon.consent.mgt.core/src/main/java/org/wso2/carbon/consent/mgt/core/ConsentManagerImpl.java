@@ -61,8 +61,10 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.security.KeystoreUtils;
 
 import java.security.PublicKey;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -72,11 +74,11 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.API_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.APPROVED_STATE;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_CATEGORY_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_PII_CATEGORY_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_PURPOSE_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_SERVICE_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CANNOT_DELETE_LATEST_PURPOSE_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_SUBJECT_MISMATCH;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_TYPE_MANDATORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_ELEMENT_UUID_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GETTING_PUBLIC_CERT;
@@ -84,12 +86,14 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GETTING_USER_STORE_MANAGER;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_GET_DAO;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_AUTHORIZATION_STATUS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_IS_PRIMARY_PURPOSE_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ALREADY_EXIST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.EXPIRED_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_IS_ASSOCIATED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CAT_NAME_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_COLLECTION_METHOD_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_PRINCIPAL_ID_REQUIRED;
@@ -99,6 +103,10 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_NAME_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CAT_NAME_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_GROUP_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_GROUP_TYPE_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_CATEGORY_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_HAS_VERSIONS_WITH_CONSENTS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_MANDATORY;
@@ -117,6 +125,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_TENANT_ID_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_TERMINATION_IS_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_THIRD_PARTY_DISCLOSURE_IS_REQUIRED;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_USER_NOT_IN_AUTHORIZATION_LIST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.ADDRESS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.ADDRESS_COUNTRY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PIIControllerElements.ADDRESS_LOCALITY;
@@ -154,6 +163,7 @@ public class ConsentManagerImpl implements ConsentManager {
     private static final String PURPOSE_CATEGORY_DAO = "purposedCategoryDAOs";
     private static final String PURPOSE_DAO = "purposedDAOs";
     private static final String USE_CASE_SENSITIVE_USERNAME_FOR_CACHE_KEYS = "UseCaseSensitiveUsernameForCacheKeys";
+    private static final String DEFAULT_COLLECTION_METHOD = "V2";
     private Boolean isCaseSensitiveUserName;
     private List<PurposeDAO> purposeDAOs;
     private List<PurposeCategoryDAO> purposeCategoryDAOs;
@@ -699,18 +709,34 @@ public class ConsentManagerImpl implements ConsentManager {
             receiptInput.setPiiPrincipalId(getLowerCaseUserName(receiptInput.getPiiPrincipalId()));
         }
 
-        java.util.List<String> authorizations = receiptInput.getAuthorizations();
-        List<ConsentAuthorization> authorizationsList = new ArrayList<>();
-        if (authorizations != null && !authorizations.isEmpty()) {
-            receiptInput.setState(PENDING_STATE);
-            long now = System.currentTimeMillis();
-            for (String userId : authorizations) {
-                authorizationsList.add(new ConsentAuthorization(receiptInput.getConsentReceiptId(), userId, ConsentAuthorization.AuthorizationStatus.PENDING, now));
+        // Check authorizations for V2 API.
+        if (DEFAULT_COLLECTION_METHOD.equals(receiptInput.getCollectionMethod())) {
+            String currentUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+            if (StringUtils.isBlank(currentUser)) {
+                throw handleClientException(ERROR_CODE_CONSENT_SUBJECT_MISMATCH, receiptInput.getPiiPrincipalId());
             }
+            List<String> authorizations = receiptInput.getAuthorizations();
+            boolean hasAuthorizations = authorizations != null && !authorizations.isEmpty();
+            boolean subjectMatchesCaller = isUserNameCaseSensitive(currentUser)
+                    ? receiptInput.getPiiPrincipalId().equals(currentUser)
+                    : receiptInput.getPiiPrincipalId().equalsIgnoreCase(currentUser);
+            if (!subjectMatchesCaller && !hasAuthorizations) {
+                throw handleClientException(ERROR_CODE_CONSENT_SUBJECT_MISMATCH, receiptInput.getPiiPrincipalId());
+            }
+            List<ConsentAuthorization> authorizationsList = new ArrayList<>();
+            if (authorizations != null && !authorizations.isEmpty()) {
+                receiptInput.setState(PENDING_STATE);
+                long now = System.currentTimeMillis();
+                for (String userId : authorizations) {
+                    authorizationsList.add(new ConsentAuthorization(receiptInput.getConsentReceiptId(), userId,
+                            ConsentAuthorization.AuthorizationStatus.PENDING, now));
+                }
+            }
+            getReceiptsDAO(receiptDAOs).addReceiptWithAuthorizations(receiptInput, authorizationsList);
+
+        } else {
+            getReceiptsDAO(receiptDAOs).addReceipt(receiptInput);
         }
-
-        getReceiptsDAO(receiptDAOs).addReceiptWithAuthorizations(receiptInput, authorizationsList);
-
         if (log.isDebugEnabled()) {
             log.debug("Consent stored successfully with the Id: " + receiptInput.getConsentReceiptId());
         }
@@ -1137,11 +1163,14 @@ public class ConsentManagerImpl implements ConsentManager {
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
         }
+        if (StringUtils.isNotBlank(subjectId) && !isUserNameCaseSensitive(subjectId)) {
+            subjectId = getLowerCaseUserName(subjectId);
+        }
         return getReceiptsDAO(receiptDAOs).listReceipts(subjectId, serviceId, state, purposeId,
                 purposeVersionId, after, before, limit, getTenantIdFromCarbonContext());
     }
 
-    /**
+/**
      * Updates authorization status for a user on a consent receipt.
      *
      * @param consentId  Consent receipt ID.
@@ -1155,13 +1184,23 @@ public class ConsentManagerImpl implements ConsentManager {
 
         if (!APPROVED_STATE.equals(authStatus) && !REJECTED_STATE.equals(authStatus) &&
                 !REVOKE_STATE.equals(authStatus)) {
-            throw handleClientException(ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET,
-                    "Invalid authorization status: " + authStatus + ". Status must be one of: " +
-                    APPROVED_STATE + ", " + REJECTED_STATE + ", " + REVOKE_STATE);
+            throw handleClientException(ERROR_CODE_INVALID_AUTHORIZATION_STATUS, authStatus);
         }
 
         ReceiptDAO receiptDAO = getReceiptsDAO(receiptDAOs);
         long now = System.currentTimeMillis();
+
+        if (REVOKE_STATE.equals(authStatus)) {
+            List<ConsentAuthorization> auths = receiptDAO.getConsentAuthorizations(consentId);
+            if (auths != null && !auths.isEmpty()) {
+                boolean userInList = isUserNameCaseSensitive(userId)
+                        ? auths.stream().anyMatch(a -> userId.equals(a.getUserId()))
+                        : auths.stream().anyMatch(a -> userId.equalsIgnoreCase(a.getUserId()));
+                if (!userInList) {
+                    throw handleClientException(ERROR_CODE_CONSENT_USER_NOT_IN_AUTHORIZATION_LIST, userId);
+                }
+            }
+        }
 
         ConsentAuthorization existing = receiptDAO.getConsentAuthorizationByUser(consentId, userId);
         if (existing != null) {
@@ -1202,7 +1241,7 @@ public class ConsentManagerImpl implements ConsentManager {
 
     /**
      * Validates and updates consent status, checking for expiration.
-     * If consent is ACTIVE and validityTime has passed, updates status to EXPIRED and returns it.
+     * If consent is ACTIVE and expiryTime has passed, updates status to EXPIRED and returns it.
      *
      * @param consentId Consent receipt ID.
      * @return Current status of the consent (PENDING, ACTIVE, REJECTED, REVOKED, or EXPIRED).
@@ -1224,8 +1263,8 @@ public class ConsentManagerImpl implements ConsentManager {
         }
 
         if (ACTIVE_STATE.equals(state)) {
-            Long validityTime = vReceiptDAO.getReceiptValidityTime(consentId);
-            if (validityTime != null && validityTime < System.currentTimeMillis()) {
+            Timestamp expiryTime = vReceiptDAO.getReceiptExpiryTime(consentId);
+            if (expiryTime != null && expiryTime.before(new Date())) {
                 vReceiptDAO.updateReceiptState(consentId, EXPIRED_STATE);
                 return EXPIRED_STATE;
             }
@@ -1631,6 +1670,27 @@ public class ConsentManagerImpl implements ConsentManager {
 
     private void validateInputParameters(Purpose purpose) throws ConsentManagementException {
 
+        if (isBlank(purpose.getName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Purpose name cannot be empty");
+            }
+            throw handleClientException(ERROR_CODE_PURPOSE_NAME_REQUIRED, null);
+        }
+
+        if (isBlank(purpose.getGroup())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Purpose group is empty for: " + purpose.getName());
+            }
+            throw handleClientException(ERROR_CODE_PURPOSE_GROUP_REQUIRED, null);
+        }
+
+        if (isBlank(purpose.getGroupType())) {
+            if (log.isDebugEnabled()) {
+                log.debug("Purpose group type is empty for: " + purpose.getName());
+            }
+            throw handleClientException(ERROR_CODE_PURPOSE_GROUP_TYPE_REQUIRED, null);
+        }
+
         if (isPurposeExists(purpose.getName(), purpose.getGroup(), purpose.getGroupType())) {
             if (log.isDebugEnabled()) {
                 log.debug("A purpose already exists with name: " + purpose.getName());
@@ -1664,6 +1724,13 @@ public class ConsentManagerImpl implements ConsentManager {
     }
 
     private void validateInputParameters(PIICategory piiCategory) throws ConsentManagementException {
+
+        if (isBlank(piiCategory.getName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("PII Category name cannot be empty");
+            }
+            throw handleClientException(ERROR_CODE_PII_CATEGORY_NAME_REQUIRED, null);
+        }
 
         if (isPIICategoryExists(piiCategory.getName())) {
             if (log.isDebugEnabled()) {

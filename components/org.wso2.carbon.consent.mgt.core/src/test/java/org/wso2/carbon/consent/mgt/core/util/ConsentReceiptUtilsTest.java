@@ -38,6 +38,7 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -157,16 +158,17 @@ public class ConsentReceiptUtilsTest {
     }
 
     @Test
-    public void testBuildReceiptInput_withValidityTime() throws ConsentManagementException {
+    public void testBuildReceiptInput_withExpiryTime() throws ConsentManagementException {
 
         when(consentManager.getPurposeCategoryByName("DEFAULT"))
                 .thenReturn(new PurposeCategory(1, "DEFAULT", "desc", -1234));
 
+        Timestamp expiryTime = new Timestamp(System.currentTimeMillis() + 3600_000L);
         ReceiptInput result = ConsentReceiptUtils.buildReceiptInput(
-                LANG, SUBJECT_ID, TENANT_DOMAIN, 3600L, false,
+                LANG, SUBJECT_ID, TENANT_DOMAIN, expiryTime, false,
                 null, null, SERVICE_ID, Collections.emptyList(), consentManager);
 
-        Assert.assertEquals(result.getValidityTime(), 3600L);
+        Assert.assertEquals(result.getExpiryTime(), expiryTime);
     }
 
     @Test
