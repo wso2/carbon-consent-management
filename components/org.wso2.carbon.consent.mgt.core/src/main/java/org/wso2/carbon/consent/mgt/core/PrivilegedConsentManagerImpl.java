@@ -159,7 +159,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     public PrivilegedConsentManagerImpl(ConsentManagerConfigurationHolder configHolder,
                                         List<ConsentMgtInterceptor> consentMgtInterceptors) {
 
-        consentManager = new ConsentManagerImpl(configHolder);
+        consentManager = new CacheBackedConsentManager(new ConsentManagerImpl(configHolder));
         this.consentMgtInterceptors = consentMgtInterceptors;
 
     }

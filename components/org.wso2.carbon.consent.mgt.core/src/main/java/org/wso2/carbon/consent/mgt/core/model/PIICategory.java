@@ -16,10 +16,14 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
+import java.io.Serializable;
+
 /**
  * Represents a PII (Personally Identifiable Information) category. Referred to as "Element" in the V2 API.
  */
-public class PIICategory {
+public class PIICategory implements Serializable {
+
+    private static final long serialVersionUID = 4325917231838602359L;
 
     private Integer id;
     private String name;

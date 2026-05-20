@@ -16,10 +16,13 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConsentPurpose {
+public class ConsentPurpose implements Serializable {
+
+    private static final long serialVersionUID = 2522126638714413314L;
 
     private String purpose;
     private int purposeId;

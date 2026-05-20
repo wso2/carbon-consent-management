@@ -16,9 +16,12 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class ReceiptService {
+public class ReceiptService implements Serializable {
+
+    private static final long serialVersionUID = 165545803519005314L;
 
     private String service;
     private String spDisplayName;
