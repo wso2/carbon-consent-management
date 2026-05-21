@@ -78,6 +78,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_PURPOSE_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_AT_LEAST_ONE_SERVICE_REQUIRED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CANNOT_DELETE_LATEST_PURPOSE_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_MULTIPLE_PURPOSES_NOT_ALLOWED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_SUBJECT_MISMATCH;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_CONSENT_TYPE_MANDATORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_ELEMENT_UUID_NOT_FOUND;
@@ -722,6 +723,14 @@ public class ConsentManagerImpl implements ConsentManager {
                     : receiptInput.getPiiPrincipalId().equalsIgnoreCase(currentUser);
             if (!subjectMatchesCaller && !hasAuthorizations) {
                 throw handleClientException(ERROR_CODE_CONSENT_SUBJECT_MISMATCH, receiptInput.getPiiPrincipalId());
+            }
+            boolean isRejected = REJECTED_STATE.equals(receiptInput.getState());
+            if (!isRejected) {
+                for (ReceiptServiceInput svc : receiptInput.getServices()) {
+                    if (svc.getPurposes() != null && svc.getPurposes().size() > 1) {
+                        throw handleClientException(ERROR_CODE_CONSENT_MULTIPLE_PURPOSES_NOT_ALLOWED, null);
+                    }
+                }
             }
             List<ConsentAuthorization> authorizationsList = new ArrayList<>();
             if (authorizations != null && !authorizations.isEmpty()) {

@@ -270,7 +270,9 @@ public class ConsentConstants {
         ERROR_CODE_EVENT_PUBLISHING("CM_00121", "Error while publishing event: %s"),
         ERROR_CODE_INVALID_AUTHORIZATION_STATUS("CM_00122",
                 "Invalid authorization status: '%s'. Must be one of: APPROVED, REJECTED, REVOKED."),
-        ERROR_CODE_INVALID_CURSOR_TOKEN("CM_00123", "Invalid cursor token: %s.");
+        ERROR_CODE_INVALID_CURSOR_TOKEN("CM_00123", "Invalid cursor token: %s."),
+        ERROR_CODE_CONSENT_MULTIPLE_PURPOSES_NOT_ALLOWED("CM_00124",
+                "Only one purpose is allowed per consent unless the state is REJECTED.");
 
         private final String code;
         private final String message;
