@@ -95,7 +95,6 @@ public class ConsentReceiptUtilsTest {
         Assert.assertEquals(result.getTenantDomain(), TENANT_DOMAIN);
         Assert.assertEquals(result.getVersion(), ConsentConstants.API_VERSION);
         Assert.assertEquals(result.getCollectionMethod(), "V2");
-        Assert.assertTrue(result.isAllowMultipleActiveReceipts());
         Assert.assertEquals(result.getLanguage(), LANG);
 
         Assert.assertEquals(result.getServices().size(), 1);

@@ -40,8 +40,6 @@ public class ReceiptInput {
     private String piiControllerInfo;
     private Timestamp expiryTime;
     private List<String> authorizations;
-    private boolean allowMultipleActiveReceipts = false;
-
     public String getConsentReceiptId() {
 
         return consentReceiptId;
@@ -192,13 +190,4 @@ public class ReceiptInput {
         this.authorizations = authorizations;
     }
 
-    public boolean isAllowMultipleActiveReceipts() {
-
-        return allowMultipleActiveReceipts;
-    }
-
-    public void setAllowMultipleActiveReceipts(boolean allowMultipleActiveReceipts) {
-
-        this.allowMultipleActiveReceipts = allowMultipleActiveReceipts;
-    }
 }
