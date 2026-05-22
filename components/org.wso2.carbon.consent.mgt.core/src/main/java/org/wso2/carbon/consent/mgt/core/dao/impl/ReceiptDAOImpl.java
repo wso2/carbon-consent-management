@@ -1177,7 +1177,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             preparedStatement.setString(2, receiptInput.getPiiPrincipalId());
             preparedStatement.setInt(3, receiptInput.getTenantId());
             preparedStatement.setString(4, svc.getService());
-            preparedStatement.setInt(5, purposeInput.getPurposeId());
+            preparedStatement.setInt(5, svc.getTenantId());
+            preparedStatement.setInt(6, purposeInput.getPurposeId());
         });
     }
 

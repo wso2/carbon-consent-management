@@ -371,7 +371,7 @@ public class SQLConstants {
             "AND CONSENT_RECEIPT_ID IN (" +
             "    SELECT rsa.CONSENT_RECEIPT_ID FROM CM_RECEIPT_SP_ASSOC rsa " +
             "    INNER JOIN CM_SP_PURPOSE_ASSOC spa ON rsa.ID = spa.RECEIPT_SP_ASSOC " +
-            "    WHERE rsa.SP_NAME = ? AND spa.PURPOSE_ID = ?" +
+            "    WHERE rsa.SP_NAME = ? AND rsa.SP_TENANT_ID = ? AND spa.PURPOSE_ID = ?" +
             ")";
 
     public static final String GET_PURPOSE_PII_CAT_SQL = "SELECT CM_PII_CATEGORY_ID, IS_MANDATORY FROM " +
