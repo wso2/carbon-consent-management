@@ -1145,8 +1145,10 @@ public class ConsentManagerImpl implements ConsentManager {
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
         }
-        return getPiiCategoryDAO(piiCategoryDAOs).listPIICategories(
+        List<PIICategory> categories = getPiiCategoryDAO(piiCategoryDAOs).listPIICategories(
                 expressionNodes, limit, getTenantIdFromCarbonContext());
+        fillMissingUuids(categories);
+        return categories;
     }
 
     /**
@@ -1366,6 +1368,18 @@ public class ConsentManagerImpl implements ConsentManager {
             return piiCategoryDAOs.get(piiCategoryDAOs.size() - 1);
         } else {
             throw handleServerException(ERROR_CODE_GET_DAO, PII_CATEGORY_DAO);
+        }
+    }
+
+    private void fillMissingUuids(List<PIICategory> categories) throws ConsentManagementException {
+
+        PIICategoryDAO dao = getPiiCategoryDAO(piiCategoryDAOs);
+        for (PIICategory category : categories) {
+            if (category.getUuid() == null) {
+                String uuid = java.util.UUID.randomUUID().toString();
+                dao.updatePIICategoryUuid(category.getId(), uuid);
+                category.setUuid(uuid);
+            }
         }
     }
 

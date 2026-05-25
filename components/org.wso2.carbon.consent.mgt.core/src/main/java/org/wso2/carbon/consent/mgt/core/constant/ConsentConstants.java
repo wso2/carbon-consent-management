@@ -272,7 +272,9 @@ public class ConsentConstants {
                 "Invalid authorization status: '%s'. Must be one of: APPROVED, REJECTED, REVOKED."),
         ERROR_CODE_INVALID_CURSOR_TOKEN("CM_00123", "Invalid cursor token: %s."),
         ERROR_CODE_CONSENT_MULTIPLE_PURPOSES_NOT_ALLOWED("CM_00124",
-                "Only one purpose is allowed per consent unless the state is REJECTED.");
+                "Only one purpose is allowed per consent unless the state is REJECTED."),
+        ERROR_CODE_UPDATE_PII_CATEGORY("CM_00125",
+                "Error occurred while updating UUID for PII category with ID: %s.");
 
         private final String code;
         private final String message;

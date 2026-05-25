@@ -133,6 +133,17 @@ public interface PIICategoryDAO {
     }
 
     /**
+     * Update the UUID of an existing {@link PIICategory} by its integer ID (requires extended schema).
+     *
+     * @param id   Integer ID of the {@link PIICategory} to update.
+     * @param uuid UUID to assign.
+     * @throws ConsentManagementException If error occurs while updating.
+     */
+    default void updatePIICategoryUuid(int id, String uuid) throws ConsentManagementException {
+
+    }
+
+    /**
      * Add a {@link PIICategory} with UUID column (requires extended schema). Falls back to
      * {@link #addPIICategory(PIICategory)} for implementations that do not override.
      */

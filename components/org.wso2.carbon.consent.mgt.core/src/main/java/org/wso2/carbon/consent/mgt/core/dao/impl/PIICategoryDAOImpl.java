@@ -57,6 +57,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_PAGINA
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PII_CATEGORY_BY_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PII_CATEGORY_BY_ID_WITH_UUID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SELECT_PII_CATEGORY_BY_NAME_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_PII_CATEGORY_UUID_SQL;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isDB2DB;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isH2MySqlOrPostgresDB;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isInformixDB;
@@ -130,6 +131,21 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
         }
         return new PIICategory(insertedId, piiCategory.getName(), piiCategory.getDescription(),
                 piiCategory.getSensitive(), piiCategory.getTenantId(), piiCategory.getDisplayName(), uuid);
+    }
+
+    @Override
+    public void updatePIICategoryUuid(int id, String uuid) throws ConsentManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(UPDATE_PII_CATEGORY_UUID_SQL, preparedStatement -> {
+                preparedStatement.setString(1, uuid);
+                preparedStatement.setInt(2, id);
+            });
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_UPDATE_PII_CATEGORY,
+                    String.valueOf(id), e);
+        }
     }
 
     @Override
