@@ -365,6 +365,15 @@ public class SQLConstants {
 
     public static final String REVOKE_RECEIPT_SQL = "UPDATE CM_RECEIPT SET STATE = ? WHERE CONSENT_RECEIPT_ID = ?";
 
+    public static final String REVOKE_ACTIVE_RECEIPTS_BY_SUBJECT_SERVICE_PURPOSE_SQL =
+            "UPDATE CM_RECEIPT SET STATE = ? " +
+            "WHERE PII_PRINCIPAL_ID = ? AND STATE IN ('ACTIVE', 'PENDING') AND PRINCIPAL_TENANT_ID = ? " +
+            "AND CONSENT_RECEIPT_ID IN (" +
+            "    SELECT rsa.CONSENT_RECEIPT_ID FROM CM_RECEIPT_SP_ASSOC rsa " +
+            "    INNER JOIN CM_SP_PURPOSE_ASSOC spa ON rsa.ID = spa.RECEIPT_SP_ASSOC " +
+            "    WHERE rsa.SP_NAME = ? AND rsa.SP_TENANT_ID = ? AND spa.PURPOSE_ID = ?" +
+            ")";
+
     public static final String GET_PURPOSE_PII_CAT_SQL = "SELECT CM_PII_CATEGORY_ID, IS_MANDATORY FROM " +
                                                          "CM_PURPOSE_PII_CAT_ASSOC WHERE PURPOSE_ID = ?";
     public static final String GET_ACTIVE_RECEIPTS_SQL = "SELECT R.CONSENT_RECEIPT_ID FROM CM_RECEIPT R INNER JOIN " +

@@ -597,7 +597,7 @@ public class ReceiptDAOImplTest {
     }
 
     @Test
-    public void testAddReceipt_secondReceipt_revokesFirst_whenFlagNotSet() throws Exception {
+    public void testAddReceipt_secondReceipt_revokesFirst() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
 
@@ -618,38 +618,6 @@ public class ReceiptDAOImplTest {
             Receipt first = receiptDAO.getReceipt(receiptInputs.get(0).getConsentReceiptId());
             Assert.assertEquals(first.getState(), ConsentConstants.REVOKE_STATE,
                     "First receipt must be revoked when a second consent is added for the same user+service.");
-        }
-    }
-
-    @Test
-    public void testAddReceipt_doesNotRevokeExisting_whenFlagSet() throws Exception {
-
-        DataSource dataSource = mock(DataSource.class);
-
-        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
-             Connection connection = getConnection()) {
-
-            Connection spy = spyConnection(connection);
-            when(dataSource.getConnection()).thenReturn(spy);
-
-            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
-
-            ReceiptInput first = cloneReceiptInput(receiptInputs.get(0));
-            first.setAllowMultipleActiveReceipts(true);
-            receiptDAO.addReceipt(first);
-
-            ReceiptInput second = cloneReceiptInput(receiptInputs.get(0));
-            second.setConsentReceiptId(UUID.randomUUID().toString());
-            second.setAllowMultipleActiveReceipts(true);
-            receiptDAO.addReceipt(second);
-
-            Receipt firstReceipt = receiptDAO.getReceipt(first.getConsentReceiptId());
-            Assert.assertEquals(firstReceipt.getState(), ConsentConstants.ACTIVE_STATE,
-                    "First receipt must remain ACTIVE when allowMultipleActiveReceipts is true.");
-
-            Receipt secondReceipt = receiptDAO.getReceipt(second.getConsentReceiptId());
-            Assert.assertEquals(secondReceipt.getState(), ConsentConstants.ACTIVE_STATE,
-                    "Second receipt must also be ACTIVE when allowMultipleActiveReceipts is true.");
         }
     }
 

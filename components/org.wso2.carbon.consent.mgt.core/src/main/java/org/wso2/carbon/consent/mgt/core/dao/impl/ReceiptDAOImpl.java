@@ -85,6 +85,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_P
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_PURPOSE_TO_PURPOSE_CAT_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_TO_PURPOSE_ASSOC_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_SP_TO_PURPOSE_ASSOC_WITH_VERSION_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.REVOKE_ACTIVE_RECEIPTS_BY_SUBJECT_SERVICE_PURPOSE_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.REVOKE_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_DB2;
@@ -148,9 +149,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
-                if (!receiptInput.isAllowMultipleActiveReceipts()) {
-                    revokeActiveReceipts(receiptInput, template);
-                }
+                revokeActiveReceipts(receiptInput, template);
                 addReceiptInfo(receiptInput);
 
                 receiptInput.getServices().forEach(rethrowConsumer(receiptServiceInput -> {
@@ -1131,14 +1130,13 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
-                if (!receiptInput.isAllowMultipleActiveReceipts()) {
-                    revokeActiveReceipts(receiptInput, template);
-                }
                 addReceiptInfo(receiptInput);
 
                 receiptInput.getServices().forEach(rethrowConsumer(receiptServiceInput -> {
                     int receiptToSPAssocId = addReceiptSPAssociation(receiptInput.getConsentReceiptId(), receiptServiceInput);
                     receiptServiceInput.getPurposes().forEach(rethrowConsumer(receiptPurposeInput -> {
+                        // Revoke existing ACTIVE/PENDING consents for the same subject, service, and purpose.
+                        revokeActiveReceipts(receiptInput, receiptServiceInput, receiptPurposeInput, template);
                         int spToPurposeAssocId = addSpToPurposeAssociation(receiptToSPAssocId, receiptPurposeInput);
 
                         receiptPurposeInput.getPurposeCategoryId().forEach(rethrowConsumer(id ->
@@ -1168,6 +1166,20 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_CONSENT_RECEIPT,
                     receiptInput.getPiiPrincipalId(), e);
         }
+    }
+
+    private void revokeActiveReceipts(ReceiptInput receiptInput, ReceiptServiceInput svc,
+                                       ReceiptPurposeInput purposeInput, Template template)
+            throws DataAccessException {
+
+        template.executeUpdate(REVOKE_ACTIVE_RECEIPTS_BY_SUBJECT_SERVICE_PURPOSE_SQL, preparedStatement -> {
+            preparedStatement.setString(1, REVOKE_STATE);
+            preparedStatement.setString(2, receiptInput.getPiiPrincipalId());
+            preparedStatement.setInt(3, receiptInput.getTenantId());
+            preparedStatement.setString(4, svc.getService());
+            preparedStatement.setInt(5, svc.getTenantId());
+            preparedStatement.setInt(6, purposeInput.getPurposeId());
+        });
     }
 
     @Override

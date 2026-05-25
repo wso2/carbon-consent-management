@@ -83,7 +83,7 @@ public class ConsentReceiptUtils {
      */
     public static ReceiptInput buildReceiptInput(String language, String subjectId, String tenantDomain,
                                                  Timestamp expiryTime, boolean rejected, List<String> authorizationUserIds,
-                                                 Map<String, String> properties,String serviceId, 
+                                                 Map<String, String> properties, String serviceId,
                                                  List<PurposePIICategoryBinding> purposeBindings,
                                                  ConsentManager consentManager)
             throws ConsentManagementException {
@@ -93,7 +93,6 @@ public class ConsentReceiptUtils {
         receiptInput.setJurisdiction(StringUtils.EMPTY);
         receiptInput.setPolicyUrl(StringUtils.EMPTY);
         receiptInput.setCollectionMethod(DEFAULT_COLLECTION_METHOD);
-        receiptInput.setAllowMultipleActiveReceipts(true);
         receiptInput.setLanguage(language);
         receiptInput.setPiiPrincipalId(subjectId);
         receiptInput.setTenantDomain(tenantDomain);
