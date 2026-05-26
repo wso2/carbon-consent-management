@@ -45,7 +45,9 @@ public interface ConsentManager {
      * @param purpose Purpose element with name and description.
      * @return 201 Created. Return purpose element with purpose Id.
      * @throws ConsentManagementException Consent Management Exception.
+     * @deprecated Use {@link #addPurposeWithUuid(Purpose)} instead.
      */
+    @Deprecated
     Purpose addPurpose(Purpose purpose) throws ConsentManagementException;
 
     /**
@@ -54,7 +56,9 @@ public interface ConsentManager {
      * @param purposeId ID of the purpose.
      * @return 200 OK with purpose element.
      * @throws ConsentManagementException Consent Management Exception.
+     * @deprecated Use {@link #getPurposeByUuid(String)} instead.
      */
+    @Deprecated
     Purpose getPurpose(int purposeId) throws ConsentManagementException;
 
     /**
@@ -65,17 +69,19 @@ public interface ConsentManager {
      * @param groupType Type of the purpose group.
      * @return Purpose matching the input criteria.
      * @throws ConsentManagementException Consent Management Exception.
+     * @deprecated Use {@link #getPurposeByUuid(String)} instead.
      */
+    @Deprecated
     Purpose getPurposeByName(String name, String group, String groupType) throws ConsentManagementException;
 
     /**
      * This API is used to get all or filtered existing purposes.
-     * This method is deprecated. Use listPurposes(group, groupType, limit, offset) instead.
      *
      * @param limit  Number of search results.
      * @param offset Start index of the search.
      * @return 200 OK with Filtered list of Purpose elements
      * @throws ConsentManagementException Consent Management Exception.
+     * @deprecated Use {@link #listPurposes(java.util.List, int)} instead.
      */
     @Deprecated
     List<Purpose> listPurposes(int limit, int offset) throws ConsentManagementException;
@@ -89,7 +95,9 @@ public interface ConsentManager {
      * @param offset    Start index of the search.
      * @return Filtered list of Purpose elements
      * @throws ConsentManagementException Consent Management Exception.
+     * @deprecated Use {@link #listPurposes(java.util.List, int)} instead.
      */
+    @Deprecated
     List<Purpose> listPurposes(String group, String groupType, int limit, int offset) throws ConsentManagementException;
 
     /**
@@ -97,7 +105,9 @@ public interface ConsentManager {
      *
      * @param purposeId ID of the purpose.
      * @throws ConsentManagementException Consent Management Exception.
+     * @deprecated Use {@link #deletePurpose(String)} instead.
      */
+    @Deprecated
     void deletePurpose(int purposeId) throws ConsentManagementException;
 
     /**
@@ -192,25 +202,31 @@ public interface ConsentManager {
      * @param piiCategory PIICategory element with name and description.
      * @return 201 Created. Returns PII Category element with ID.
      * @throws ConsentManagementException Consent Management Exception.
+     * @deprecated Use {@link #addPIICategoryWithUuid(PIICategory)} instead.
      */
+    @Deprecated
     PIICategory addPIICategory(PIICategory piiCategory) throws ConsentManagementException;
 
     /**
-     * This API is used ot get PII category by name.
+     * This API is used to get PII category by name.
      *
      * @param name Name of the PII category.
      * @return 200 OK. Returns PII category with ID.
      * @throws ConsentManagementException Consent Management Exception.
+     * @deprecated Use {@link #getPIICategoryByUuid(String)} instead.
      */
+    @Deprecated
     PIICategory getPIICategoryByName(String name) throws ConsentManagementException;
 
     /**
-     * This API is sued to get PII category by ID.
+     * This API is used to get PII category by ID.
      *
      * @param piiCategoryId ID of the PII category.
      * @return 200 OK. Returns PII category
      * @throws ConsentManagementException Consent Management Exception.
+     * @deprecated Use {@link #getPIICategoryByUuid(String)} instead.
      */
+    @Deprecated
     PIICategory getPIICategory(int piiCategoryId) throws ConsentManagementException;
 
     /**
@@ -220,7 +236,9 @@ public interface ConsentManager {
      * @param offset Start index of the search.
      * @return 200 Ok. Returns filtered list of PII category elements.
      * @throws ConsentManagementException Consent Management Exception.
+     * @deprecated Use {@link #listPIICategories(java.util.List, int)} instead.
      */
+    @Deprecated
     List<PIICategory> listPIICategories(int limit, int offset) throws ConsentManagementException;
 
     /**
@@ -228,7 +246,9 @@ public interface ConsentManager {
      *
      * @param piiCategoryId ID of the PII category.
      * @throws ConsentManagementException Consent Management Exception.
+     * @deprecated Use {@link #deletePIICategory(String)} instead.
      */
+    @Deprecated
     void deletePIICategory(int piiCategoryId) throws ConsentManagementException;
 
     /**
@@ -264,7 +284,9 @@ public interface ConsentManager {
      * @param receiptId Receipt Id.
      * @return Consent Receipt.
      * @throws ConsentManagementException Consent Management Exception.
+     * @deprecated Use {@link #getReceiptWithExtendedSchema(String)} instead.
      */
+    @Deprecated
     Receipt getReceipt(String receiptId) throws ConsentManagementException;
 
     /**
@@ -277,7 +299,9 @@ public interface ConsentManager {
      * @param service        Service name.
      * @return List of Receipts details.
      * @throws ConsentManagementException Consent Management Exception.
+     * @deprecated Use {@link #listReceipts(String, String, String, String, String, String, String, int)} instead.
      */
+    @Deprecated
     List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String spTenantDomain,
                                              String service, String state) throws ConsentManagementException;
 
@@ -292,7 +316,9 @@ public interface ConsentManager {
      * @param principalTenantDomain Tenant domain of the principal.
      * @return List of Receipts details.
      * @throws ConsentManagementException Consent Management Exception.
+     * @deprecated Use {@link #listReceipts(String, String, String, String, String, String, String, int)} instead.
      */
+    @Deprecated
     List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String spTenantDomain,
                                              String service, String state, String principalTenantDomain) throws
             ConsentManagementException;
@@ -302,7 +328,9 @@ public interface ConsentManager {
      *
      * @param receiptId Receipt Id.
      * @throws ConsentManagementException Consent Management Exception.
+     * @deprecated Use {@link #authorizeConsent(String, String, String)} with status "REVOKED" instead.
      */
+    @Deprecated
     void revokeReceipt(String receiptId) throws ConsentManagementException;
 
     /**
