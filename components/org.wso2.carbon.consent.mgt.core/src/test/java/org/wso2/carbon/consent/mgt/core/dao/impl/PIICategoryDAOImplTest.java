@@ -419,10 +419,13 @@ public class PIICategoryDAOImplTest {
             PIICategory added = piiCategoryDAO.addPIICategoryWithUuid(piiCategories.get(0));
             String originalUuid = added.getUuid();
 
+            // Simulate a second thread losing the race: its update is a no-op due to AND UUID IS NULL.
             piiCategoryDAO.updatePIICategoryUuid(added.getId(), java.util.UUID.randomUUID().toString());
 
+            // Re-fetching (as fillMissingUuids does) must return the first thread's UUID.
             PIICategory fetched = piiCategoryDAO.getPIICategoryByIdWithUuid(added.getId());
-            Assert.assertEquals(fetched.getUuid(), originalUuid, "UUID must not be overwritten when already set.");
+            Assert.assertEquals(fetched.getUuid(), originalUuid,
+                    "Re-fetch after losing race must return the winning thread's UUID, not the local one.");
         }
     }
 

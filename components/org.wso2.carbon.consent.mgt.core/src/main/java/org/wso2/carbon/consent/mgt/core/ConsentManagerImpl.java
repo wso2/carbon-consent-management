@@ -1376,9 +1376,12 @@ public class ConsentManagerImpl implements ConsentManager {
         PIICategoryDAO dao = getPiiCategoryDAO(piiCategoryDAOs);
         for (PIICategory category : categories) {
             if (category.getUuid() == null) {
-                String uuid = java.util.UUID.randomUUID().toString();
-                dao.updatePIICategoryUuid(category.getId(), uuid);
-                category.setUuid(uuid);
+                dao.updatePIICategoryUuid(category.getId(), UUID.randomUUID().toString());
+                // Re-fetch to get the UUID to avoid race conditions.
+                PIICategory persisted = dao.getPIICategoryByIdWithUuid(category.getId());
+                if (persisted != null) {
+                    category.setUuid(persisted.getUuid());
+                }
             }
         }
     }
