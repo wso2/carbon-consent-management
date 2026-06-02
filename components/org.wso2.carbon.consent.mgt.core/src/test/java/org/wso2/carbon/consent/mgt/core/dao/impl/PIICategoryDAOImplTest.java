@@ -384,6 +384,52 @@ public class PIICategoryDAOImplTest {
     }
 
     @Test
+    public void testUpdatePIICategoryUuidSetsUuidWhenNull() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
+            PIICategory added = piiCategoryDAO.addPIICategory(piiCategories.get(0));
+
+            String newUuid = java.util.UUID.randomUUID().toString();
+            piiCategoryDAO.updatePIICategoryUuid(added.getId(), newUuid);
+
+            PIICategory updated = piiCategoryDAO.getPIICategoryByIdWithUuid(added.getId());
+            Assert.assertNotNull(updated);
+            Assert.assertEquals(updated.getUuid(), newUuid);
+        }
+    }
+
+    @Test
+    public void testUpdatePIICategoryUuidDoesNotOverwriteExistingUuid() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedComponentDataHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            PIICategoryDAO piiCategoryDAO = new PIICategoryDAOImpl();
+            PIICategory added = piiCategoryDAO.addPIICategoryWithUuid(piiCategories.get(0));
+            String originalUuid = added.getUuid();
+
+            // Simulate a second thread losing the race: its update is a no-op due to AND UUID IS NULL.
+            piiCategoryDAO.updatePIICategoryUuid(added.getId(), java.util.UUID.randomUUID().toString());
+
+            // Re-fetching (as fillMissingUuids does) must return the first thread's UUID.
+            PIICategory fetched = piiCategoryDAO.getPIICategoryByIdWithUuid(added.getId());
+            Assert.assertEquals(fetched.getUuid(), originalUuid,
+                    "Re-fetch after losing race must return the winning thread's UUID, not the local one.");
+        }
+    }
+
+    @Test
     public void testDeletePIICategoriesByTenantId() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
