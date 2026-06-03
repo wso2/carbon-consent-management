@@ -198,6 +198,16 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>

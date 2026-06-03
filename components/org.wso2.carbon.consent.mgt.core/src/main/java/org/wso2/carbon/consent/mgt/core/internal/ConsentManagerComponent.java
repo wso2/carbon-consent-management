@@ -48,6 +48,8 @@ import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.consent.mgt.core.util.ConsentDBInitializer;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
@@ -350,6 +352,52 @@ public class ConsentManagerComponent {
         ConsentManagerComponentDataHolder.getInstance().setIdentityEventService(null);
         if (log.isDebugEnabled()) {
             log.debug("IdentityEventService is unregistered in ConsentManager service.");
+        }
+    }
+
+    @Reference(
+            name = "organization.management.service",
+            service = OrganizationManager.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrganizationManager"
+    )
+    protected void setOrganizationManager(OrganizationManager organizationManager) {
+
+        ConsentManagerComponentDataHolder.getInstance().setOrganizationManager(organizationManager);
+        if (log.isDebugEnabled()) {
+            log.debug("OrganizationManager is registered in ConsentManager service.");
+        }
+    }
+
+    protected void unsetOrganizationManager(OrganizationManager organizationManager) {
+
+        ConsentManagerComponentDataHolder.getInstance().setOrganizationManager(null);
+        if (log.isDebugEnabled()) {
+            log.debug("OrganizationManager is unregistered in ConsentManager service.");
+        }
+    }
+
+    @Reference(
+            name = "org.resource.resolver.service",
+            service = OrgResourceResolverService.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetOrgResourceResolverService"
+    )
+    protected void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        ConsentManagerComponentDataHolder.getInstance().setOrgResourceResolverService(orgResourceResolverService);
+        if (log.isDebugEnabled()) {
+            log.debug("OrgResourceResolverService is registered in ConsentManager service.");
+        }
+    }
+
+    protected void unsetOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        ConsentManagerComponentDataHolder.getInstance().setOrgResourceResolverService(null);
+        if (log.isDebugEnabled()) {
+            log.debug("OrgResourceResolverService is unregistered in ConsentManager service.");
         }
     }
 

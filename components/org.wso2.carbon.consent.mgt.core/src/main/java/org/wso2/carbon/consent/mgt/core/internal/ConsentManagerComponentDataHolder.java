@@ -18,6 +18,8 @@ package org.wso2.carbon.consent.mgt.core.internal;
 
 import org.wso2.carbon.consent.mgt.core.listener.ConsentManagementListener;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,6 +36,8 @@ public class ConsentManagerComponentDataHolder {
     private DataSource dataSource;
     private IdentityEventService identityEventService;
     private List<ConsentManagementListener> consentManagementListeners = new ArrayList<>();
+    private OrganizationManager organizationManager;
+    private OrgResourceResolverService orgResourceResolverService;
 
     public static ConsentManagerComponentDataHolder getInstance() {
 
@@ -74,5 +78,25 @@ public class ConsentManagerComponentDataHolder {
     public void removeConsentManagementListener(ConsentManagementListener listener) {
 
         consentManagementListeners.remove(listener);
+    }
+
+    public OrganizationManager getOrganizationManager() {
+
+        return organizationManager;
+    }
+
+    public void setOrganizationManager(OrganizationManager organizationManager) {
+
+        this.organizationManager = organizationManager;
+    }
+
+    public OrgResourceResolverService getOrgResourceResolverService() {
+
+        return orgResourceResolverService;
+    }
+
+    public void setOrgResourceResolverService(OrgResourceResolverService orgResourceResolverService) {
+
+        this.orgResourceResolverService = orgResourceResolverService;
     }
 }
