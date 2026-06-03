@@ -126,7 +126,13 @@
                             org.wso2.carbon.identity.core.model; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.base; version="${carbon.identity.framework.imp.pkg.version.range}",
                             org.wso2.carbon.identity.central.log.mgt.utils; version="${carbon.identity.framework.imp.pkg.version.range}",
-                            org.wso2.carbon.identity.event.*; version="${carbon.identity.framework.imp.pkg.version.range}"
+                            org.wso2.carbon.identity.event.*; version="${carbon.identity.framework.imp.pkg.version.range}",
+                            org.wso2.carbon.identity.organization.management.service; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.exception; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.management.service.util; version="${org.wso2.carbon.identity.organization.management.core.version.range}",
+                            org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service; version="${identity.organization.management.version.range}",
+                            org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.exception; version="${identity.organization.management.version.range}",
+                            org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy; version="${identity.organization.management.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.consent.mgt.core.internal,
@@ -182,6 +188,16 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.central.log.mgt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management.core</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.management.service</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.organization.management</groupId>
+            <artifactId>org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>

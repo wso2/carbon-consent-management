@@ -274,7 +274,11 @@ public class ConsentConstants {
         ERROR_CODE_CONSENT_MULTIPLE_PURPOSES_NOT_ALLOWED("CM_00124",
                 "Only one purpose is allowed per consent unless the state is REJECTED."),
         ERROR_CODE_UPDATE_PII_CATEGORY("CM_00125",
-                "Error occurred while updating UUID for PII category with ID: %s.");
+                "Error occurred while updating UUID for PII category with ID: %s."),
+        ERROR_CODE_ORGANIZATION_TRAVERSAL("CM_00126",
+                "Error occurred while traversing organization hierarchy for tenant: %s."),
+        ERROR_CODE_RESOLVE_ORGANIZATION_ID("CM_00127",
+                "Error occurred while resolving organization ID for tenant domain: %s.");
 
         private final String code;
         private final String message;
