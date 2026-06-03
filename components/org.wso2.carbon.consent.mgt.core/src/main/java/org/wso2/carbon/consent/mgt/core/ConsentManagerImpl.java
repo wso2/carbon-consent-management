@@ -51,8 +51,10 @@ import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
+import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 import org.wso2.carbon.identity.organization.management.service.util.OrganizationManagementUtil;
+import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.OrgResourceResolverService;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.exception.OrgResourceHierarchyTraverseException;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.FirstFoundAggregationStrategy;
 import org.wso2.carbon.identity.organization.resource.hierarchy.traverse.service.strategy.MergeAllAggregationStrategy;
@@ -965,7 +967,7 @@ public class ConsentManagerImpl implements ConsentManager {
             throw handleClientException(ERROR_CODE_PURPOSE_VERSION_REQUIRED, null);
         }
 
-        // Confirm the purpose exists in the current tenant.
+        // Fetch purpose by UUID and verify it belongs to the current tenant.
         Purpose purpose = getPurposeByUuid(purposeUuid);
         if (purpose.getTenantId() != getTenantIdFromCarbonContext()) {
             throw handleClientException(ERROR_CODE_PURPOSE_UUID_NOT_FOUND, purposeUuid);
@@ -1939,8 +1941,21 @@ public class ConsentManagerImpl implements ConsentManager {
         return userRealm;
     }
 
+    private OrgResourceResolverService getOrgResourceResolverService() throws ConsentManagementException {
+
+        OrgResourceResolverService service =
+                ConsentManagerComponentDataHolder.getInstance().getOrgResourceResolverService();
+        if (service == null) {
+            throw handleServerException(ERROR_CODE_ORGANIZATION_TRAVERSAL, getTenantDomainFromCarbonContext());
+        }
+        return service;
+    }
+
     private boolean isSubOrganization() throws ConsentManagementException {
 
+        if (ConsentManagerComponentDataHolder.getInstance().getOrganizationManager() == null) {
+            return false;
+        }
         try {
             return OrganizationManagementUtil.isOrganization(getTenantIdFromCarbonContext());
         } catch (OrganizationManagementException e) {
@@ -1951,9 +1966,13 @@ public class ConsentManagerImpl implements ConsentManager {
     private String resolveCurrentOrganizationId() throws ConsentManagementException {
 
         String tenantDomain = getTenantDomainFromCarbonContext();
+        OrganizationManager organizationManager =
+                ConsentManagerComponentDataHolder.getInstance().getOrganizationManager();
+        if (organizationManager == null) {
+            throw handleServerException(ERROR_CODE_RESOLVE_ORGANIZATION_ID, tenantDomain);
+        }
         try {
-            return ConsentManagerComponentDataHolder.getInstance().getOrganizationManager()
-                    .resolveOrganizationId(tenantDomain);
+            return organizationManager.resolveOrganizationId(tenantDomain);
         } catch (OrganizationManagementException e) {
             throw handleServerException(ERROR_CODE_RESOLVE_ORGANIZATION_ID, tenantDomain, e);
         }
@@ -1961,9 +1980,13 @@ public class ConsentManagerImpl implements ConsentManager {
 
     private int getTenantIdFromOrgId(String orgId) throws ConsentManagementException {
 
+        OrganizationManager organizationManager =
+                ConsentManagerComponentDataHolder.getInstance().getOrganizationManager();
+        if (organizationManager == null) {
+            throw handleServerException(ERROR_CODE_ORGANIZATION_TRAVERSAL, orgId);
+        }
         try {
-            String tenantDomain = ConsentManagerComponentDataHolder.getInstance().getOrganizationManager()
-                    .resolveTenantDomain(orgId);
+            String tenantDomain = organizationManager.resolveTenantDomain(orgId);
             return realmService.getTenantManager().getTenantId(tenantDomain);
         } catch (OrganizationManagementException | org.wso2.carbon.user.api.UserStoreException e) {
             throw handleServerException(ERROR_CODE_ORGANIZATION_TRAVERSAL, orgId, e);
@@ -1972,9 +1995,10 @@ public class ConsentManagerImpl implements ConsentManager {
 
     private Purpose findPurposeInHierarchy(String uuid) throws ConsentManagementException {
 
+        OrgResourceResolverService orgResourceResolverService = getOrgResourceResolverService();
         try {
             String orgId = resolveCurrentOrganizationId();
-            return ConsentManagerComponentDataHolder.getInstance().getOrgResourceResolverService()
+            return orgResourceResolverService
                     .getResourcesFromOrgHierarchy(orgId,
                             hierarchyOrgId -> {
                                 try {
@@ -1998,9 +2022,10 @@ public class ConsentManagerImpl implements ConsentManager {
 
     private PIICategory findPIICategoryInHierarchy(String uuid) throws ConsentManagementException {
 
+        OrgResourceResolverService orgResourceResolverService = getOrgResourceResolverService();
         try {
             String orgId = resolveCurrentOrganizationId();
-            return ConsentManagerComponentDataHolder.getInstance().getOrgResourceResolverService()
+            return orgResourceResolverService
                     .getResourcesFromOrgHierarchy(orgId,
                             hierarchyOrgId -> {
                                 try {
@@ -2025,9 +2050,10 @@ public class ConsentManagerImpl implements ConsentManager {
     private List<Purpose> listPurposesFromHierarchy(List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
+        OrgResourceResolverService orgResourceResolverService = getOrgResourceResolverService();
         try {
             String orgId = resolveCurrentOrganizationId();
-            List<Purpose> merged = ConsentManagerComponentDataHolder.getInstance().getOrgResourceResolverService()
+            List<Purpose> merged = orgResourceResolverService
                     .<List<Purpose>>getResourcesFromOrgHierarchy(orgId,
                             hierarchyOrgId -> {
                                 try {
@@ -2063,9 +2089,10 @@ public class ConsentManagerImpl implements ConsentManager {
     private List<PIICategory> listPIICategoriesFromHierarchy(List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
+        OrgResourceResolverService orgResourceResolverService = getOrgResourceResolverService();
         try {
             String orgId = resolveCurrentOrganizationId();
-            List<PIICategory> merged = ConsentManagerComponentDataHolder.getInstance().getOrgResourceResolverService()
+            List<PIICategory> merged = orgResourceResolverService
                     .<List<PIICategory>>getResourcesFromOrgHierarchy(orgId,
                             hierarchyOrgId -> {
                                 try {
