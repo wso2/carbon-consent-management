@@ -72,6 +72,7 @@ import java.security.PublicKey;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -2054,7 +2055,7 @@ public class ConsentManagerImpl implements ConsentManager {
         try {
             String orgId = resolveCurrentOrganizationId();
             List<Purpose> merged = orgResourceResolverService
-                    .<List<Purpose>>getResourcesFromOrgHierarchy(orgId,
+                    .getResourcesFromOrgHierarchy(orgId,
                             hierarchyOrgId -> {
                                 try {
                                     int tenantId = getTenantIdFromOrgId(hierarchyOrgId);
@@ -2075,7 +2076,11 @@ public class ConsentManagerImpl implements ConsentManager {
                                 }
                                 return new ArrayList<>(byUuid.values());
                             }));
-            return merged != null ? merged : new ArrayList<>();
+            if (merged == null) {
+                return new ArrayList<>();
+            }
+            merged.sort(Comparator.comparingInt(p -> p.getId() != null ? p.getId() : 0));
+            return merged;
         } catch (OrgResourceHierarchyTraverseException e) {
             throw handleServerException(ERROR_CODE_ORGANIZATION_TRAVERSAL, getTenantDomainFromCarbonContext(), e);
         } catch (RuntimeException e) {
@@ -2093,7 +2098,7 @@ public class ConsentManagerImpl implements ConsentManager {
         try {
             String orgId = resolveCurrentOrganizationId();
             List<PIICategory> merged = orgResourceResolverService
-                    .<List<PIICategory>>getResourcesFromOrgHierarchy(orgId,
+                    .getResourcesFromOrgHierarchy(orgId,
                             hierarchyOrgId -> {
                                 try {
                                     int tenantId = getTenantIdFromOrgId(hierarchyOrgId);
@@ -2104,7 +2109,7 @@ public class ConsentManagerImpl implements ConsentManager {
                                     throw new RuntimeException(e);
                                 }
                             },
-                            new MergeAllAggregationStrategy<List<PIICategory>>((accumulated, fromParent) -> {
+                            new MergeAllAggregationStrategy<>((accumulated, fromParent) -> {
                                 Map<String, PIICategory> byUuid = new LinkedHashMap<>();
                                 for (PIICategory c : accumulated) {
                                     byUuid.put(c.getUuid(), c);
@@ -2114,7 +2119,11 @@ public class ConsentManagerImpl implements ConsentManager {
                                 }
                                 return new ArrayList<>(byUuid.values());
                             }));
-            return merged != null ? merged : new ArrayList<>();
+            if (merged == null) {
+                return new ArrayList<>();
+            }
+            merged.sort(Comparator.comparingInt(c -> c.getId() != null ? c.getId() : 0));
+            return merged;
         } catch (OrgResourceHierarchyTraverseException e) {
             throw handleServerException(ERROR_CODE_ORGANIZATION_TRAVERSAL, getTenantDomainFromCarbonContext(), e);
         } catch (RuntimeException e) {
