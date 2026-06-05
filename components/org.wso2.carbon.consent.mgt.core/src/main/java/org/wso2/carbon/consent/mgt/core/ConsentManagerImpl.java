@@ -359,9 +359,6 @@ public class ConsentManagerImpl implements ConsentManager {
     public void deletePurpose(String uuid) throws ConsentManagementException {
 
         Purpose purpose = getPurposeByUuid(uuid);
-        if (purpose.getTenantId() != getTenantIdFromCarbonContext()) {
-            throw handleClientException(ERROR_CODE_PURPOSE_UUID_NOT_FOUND, uuid);
-        }
         List<PurposeVersion> versions = listPurposeVersions(uuid);
         if (isEmpty(versions)) {
             deletePurpose(purpose.getId());
@@ -674,9 +671,6 @@ public class ConsentManagerImpl implements ConsentManager {
     public void deletePIICategory(String uuid) throws ConsentManagementException {
 
         PIICategory category = getPIICategoryByUuid(uuid);
-        if (category.getTenantId() != getTenantIdFromCarbonContext()) {
-            throw handleClientException(ERROR_CODE_ELEMENT_UUID_NOT_FOUND, uuid);
-        }
         deletePIICategory(category.getId());
     }
 
@@ -968,11 +962,8 @@ public class ConsentManagerImpl implements ConsentManager {
             throw handleClientException(ERROR_CODE_PURPOSE_VERSION_REQUIRED, null);
         }
 
-        // Fetch purpose by UUID and verify it belongs to the current tenant.
+        // Fetch purpose by UUID.
         Purpose purpose = getPurposeByUuid(purposeUuid);
-        if (purpose.getTenantId() != getTenantIdFromCarbonContext()) {
-            throw handleClientException(ERROR_CODE_PURPOSE_UUID_NOT_FOUND, purposeUuid);
-        }
 
         // Check for duplicate version label.
         // Note: purposes created via the V1 API may have no versions. Adding a version to such a purpose works,
@@ -1065,9 +1056,6 @@ public class ConsentManagerImpl implements ConsentManager {
 
         // Prevent deletion of the version currently marked as latest (would violate FK constraint).
         Purpose purpose = getPurposeByUuid(purposeUuid);
-        if (purpose.getTenantId() != getTenantIdFromCarbonContext()) {
-            throw handleClientException(ERROR_CODE_PURPOSE_UUID_NOT_FOUND, purposeUuid);
-        }
         if (versionUuid.equals(purpose.getLatestVersionId())) {
             throw handleClientException(ERROR_CODE_CANNOT_DELETE_LATEST_PURPOSE_VERSION, versionUuid);
         }
@@ -1157,6 +1145,7 @@ public class ConsentManagerImpl implements ConsentManager {
         }
         if (purposes != null) {
             for (Purpose purpose : purposes) {
+                purpose.setTenantDomain(ConsentUtils.getTenantDomain(realmService, purpose.getTenantId()));
                 if (purpose.getLatestVersionId() != null) {
                     PurposeVersion latestVersion = getPurposeDAO(purposeDAOs)
                             .getPurposeVersionByUuid(purpose.getLatestVersionId());
@@ -1190,6 +1179,11 @@ public class ConsentManagerImpl implements ConsentManager {
                     expressionNodes, limit, getTenantIdFromCarbonContext());
         }
         fillMissingUuids(categories);
+        if (categories != null) {
+            for (PIICategory category : categories) {
+                category.setTenantDomain(ConsentUtils.getTenantDomain(realmService, category.getTenantId()));
+            }
+        }
         return categories;
     }
 

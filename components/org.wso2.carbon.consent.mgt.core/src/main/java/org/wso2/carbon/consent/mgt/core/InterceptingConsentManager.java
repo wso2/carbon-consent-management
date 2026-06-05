@@ -29,6 +29,7 @@ import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
+import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
@@ -44,10 +45,12 @@ import java.util.List;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.wso2.carbon.CarbonConstants.UI_PERMISSION_ACTION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_ELEMENT_UUID_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_NO_USER_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CATEGORY_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CATEGORY_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_ID_INVALID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_UUID_NOT_FOUND;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_RECEIPT_ID_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_USER_NOT_AUTHORIZED;
@@ -255,6 +258,91 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
         }
 
         return receipt;
+    }
+
+    /**
+     * Delete Purpose (UUID) after validating the tenant domain of the Purpose.
+     *
+     * @param uuid Purpose UUID.
+     * @throws ConsentManagementException Consent Management Exception if the tenant domain of the Purpose is
+     * different from the accessing tenant domain.
+     */
+    @Override
+    public void deletePurpose(String uuid) throws ConsentManagementException {
+
+        Purpose purpose = super.getPurposeByUuid(uuid);
+        if (isCrossTenantOperation(ConsentUtils.getTenantDomainFromCarbonContext(),
+                IdentityTenantUtil.getTenantDomain(purpose.getTenantId()))) {
+            String message = String.format(ERROR_CODE_PURPOSE_UUID_NOT_FOUND.getMessage(), uuid) + " in tenant: " +
+                    ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_PURPOSE_UUID_NOT_FOUND.getCode());
+        }
+        super.deletePurpose(uuid);
+    }
+
+    /**
+     * Delete PII Category (UUID) after validating the tenant domain of the PII Category.
+     *
+     * @param uuid PII Category UUID.
+     * @throws ConsentManagementException Consent Management Exception if the tenant domain of the PII Category is
+     * different from the accessing tenant domain.
+     */
+    @Override
+    public void deletePIICategory(String uuid) throws ConsentManagementException {
+
+        PIICategory category = super.getPIICategoryByUuid(uuid);
+        if (isCrossTenantOperation(ConsentUtils.getTenantDomainFromCarbonContext(),
+                IdentityTenantUtil.getTenantDomain(category.getTenantId()))) {
+            String message = String.format(ERROR_CODE_ELEMENT_UUID_NOT_FOUND.getMessage(), uuid) + " in tenant: " +
+                    ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_ELEMENT_UUID_NOT_FOUND.getCode());
+        }
+        super.deletePIICategory(uuid);
+    }
+
+    /**
+     * Add Purpose Version after validating the tenant domain of the parent Purpose.
+     *
+     * @param purposeUuid    UUID of the purpose.
+     * @param purposeVersion Purpose version to add.
+     * @param setAsLatest    Whether to mark this version as the latest.
+     * @return Created PurposeVersion.
+     * @throws ConsentManagementException Consent Management Exception if the tenant domain of the Purpose is
+     * different from the accessing tenant domain.
+     */
+    @Override
+    public PurposeVersion addPurposeVersion(String purposeUuid, PurposeVersion purposeVersion, boolean setAsLatest)
+            throws ConsentManagementException {
+
+        Purpose purpose = super.getPurposeByUuid(purposeUuid);
+        if (isCrossTenantOperation(ConsentUtils.getTenantDomainFromCarbonContext(),
+                IdentityTenantUtil.getTenantDomain(purpose.getTenantId()))) {
+            String message = String.format(ERROR_CODE_PURPOSE_UUID_NOT_FOUND.getMessage(), purposeUuid) +
+                    " in tenant: " + ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_PURPOSE_UUID_NOT_FOUND.getCode());
+        }
+        return super.addPurposeVersion(purposeUuid, purposeVersion, setAsLatest);
+    }
+
+    /**
+     * Delete Purpose Version after validating the tenant domain of the parent Purpose.
+     *
+     * @param purposeUuid UUID of the purpose.
+     * @param versionUuid UUID of the version record.
+     * @throws ConsentManagementException Consent Management Exception if the tenant domain of the Purpose is
+     * different from the accessing tenant domain.
+     */
+    @Override
+    public void deletePurposeVersion(String purposeUuid, String versionUuid) throws ConsentManagementException {
+
+        Purpose purpose = super.getPurposeByUuid(purposeUuid);
+        if (isCrossTenantOperation(ConsentUtils.getTenantDomainFromCarbonContext(),
+                IdentityTenantUtil.getTenantDomain(purpose.getTenantId()))) {
+            String message = String.format(ERROR_CODE_PURPOSE_UUID_NOT_FOUND.getMessage(), purposeUuid) +
+                    " in tenant: " + ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_PURPOSE_UUID_NOT_FOUND.getCode());
+        }
+        super.deletePurposeVersion(purposeUuid, versionUuid);
     }
 
     /**
