@@ -1080,6 +1080,7 @@ public class ConsentManagerImpl implements ConsentManager {
         if (purpose == null) {
             throw handleClientException(ERROR_CODE_PURPOSE_UUID_NOT_FOUND, uuid);
         }
+        purpose.setTenantDomain(ConsentUtils.getTenantDomain(realmService, purpose.getTenantId()));
         List<PurposePIICategory> purposePIICategories = new ArrayList<>();
         purpose.getPurposePIICategories().forEach(rethrowConsumer(
                 piiCategory -> purposePIICategories.add(getPurposePIICategoryWithUuid(piiCategory))));
@@ -1100,6 +1101,7 @@ public class ConsentManagerImpl implements ConsentManager {
         if (category == null) {
             throw handleClientException(ERROR_CODE_ELEMENT_UUID_NOT_FOUND, uuid);
         }
+        category.setTenantDomain(ConsentUtils.getTenantDomain(realmService, category.getTenantId()));
         return category;
     }
 
