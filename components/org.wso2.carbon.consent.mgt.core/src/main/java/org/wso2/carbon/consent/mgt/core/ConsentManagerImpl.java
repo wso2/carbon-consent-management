@@ -1097,9 +1097,6 @@ public class ConsentManagerImpl implements ConsentManager {
 
         PIICategory category = getPiiCategoryDAO(piiCategoryDAOs).getPIICategoryByUuid(uuid,
                 getTenantIdFromCarbonContext());
-        if (category == null && isSubOrganization()) {
-            category = findPIICategoryInHierarchy(uuid);
-        }
         if (category == null) {
             throw handleClientException(ERROR_CODE_ELEMENT_UUID_NOT_FOUND, uuid);
         }
@@ -1171,13 +1168,8 @@ public class ConsentManagerImpl implements ConsentManager {
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
         }
-        List<PIICategory> categories;
-        if (isSubOrganization()) {
-            categories = listPIICategoriesFromHierarchy(expressionNodes, limit);
-        } else {
-            categories = getPiiCategoryDAO(piiCategoryDAOs).listPIICategories(
-                    expressionNodes, limit, getTenantIdFromCarbonContext());
-        }
+        List<PIICategory> categories = getPiiCategoryDAO(piiCategoryDAOs).listPIICategories(
+                expressionNodes, limit, getTenantIdFromCarbonContext());
         fillMissingUuids(categories);
         if (categories != null) {
             for (PIICategory category : categories) {
@@ -2015,33 +2007,6 @@ public class ConsentManagerImpl implements ConsentManager {
         }
     }
 
-    private PIICategory findPIICategoryInHierarchy(String uuid) throws ConsentManagementException {
-
-        OrgResourceResolverService orgResourceResolverService = getOrgResourceResolverService();
-        try {
-            String orgId = resolveCurrentOrganizationId();
-            return orgResourceResolverService
-                    .getResourcesFromOrgHierarchy(orgId,
-                            hierarchyOrgId -> {
-                                try {
-                                    int tenantId = getTenantIdFromOrgId(hierarchyOrgId);
-                                    return Optional.ofNullable(
-                                            getPiiCategoryDAO(piiCategoryDAOs).getPIICategoryByUuid(uuid, tenantId));
-                                } catch (ConsentManagementException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            },
-                            new FirstFoundAggregationStrategy<>());
-        } catch (OrgResourceHierarchyTraverseException e) {
-            throw handleServerException(ERROR_CODE_ORGANIZATION_TRAVERSAL, getTenantDomainFromCarbonContext(), e);
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof ConsentManagementException) {
-                throw (ConsentManagementException) e.getCause();
-            }
-            throw e;
-        }
-    }
-
     private List<Purpose> listPurposesFromHierarchy(List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
@@ -2085,46 +2050,4 @@ public class ConsentManagerImpl implements ConsentManager {
         }
     }
 
-    private List<PIICategory> listPIICategoriesFromHierarchy(List<ExpressionNode> expressionNodes, int limit)
-            throws ConsentManagementException {
-
-        OrgResourceResolverService orgResourceResolverService = getOrgResourceResolverService();
-        try {
-            String orgId = resolveCurrentOrganizationId();
-            List<PIICategory> merged = orgResourceResolverService
-                    .getResourcesFromOrgHierarchy(orgId,
-                            hierarchyOrgId -> {
-                                try {
-                                    int tenantId = getTenantIdFromOrgId(hierarchyOrgId);
-                                    List<PIICategory> list = getPiiCategoryDAO(piiCategoryDAOs)
-                                            .listPIICategories(expressionNodes, limit, tenantId);
-                                    return (list != null && !list.isEmpty()) ? Optional.of(list) : Optional.empty();
-                                } catch (ConsentManagementException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            },
-                            new MergeAllAggregationStrategy<>((accumulated, fromParent) -> {
-                                Map<String, PIICategory> byUuid = new LinkedHashMap<>();
-                                for (PIICategory c : accumulated) {
-                                    byUuid.put(c.getUuid(), c);
-                                }
-                                for (PIICategory c : fromParent) {
-                                    byUuid.putIfAbsent(c.getUuid(), c);
-                                }
-                                return new ArrayList<>(byUuid.values());
-                            }));
-            if (merged == null) {
-                return new ArrayList<>();
-            }
-            merged.sort(Comparator.comparingInt(c -> c.getId() != null ? c.getId() : 0));
-            return merged;
-        } catch (OrgResourceHierarchyTraverseException e) {
-            throw handleServerException(ERROR_CODE_ORGANIZATION_TRAVERSAL, getTenantDomainFromCarbonContext(), e);
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof ConsentManagementException) {
-                throw (ConsentManagementException) e.getCause();
-            }
-            throw e;
-        }
-    }
 }
