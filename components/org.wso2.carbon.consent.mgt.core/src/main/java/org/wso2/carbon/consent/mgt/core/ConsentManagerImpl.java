@@ -74,7 +74,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -2027,20 +2026,19 @@ public class ConsentManagerImpl implements ConsentManager {
                                     throw new RuntimeException(e);
                                 }
                             },
-                            new MergeAllAggregationStrategy<List<Purpose>>((accumulated, fromParent) -> {
-                                Map<String, Purpose> byUuid = new LinkedHashMap<>();
-                                for (Purpose p : accumulated) {
-                                    byUuid.put(p.getUuid(), p);
-                                }
-                                for (Purpose p : fromParent) {
-                                    byUuid.putIfAbsent(p.getUuid(), p);
-                                }
-                                return new ArrayList<>(byUuid.values());
+                            new MergeAllAggregationStrategy<>((accumulated, fromParent) -> {
+                                // Purpose UUIDs are unique across the server
+                                List<Purpose> combined = new ArrayList<>(accumulated);
+                                combined.addAll(fromParent);
+                                return combined;
                             }));
             if (merged == null) {
                 return new ArrayList<>();
             }
             merged.sort(Comparator.comparingInt(p -> p.getId() != null ? p.getId() : 0));
+            if (limit > 0 && merged.size() > limit) {
+                return merged.subList(0, limit);
+            }
             return merged;
         } catch (OrgResourceHierarchyTraverseException e) {
             throw handleServerException(ERROR_CODE_ORGANIZATION_TRAVERSAL, getTenantDomainFromCarbonContext(), e);
