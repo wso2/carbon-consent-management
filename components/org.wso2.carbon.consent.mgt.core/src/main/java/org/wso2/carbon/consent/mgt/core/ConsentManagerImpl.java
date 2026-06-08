@@ -72,8 +72,8 @@ import java.security.PublicKey;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -358,9 +358,6 @@ public class ConsentManagerImpl implements ConsentManager {
     public void deletePurpose(String uuid) throws ConsentManagementException {
 
         Purpose purpose = getPurposeByUuid(uuid);
-        if (purpose.getTenantId() != getTenantIdFromCarbonContext()) {
-            throw handleClientException(ERROR_CODE_PURPOSE_UUID_NOT_FOUND, uuid);
-        }
         List<PurposeVersion> versions = listPurposeVersions(uuid);
         if (isEmpty(versions)) {
             deletePurpose(purpose.getId());
@@ -673,9 +670,6 @@ public class ConsentManagerImpl implements ConsentManager {
     public void deletePIICategory(String uuid) throws ConsentManagementException {
 
         PIICategory category = getPIICategoryByUuid(uuid);
-        if (category.getTenantId() != getTenantIdFromCarbonContext()) {
-            throw handleClientException(ERROR_CODE_ELEMENT_UUID_NOT_FOUND, uuid);
-        }
         deletePIICategory(category.getId());
     }
 
@@ -967,11 +961,8 @@ public class ConsentManagerImpl implements ConsentManager {
             throw handleClientException(ERROR_CODE_PURPOSE_VERSION_REQUIRED, null);
         }
 
-        // Fetch purpose by UUID and verify it belongs to the current tenant.
+        // Fetch purpose by UUID.
         Purpose purpose = getPurposeByUuid(purposeUuid);
-        if (purpose.getTenantId() != getTenantIdFromCarbonContext()) {
-            throw handleClientException(ERROR_CODE_PURPOSE_UUID_NOT_FOUND, purposeUuid);
-        }
 
         // Check for duplicate version label.
         // Note: purposes created via the V1 API may have no versions. Adding a version to such a purpose works,
@@ -1064,9 +1055,6 @@ public class ConsentManagerImpl implements ConsentManager {
 
         // Prevent deletion of the version currently marked as latest (would violate FK constraint).
         Purpose purpose = getPurposeByUuid(purposeUuid);
-        if (purpose.getTenantId() != getTenantIdFromCarbonContext()) {
-            throw handleClientException(ERROR_CODE_PURPOSE_UUID_NOT_FOUND, purposeUuid);
-        }
         if (versionUuid.equals(purpose.getLatestVersionId())) {
             throw handleClientException(ERROR_CODE_CANNOT_DELETE_LATEST_PURPOSE_VERSION, versionUuid);
         }
@@ -1091,6 +1079,7 @@ public class ConsentManagerImpl implements ConsentManager {
         if (purpose == null) {
             throw handleClientException(ERROR_CODE_PURPOSE_UUID_NOT_FOUND, uuid);
         }
+        purpose.setTenantDomain(ConsentUtils.getTenantDomain(realmService, purpose.getTenantId()));
         List<PurposePIICategory> purposePIICategories = new ArrayList<>();
         purpose.getPurposePIICategories().forEach(rethrowConsumer(
                 piiCategory -> purposePIICategories.add(getPurposePIICategoryWithUuid(piiCategory))));
@@ -1108,12 +1097,10 @@ public class ConsentManagerImpl implements ConsentManager {
 
         PIICategory category = getPiiCategoryDAO(piiCategoryDAOs).getPIICategoryByUuid(uuid,
                 getTenantIdFromCarbonContext());
-        if (category == null && isSubOrganization()) {
-            category = findPIICategoryInHierarchy(uuid);
-        }
         if (category == null) {
             throw handleClientException(ERROR_CODE_ELEMENT_UUID_NOT_FOUND, uuid);
         }
+        category.setTenantDomain(ConsentUtils.getTenantDomain(realmService, category.getTenantId()));
         return category;
     }
 
@@ -1156,6 +1143,7 @@ public class ConsentManagerImpl implements ConsentManager {
         }
         if (purposes != null) {
             for (Purpose purpose : purposes) {
+                purpose.setTenantDomain(ConsentUtils.getTenantDomain(realmService, purpose.getTenantId()));
                 if (purpose.getLatestVersionId() != null) {
                     PurposeVersion latestVersion = getPurposeDAO(purposeDAOs)
                             .getPurposeVersionByUuid(purpose.getLatestVersionId());
@@ -1181,14 +1169,14 @@ public class ConsentManagerImpl implements ConsentManager {
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
         }
-        List<PIICategory> categories;
-        if (isSubOrganization()) {
-            categories = listPIICategoriesFromHierarchy(expressionNodes, limit);
-        } else {
-            categories = getPiiCategoryDAO(piiCategoryDAOs).listPIICategories(
-                    expressionNodes, limit, getTenantIdFromCarbonContext());
-        }
+        List<PIICategory> categories = getPiiCategoryDAO(piiCategoryDAOs).listPIICategories(
+                expressionNodes, limit, getTenantIdFromCarbonContext());
         fillMissingUuids(categories);
+        if (categories != null) {
+            for (PIICategory category : categories) {
+                category.setTenantDomain(ConsentUtils.getTenantDomain(realmService, category.getTenantId()));
+            }
+        }
         return categories;
     }
 
@@ -2020,33 +2008,6 @@ public class ConsentManagerImpl implements ConsentManager {
         }
     }
 
-    private PIICategory findPIICategoryInHierarchy(String uuid) throws ConsentManagementException {
-
-        OrgResourceResolverService orgResourceResolverService = getOrgResourceResolverService();
-        try {
-            String orgId = resolveCurrentOrganizationId();
-            return orgResourceResolverService
-                    .getResourcesFromOrgHierarchy(orgId,
-                            hierarchyOrgId -> {
-                                try {
-                                    int tenantId = getTenantIdFromOrgId(hierarchyOrgId);
-                                    return Optional.ofNullable(
-                                            getPiiCategoryDAO(piiCategoryDAOs).getPIICategoryByUuid(uuid, tenantId));
-                                } catch (ConsentManagementException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            },
-                            new FirstFoundAggregationStrategy<>());
-        } catch (OrgResourceHierarchyTraverseException e) {
-            throw handleServerException(ERROR_CODE_ORGANIZATION_TRAVERSAL, getTenantDomainFromCarbonContext(), e);
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof ConsentManagementException) {
-                throw (ConsentManagementException) e.getCause();
-            }
-            throw e;
-        }
-    }
-
     private List<Purpose> listPurposesFromHierarchy(List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
@@ -2054,7 +2015,7 @@ public class ConsentManagerImpl implements ConsentManager {
         try {
             String orgId = resolveCurrentOrganizationId();
             List<Purpose> merged = orgResourceResolverService
-                    .<List<Purpose>>getResourcesFromOrgHierarchy(orgId,
+                    .getResourcesFromOrgHierarchy(orgId,
                             hierarchyOrgId -> {
                                 try {
                                     int tenantId = getTenantIdFromOrgId(hierarchyOrgId);
@@ -2065,17 +2026,20 @@ public class ConsentManagerImpl implements ConsentManager {
                                     throw new RuntimeException(e);
                                 }
                             },
-                            new MergeAllAggregationStrategy<List<Purpose>>((accumulated, fromParent) -> {
-                                Map<String, Purpose> byUuid = new LinkedHashMap<>();
-                                for (Purpose p : accumulated) {
-                                    byUuid.put(p.getUuid(), p);
-                                }
-                                for (Purpose p : fromParent) {
-                                    byUuid.putIfAbsent(p.getUuid(), p);
-                                }
-                                return new ArrayList<>(byUuid.values());
+                            new MergeAllAggregationStrategy<>((accumulated, fromParent) -> {
+                                // Purpose UUIDs are unique across the server
+                                List<Purpose> combined = new ArrayList<>(accumulated);
+                                combined.addAll(fromParent);
+                                return combined;
                             }));
-            return merged != null ? merged : new ArrayList<>();
+            if (merged == null) {
+                return new ArrayList<>();
+            }
+            merged.sort(Comparator.comparingInt(p -> p.getId() != null ? p.getId() : 0));
+            if (limit > 0 && merged.size() > limit) {
+                return merged.subList(0, limit);
+            }
+            return merged;
         } catch (OrgResourceHierarchyTraverseException e) {
             throw handleServerException(ERROR_CODE_ORGANIZATION_TRAVERSAL, getTenantDomainFromCarbonContext(), e);
         } catch (RuntimeException e) {
@@ -2086,42 +2050,4 @@ public class ConsentManagerImpl implements ConsentManager {
         }
     }
 
-    private List<PIICategory> listPIICategoriesFromHierarchy(List<ExpressionNode> expressionNodes, int limit)
-            throws ConsentManagementException {
-
-        OrgResourceResolverService orgResourceResolverService = getOrgResourceResolverService();
-        try {
-            String orgId = resolveCurrentOrganizationId();
-            List<PIICategory> merged = orgResourceResolverService
-                    .<List<PIICategory>>getResourcesFromOrgHierarchy(orgId,
-                            hierarchyOrgId -> {
-                                try {
-                                    int tenantId = getTenantIdFromOrgId(hierarchyOrgId);
-                                    List<PIICategory> list = getPiiCategoryDAO(piiCategoryDAOs)
-                                            .listPIICategories(expressionNodes, limit, tenantId);
-                                    return (list != null && !list.isEmpty()) ? Optional.of(list) : Optional.empty();
-                                } catch (ConsentManagementException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            },
-                            new MergeAllAggregationStrategy<List<PIICategory>>((accumulated, fromParent) -> {
-                                Map<String, PIICategory> byUuid = new LinkedHashMap<>();
-                                for (PIICategory c : accumulated) {
-                                    byUuid.put(c.getUuid(), c);
-                                }
-                                for (PIICategory c : fromParent) {
-                                    byUuid.putIfAbsent(c.getUuid(), c);
-                                }
-                                return new ArrayList<>(byUuid.values());
-                            }));
-            return merged != null ? merged : new ArrayList<>();
-        } catch (OrgResourceHierarchyTraverseException e) {
-            throw handleServerException(ERROR_CODE_ORGANIZATION_TRAVERSAL, getTenantDomainFromCarbonContext(), e);
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof ConsentManagementException) {
-                throw (ConsentManagementException) e.getCause();
-            }
-            throw e;
-        }
-    }
 }
