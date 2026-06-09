@@ -17,7 +17,6 @@
 package org.wso2.carbon.consent.mgt.core.dao.impl;
 
 import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
-import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
@@ -27,18 +26,23 @@ import org.wso2.carbon.consent.mgt.core.util.FilterQueriesUtil;
 import org.wso2.carbon.consent.mgt.core.util.JdbcUtils;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.FilterConstants;
+import static org.wso2.carbon.consent.mgt.core.util.LambdaExceptionUtils.rethrowConsumer;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PII_CATEGORY_BY_TENANT_ID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.DELETE_PII_CATEGORY_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.INSERT_PII_CATEGORY_PROPERTY_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CATEGORY_PROPERTIES_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PII_CATEGORY_BY_UUID_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_COUNT_ASSOCIATED_WITH_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.GET_PURPOSE_VERSION_COUNT_ASSOCIATED_WITH_PII_CATEGORY;
@@ -113,24 +117,50 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
     @Override
     public PIICategory addPIICategoryWithUuid(PIICategory piiCategory) throws ConsentManagementException {
 
-        int insertedId;
+        final int[] insertedIdHolder = new int[1];
         String uuid = UUID.randomUUID().toString();
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            insertedId = jdbcTemplate.executeInsert(INSERT_PII_CATEGORY_WITH_UUID_SQL, (preparedStatement -> {
-                preparedStatement.setString(1, piiCategory.getName());
-                preparedStatement.setString(2, piiCategory.getDescription());
-                preparedStatement.setInt(3, piiCategory.getSensitive() ? 1 : 0);
-                preparedStatement.setInt(4, piiCategory.getTenantId());
-                preparedStatement.setString(5, piiCategory.getDisplayName());
-                preparedStatement.setString(6, uuid);
-            }), piiCategory, true);
-        } catch (DataAccessException e) {
+            jdbcTemplate.withTransaction(template -> {
+                insertedIdHolder[0] = template.executeInsert(INSERT_PII_CATEGORY_WITH_UUID_SQL, (preparedStatement -> {
+                    preparedStatement.setString(1, piiCategory.getName());
+                    preparedStatement.setString(2, piiCategory.getDescription());
+                    preparedStatement.setInt(3, piiCategory.getSensitive() ? 1 : 0);
+                    preparedStatement.setInt(4, piiCategory.getTenantId());
+                    preparedStatement.setString(5, piiCategory.getDisplayName());
+                    preparedStatement.setString(6, uuid);
+                }), piiCategory, true);
+
+                if (piiCategory.getProperties() != null && !piiCategory.getProperties().isEmpty()) {
+                    piiCategory.getProperties().entrySet().forEach(rethrowConsumer(entry -> {
+                        try {
+                            template.executeInsert(INSERT_PII_CATEGORY_PROPERTY_SQL, ps -> {
+                                ps.setInt(1, insertedIdHolder[0]);
+                                ps.setString(2, entry.getKey());
+                                ps.setString(3, entry.getValue());
+                                ps.setInt(4, piiCategory.getTenantId());
+                            }, null, false);
+                        } catch (DataAccessException e) {
+                            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PII_CATEGORY,
+                                    piiCategory.getName(), e);
+                        }
+                    }));
+                }
+
+                return null;
+            });
+        } catch (TransactionException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_PII_CATEGORY,
-                                                     piiCategory.getName(), e);
+                    piiCategory.getName(), e);
         }
-        return new PIICategory(insertedId, piiCategory.getName(), piiCategory.getDescription(),
-                piiCategory.getSensitive(), piiCategory.getTenantId(), piiCategory.getDisplayName(), uuid);
+
+        PIICategory created = new PIICategory(insertedIdHolder[0], piiCategory.getName(),
+                piiCategory.getDescription(), piiCategory.getSensitive(), piiCategory.getTenantId(),
+                piiCategory.getDisplayName(), uuid);
+        if (piiCategory.getProperties() != null && !piiCategory.getProperties().isEmpty()) {
+            created.setProperties(piiCategory.getProperties());
+        }
+        return created;
     }
 
     @Override
@@ -187,6 +217,9 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
                             resultSet.getString(6),
                             resultSet.getString(7)),
                     preparedStatement -> preparedStatement.setInt(1, id));
+            if (piiCategory != null) {
+                piiCategory.setProperties(loadPIICategoryProperties(jdbcTemplate, piiCategory.getId()));
+            }
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PII_CATEGORY_BY_ID, String
                     .valueOf(id), e);
@@ -287,6 +320,9 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
                         }
                         preparedStatement.setInt(paramIndex, limit);
                     });
+            for (PIICategory piiCategory : categories) {
+                piiCategory.setProperties(loadPIICategoryProperties(jdbcTemplate, piiCategory.getId()));
+            }
         } catch (DataAccessException e) {
             throw new ConsentManagementServerException(
                     String.format("Error listing PII categories with cursor for tenant %d", tenantId),
@@ -404,23 +440,37 @@ public class PIICategoryDAOImpl implements PIICategoryDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            return jdbcTemplate.fetchSingleRecord(GET_PII_CATEGORY_BY_UUID_SQL,
-                    (resultSet, rowNumber) -> {
-                        PIICategory cat = new PIICategory(resultSet.getInt(1),
-                                resultSet.getString(2),
-                                resultSet.getString(3),
-                                resultSet.getInt(4) == 1,
-                                resultSet.getInt(5),
-                                resultSet.getString(6),
-                                resultSet.getString(7));
-                        return cat;
-                    },
+            PIICategory cat = jdbcTemplate.fetchSingleRecord(GET_PII_CATEGORY_BY_UUID_SQL,
+                    (resultSet, rowNumber) -> new PIICategory(resultSet.getInt(1),
+                            resultSet.getString(2),
+                            resultSet.getString(3),
+                            resultSet.getInt(4) == 1,
+                            resultSet.getInt(5),
+                            resultSet.getString(6),
+                            resultSet.getString(7)),
                     preparedStatement -> {
                         preparedStatement.setString(1, uuid);
                         preparedStatement.setInt(2, tenantId);
                     });
+            if (cat != null) {
+                cat.setProperties(loadPIICategoryProperties(jdbcTemplate, cat.getId()));
+            }
+            return cat;
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_SELECT_PII_CATEGORY_BY_ID, uuid, e);
         }
+    }
+
+    private Map<String, String> loadPIICategoryProperties(JdbcTemplate jdbcTemplate, int piiCategoryId)
+            throws DataAccessException {
+
+        Map<String, String> props = new HashMap<>();
+        jdbcTemplate.executeQuery(GET_PII_CATEGORY_PROPERTIES_SQL,
+                (rs, rowNumber) -> {
+                    props.put(rs.getString(1), rs.getString(2));
+                    return null;
+                },
+                ps -> ps.setInt(1, piiCategoryId));
+        return props.isEmpty() ? null : props;
     }
 }

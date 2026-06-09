@@ -28,6 +28,7 @@ import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.consent.mgt.core.model.PurposePIICategoryBinding;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
+import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
@@ -70,10 +71,11 @@ public class ConsentReceiptUtils {
      * @param language             Language code for the consent receipt.
      * @param subjectId            PII principal (data subject) user ID.
      * @param tenantDomain         Tenant domain of the request.
-     * @param expiryTime         Optional absolute expiry timestamp; {@code null} means no expiry.
-     * @param rejected             {@code true} to create the consent in REJECTED state.
-     * @param authorizationUserIds List of user IDs required to authorize the consent (delegated consents).
-     * @param properties           Optional key-value metadata to attach to the receipt.
+     * @param expiryTime       Optional absolute expiry timestamp; {@code null} means no expiry.
+     * @param rejected         {@code true} to create the consent in REJECTED state.
+     * @param authorizations   List of authorization entries required to authorize this consent; {@code null} for non-delegated
+     *                         consents.
+     * @param properties       Optional key-value metadata to attach to the receipt.
      * @param serviceId            Identifier of the service to which consent is being given.
      * @param purposeBindings      Purpose-element bindings with UUID strings for resolution.
      * @param consentManager       Consent manager used to resolve UUIDs to internal IDs.
@@ -81,7 +83,8 @@ public class ConsentReceiptUtils {
      * @throws ConsentManagementException if any UUID cannot be resolved or a subject mismatch is detected.
      */
     public static ReceiptInput buildReceiptInput(String language, String subjectId, String tenantDomain,
-                                                 Timestamp expiryTime, boolean rejected, List<String> authorizationUserIds,
+                                                 Timestamp expiryTime, boolean rejected,
+                                                 List<ConsentAuthorization> authorizations,
                                                  Map<String, String> properties, String serviceId,
                                                  List<PurposePIICategoryBinding> purposeBindings,
                                                  ConsentManager consentManager)
@@ -99,8 +102,8 @@ public class ConsentReceiptUtils {
         if (expiryTime != null) {
             receiptInput.setExpiryTime(expiryTime);
         }
-        if (authorizationUserIds != null) {
-            receiptInput.setAuthorizations(authorizationUserIds);
+        if (authorizations != null) {
+            receiptInput.setAuthorizations(authorizations);
         }
         if (rejected) {
             receiptInput.setState(REJECTED_STATE);
@@ -124,6 +127,7 @@ public class ConsentReceiptUtils {
                     throw handleClientException(ERROR_CODE_PURPOSE_UUID_NOT_FOUND, binding.getPurposeId());
                 }
                 purposeInput.setPurposeId(purpose.getId());
+                purposeInput.setPurposeUuid(purpose.getUuid());
                 PurposeVersion latestVersion = purpose.getLatestVersion();
                 if (latestVersion != null) {
                     purposeInput.setPurposeVersionId(latestVersion.getUuid());

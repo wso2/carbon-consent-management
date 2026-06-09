@@ -22,6 +22,7 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptUpdateInput;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -145,6 +146,18 @@ public abstract class AbstractConsentManagementListener implements ConsentManage
 
     @Override
     public void postAuthorizeConsent(String consentId, String userId, String authStatus, String tenantDomain)
+            throws ConsentManagementException {
+
+    }
+
+    @Override
+    public void preUpdateConsent(ReceiptUpdateInput updateInput, String tenantDomain)
+            throws ConsentManagementException {
+
+    }
+
+    @Override
+    public void postUpdateConsent(ReceiptUpdateInput updateInput, String tenantDomain)
             throws ConsentManagementException {
 
     }

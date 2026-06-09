@@ -31,16 +31,19 @@ public class ConsentAuthorization {
     private String userId;
     private AuthorizationStatus status;
     private long updatedTime;
+    private String type;
 
     public ConsentAuthorization() {
     }
 
-    public ConsentAuthorization(String consentReceiptId, String userId, AuthorizationStatus status, long updatedTime) {
+    public ConsentAuthorization(String consentReceiptId, String userId, AuthorizationStatus status, long updatedTime,
+                                String type) {
 
         this.consentReceiptId = consentReceiptId;
         this.userId = userId;
         this.status = status;
         this.updatedTime = updatedTime;
+        this.type = type;
     }
 
     public String getConsentReceiptId() {
@@ -81,5 +84,15 @@ public class ConsentAuthorization {
     public void setUpdatedTime(long updatedTime) {
 
         this.updatedTime = updatedTime;
+    }
+
+    public String getType() {
+
+        return type;
+    }
+
+    public void setType(String type) {
+
+        this.type = type;
     }
 }

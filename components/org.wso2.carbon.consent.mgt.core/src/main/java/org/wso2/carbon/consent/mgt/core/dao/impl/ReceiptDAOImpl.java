@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
@@ -28,6 +29,7 @@ import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptContext;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptUpdateInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptService;
@@ -39,15 +41,21 @@ import org.wso2.carbon.database.utils.jdbc.Template;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
+import org.wso2.carbon.consent.mgt.core.util.FilterQueriesUtil;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.function.Function;
+
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.FilterConstants;
 
 import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
@@ -107,6 +115,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECE
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_INFORMIX;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_MSSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_ORACLE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_ACTIVE_EXPIRY_CONDITION;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_HEAD;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_MSSQL;
@@ -115,6 +124,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIP
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_MSSQL_BEFORE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2_BEFORE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_CONSENT_AUTHORIZATION_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_RECEIPT_EXPIRY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_RECEIPT_STATE_SQL;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isDB2DB;
 import static org.wso2.carbon.consent.mgt.core.util.JdbcUtils.isH2DB;
@@ -220,7 +230,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     receiptInfo.setConsentReceiptId(receiptId);
                     receiptInfo.setVersion(resultSet.getString(1));
                     receiptInfo.setJurisdiction(resultSet.getString(2));
-                    receiptInfo.setConsentTimestamp(resultSet.getTimestamp(3).getTime());
+                    receiptInfo.setConsentTimestamp(resultSet.getTimestamp(3,
+                            Calendar.getInstance(TimeZone.getTimeZone(UTC))).getTime());
                     receiptInfo.setCollectionMethod(resultSet.getString(4));
                     receiptInfo.setLanguage(resultSet.getString(5));
                     receiptInfo.setPiiPrincipalId(resultSet.getString(6));
@@ -259,7 +270,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     receiptInfo.setConsentReceiptId(receiptId);
                     receiptInfo.setVersion(resultSet.getString(1));
                     receiptInfo.setJurisdiction(resultSet.getString(2));
-                    receiptInfo.setConsentTimestamp(resultSet.getTimestamp(3).getTime());
+                    receiptInfo.setConsentTimestamp(resultSet.getTimestamp(3,
+                            Calendar.getInstance(TimeZone.getTimeZone(UTC))).getTime());
                     receiptInfo.setCollectionMethod(resultSet.getString(4));
                     receiptInfo.setLanguage(resultSet.getString(5));
                     receiptInfo.setPiiPrincipalId(resultSet.getString(6));
@@ -267,7 +279,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     receiptInfo.setPolicyUrl(resultSet.getString(8));
                     receiptInfo.setState(resultSet.getString(9));
                     receiptInfo.setPiiController(resultSet.getString(10));
-                    Timestamp vt = resultSet.getTimestamp(11);
+                    Timestamp vt = resultSet.getTimestamp(11, Calendar.getInstance(TimeZone.getTimeZone(UTC)));
                     if (vt != null) {
                         receiptInfo.setExpiryTime(vt);
                     }
@@ -279,6 +291,14 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 if (internalReceipt != null) {
                     internalReceipt.setServices(getServiceInfoOfReceiptWithVersion(receiptId, receiptContext));
                     setReceiptSensitivity(receiptContext, internalReceipt);
+                    Map<String, String> properties = new HashMap<>();
+                    String getPropertiesSql = "SELECT NAME, " + getReceiptPropertyValueColumn() +
+                            " FROM CM_CONSENT_RECEIPT_PROPERTY WHERE CONSENT_RECEIPT_ID = ?";
+                    template.executeQuery(getPropertiesSql,
+                            (propResultSet, rowNumber) ->
+                                    properties.put(propResultSet.getString(1), propResultSet.getString(2)),
+                            preparedStatement -> preparedStatement.setString(1, receiptId));
+                    internalReceipt.setProperties(properties);
                 }
                 return internalReceipt;
             });
@@ -725,6 +745,17 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         }
     }
 
+    /**
+     * Returns the DB-specific reference for the receipt property {@code VALUE} column. {@code VALUE}
+     * is a reserved word, so it must be double-quoted on H2.
+     *
+     * @return the quoted column name for H2, or the plain column name otherwise.
+     */
+    private String getReceiptPropertyValueColumn() throws DataAccessException {
+
+        return isH2DB() ? "\"VALUE\"" : "VALUE";
+    }
+
     protected List<ReceiptService> getServiceInfoOfReceipt(String consentReceiptId, ReceiptContext receiptContext) throws
             ConsentManagementServerException {
 
@@ -1126,6 +1157,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 preparedStatement.setString(2, authorization.getUserId());
                 preparedStatement.setString(3, authorization.getStatus().name());
                 preparedStatement.setLong(4, authorization.getUpdatedTime());
+                preparedStatement.setString(5, authorization.getType());
             }, authorization, false);
         } catch (DataAccessException e) {
             throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_RECEIPT,
@@ -1168,6 +1200,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         preparedStatement.setString(2, authorization.getUserId());
                         preparedStatement.setString(3, authorization.getStatus().name());
                         preparedStatement.setLong(4, authorization.getUpdatedTime());
+                        preparedStatement.setString(5, authorization.getType());
                     }, authorization, false);
                 }
                 return null;
@@ -1205,6 +1238,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         auth.setUserId(resultSet.getString(2));
                         auth.setStatus(ConsentAuthorization.AuthorizationStatus.valueOf(resultSet.getString(3)));
                         auth.setUpdatedTime(resultSet.getLong(4));
+                        auth.setType(resultSet.getString(5));
                         return auth;
                     },
                     preparedStatement -> preparedStatement.setString(1, consentReceiptId));
@@ -1227,6 +1261,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         auth.setUserId(resultSet.getString(2));
                         auth.setStatus(ConsentAuthorization.AuthorizationStatus.valueOf(resultSet.getString(3)));
                         auth.setUpdatedTime(resultSet.getLong(4));
+                        auth.setType(resultSet.getString(5));
                         return auth;
                     },
                     preparedStatement -> {
@@ -1252,7 +1287,126 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 preparedStatement.setString(4, userId);
             });
         } catch (DataAccessException e) {
-            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_RECEIPT, consentReceiptId, e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_UPDATE_CONSENT, consentReceiptId, e);
+        }
+    }
+
+    @Override
+    public void updateConsent(ReceiptUpdateInput updateInput,
+                              Function<List<ConsentAuthorization>, String> statusCalculator)
+            throws ConsentManagementException {
+
+        String consentId = updateInput.getConsentReceiptId();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                String existingState = template.fetchSingleRecord(GET_RECEIPT_STATE_SQL,
+                        (resultSet, rowNumber) -> resultSet.getString(1),
+                        preparedStatement -> preparedStatement.setString(1, consentId));
+                if (existingState == null) {
+                    throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_RECEIPT_ID_INVALID, consentId);
+                }
+                if (updateInput.isClearExpiry()) {
+                    // Remove the expiry entirely — the consent no longer expires.
+                    template.executeUpdate(UPDATE_RECEIPT_EXPIRY_SQL, preparedStatement -> {
+                        preparedStatement.setTimestamp(1, null);
+                        preparedStatement.setString(2, consentId);
+                    });
+                } else if (updateInput.getExpiryTime() != null) {
+                    template.executeUpdate(UPDATE_RECEIPT_EXPIRY_SQL, preparedStatement -> {
+                        preparedStatement.setTimestamp(1, updateInput.getExpiryTime(),
+                                Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                        preparedStatement.setString(2, consentId);
+                    });
+                }
+                if (updateInput.getProperties() != null) {
+                    template.executeUpdate(DELETE_RECEIPT_PROPERTIES_SQL,
+                            preparedStatement -> preparedStatement.setString(1, consentId));
+                    if (!updateInput.getProperties().isEmpty()) {
+                        String sqlStmt = isH2DB() ? INSERT_RECEIPT_PROPERTIES_SQL_H2 : INSERT_RECEIPT_PROPERTIES_SQL;
+                        template.executeBatchInsert(sqlStmt, preparedStatement -> {
+                            for (Map.Entry<String, String> entry : updateInput.getProperties().entrySet()) {
+                                preparedStatement.setString(1, consentId);
+                                preparedStatement.setString(2, entry.getKey());
+                                preparedStatement.setString(3, entry.getValue());
+                                preparedStatement.addBatch();
+                            }
+                        }, consentId);
+                    }
+                }
+                if (updateInput.getAuthorizations() != null) {
+                    long now = System.currentTimeMillis();
+                    for (ConsentAuthorization auth : updateInput.getAuthorizations()) {
+                        ConsentAuthorization existing = template.fetchSingleRecord(
+                                GET_CONSENT_AUTHORIZATION_BY_USER_SQL,
+                                (resultSet, rowNumber) -> {
+                                    ConsentAuthorization a = new ConsentAuthorization();
+                                    a.setConsentReceiptId(resultSet.getString(1));
+                                    a.setUserId(resultSet.getString(2));
+                                    a.setStatus(ConsentAuthorization.AuthorizationStatus.valueOf(resultSet.getString(3)));
+                                    a.setUpdatedTime(resultSet.getLong(4));
+                                    a.setType(resultSet.getString(5));
+                                    return a;
+                                },
+                                preparedStatement -> {
+                                    preparedStatement.setString(1, consentId);
+                                    preparedStatement.setString(2, auth.getUserId());
+                                });
+                        if (existing == null) {
+                            auth.setConsentReceiptId(consentId);
+                            if (auth.getUpdatedTime() == 0) {
+                                auth.setUpdatedTime(now);
+                            }
+                            if (auth.getStatus() == null) {
+                                auth.setStatus(ConsentAuthorization.AuthorizationStatus.PENDING);
+                            }
+                            template.executeInsert(INSERT_CONSENT_AUTHORIZATION_SQL, preparedStatement -> {
+                                preparedStatement.setString(1, auth.getConsentReceiptId());
+                                preparedStatement.setString(2, auth.getUserId());
+                                preparedStatement.setString(3, auth.getStatus().name());
+                                preparedStatement.setLong(4, auth.getUpdatedTime());
+                                preparedStatement.setString(5, auth.getType());
+                            }, auth, false);
+                        } else if (auth.getStatus() != null) {
+                            template.executeUpdate(UPDATE_CONSENT_AUTHORIZATION_SQL, preparedStatement -> {
+                                preparedStatement.setString(1, auth.getStatus().name());
+                                preparedStatement.setLong(2, now);
+                                preparedStatement.setString(3, consentId);
+                                preparedStatement.setString(4, auth.getUserId());
+                            });
+                        }
+                    }
+                    // Recompute and persist the receipt state from the post-update authorization set within
+                    // the same transaction, so the stored state can never diverge from the authorizations.
+                    if (statusCalculator != null) {
+                        List<ConsentAuthorization> currentAuthorizations = template.executeQuery(
+                                GET_CONSENT_AUTHORIZATIONS_SQL,
+                                (resultSet, rowNumber) -> {
+                                    ConsentAuthorization a = new ConsentAuthorization();
+                                    a.setConsentReceiptId(resultSet.getString(1));
+                                    a.setUserId(resultSet.getString(2));
+                                    a.setStatus(ConsentAuthorization.AuthorizationStatus.valueOf(resultSet.getString(3)));
+                                    a.setUpdatedTime(resultSet.getLong(4));
+                                    a.setType(resultSet.getString(5));
+                                    return a;
+                                },
+                                preparedStatement -> preparedStatement.setString(1, consentId));
+                        String newState = statusCalculator.apply(currentAuthorizations);
+                        template.executeUpdate(UPDATE_RECEIPT_STATE_SQL, preparedStatement -> {
+                            preparedStatement.setString(1, newState);
+                            preparedStatement.setString(2, consentId);
+                        });
+                    }
+                }
+                return null;
+            });
+        } catch (TransactionException e) {
+            // withTransaction wraps lambda exceptions; unwrap a client failure (e.g. unknown consent
+            // id) so it is not masked as a 500.
+            if (e.getCause() instanceof ConsentManagementClientException) {
+                throw (ConsentManagementClientException) e.getCause();
+            }
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_UPDATE_CONSENT, consentId, e);
         }
     }
 
@@ -1266,7 +1420,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 preparedStatement.setString(2, consentReceiptId);
             });
         } catch (DataAccessException e) {
-            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_ADD_RECEIPT, consentReceiptId, e);
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_UPDATE_CONSENT, consentReceiptId, e);
         }
     }
 
@@ -1298,7 +1452,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             jdbcTemplate.fetchSingleRecord(GET_RECEIPT_STATE_SQL,
                     (resultSet, rowNumber) -> {
                         resultSet.getString(1); // skip STATE column
-                        result[0] = resultSet.getTimestamp(2);
+                        result[0] = resultSet.getTimestamp(2, Calendar.getInstance(TimeZone.getTimeZone(UTC)));
                         return result[0];
                     },
                     preparedStatement -> preparedStatement.setString(1, consentReceiptId));
@@ -1312,7 +1466,8 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     @Override
     public List<Receipt> listReceipts(String subjectId, String serviceId, String state,
                                       String purposeId, String purposeVersionId,
-                                      String after, String before, int limit, int tenantId)
+                                      int limit, int tenantId,
+                                      List<ExpressionNode> expressionNodes)
             throws ConsentManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
@@ -1324,32 +1479,30 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         final String finalPurposeId = purposeId != null ? purposeId : SQL_FILTER_STRING_ANY;
         final String finalPurposeVersionId = purposeVersionId != null ? purposeVersionId : SQL_FILTER_STRING_ANY;
 
-        // Cursor encodes CM_RECEIPT.CURSOR_KEY as Base64(integer string).
+        final List<ExpressionNode> nodes =
+                (expressionNodes != null) ? expressionNodes : java.util.Collections.emptyList();
+
+        // Extract cursor key from expression nodes (value is already base64-decoded by FilterQueriesUtil).
         final int[] cursorKeyHolder = {0};
-        final boolean hasCursor = after != null || before != null;
-        if (hasCursor) {
-            String rawCursor = after != null ? after : before;
-            try {
-                String decoded = new String(Base64.getDecoder().decode(rawCursor), StandardCharsets.UTF_8);
-                cursorKeyHolder[0] = Integer.parseInt(decoded);
-            } catch (IllegalArgumentException e) {
-                throw new org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException(
-                        String.format(ErrorMessages.ERROR_CODE_INVALID_CURSOR_TOKEN.getMessage(), rawCursor),
-                        ErrorMessages.ERROR_CODE_INVALID_CURSOR_TOKEN.getCode());
+        boolean hasCursor = false;
+        for (ExpressionNode node : nodes) {
+            String attr = node.getAttributeValue();
+            if (FilterConstants.FILTER_ATTR_AFTER.equals(attr) || FilterConstants.FILTER_ATTR_BEFORE.equals(attr)) {
+                try {
+                    cursorKeyHolder[0] = Integer.parseInt(node.getValue());
+                } catch (NumberFormatException e) {
+                    throw new org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException(
+                            String.format(ErrorMessages.ERROR_CODE_INVALID_CURSOR_TOKEN.getMessage(), node.getValue()),
+                            ErrorMessages.ERROR_CODE_INVALID_CURSOR_TOKEN.getCode());
+                }
+                hasCursor = true;
+                break;
             }
         }
-
-        final String cursorCondition;
-        if (after != null) {
-            cursorCondition = " AND r2.CURSOR_KEY > ?";
-        } else if (before != null) {
-            cursorCondition = " AND r2.CURSOR_KEY < ?";
-        } else {
-            cursorCondition = "";
-        }
+        final boolean finalHasCursor = hasCursor;
 
         try {
-            String query = buildCursorReceiptQuery(cursorCondition, before != null);
+            String query = buildCursorReceiptQuery(nodes, finalState);
             receipts = jdbcTemplate.executeQuery(query,
                     (resultSet, rowNumber) -> {
                         Receipt receipt = new Receipt();
@@ -1357,11 +1510,12 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         receipt.setPiiPrincipalId(resultSet.getString(2));
                         receipt.setState(resultSet.getString(3));
                         receipt.setTenantId(resultSet.getInt(4));
-                        java.sql.Timestamp ts = resultSet.getTimestamp(5);
+                        java.sql.Timestamp ts = resultSet.getTimestamp(5,
+                                Calendar.getInstance(TimeZone.getTimeZone(UTC)));
                         if (ts != null) {
                             receipt.setConsentTimestamp(ts.getTime());
                         }
-                        Timestamp vt = resultSet.getTimestamp(6);
+                        Timestamp vt = resultSet.getTimestamp(6, Calendar.getInstance(TimeZone.getTimeZone(UTC)));
                         if (vt != null) {
                             receipt.setExpiryTime(vt);
                         }
@@ -1383,7 +1537,20 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         preparedStatement.setString(paramIndex++, finalState);
                         preparedStatement.setString(paramIndex++, finalPurposeId);
                         preparedStatement.setString(paramIndex++, finalPurposeVersionId);
-                        if (hasCursor) {
+                        // The active-expiry condition compares EXPIRY_TIME against "now" in UTC.
+                        if (ACTIVE_STATE.equals(finalState)) {
+                            preparedStatement.setTimestamp(paramIndex++, new Timestamp(System.currentTimeMillis()),
+                                    Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                        }
+                        for (ExpressionNode node : nodes) {
+                            String attr = node.getAttributeValue();
+                            if (attr != null && attr.startsWith("properties.")) {
+                                preparedStatement.setString(paramIndex++, attr.substring("properties.".length()));
+                                preparedStatement.setString(paramIndex++,
+                                        FilterQueriesUtil.toSqlValue(node.getOperation(), node.getValue()));
+                            }
+                        }
+                        if (finalHasCursor) {
                             preparedStatement.setInt(paramIndex++, cursorKeyHolder[0]);
                         }
                         preparedStatement.setInt(paramIndex, limit);
@@ -1396,7 +1563,37 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         return receipts;
     }
 
-    private String buildCursorReceiptQuery(String cursorCondition, boolean isBefore) throws DataAccessException {
+    private String buildCursorReceiptQuery(List<ExpressionNode> expressionNodes, String state)
+            throws DataAccessException {
+
+        StringBuilder propertyConditions = new StringBuilder();
+        String cursorCondition = "";
+        boolean isBefore = false;
+        int propIndex = 0;
+        String valueCol = getReceiptPropertyValueColumn();
+
+        if (ACTIVE_STATE.equals(state)) {
+            propertyConditions.append(LIST_RECEIPTS_ACTIVE_EXPIRY_CONDITION);
+        }
+
+        for (ExpressionNode node : expressionNodes) {
+            String attr = node.getAttributeValue();
+            if (FilterConstants.FILTER_ATTR_AFTER.equals(attr)) {
+                cursorCondition = " AND r2.CURSOR_KEY > ?";
+            } else if (FilterConstants.FILTER_ATTR_BEFORE.equals(attr)) {
+                cursorCondition = " AND r2.CURSOR_KEY < ?";
+                isBefore = true;
+            } else if (attr != null && attr.startsWith("properties.")) {
+                propertyConditions.append(" AND EXISTS (SELECT 1 FROM CM_CONSENT_RECEIPT_PROPERTY prop_f")
+                        .append(propIndex)
+                        .append(" WHERE prop_f").append(propIndex)
+                        .append(".CONSENT_RECEIPT_ID = r2.CONSENT_RECEIPT_ID")
+                        .append(" AND prop_f").append(propIndex).append(".NAME = ?")
+                        .append(" AND prop_f").append(propIndex).append(".").append(valueCol)
+                        .append(" ").append(FilterQueriesUtil.toSqlOperator(node.getOperation())).append(" ?)");
+                propIndex++;
+            }
+        }
 
         String tail;
         if (isH2MySqlOrPostgresDB()) {
@@ -1406,7 +1603,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         } else {
             tail = cursorCondition + (isBefore ? LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2_BEFORE : LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2);
         }
-        return LIST_RECEIPTS_SQL_HEAD + tail;
+        return LIST_RECEIPTS_SQL_HEAD + propertyConditions + tail;
     }
 
 }

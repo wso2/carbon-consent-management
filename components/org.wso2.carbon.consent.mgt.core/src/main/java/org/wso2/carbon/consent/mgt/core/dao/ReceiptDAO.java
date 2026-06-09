@@ -21,10 +21,14 @@ import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptUpdateInput;
+
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Perform CRUD operations for {@link Receipt}.
@@ -152,13 +156,34 @@ public interface ReceiptDAO {
     }
 
     /**
+     * Applies a receipt update and recomputes the receipt state atomically within a single transaction.
+     * <p>
+     * The authorization changes, the re-read of the resulting authorization set, and the persisted state
+     * update all happen inside one transaction guarded by a lock on the receipt row, so concurrent callers
+     * targeting the same receipt are serialized. This prevents a stale state being written from a snapshot
+     * read taken before another writer committed (lost update).
+     * <p>
+     * The receipt state is recomputed only when {@link ReceiptUpdateInput#getAuthorizations()} is non-null,
+     * using {@code statusCalculator} so the caller's status-derivation logic is reused unchanged.
+     *
+     * @param updateInput      Fields to update.
+     * @param statusCalculator Function deriving the receipt state from the post-update authorization set.
+     * @throws ConsentManagementException if the update fails.
+     */
+    default void updateConsent(ReceiptUpdateInput updateInput,
+                               Function<List<ConsentAuthorization>, String> statusCalculator)
+            throws ConsentManagementException {
+    }
+
+    /**
      * Lists receipts using cursor-based pagination (V2 API).
-     * Either {@code after} or {@code before} may be provided; both are base64-encoded
-     * CM_RECEIPT.CURSOR_KEY integer values from a previous page.
+     * Cursor and property filter nodes are supplied as {@link ExpressionNode} instances
+     * produced by {@link org.wso2.carbon.consent.mgt.core.util.FilterQueriesUtil#getExpressionNodes}.
      */
     default List<Receipt> listReceipts(String subjectId, String serviceId, String state,
                                        String purposeId, String purposeVersionId,
-                                       String after, String before, int limit, int tenantId)
+                                       int limit, int tenantId,
+                                       List<ExpressionNode> expressionNodes)
             throws ConsentManagementException {
 
         return Collections.emptyList();

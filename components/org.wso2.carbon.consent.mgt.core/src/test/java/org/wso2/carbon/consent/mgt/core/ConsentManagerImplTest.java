@@ -39,19 +39,28 @@ import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeCategoryDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.PurposeDAOImpl;
 import org.wso2.carbon.consent.mgt.core.dao.impl.ReceiptDAOImpl;
 import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
+import org.wso2.carbon.consent.mgt.core.listener.ConsentStatusOverrideTestHandler;
+import org.wso2.carbon.consent.mgt.core.listener.TestRoutingIdentityEventService;
 import org.wso2.carbon.consent.mgt.core.model.Address;
 import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.PiiController;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
+import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
+import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptUpdateInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.consent.mgt.core.util.TestUtils;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.user.api.AuthorizationManager;
@@ -509,6 +518,299 @@ public class ConsentManagerImplTest {
 
         List<PurposeVersion> versions = consentManager.listPurposeVersions(createdPurpose.getUuid());
         Assert.assertEquals(versions.size(), 1);
+    }
+
+    @Test(expectedExceptions = ConsentManagementClientException.class)
+    public void testAuthorizeConsent_invalidStatus_throws() throws Exception {
+
+        String consentId = createConsentWithoutAuthorizations("subject1");
+        consentManager.authorizeConsent(consentId, "subject1", "INVALID_STATUS");
+    }
+
+    @Test(expectedExceptions = ConsentManagementClientException.class)
+    public void testAuthorizeConsent_expiredConsent_throws() throws Exception {
+
+        consentManager = new ConsentManagerImpl(configurationHolder);
+        String consentId = UUID.randomUUID().toString();
+        java.sql.Timestamp pastExpiry = new java.sql.Timestamp(System.currentTimeMillis() - 1000);
+        ReceiptInput receiptInput = buildRawReceiptInput(consentId, "subject1", ConsentConstants.ACTIVE_STATE, pastExpiry);
+        new ReceiptDAOImpl().addReceiptWithAuthorizations(receiptInput, Collections.emptyList());
+
+        consentManager.authorizeConsent(consentId, "subject1", "APPROVED");
+    }
+
+    @Test
+    public void testAuthorizeConsent_emptyAuthorizations_approved_setsActive() throws Exception {
+
+        String consentId = createConsentWithoutAuthorizations("subject1");
+
+        consentManager.authorizeConsent(consentId, "subject1", "APPROVED");
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.ACTIVE_STATE);
+    }
+
+    @Test
+    public void testAuthorizeConsent_emptyAuthorizations_rejected_setsRejected() throws Exception {
+
+        String consentId = createConsentWithoutAuthorizations("subject1");
+
+        consentManager.authorizeConsent(consentId, "subject1", "REJECTED");
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), "REJECTED");
+    }
+
+    @Test
+    public void testAuthorizeConsent_emptyAuthorizations_revoked_setsRevoked() throws Exception {
+
+        String consentId = createConsentWithoutAuthorizations("subject1");
+
+        consentManager.authorizeConsent(consentId, "subject1", "REVOKED");
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.REVOKE_STATE);
+    }
+
+    @Test
+    public void testAuthorizeConsent_emptyAuthorizations_skipWriteWhenStateUnchanged() throws Exception {
+
+        consentManager = new ConsentManagerImpl(configurationHolder);
+        String consentId = UUID.randomUUID().toString();
+        ReceiptInput receiptInput = buildRawReceiptInput(consentId, "subject1", "REJECTED", null);
+        new ReceiptDAOImpl().addReceiptWithAuthorizations(receiptInput, Collections.emptyList());
+
+        // authorizing REJECTED on an already-REJECTED consent — state unchanged, no DB write needed
+        consentManager.authorizeConsent(consentId, "subject1", "REJECTED");
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), "REJECTED");
+    }
+
+    @Test
+    public void testAuthorizeConsent_withAuthorizations_allApproved_setsActive() throws Exception {
+
+        String consentId = createConsentWithAuthorizations("subject1", "approver1", "approver2");
+        consentManager.authorizeConsent(consentId, "approver1", "APPROVED");
+        consentManager.authorizeConsent(consentId, "approver2", "APPROVED");
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.ACTIVE_STATE);
+    }
+
+    @Test
+    public void testAuthorizeConsent_withAuthorizations_oneRejected_setsRejected() throws Exception {
+
+        String consentId = createConsentWithAuthorizations("subject1", "approver1", "approver2");
+        consentManager.authorizeConsent(consentId, "approver1", "APPROVED");
+        consentManager.authorizeConsent(consentId, "approver2", "REJECTED");
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), "REJECTED");
+    }
+
+    @Test
+    public void testAuthorizeConsent_withAuthorizations_revokedTakesPrecedence() throws Exception {
+
+        String consentId = createConsentWithAuthorizations("subject1", "approver1", "approver2");
+        consentManager.authorizeConsent(consentId, "approver1", "REJECTED");
+        consentManager.authorizeConsent(consentId, "approver2", "REVOKED");
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.REVOKE_STATE);
+    }
+
+    @Test
+    public void testAuthorizeConsent_withAuthorizations_secondRevokeOnAlreadyRevoked_succeeds() throws Exception {
+
+        // Second revoke of an already-revoked consent must also succeed.
+        String consentId = createConsentWithAuthorizations("subject1", "approver1", "approver2");
+        consentManager.authorizeConsent(consentId, "approver1", "REVOKED");
+        consentManager.authorizeConsent(consentId, "approver2", "REVOKED");
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.REVOKE_STATE);
+    }
+
+    @Test
+    public void testAuthorizeConsent_withAuthorizations_partialApproval_remainsPending() throws Exception {
+
+        String consentId = createConsentWithAuthorizations("subject1", "approver1", "approver2");
+        consentManager.authorizeConsent(consentId, "approver1", "APPROVED");
+
+        // approver2 still PENDING — receipt state should stay PENDING
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.PENDING_STATE);
+    }
+
+    @Test
+    public void testCalculateConsentStatus_listenerOverridesComputedStatus() throws Exception {
+
+        // A registered handler applies a "first approval wins" policy: the default rule would leave a partially
+        // approved consent PENDING, but the handler overrides it to ACTIVE via the CALCULATE_CONSENT_STATUS event.
+        String consentId = createConsentWithAuthorizations("subject1", "approver1", "approver2");
+        wireEventService(new TestRoutingIdentityEventService(new ConsentStatusOverrideTestHandler()));
+
+        consentManager.authorizeConsent(consentId, "approver1", "APPROVED");
+
+        // approver2 still PENDING — default computes PENDING, but the listener override promotes it to ACTIVE.
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.ACTIVE_STATE,
+                "Listener must be able to override the computed consent status via CALCULATE_CONSENT_STATUS.");
+    }
+
+    @Test
+    public void testCalculateConsentStatus_listenerLeavesNonMatchingStatusUnchanged() throws Exception {
+
+        // The same handler only acts when the computed status is PENDING. A REJECTED outcome must pass through.
+        String consentId = createConsentWithAuthorizations("subject1", "approver1", "approver2");
+        wireEventService(new TestRoutingIdentityEventService(new ConsentStatusOverrideTestHandler()));
+
+        consentManager.authorizeConsent(consentId, "approver1", "REJECTED");
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.REJECTED_STATE,
+                "Listener must not alter a status that does not match its override condition.");
+    }
+
+    @Test
+    public void testCalculateConsentStatus_fallsBackToComputedWhenListenerThrows() throws Exception {
+
+        // A misbehaving handler must not break status calculation; the computed status is used as a fallback.
+        String consentId = createConsentWithAuthorizations("subject1", "approver1", "approver2");
+        wireEventService(new IdentityEventService() {
+            @Override
+            public void handleEvent(Event event) throws IdentityEventException {
+
+                throw new IdentityEventException("Simulated listener failure.");
+            }
+        });
+
+        consentManager.authorizeConsent(consentId, "approver1", "APPROVED");
+
+        // Despite the throwing listener, the default computation (PENDING for a partial approval) stands.
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.PENDING_STATE,
+                "A listener exception must be swallowed and the computed status retained.");
+    }
+
+    private void wireEventService(IdentityEventService eventService) {
+
+        when(ConsentManagerComponentDataHolder.getInstance().getIdentityEventService()).thenReturn(eventService);
+    }
+
+    @Test
+    public void testUpdateConsent_recomputesStateFromAuthorizations_revokedWins() throws Exception {
+
+        String consentId = createConsentWithAuthorizations("subject1", "approver1", "approver2");
+
+        ReceiptUpdateInput updateInput = new ReceiptUpdateInput();
+        updateInput.setConsentReceiptId(consentId);
+        updateInput.setAuthorizations(java.util.Arrays.asList(
+                new ConsentAuthorization(consentId, "approver1",
+                        ConsentAuthorization.AuthorizationStatus.APPROVED, 0L, null),
+                new ConsentAuthorization(consentId, "approver2",
+                        ConsentAuthorization.AuthorizationStatus.REVOKED, 0L, null)));
+
+        consentManager.updateConsent(updateInput);
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.REVOKE_STATE,
+                "updateConsent must recompute state via calculateConsentStatus; any REVOKED wins.");
+    }
+
+    @Test
+    public void testUpdateConsent_allApproved_setsActive() throws Exception {
+
+        String consentId = createConsentWithAuthorizations("subject1", "approver1", "approver2");
+
+        ReceiptUpdateInput updateInput = new ReceiptUpdateInput();
+        updateInput.setConsentReceiptId(consentId);
+        updateInput.setAuthorizations(java.util.Arrays.asList(
+                new ConsentAuthorization(consentId, "approver1",
+                        ConsentAuthorization.AuthorizationStatus.APPROVED, 0L, null),
+                new ConsentAuthorization(consentId, "approver2",
+                        ConsentAuthorization.AuthorizationStatus.APPROVED, 0L, null)));
+
+        consentManager.updateConsent(updateInput);
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.ACTIVE_STATE,
+                "All-approved authorizations should recompute the state to ACTIVE.");
+    }
+
+    @Test
+    public void testUpdateConsent_withoutAuthorizations_leavesStateUnchanged() throws Exception {
+
+        String consentId = createConsentWithoutAuthorizations("subject1");
+        Map<String, String> properties = new HashMap<>();
+        properties.put("k1", "v1");
+
+        ReceiptUpdateInput updateInput = new ReceiptUpdateInput();
+        updateInput.setConsentReceiptId(consentId);
+        updateInput.setProperties(properties);
+
+        consentManager.updateConsent(updateInput);
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.ACTIVE_STATE,
+                "State must not be recomputed when the update carries no authorizations.");
+    }
+
+    @Test
+    public void testCalculateConsentStatus_emptyAuthorizations_returnsPending() throws Exception {
+
+        // A consent freshly created with auth records but none yet acted on stays PENDING
+        String consentId = createConsentWithAuthorizations("subject1", "approver1");
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.PENDING_STATE);
+    }
+    private String createConsentWithoutAuthorizations(String subjectId) throws Exception {
+
+        consentManager = new ConsentManagerImpl(configurationHolder);
+        String consentId = UUID.randomUUID().toString();
+        ReceiptInput receiptInput = buildRawReceiptInput(consentId, subjectId, ConsentConstants.ACTIVE_STATE, null);
+        new ReceiptDAOImpl().addReceiptWithAuthorizations(receiptInput, Collections.emptyList());
+        return consentId;
+    }
+
+    private String createConsentWithAuthorizations(String subjectId, String... approvers) throws Exception {
+
+        consentManager = new ConsentManagerImpl(configurationHolder);
+        String consentId = UUID.randomUUID().toString();
+        ReceiptInput receiptInput = buildRawReceiptInput(consentId, subjectId, ConsentConstants.PENDING_STATE, null);
+
+        long now = System.currentTimeMillis();
+        List<ConsentAuthorization> authorizations = new ArrayList<>();
+        for (String approver : approvers) {
+            authorizations.add(new ConsentAuthorization(consentId, approver,
+                    ConsentAuthorization.AuthorizationStatus.PENDING, now, null));
+        }
+        new ReceiptDAOImpl().addReceiptWithAuthorizations(receiptInput, authorizations);
+        return consentId;
+    }
+
+    private ReceiptInput buildRawReceiptInput(String consentId, String subjectId, String state,
+                                              java.sql.Timestamp expiryTime) {
+
+        ReceiptInput input = new ReceiptInput();
+        input.setConsentReceiptId(consentId);
+        input.setPiiPrincipalId(subjectId);
+        input.setTenantId(-1234);
+        input.setState(state);
+        input.setCollectionMethod("V2");
+        input.setLanguage("EN");
+        input.setVersion("KI-CR-v1.1.0");
+        input.setJurisdiction("LK");
+        input.setPolicyUrl("http://test.com/policy");
+        input.setPiiControllerInfo("{\"piiController\":\"test\",\"contact\":\"test\",\"Address\":"
+                + "{\"addressCountry\":\"LK\",\"addressLocality\":\"Colombo\",\"addressRegion\":\"WP\","
+                + "\"postOfficeBoxNumber\":\"\",\"postalCode\":\"10000\",\"streetAddress\":\"Test\"},"
+                + "\"email\":\"test@test.com\",\"phone\":\"+94\",\"onBehalf\":false,\"piiControllerUrl\":\"http://test.com\"}");
+        input.setExpiryTime(expiryTime);
+        input.setServices(Collections.emptyList());
+        return input;
     }
 
     @AfterMethod
