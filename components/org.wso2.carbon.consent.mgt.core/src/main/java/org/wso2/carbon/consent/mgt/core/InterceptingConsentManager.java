@@ -360,42 +360,6 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
     }
 
     /**
-     * Add consent after validating referenced purposes, purpose categories, and PII categories belong to the
-     * accessing tenant.
-     *
-     * @param receiptInput Consent receipt input.
-     * @return AddReceiptResponse.
-     * @throws ConsentManagementException if any referenced resource belongs to a different tenant.
-     */
-    @Override
-    public AddReceiptResponse addConsent(ReceiptInput receiptInput) throws ConsentManagementException {
-
-        if (receiptInput.getServices() != null) {
-            for (ReceiptServiceInput service : receiptInput.getServices()) {
-                if (service.getPurposes() == null) {
-                    continue;
-                }
-                for (ReceiptPurposeInput purposeInput : service.getPurposes()) {
-                    if (purposeInput.getPurposeId() != null) {
-                        getPurpose(purposeInput.getPurposeId());
-                    }
-                    if (purposeInput.getPurposeCategoryId() != null) {
-                        for (Integer categoryId : purposeInput.getPurposeCategoryId()) {
-                            getPurposeCategory(categoryId);
-                        }
-                    }
-                    if (purposeInput.getPiiCategory() != null) {
-                        for (PIICategoryValidity pii : purposeInput.getPiiCategory()) {
-                            getPIICategory(pii.getId());
-                        }
-                    }
-                }
-            }
-        }
-        return super.addConsent(receiptInput);
-    }
-
-    /**
      * Delete Purpose Version after validating the tenant domain of the parent Purpose.
      *
      * @param purposeUuid UUID of the purpose.
@@ -529,13 +493,13 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
                             "operation: " + operation);
                 }
             } else {
-                String maskedUser = LoggerUtils.isLogMaskingEnable
-                        ? LoggerUtils.getMaskedContent(tenantAwareUsername) : tenantAwareUsername;
                 if (log.isDebugEnabled()) {
+                    String maskedUser = LoggerUtils.isLogMaskingEnable
+                            ? LoggerUtils.getMaskedContent(tenantAwareUsername) : tenantAwareUsername;
                     log.debug("LoggedIn user: " + maskedUser + " is not authorized to perform operation :" +
                             operation + " of another users");
                 }
-                throw handleClientException(ERROR_CODE_USER_NOT_AUTHORIZED, maskedUser);
+                throw handleClientException(ERROR_CODE_USER_NOT_AUTHORIZED, tenantAwareUsername);
             }
         } catch (UserStoreException e) {
             throw handleServerException(ERROR_CODE_UNEXPECTED, null, e);
