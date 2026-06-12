@@ -25,13 +25,19 @@ import org.osgi.annotation.bundle.Capability;
 import org.wso2.carbon.consent.mgt.core.connector.ConsentMgtInterceptor;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
+import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
+import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
+import org.wso2.carbon.consent.mgt.core.model.PurposePIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
@@ -321,7 +327,72 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
                     " in tenant: " + ConsentUtils.getTenantDomainFromCarbonContext();
             throw new ConsentManagementClientException(message, ERROR_CODE_PURPOSE_UUID_NOT_FOUND.getCode());
         }
+        validatePIICategoriesForTenant(purposeVersion.getPurposePIICategories());
         return super.addPurposeVersion(purposeUuid, purposeVersion, setAsLatest);
+    }
+
+    /**
+     * Add Purpose after validating referenced PII categories belong to the accessing tenant.
+     *
+     * @param purpose Purpose to add.
+     * @return Created Purpose.
+     * @throws ConsentManagementException if any referenced PII category belongs to a different tenant.
+     */
+    @Override
+    public Purpose addPurpose(Purpose purpose) throws ConsentManagementException {
+
+        validatePIICategoriesForTenant(purpose.getPurposePIICategories());
+        return super.addPurpose(purpose);
+    }
+
+    /**
+     * Add Purpose (with UUID) after validating referenced PII categories belong to the accessing tenant.
+     *
+     * @param purpose Purpose to add.
+     * @return Created Purpose.
+     * @throws ConsentManagementException if any referenced PII category belongs to a different tenant.
+     */
+    @Override
+    public Purpose addPurposeWithUuid(Purpose purpose) throws ConsentManagementException {
+
+        validatePIICategoriesForTenant(purpose.getPurposePIICategories());
+        return super.addPurposeWithUuid(purpose);
+    }
+
+    /**
+     * Add consent after validating referenced purposes, purpose categories, and PII categories belong to the
+     * accessing tenant.
+     *
+     * @param receiptInput Consent receipt input.
+     * @return AddReceiptResponse.
+     * @throws ConsentManagementException if any referenced resource belongs to a different tenant.
+     */
+    @Override
+    public AddReceiptResponse addConsent(ReceiptInput receiptInput) throws ConsentManagementException {
+
+        if (receiptInput.getServices() != null) {
+            for (ReceiptServiceInput service : receiptInput.getServices()) {
+                if (service.getPurposes() == null) {
+                    continue;
+                }
+                for (ReceiptPurposeInput purposeInput : service.getPurposes()) {
+                    if (purposeInput.getPurposeId() != null) {
+                        getPurpose(purposeInput.getPurposeId());
+                    }
+                    if (purposeInput.getPurposeCategoryId() != null) {
+                        for (Integer categoryId : purposeInput.getPurposeCategoryId()) {
+                            getPurposeCategory(categoryId);
+                        }
+                    }
+                    if (purposeInput.getPiiCategory() != null) {
+                        for (PIICategoryValidity pii : purposeInput.getPiiCategory()) {
+                            getPIICategory(pii.getId());
+                        }
+                    }
+                }
+            }
+        }
+        return super.addConsent(receiptInput);
     }
 
     /**
@@ -343,6 +414,17 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
             throw new ConsentManagementClientException(message, ERROR_CODE_PURPOSE_UUID_NOT_FOUND.getCode());
         }
         super.deletePurposeVersion(purposeUuid, versionUuid);
+    }
+
+    private void validatePIICategoriesForTenant(List<PurposePIICategory> piiCategories)
+            throws ConsentManagementException {
+
+        if (piiCategories == null) {
+            return;
+        }
+        for (PurposePIICategory piiCategory : piiCategories) {
+            getPIICategory(piiCategory.getId());
+        }
     }
 
     /**
@@ -447,13 +529,13 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
                             "operation: " + operation);
                 }
             } else {
+                String maskedUser = LoggerUtils.isLogMaskingEnable
+                        ? LoggerUtils.getMaskedContent(tenantAwareUsername) : tenantAwareUsername;
                 if (log.isDebugEnabled()) {
-                    String maskedUser = LoggerUtils.isLogMaskingEnable
-                            ? LoggerUtils.getMaskedContent(tenantAwareUsername) : tenantAwareUsername;
                     log.debug("LoggedIn user: " + maskedUser + " is not authorized to perform operation :" +
                             operation + " of another users");
                 }
-                throw handleClientException(ERROR_CODE_USER_NOT_AUTHORIZED, tenantAwareUsername);
+                throw handleClientException(ERROR_CODE_USER_NOT_AUTHORIZED, maskedUser);
             }
         } catch (UserStoreException e) {
             throw handleServerException(ERROR_CODE_UNEXPECTED, null, e);
