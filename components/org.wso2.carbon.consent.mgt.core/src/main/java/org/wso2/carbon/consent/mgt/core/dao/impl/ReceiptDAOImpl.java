@@ -341,12 +341,22 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                 piiPrincipalId = SQL_FILTER_STRING_ANY;
             } else if (piiPrincipalId.contains(QUERY_FILTER_STRING_ANY)) {
                 piiPrincipalId = piiPrincipalId.replaceAll(QUERY_FILTER_STRING_ANY_ESCAPED, SQL_FILTER_STRING_ANY);
+            } else {
+                // Escape SQL LIKE wildcard characters so the username is matched literally across all databases.
+                // Uses '!' as the escape character, which is supported by all DB engines including PostgreSQL.
+                piiPrincipalId = piiPrincipalId.replace("!", "!!")
+                                               .replace("%", "!%")
+                                               .replace("_", "!_");
             }
 
             if (service == null) {
                 service = SQL_FILTER_STRING_ANY;
             } else if (service.contains(QUERY_FILTER_STRING_ANY)) {
                 service = service.replaceAll(QUERY_FILTER_STRING_ANY_ESCAPED, SQL_FILTER_STRING_ANY);
+            } else {
+                service = service.replace("!", "!!")
+                                 .replace("%", "!%")
+                                 .replace("_", "!_");
             }
 
             if (state == null) {
