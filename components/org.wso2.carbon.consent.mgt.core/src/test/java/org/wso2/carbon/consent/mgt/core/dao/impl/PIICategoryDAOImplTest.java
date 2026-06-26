@@ -29,7 +29,9 @@ import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.sql.DataSource;
 
 import static org.mockito.Mockito.mock;
@@ -426,6 +428,103 @@ public class PIICategoryDAOImplTest {
             PIICategory fetched = piiCategoryDAO.getPIICategoryByIdWithUuid(added.getId());
             Assert.assertEquals(fetched.getUuid(), originalUuid,
                     "Re-fetch after losing race must return the winning thread's UUID, not the local one.");
+        }
+    }
+
+    @Test
+    public void testAddPIICategoryWithUuid_withProperties_propertiesStoredAndReturned() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            Map<String, String> props = new HashMap<>();
+            props.put("source", "DPDP");
+            props.put("region", "IN");
+
+            PIICategory cat = new PIICategory("PropsElement", "desc", false, -1234);
+            cat.setProperties(props);
+
+            PIICategoryDAO dao = new PIICategoryDAOImpl();
+            PIICategory created = dao.addPIICategoryWithUuid(cat);
+
+            Assert.assertNotNull(created.getProperties(), "Properties should be returned on create");
+            Assert.assertEquals(created.getProperties().get("source"), "DPDP");
+            Assert.assertEquals(created.getProperties().get("region"), "IN");
+        }
+    }
+
+    @Test
+    public void testGetPIICategoryByUuid_propertiesLoaded() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            Map<String, String> props = new HashMap<>();
+            props.put("framework", "PDPA");
+
+            PIICategory cat = new PIICategory("FetchProps", "desc", true, -1234);
+            cat.setProperties(props);
+
+            PIICategoryDAO dao = new PIICategoryDAOImpl();
+            PIICategory created = dao.addPIICategoryWithUuid(cat);
+
+            PIICategory fetched = dao.getPIICategoryByUuid(created.getUuid(), -1234);
+            Assert.assertNotNull(fetched.getProperties(), "Properties must be loaded on fetch");
+            Assert.assertEquals(fetched.getProperties().get("framework"), "PDPA");
+        }
+    }
+
+    @Test
+    public void testAddPIICategoryWithUuid_noProperties_returnsNullProperties() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            PIICategory cat = new PIICategory("NoProps", "desc", false, -1234);
+
+            PIICategoryDAO dao = new PIICategoryDAOImpl();
+            PIICategory created = dao.addPIICategoryWithUuid(cat);
+
+            Assert.assertNull(created.getProperties(), "Properties should be null when none are provided");
+        }
+    }
+
+    @Test
+    public void testDeletePIICategory_propertiesCascadeDeleted() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            Map<String, String> props = new HashMap<>();
+            props.put("k", "v");
+
+            PIICategory cat = new PIICategory("CascadeProps", "desc", false, -1234);
+            cat.setProperties(props);
+
+            PIICategoryDAO dao = new PIICategoryDAOImpl();
+            PIICategory created = dao.addPIICategoryWithUuid(cat);
+
+            dao.deletePIICategory(created.getId());
+
+            // After deletion the category is gone; re-fetching by UUID should return null.
+            PIICategory fetched = dao.getPIICategoryByUuid(created.getUuid(), -1234);
+            Assert.assertNull(fetched, "Category should not exist after deletion");
         }
     }
 

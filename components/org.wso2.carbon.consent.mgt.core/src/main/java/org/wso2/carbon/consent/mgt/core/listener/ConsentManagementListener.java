@@ -22,6 +22,7 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptUpdateInput;
 
 /**
  * Listener interface for consent management operations.
@@ -85,5 +86,11 @@ public interface ConsentManagementListener {
             throws ConsentManagementException;
 
     void postAuthorizeConsent(String consentId, String userId, String authStatus, String tenantDomain)
+            throws ConsentManagementException;
+
+    void preUpdateConsent(ReceiptUpdateInput updateInput, String tenantDomain)
+            throws ConsentManagementException;
+
+    void postUpdateConsent(ReceiptUpdateInput updateInput, String tenantDomain)
             throws ConsentManagementException;
 }

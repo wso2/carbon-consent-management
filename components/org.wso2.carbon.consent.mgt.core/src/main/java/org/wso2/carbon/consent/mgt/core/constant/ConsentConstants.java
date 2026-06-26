@@ -68,6 +68,7 @@ public class ConsentConstants {
     public static final String SERVICE = "SERVICE";
     public static final String STATE = "STATE";
     public static final String RECEIPT_INPUT = "RECEIPT_INPUT";
+    public static final String RECEIPT_UPDATE_INPUT = "RECEIPT_UPDATE_INPUT";
     public static final String RESULT = "RESULT";
     public static final String GROUP = "GROUP";
     public static final String GROUP_TYPE = "GROUP_TYPE";
@@ -75,6 +76,8 @@ public class ConsentConstants {
     public static final String PURPOSE_VERSION = "PURPOSE_VERSION";
     public static final String AUTHZ_STATUS = "AUTHZ_STATUS";
     public static final String SET_AS_LATEST = "SET_AS_LATEST";
+    public static final String CONSENT_AUTHORIZATIONS = "CONSENT_AUTHORIZATIONS";
+    public static final String CONSENT_STATUS = "CONSENT_STATUS";
 
     public static final String MY_SQL = "MySQL";
     public static final String MARIADB = "MariaDB";
@@ -271,14 +274,14 @@ public class ConsentConstants {
         ERROR_CODE_INVALID_AUTHORIZATION_STATUS("CM_00122",
                 "Invalid authorization status: '%s'. Must be one of: APPROVED, REJECTED, REVOKED."),
         ERROR_CODE_INVALID_CURSOR_TOKEN("CM_00123", "Invalid cursor token: %s."),
-        ERROR_CODE_CONSENT_MULTIPLE_PURPOSES_NOT_ALLOWED("CM_00124",
-                "Only one purpose is allowed per consent unless the state is REJECTED."),
-        ERROR_CODE_UPDATE_PII_CATEGORY("CM_00125",
+        ERROR_CODE_UPDATE_PII_CATEGORY("CM_00124",
                 "Error occurred while updating UUID for PII category with ID: %s."),
-        ERROR_CODE_ORGANIZATION_TRAVERSAL("CM_00126",
+        ERROR_CODE_ORGANIZATION_TRAVERSAL("CM_00125",
                 "Error occurred while traversing organization hierarchy for tenant: %s."),
-        ERROR_CODE_RESOLVE_ORGANIZATION_ID("CM_00127",
-                "Error occurred while resolving organization ID for tenant domain: %s.");
+        ERROR_CODE_RESOLVE_ORGANIZATION_ID("CM_00126",
+                "Error occurred while resolving organization ID for tenant domain: %s."),
+        ERROR_CODE_UPDATE_CONSENT("CM_00127",
+                "Error occurred while updating the consent receipt: %s.");
 
         private final String code;
         private final String message;
@@ -435,5 +438,8 @@ public class ConsentConstants {
         public static final String POST_AUTHORIZE_CONSENT = "POST_AUTHORIZE_CONSENT";
         public static final String PRE_VALIDATE_CONSENT_STATUS = "PRE_VALIDATE_CONSENT_STATUS";
         public static final String POST_VALIDATE_CONSENT_STATUS = "POST_VALIDATE_CONSENT_STATUS";
+        public static final String PRE_UPDATE_CONSENT = "PRE_UPDATE_CONSENT";
+        public static final String POST_UPDATE_CONSENT = "POST_UPDATE_CONSENT";
+        public static final String CALCULATE_CONSENT_STATUS = "CALCULATE_CONSENT_STATUS";
     }
 }

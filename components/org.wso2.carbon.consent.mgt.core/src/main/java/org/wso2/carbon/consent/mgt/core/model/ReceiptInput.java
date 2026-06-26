@@ -39,7 +39,8 @@ public class ReceiptInput {
     private Map<String, String> properties;
     private String piiControllerInfo;
     private Timestamp expiryTime;
-    private List<String> authorizations;
+    private List<ConsentAuthorization> authorizations;
+
     public String getConsentReceiptId() {
 
         return consentReceiptId;
@@ -180,12 +181,12 @@ public class ReceiptInput {
         this.expiryTime = expiryTime;
     }
 
-    public List<String> getAuthorizations() {
+    public List<ConsentAuthorization> getAuthorizations() {
 
         return authorizations;
     }
 
-    public void setAuthorizations(List<String> authorizations) {
+    public void setAuthorizations(List<ConsentAuthorization> authorizations) {
 
         this.authorizations = authorizations;
     }

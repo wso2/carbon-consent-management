@@ -26,6 +26,8 @@ import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptUpdateInput;
+import org.wso2.carbon.consent.mgt.core.util.FilterQueriesUtil;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.util.ArrayList;
@@ -490,6 +492,18 @@ public interface ConsentManager {
     }
 
     /**
+     * Update an existing consent receipt's expiry time, properties, and/or authorizations.
+     * Null fields in {@link ReceiptUpdateInput} are left unchanged.
+     *
+     * @param updateInput Fields to update, identified by {@link ReceiptUpdateInput#getConsentReceiptId()}.
+     * @throws ConsentManagementException if the consent does not exist or the update fails.
+     */
+    default void updateConsent(ReceiptUpdateInput updateInput)
+            throws ConsentManagementException {
+
+    }
+
+    /**
      * Validate consent status — lazily marks EXPIRED if expiryTime has passed (V2 API).
      *
      * @param consentId Consent receipt ID.
@@ -537,6 +551,8 @@ public interface ConsentManager {
      * @param state            Filter by consent state (null for no filter)
      * @param purposeId        Filter by purpose UUID string (null for no filter)
      * @param purposeVersionId Filter by purpose version UUID string (null for no filter)
+     * @param after            Filter by consent creation time after this value (null for no filter)
+     * @param before           Filter by consent creation time before this value (null for no filter
      * @param limit            Maximum results
      * @return List of receipts matching filter
      * @throws ConsentManagementException if operation fails
@@ -544,6 +560,27 @@ public interface ConsentManager {
     default List<Receipt> listReceipts(String subjectId, String serviceId, String state,
                                String purposeId, String purposeVersionId,
                                String after, String before, int limit)
+            throws ConsentManagementException {
+
+        return listReceipts(subjectId, serviceId, state, purposeId, purposeVersionId,
+                FilterQueriesUtil.getExpressionNodes(null, after, before), limit);
+    }
+
+    /**
+     * Lists receipts/consents with explicit filter params (V2 API).
+     *
+     * @param subjectId        Filter by subject user ID (null for no filter)
+     * @param serviceId        Filter by service ID (null for no filter)
+     * @param state            Filter by consent state (null for no filter)
+     * @param purposeId        Filter by purpose UUID string (null for no filter)
+     * @param purposeVersionId Filter by purpose version UUID string (null for no filter)
+     * @param expressionNodes  Filter expression tree from FilterTreeBuilder (null for no filtering).
+     * @param limit            Maximum results
+     * @return List of receipts matching filter
+     * @throws ConsentManagementException if operation fails
+     */
+    default List<Receipt> listReceipts(String subjectId, String serviceId, String state, String purposeId,
+                                       String purposeVersionId, List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
         return Collections.emptyList();

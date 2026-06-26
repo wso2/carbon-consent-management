@@ -26,6 +26,7 @@ import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptUpdateInput;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.central.log.mgt.utils.LoggerUtils;
 import org.wso2.carbon.utils.AuditLog;
@@ -50,6 +51,7 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
     private static final String ACTION_REVOKE_CONSENT = "revoke-consent";
     private static final String ACTION_DELETE_CONSENT = "delete-consent";
     private static final String ACTION_AUTHORIZE_CONSENT = "authorize-consent";
+    private static final String ACTION_UPDATE_CONSENT = "update-consent";
     private static final String ACTION_ADD_PURPOSE = "add-purpose";
     private static final String ACTION_DELETE_PURPOSE = "delete-purpose";
     private static final String ACTION_ADD_PURPOSE_VERSION = "add-purpose-version";
@@ -65,6 +67,10 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
     private static final String DATA_PURPOSE_NAMES = "purposeNames";
     private static final String DATA_USER_ID = "userId";
     private static final String DATA_AUTH_STATUS = "authStatus";
+    private static final String DATA_EXPIRY_TIME = "expiryTime";
+    private static final String DATA_UPDATED_FIELDS = "updatedFields";
+    private static final String DATA_PROPERTIES = "properties";
+    private static final String DATA_AUTHORIZATIONS = "authorizations";
 
     @Override
     public int getDefaultOrderId() {
@@ -169,6 +175,27 @@ public class ConsentManagementAuditLogger extends AbstractConsentManagementListe
             data.put(DATA_AUTH_STATUS, authStatus);
         }
         buildAuditLog(consentId, TARGET_CONSENT, ACTION_AUTHORIZE_CONSENT, data);
+    }
+
+    @Override
+    public void postUpdateConsent(ReceiptUpdateInput updateInput, String tenantDomain) {
+
+        JSONObject data = new JSONObject();
+        JSONArray updatedFields = new JSONArray();
+        if (updateInput.getExpiryTime() != null) {
+            data.put(DATA_EXPIRY_TIME, updateInput.getExpiryTime().getTime());
+            updatedFields.put(DATA_EXPIRY_TIME);
+        }
+        if (updateInput.getProperties() != null) {
+            updatedFields.put(DATA_PROPERTIES);
+        }
+        if (updateInput.getAuthorizations() != null) {
+            updatedFields.put(DATA_AUTHORIZATIONS);
+        }
+        if (updatedFields.length() > 0) {
+            data.put(DATA_UPDATED_FIELDS, updatedFields);
+        }
+        buildAuditLog(updateInput.getConsentReceiptId(), TARGET_CONSENT, ACTION_UPDATE_CONSENT, data);
     }
 
     private void buildAuditLog(String targetId, String targetType, String action,

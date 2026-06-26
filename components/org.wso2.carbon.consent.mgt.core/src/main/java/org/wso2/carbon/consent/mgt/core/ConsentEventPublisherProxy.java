@@ -23,19 +23,25 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
+import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptUpdateInput;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.AUTHZ_STATUS;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.CONSENT_AUTHORIZATIONS;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.CONSENT_STATUS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_EVENT_PUBLISHING;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.CALCULATE_CONSENT_STATUS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_RECEIPT;
@@ -45,6 +51,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.Interce
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_DELETE_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_REVOKE_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_SET_LATEST_PURPOSE_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_UPDATE_CONSENT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_ADD_PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_ADD_PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_ADD_RECEIPT;
@@ -54,12 +61,14 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.Interce
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_DELETE_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_REVOKE_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_SET_LATEST_PURPOSE_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_UPDATE_CONSENT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_VERSION_LABEL;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_ID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_INPUT;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_UPDATE_INPUT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.SET_AS_LATEST;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.VERSION_ID;
 
@@ -198,6 +207,25 @@ public class ConsentEventPublisherProxy {
         doPublishEvent(new Event(POST_AUTHORIZE_CONSENT, props));
     }
 
+    public void publishPreUpdateConsentWithException(ReceiptUpdateInput updateInput, String tenantDomain)
+            throws ConsentManagementException {
+
+        Map<String, Object> props = new HashMap<>();
+        props.put(RECEIPT_ID, updateInput.getConsentReceiptId());
+        props.put(RECEIPT_UPDATE_INPUT, updateInput);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        doPublishEventWithException(new Event(PRE_UPDATE_CONSENT, props));
+    }
+
+    public void publishPostUpdateConsent(ReceiptUpdateInput updateInput, String tenantDomain) {
+
+        Map<String, Object> props = new HashMap<>();
+        props.put(RECEIPT_ID, updateInput.getConsentReceiptId());
+        props.put(RECEIPT_UPDATE_INPUT, updateInput);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        doPublishEvent(new Event(POST_UPDATE_CONSENT, props));
+    }
+
     public void publishPreAddConsentWithException(ReceiptInput receiptInput, String tenantDomain)
             throws ConsentManagementException {
 
@@ -247,6 +275,51 @@ public class ConsentEventPublisherProxy {
         props.put(RECEIPT_ID, receiptId);
         props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
         doPublishEvent(new Event(POST_DELETE_RECEIPT, props));
+    }
+
+    /**
+     * Publishes a {@code CALCULATE_CONSENT_STATUS} event so that listeners can override the consent status that was
+     * computed from the authorization records. The computed status is passed in the {@code CONSENT_STATUS} event
+     * property; a handler may replace it by putting a new value back under the same key. The (possibly overridden)
+     * value is read back from the event and returned.
+     * <p>
+     * This method never throws: it mirrors the fire-and-forget post-event behaviour so that a misbehaving handler
+     * cannot break status calculation. On any publishing failure, or when no override is supplied, the originally
+     * computed status is returned unchanged.
+     *
+     * @param authorizations The authorization records the status was derived from.
+     * @param computedStatus The status computed by the default calculation logic.
+     * @param tenantDomain   The tenant domain.
+     * @return The overridden status if a listener supplied one, otherwise {@code computedStatus}.
+     */
+    public String publishCalculateConsentStatus(List<ConsentAuthorization> authorizations, String computedStatus,
+                                                String tenantDomain) {
+
+        IdentityEventService eventService = ConsentManagerComponentDataHolder.getInstance().getIdentityEventService();
+        if (eventService == null) {
+            return computedStatus;
+        }
+
+        Map<String, Object> props = new HashMap<>();
+        props.put(CONSENT_AUTHORIZATIONS, authorizations);
+        props.put(CONSENT_STATUS, computedStatus);
+        props.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+        Event event = new Event(CALCULATE_CONSENT_STATUS, props);
+        try {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Publishing event: " + event.getEventName());
+            }
+            eventService.handleEvent(event);
+            Object overriddenStatus = event.getEventProperties().get(CONSENT_STATUS);
+            if (overriddenStatus instanceof String) {
+                return (String) overriddenStatus;
+            }
+            return computedStatus;
+        } catch (IdentityEventException e) {
+            LOG.error("Error while publishing event: " + event.getEventName() + ". Falling back to the computed " +
+                    "consent status.", e);
+            return computedStatus;
+        }
     }
 
     private void doPublishEventWithException(Event event) throws ConsentManagementException {

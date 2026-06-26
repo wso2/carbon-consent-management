@@ -154,7 +154,7 @@ public class FilterQueriesUtil {
         }
     }
 
-    private static String toSqlOperator(String op) {
+    public static String toSqlOperator(String op) {
 
         if (op == null) {
             return SQL_OP_EQUALS;
@@ -173,7 +173,7 @@ public class FilterQueriesUtil {
         }
     }
 
-    private static String toSqlValue(String op, String value) {
+    public static String toSqlValue(String op, String value) {
 
         if (op == null || value == null) {
             return value;

@@ -33,6 +33,7 @@ import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
+import org.wso2.carbon.consent.mgt.core.model.ReceiptUpdateInput;
 import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
 import org.wso2.carbon.consent.mgt.core.listener.ConsentManagementListener;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
@@ -76,6 +77,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.Interce
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_LIST_RECEIPTS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_REVOKE_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_SET_LATEST_PURPOSE_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_UPDATE_CONSENT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_VALIDATE_CONSENT_STATUS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_ADD_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_ADD_PURPOSE;
@@ -110,6 +112,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.Interce
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_LIST_RECEIPTS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_REVOKE_RECEIPT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_SET_LATEST_PURPOSE_VERSION;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_UPDATE_CONSENT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_VALIDATE_CONSENT_STATUS;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.LIMIT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.OFFSET;
@@ -128,6 +131,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_UUID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_VERSION_LABEL;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_ID;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_UPDATE_INPUT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_INPUT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.SERVICE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.SP_TENANT_DOMAIN;
@@ -1311,6 +1315,49 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     }
 
     @Override
+    public void updateConsent(ReceiptUpdateInput updateInput) throws ConsentManagementException {
+
+        String consentId = updateInput.getConsentReceiptId();
+        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+        List<ConsentManagementListener> listeners =
+                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.preUpdateConsent(updateInput, tenantDomain);
+            }
+        }
+        ConsentEventPublisherProxy.getInstance().publishPreUpdateConsentWithException(updateInput, tenantDomain);
+
+        ConsentMessageContext context = new ConsentMessageContext();
+        ConsentInterceptorTemplate<Void, ConsentManagementException>
+                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+        template.intercept(PRE_UPDATE_CONSENT, properties -> {
+                    properties.put(RECEIPT_ID, consentId);
+                    properties.put(RECEIPT_UPDATE_INPUT, updateInput);
+                })
+                .executeWith(new OperationDelegate<Void>() {
+                    @Override
+                    public Void execute() throws ConsentManagementException {
+
+                        consentManager.updateConsent(updateInput);
+                        return null;
+                    }
+                })
+                .intercept(POST_UPDATE_CONSENT, properties -> {
+                    properties.put(RECEIPT_ID, consentId);
+                    properties.put(RECEIPT_UPDATE_INPUT, updateInput);
+                });
+
+        ConsentEventPublisherProxy.getInstance().publishPostUpdateConsent(updateInput, tenantDomain);
+        for (ConsentManagementListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.postUpdateConsent(updateInput, tenantDomain);
+            }
+        }
+    }
+
+    @Override
     public List<Purpose> listPurposes(List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
@@ -1360,7 +1407,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
 
     @Override
     public List<Receipt> listReceipts(String subjectId, String serviceId, String state, String purposeId,
-                                      String purposeVersionId, String after, String before, int limit)
+                                      String purposeVersionId, List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
@@ -1377,7 +1424,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     public List<Receipt> execute() throws ConsentManagementException {
 
                         return consentManager.listReceipts(subjectId, serviceId, state, purposeId, purposeVersionId,
-                                after, before, limit);
+                                expressionNodes, limit);
                     }
                 })
                 .intercept(POST_LIST_RECEIPTS, properties -> {

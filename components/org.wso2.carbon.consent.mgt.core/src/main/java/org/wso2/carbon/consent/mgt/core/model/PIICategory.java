@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
+import java.util.Map;
+
 /**
  * Represents a PII (Personally Identifiable Information) category. Referred to as "Element" in the V2 API.
  */
@@ -30,6 +32,7 @@ public class PIICategory {
     private int tenantId;
     private String tenantDomain;
     private String uuid;
+    private Map<String, String> properties;
 
     public PIICategory(Integer id) {
 
@@ -137,5 +140,15 @@ public class PIICategory {
     public void setUuid(String uuid) {
 
         this.uuid = uuid;
+    }
+
+    public Map<String, String> getProperties() {
+
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+
+        this.properties = properties;
     }
 }

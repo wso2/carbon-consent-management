@@ -35,6 +35,7 @@ import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.consent.mgt.core.model.PurposePIICategoryBinding;
 import org.wso2.carbon.consent.mgt.core.model.PurposeVersion;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
+import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 
@@ -121,13 +122,15 @@ public class ConsentReceiptUtilsTest {
         Purpose purpose = new Purpose(10, "TestPurpose", "desc", "grp", "grpType", -1234);
         when(consentManager.getPurposeByUuid(PURPOSE_UUID)).thenReturn(purpose);
 
+        ConsentAuthorization auth = new ConsentAuthorization();
+        auth.setUserId("admin@wso2.com");
         PurposePIICategoryBinding binding = new PurposePIICategoryBinding(PURPOSE_UUID, Collections.emptyList());
         ReceiptInput result = ConsentReceiptUtils.buildReceiptInput(
                 LANG, SUBJECT_ID, TENANT_DOMAIN, null, false,
-                List.of("admin@wso2.com"), null, SERVICE_ID, List.of(binding), consentManager);
+                List.of(auth), null, SERVICE_ID, List.of(binding), consentManager);
 
         Assert.assertEquals(result.getPiiPrincipalId(), SUBJECT_ID);
-        Assert.assertEquals(result.getAuthorizations(), List.of("admin@wso2.com"));
+        Assert.assertEquals(result.getAuthorizations().get(0).getUserId(), "admin@wso2.com");
     }
 
     @Test
