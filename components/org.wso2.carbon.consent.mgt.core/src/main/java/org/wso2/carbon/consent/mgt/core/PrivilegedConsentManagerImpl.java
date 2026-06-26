@@ -37,12 +37,16 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptUpdateInput;
 import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
 import org.wso2.carbon.consent.mgt.core.listener.ConsentManagementListener;
 import org.wso2.carbon.consent.mgt.core.util.ConsentUtils;
+import org.wso2.carbon.identity.core.context.IdentityContext;
+import org.wso2.carbon.identity.core.context.model.Flow;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.APPROVED_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GROUP;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REJECTED_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GROUP_TYPE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE;
@@ -156,6 +160,8 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.VERSION
         }
 )
 public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
+
+    private static final String DEFAULT_COLLECTION_METHOD = "V2";
 
     private ConsentManager consentManager;
     protected List<ConsentMgtInterceptor> consentMgtInterceptors;
@@ -811,25 +817,41 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
         ConsentInterceptorTemplate<AddReceiptResponse, ConsentManagementException>
                 template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
-        AddReceiptResponse result = template
-                .intercept(PRE_ADD_RECEIPT, properties -> properties.put(RECEIPT_INPUT, receiptInput))
-                .executeWith(new OperationDelegate<AddReceiptResponse>() {
-                    @Override
-                    public AddReceiptResponse execute() throws ConsentManagementException {
-
-                        return consentManager.addConsent(receiptInput);
-                    }
-                })
-                .intercept(POST_ADD_RECEIPT, properties -> properties.put(RECEIPT_INPUT, receiptInput))
-                .getResult();
-
-        ConsentEventPublisherProxy.getInstance().publishPostAddConsent(receiptInput, tenantDomain);
-        for (ConsentManagementListener listener : listeners) {
-            if (listener.isEnable()) {
-                listener.postAddConsent(receiptInput, tenantDomain);
-            }
+        Flow.Name flowName;
+        Flow.InitiatingPersona persona = Flow.InitiatingPersona.USER;
+        if (REJECTED_STATE.equals(receiptInput.getState())) {
+            flowName = Flow.Name.CONSENT_REJECT;
+        } else if (DEFAULT_COLLECTION_METHOD.equals(receiptInput.getCollectionMethod())
+                && receiptInput.getAuthorizations() != null && !receiptInput.getAuthorizations().isEmpty()) {
+            flowName = Flow.Name.CONSENT_PENDING;
+            persona = Flow.InitiatingPersona.ADMIN;
+        } else {
+            flowName = Flow.Name.CONSENT_ACCEPT;
         }
-        return result;
+        enterFlow(flowName, persona);
+        try {
+            AddReceiptResponse result = template
+                    .intercept(PRE_ADD_RECEIPT, properties -> properties.put(RECEIPT_INPUT, receiptInput))
+                    .executeWith(new OperationDelegate<AddReceiptResponse>() {
+                        @Override
+                        public AddReceiptResponse execute() throws ConsentManagementException {
+
+                            return consentManager.addConsent(receiptInput);
+                        }
+                    })
+                    .intercept(POST_ADD_RECEIPT, properties -> properties.put(RECEIPT_INPUT, receiptInput))
+                    .getResult();
+
+            ConsentEventPublisherProxy.getInstance().publishPostAddConsent(receiptInput, tenantDomain);
+            for (ConsentManagementListener listener : listeners) {
+                if (listener.isEnable()) {
+                    listener.postAddConsent(receiptInput, tenantDomain);
+                }
+            }
+            return result;
+        } finally {
+            IdentityContext.getThreadLocalIdentityContext().exitFlow();
+        }
     }
 
     public Receipt getReceipt(String receiptId) throws ConsentManagementException {
@@ -1112,46 +1134,51 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     public PurposeVersion addPurposeVersion(String purposeUuid, PurposeVersion purposeVersion, boolean setAsLatest)
             throws ConsentManagementException {
 
-        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
-        List<ConsentManagementListener> listeners =
-                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
-        for (ConsentManagementListener listener : listeners) {
-            if (listener.isEnable()) {
-                listener.preAddPurposeVersion(purposeUuid, purposeVersion, tenantDomain);
+        enterFlow(Flow.Name.CONSENT_PURPOSE_VERSION_ADD, Flow.InitiatingPersona.ADMIN);
+        try {
+            String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+            List<ConsentManagementListener> listeners =
+                    ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+            for (ConsentManagementListener listener : listeners) {
+                if (listener.isEnable()) {
+                    listener.preAddPurposeVersion(purposeUuid, purposeVersion, tenantDomain);
+                }
             }
-        }
-        ConsentEventPublisherProxy.getInstance().publishPreAddPurposeVersionWithException(
-                purposeUuid, purposeVersion, setAsLatest, tenantDomain);
+            ConsentEventPublisherProxy.getInstance().publishPreAddPurposeVersionWithException(
+                    purposeUuid, purposeVersion, setAsLatest, tenantDomain);
 
-        ConsentMessageContext context = new ConsentMessageContext();
-        ConsentInterceptorTemplate<PurposeVersion, ConsentManagementException>
-                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+            ConsentMessageContext context = new ConsentMessageContext();
+            ConsentInterceptorTemplate<PurposeVersion, ConsentManagementException>
+                    template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
 
-        PurposeVersion result = template.intercept(PRE_ADD_PURPOSE_VERSION, properties -> {
-                    properties.put(PURPOSE_ID, purposeUuid);
-                    properties.put("PURPOSE_VERSION", purposeVersion);
-                })
-                .executeWith(new OperationDelegate<PurposeVersion>() {
-                    @Override
-                    public PurposeVersion execute() throws ConsentManagementException {
+            PurposeVersion result = template.intercept(PRE_ADD_PURPOSE_VERSION, properties -> {
+                        properties.put(PURPOSE_ID, purposeUuid);
+                        properties.put("PURPOSE_VERSION", purposeVersion);
+                    })
+                    .executeWith(new OperationDelegate<PurposeVersion>() {
+                        @Override
+                        public PurposeVersion execute() throws ConsentManagementException {
 
-                        return consentManager.addPurposeVersion(purposeUuid, purposeVersion, setAsLatest);
-                    }
-                })
-                .intercept(POST_ADD_PURPOSE_VERSION, properties -> {
-                    properties.put(PURPOSE_ID, purposeUuid);
-                    properties.put("PURPOSE_VERSION", purposeVersion);
-                })
-                .getResult();
+                            return consentManager.addPurposeVersion(purposeUuid, purposeVersion, setAsLatest);
+                        }
+                    })
+                    .intercept(POST_ADD_PURPOSE_VERSION, properties -> {
+                        properties.put(PURPOSE_ID, purposeUuid);
+                        properties.put("PURPOSE_VERSION", purposeVersion);
+                    })
+                    .getResult();
 
-        ConsentEventPublisherProxy.getInstance().publishPostAddPurposeVersion(purposeUuid, result, setAsLatest,
-                tenantDomain);
-        for (ConsentManagementListener listener : listeners) {
-            if (listener.isEnable()) {
-                listener.postAddPurposeVersion(purposeUuid, result, tenantDomain);
+            ConsentEventPublisherProxy.getInstance().publishPostAddPurposeVersion(purposeUuid, result, setAsLatest,
+                    tenantDomain);
+            for (ConsentManagementListener listener : listeners) {
+                if (listener.isEnable()) {
+                    listener.postAddPurposeVersion(purposeUuid, result, tenantDomain);
+                }
             }
+            return result;
+        } finally {
+            IdentityContext.getThreadLocalIdentityContext().exitFlow();
         }
-        return result;
     }
 
     @Override
@@ -1217,6 +1244,21 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
         }
     }
 
+    private void enterFlow(Flow.Name flowName, Flow.InitiatingPersona persona) {
+
+        IdentityContext.getThreadLocalIdentityContext().enterFlow(
+                new Flow.Builder().name(flowName).initiatingPersona(getFlowInitiatingPersona(persona)).build());
+    }
+
+    private Flow.InitiatingPersona getFlowInitiatingPersona(Flow.InitiatingPersona defaultPersona) {
+
+        Flow existingFlow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
+        if (existingFlow != null) {
+            return existingFlow.getInitiatingPersona();
+        }
+        return defaultPersona;
+    }
+
     private void populateProperties(int limit, int offset, String piiPrincipalId, String spTenantDomain, String
             service, String state, Map<String, Object> properties) {
 
@@ -1244,46 +1286,59 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     public void authorizeConsent(String consentId, String userId, String authStatus)
             throws ConsentManagementException {
 
-        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
-        List<ConsentManagementListener> listeners =
-                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
-        for (ConsentManagementListener listener : listeners) {
-            if (listener.isEnable()) {
-                listener.preAuthorizeConsent(consentId, userId, authStatus, tenantDomain);
-            }
+        Flow.Name flowName;
+        if (APPROVED_STATE.equals(authStatus)) {
+            flowName = Flow.Name.CONSENT_ACCEPT;
+        } else if (REJECTED_STATE.equals(authStatus)) {
+            flowName = Flow.Name.CONSENT_REJECT;
+        } else {
+            flowName = Flow.Name.CONSENT_REVOKE;
         }
-        ConsentEventPublisherProxy.getInstance().publishPreAuthorizeConsentWithException(
-                consentId, userId, authStatus, tenantDomain);
-
-        ConsentMessageContext context = new ConsentMessageContext();
-        ConsentInterceptorTemplate<Void, ConsentManagementException>
-                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
-
-        template.intercept(PRE_AUTHORIZE_CONSENT, properties -> {
-                    properties.put(RECEIPT_ID, consentId);
-                    properties.put("USER_ID", userId);
-                    properties.put("AUTH_STATUS", authStatus);
-                })
-                .executeWith(new OperationDelegate<Void>() {
-                    @Override
-                    public Void execute() throws ConsentManagementException {
-
-                        consentManager.authorizeConsent(consentId, userId, authStatus);
-                        return null;
-                    }
-                })
-                .intercept(POST_AUTHORIZE_CONSENT, properties -> {
-                    properties.put(RECEIPT_ID, consentId);
-                    properties.put("USER_ID", userId);
-                    properties.put("AUTH_STATUS", authStatus);
-                });
-
-        ConsentEventPublisherProxy.getInstance().publishPostAuthorizeConsent(
-                consentId, userId, authStatus, tenantDomain);
-        for (ConsentManagementListener listener : listeners) {
-            if (listener.isEnable()) {
-                listener.postAuthorizeConsent(consentId, userId, authStatus, tenantDomain);
+        enterFlow(flowName, Flow.InitiatingPersona.USER);
+        try {
+            String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+            List<ConsentManagementListener> listeners =
+                    ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+            for (ConsentManagementListener listener : listeners) {
+                if (listener.isEnable()) {
+                    listener.preAuthorizeConsent(consentId, userId, authStatus, tenantDomain);
+                }
             }
+            ConsentEventPublisherProxy.getInstance().publishPreAuthorizeConsentWithException(
+                    consentId, userId, authStatus, tenantDomain);
+
+            ConsentMessageContext context = new ConsentMessageContext();
+            ConsentInterceptorTemplate<Void, ConsentManagementException>
+                    template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
+
+            template.intercept(PRE_AUTHORIZE_CONSENT, properties -> {
+                        properties.put(RECEIPT_ID, consentId);
+                        properties.put("USER_ID", userId);
+                        properties.put("AUTH_STATUS", authStatus);
+                    })
+                    .executeWith(new OperationDelegate<Void>() {
+                        @Override
+                        public Void execute() throws ConsentManagementException {
+
+                            consentManager.authorizeConsent(consentId, userId, authStatus);
+                            return null;
+                        }
+                    })
+                    .intercept(POST_AUTHORIZE_CONSENT, properties -> {
+                        properties.put(RECEIPT_ID, consentId);
+                        properties.put("USER_ID", userId);
+                        properties.put("AUTH_STATUS", authStatus);
+                    });
+
+            ConsentEventPublisherProxy.getInstance().publishPostAuthorizeConsent(
+                    consentId, userId, authStatus, tenantDomain);
+            for (ConsentManagementListener listener : listeners) {
+                if (listener.isEnable()) {
+                    listener.postAuthorizeConsent(consentId, userId, authStatus, tenantDomain);
+                }
+            }
+        } finally {
+            IdentityContext.getThreadLocalIdentityContext().exitFlow();
         }
     }
 
