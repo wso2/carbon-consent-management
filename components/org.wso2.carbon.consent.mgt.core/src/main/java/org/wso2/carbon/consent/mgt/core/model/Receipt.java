@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,9 @@ import java.util.Map;
 /**
  * The model representing a a consent receipt.
  */
-public class Receipt {
+public class Receipt implements Serializable {
+
+    private static final long serialVersionUID = -6531789894201998360L;
 
     private String consentReceiptId;
     private String version;

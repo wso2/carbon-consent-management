@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.consent.mgt.core.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,9 @@ import java.util.Map;
 /**
  * The model representing a purpose of a given consent.
  */
-public class Purpose {
+public class Purpose implements Serializable {
+
+    private static final long serialVersionUID = -1691326925192849025L;
 
     private Integer id;
     private String name;

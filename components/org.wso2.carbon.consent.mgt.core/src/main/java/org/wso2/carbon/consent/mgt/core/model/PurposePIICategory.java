@@ -21,6 +21,8 @@ package org.wso2.carbon.consent.mgt.core.model;
  */
 public class PurposePIICategory extends PIICategory {
 
+    private static final long serialVersionUID = -2090780556750076831L;
+
     private Boolean mandatory;
 
     public PurposePIICategory(PIICategory piiCategory, Boolean mandatory) {
