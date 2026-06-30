@@ -44,10 +44,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.APPROVED_STATE;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GROUP;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.REJECTED_STATE;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.GROUP_TYPE;
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.*;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PII_CATEGORY;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.POST_ADD_PURPOSE_CATEGORY;
@@ -118,30 +115,6 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.Interce
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_SET_LATEST_PURPOSE_VERSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_UPDATE_CONSENT;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.InterceptorConstants.PRE_VALIDATE_CONSENT_STATUS;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.LIMIT;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.OFFSET;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY_ID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY_NAME;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_CATEGORY_UUID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PII_PRINCIPAL_ID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PRINCIPAL_TENANT_DOMAIN;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_CATEGORY;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_CATEGORY_ID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_CATEGORY_NAME;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_ID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_NAME;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_UUID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.PURPOSE_VERSION_LABEL;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_ID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_UPDATE_INPUT;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.RECEIPT_INPUT;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.SERVICE;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.SP_TENANT_DOMAIN;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.STATE;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.TENANT_ID;
-import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.VERSION_ID;
 
 /**
  * Consent Manager intercepting layer responsible for triggering listeners and calling the actual
@@ -803,33 +776,31 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
 
     public AddReceiptResponse addConsent(ReceiptInput receiptInput) throws ConsentManagementException {
 
-        String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
-        List<ConsentManagementListener> listeners =
-                ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
-        for (ConsentManagementListener listener : listeners) {
-            if (listener.isEnable()) {
-                listener.preAddConsent(receiptInput, tenantDomain);
-            }
-        }
-        ConsentEventPublisherProxy.getInstance().publishPreAddConsentWithException(receiptInput, tenantDomain);
-
-        ConsentMessageContext context = new ConsentMessageContext();
-        ConsentInterceptorTemplate<AddReceiptResponse, ConsentManagementException>
-                template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
-
         Flow.Name flowName;
-        Flow.InitiatingPersona persona = Flow.InitiatingPersona.USER;
-        if (REJECTED_STATE.equals(receiptInput.getState())) {
-            flowName = Flow.Name.CONSENT_REJECT;
-        } else if (DEFAULT_COLLECTION_METHOD.equals(receiptInput.getCollectionMethod())
+        Flow.InitiatingPersona persona;
+        if (DEFAULT_COLLECTION_METHOD.equals(receiptInput.getCollectionMethod())
                 && receiptInput.getAuthorizations() != null && !receiptInput.getAuthorizations().isEmpty()) {
-            flowName = Flow.Name.CONSENT_PENDING;
+            flowName = Flow.Name.CONSENT_CREATE;
             persona = Flow.InitiatingPersona.ADMIN;
         } else {
-            flowName = Flow.Name.CONSENT_ACCEPT;
+            flowName = getFlowInitiatingName(Flow.Name.CONSENT_GRANT);
+            persona = getFlowInitiatingPersona(Flow.InitiatingPersona.USER);
         }
         enterFlow(flowName, persona);
         try {
+            String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
+            List<ConsentManagementListener> listeners =
+                    ConsentManagerComponentDataHolder.getInstance().getConsentManagementListeners();
+            for (ConsentManagementListener listener : listeners) {
+                if (listener.isEnable()) {
+                    listener.preAddConsent(receiptInput, tenantDomain);
+                }
+            }
+            ConsentEventPublisherProxy.getInstance().publishPreAddConsentWithException(receiptInput, tenantDomain);
+
+            ConsentMessageContext context = new ConsentMessageContext();
+            ConsentInterceptorTemplate<AddReceiptResponse, ConsentManagementException>
+                    template = new ConsentInterceptorTemplate<>(consentMgtInterceptors, context);
             AddReceiptResponse result = template
                     .intercept(PRE_ADD_RECEIPT, properties -> properties.put(RECEIPT_INPUT, receiptInput))
                     .executeWith(new OperationDelegate<AddReceiptResponse>() {
@@ -1134,7 +1105,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     public PurposeVersion addPurposeVersion(String purposeUuid, PurposeVersion purposeVersion, boolean setAsLatest)
             throws ConsentManagementException {
 
-        enterFlow(Flow.Name.CONSENT_PURPOSE_VERSION_ADD, Flow.InitiatingPersona.ADMIN);
+        enterFlow(Flow.Name.PURPOSE_UPDATE, Flow.InitiatingPersona.ADMIN);
         try {
             String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
             List<ConsentManagementListener> listeners =
@@ -1247,7 +1218,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     private void enterFlow(Flow.Name flowName, Flow.InitiatingPersona persona) {
 
         IdentityContext.getThreadLocalIdentityContext().enterFlow(
-                new Flow.Builder().name(flowName).initiatingPersona(getFlowInitiatingPersona(persona)).build());
+                new Flow.Builder().name(flowName).initiatingPersona(persona).build());
     }
 
     private Flow.InitiatingPersona getFlowInitiatingPersona(Flow.InitiatingPersona defaultPersona) {
@@ -1257,6 +1228,15 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
             return existingFlow.getInitiatingPersona();
         }
         return defaultPersona;
+    }
+
+    private Flow.Name getFlowInitiatingName(Flow.Name defaultFlowName) {
+
+        Flow existingFlow = IdentityContext.getThreadLocalIdentityContext().getCurrentFlow();
+        if (existingFlow != null) {
+            return existingFlow.getName();
+        }
+        return defaultFlowName;
     }
 
     private void populateProperties(int limit, int offset, String piiPrincipalId, String spTenantDomain, String
@@ -1287,14 +1267,15 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
             throws ConsentManagementException {
 
         Flow.Name flowName;
-        if (APPROVED_STATE.equals(authStatus)) {
-            flowName = Flow.Name.CONSENT_ACCEPT;
-        } else if (REJECTED_STATE.equals(authStatus)) {
-            flowName = Flow.Name.CONSENT_REJECT;
-        } else {
+        Flow.InitiatingPersona persona;
+        if (REVOKE_STATE.equals(authStatus)) {
             flowName = Flow.Name.CONSENT_REVOKE;
+            persona = getFlowInitiatingPersona(Flow.InitiatingPersona.USER);
+        } else {
+            flowName = Flow.Name.CONSENT_GRANT;
+            persona = Flow.InitiatingPersona.USER;
         }
-        enterFlow(flowName, Flow.InitiatingPersona.USER);
+        enterFlow(flowName, persona);
         try {
             String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
             List<ConsentManagementListener> listeners =
