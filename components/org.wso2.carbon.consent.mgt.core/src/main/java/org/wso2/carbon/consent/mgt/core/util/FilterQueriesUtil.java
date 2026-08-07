@@ -31,6 +31,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_CURSOR_TOKEN;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_INVALID_FILTER_EXPRESSION;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_UNSUPPORTED_FILTER_ATTRIBUTE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.FilterConstants;
@@ -91,7 +92,7 @@ public class FilterQueriesUtil {
             ExpressionNode node = new ExpressionNode();
             node.setAttributeValue(FilterConstants.FILTER_ATTR_AFTER);
             node.setOperation(OP_GT);
-            node.setValue(new String(Base64.getDecoder().decode(after), StandardCharsets.UTF_8));
+            node.setValue(decodeCursor(after));
             nodes.add(node);
         }
 
@@ -99,11 +100,22 @@ public class FilterQueriesUtil {
             ExpressionNode node = new ExpressionNode();
             node.setAttributeValue(FilterConstants.FILTER_ATTR_BEFORE);
             node.setOperation(OP_LT);
-            node.setValue(new String(Base64.getDecoder().decode(before), StandardCharsets.UTF_8));
+            node.setValue(decodeCursor(before));
             nodes.add(node);
         }
 
         return nodes;
+    }
+
+    private static String decodeCursor(String cursor) throws ConsentManagementClientException {
+
+        try {
+            return new String(Base64.getDecoder().decode(cursor), StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            throw new ConsentManagementClientException(
+                    String.format(ERROR_CODE_INVALID_CURSOR_TOKEN.getMessage(), cursor),
+                    ERROR_CODE_INVALID_CURSOR_TOKEN.getCode());
+        }
     }
 
     /**
