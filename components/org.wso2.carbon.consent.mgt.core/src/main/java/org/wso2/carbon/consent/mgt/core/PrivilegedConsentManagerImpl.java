@@ -25,6 +25,7 @@ import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
 import org.wso2.carbon.consent.mgt.core.model.ConsentInterceptorTemplate;
 import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.model.ConsentMessageContext;
+import org.wso2.carbon.consent.mgt.core.model.ConsentRelation;
 import org.wso2.carbon.consent.mgt.core.model.OperationDelegate;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
@@ -1481,9 +1482,24 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                 .getResult();
     }
 
+    /**
+     * @deprecated Use {@link #listReceipts(String, ConsentRelation, String, String, String, String, List, int)}
+     * instead.
+     */
+    @Deprecated
     @Override
     public List<Receipt> listReceipts(String subjectId, String serviceId, String state, String purposeId,
                                       String purposeVersionId, List<ExpressionNode> expressionNodes, int limit)
+            throws ConsentManagementException {
+
+        return listReceipts(subjectId, ConsentRelation.SUBJECT, serviceId, state, purposeId, purposeVersionId,
+                expressionNodes, limit);
+    }
+
+    @Override
+    public List<Receipt> listReceipts(String userId, ConsentRelation relation, String serviceId, String state,
+                                      String purposeId, String purposeVersionId,
+                                      List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
         ConsentMessageContext context = new ConsentMessageContext();
@@ -1499,8 +1515,8 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                     @Override
                     public List<Receipt> execute() throws ConsentManagementException {
 
-                        return consentManager.listReceipts(subjectId, serviceId, state, purposeId, purposeVersionId,
-                                expressionNodes, limit);
+                        return consentManager.listReceipts(userId, relation, serviceId, state, purposeId,
+                                purposeVersionId, expressionNodes, limit);
                     }
                 })
                 .intercept(POST_LIST_RECEIPTS, properties -> {

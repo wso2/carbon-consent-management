@@ -18,6 +18,7 @@ package org.wso2.carbon.consent.mgt.core.dao;
 
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
+import org.wso2.carbon.consent.mgt.core.model.ConsentRelation;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptListResponse;
@@ -179,7 +180,11 @@ public interface ReceiptDAO {
      * Lists receipts using cursor-based pagination (V2 API).
      * Cursor and property filter nodes are supplied as {@link ExpressionNode} instances
      * produced by {@link org.wso2.carbon.consent.mgt.core.util.FilterQueriesUtil#getExpressionNodes}.
+     *
+     * @deprecated Use
+     * {@link #listReceipts(String, ConsentRelation, String, String, String, String, int, int, List)} instead.
      */
+    @Deprecated
     default List<Receipt> listReceipts(String subjectId, String serviceId, String state,
                                        String purposeId, String purposeVersionId,
                                        int limit, int tenantId,
@@ -187,6 +192,25 @@ public interface ReceiptDAO {
             throws ConsentManagementException {
 
         return Collections.emptyList();
+    }
+
+    /**
+     * Lists receipts using cursor-based pagination.
+     * Cursor and property filter nodes are supplied as {@link ExpressionNode} instances
+     * produced by {@link org.wso2.carbon.consent.mgt.core.util.FilterQueriesUtil#getExpressionNodes}.
+     * Falls back to {@link #listReceipts(String, String, String, String, String, int, int, List)} for
+     * implementations that do not override, and only for {@link ConsentRelation#SUBJECT}.
+     */
+    default List<Receipt> listReceipts(String userId, ConsentRelation relation, String serviceId, String state,
+                                       String purposeId, String purposeVersionId,
+                                       int limit, int tenantId,
+                                       List<ExpressionNode> expressionNodes)
+            throws ConsentManagementException {
+
+        if (relation != null && relation != ConsentRelation.SUBJECT) {
+            return Collections.emptyList();
+        }
+        return listReceipts(userId, serviceId, state, purposeId, purposeVersionId, limit, tenantId, expressionNodes);
     }
 
     /**

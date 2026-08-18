@@ -19,6 +19,7 @@ package org.wso2.carbon.consent.mgt.core;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
+import org.wso2.carbon.consent.mgt.core.model.ConsentRelation;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
@@ -593,12 +594,43 @@ public interface ConsentManager {
      * @param limit            Maximum results
      * @return List of receipts matching filter
      * @throws ConsentManagementException if operation fails
+     * @deprecated Use {@link #listReceipts(String, ConsentRelation, String, String, String, String, List, int)}
+     * instead.
      */
+    @Deprecated
     default List<Receipt> listReceipts(String subjectId, String serviceId, String state, String purposeId,
                                        String purposeVersionId, List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
         return Collections.emptyList();
+    }
+
+    /**
+     * Lists receipts/consents with explicit filter params (V2 API).
+     * Falls back to {@link #listReceipts(String, String, String, String, String, List, int)} for
+     * implementations that do not override, and only for {@link ConsentRelation#SUBJECT}.
+     *
+     * @param userId           Filter by user ID, matched according to {@code relation} (null for no filter)
+     * @param relation         Relation of {@code userId} to the retrieved consents (null defaults to
+     *                         {@link ConsentRelation#SUBJECT})
+     * @param serviceId        Filter by service ID (null for no filter)
+     * @param state            Filter by consent state (null for no filter)
+     * @param purposeId        Filter by purpose UUID string (null for no filter)
+     * @param purposeVersionId Filter by purpose version UUID string (null for no filter)
+     * @param expressionNodes  Filter expression tree from FilterTreeBuilder (null for no filtering).
+     * @param limit            Maximum results
+     * @return List of receipts matching filter
+     * @throws ConsentManagementException if operation fails
+     */
+    default List<Receipt> listReceipts(String userId, ConsentRelation relation, String serviceId, String state,
+                                       String purposeId, String purposeVersionId,
+                                       List<ExpressionNode> expressionNodes, int limit)
+            throws ConsentManagementException {
+
+        if (relation != null && relation != ConsentRelation.SUBJECT) {
+            return Collections.emptyList();
+        }
+        return listReceipts(userId, serviceId, state, purposeId, purposeVersionId, expressionNodes, limit);
     }
 
     /**

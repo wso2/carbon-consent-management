@@ -35,6 +35,7 @@ import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.Address;
 import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
 import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
+import org.wso2.carbon.consent.mgt.core.model.ConsentRelation;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PiiController;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
@@ -1201,9 +1202,36 @@ public class ConsentManagerImpl implements ConsentManager {
      * @param limit       Maximum number of results to return.
      * @return List of receipts matching the filter.
      * @throws ConsentManagementException if retrieval fails.
+     * @deprecated Use {@link #listReceipts(String, ConsentRelation, String, String, String, String, List, int)}
+     * instead.
      */
+    @Deprecated
     @Override
     public List<Receipt> listReceipts(String subjectId, String serviceId, String state,
+                                      String purposeId, String purposeVersionId,
+                                      List<ExpressionNode> expressionNodes, int limit)
+            throws ConsentManagementException {
+
+        return listReceipts(subjectId, ConsentRelation.SUBJECT, serviceId, state, purposeId, purposeVersionId,
+                expressionNodes, limit);
+    }
+
+    /**
+     * Lists receipts (consents) with tree-based filtering and pagination.
+     *
+     * @param userId      User ID to filter by, matched according to {@code relation} (null for no filtering).
+     * @param relation    Relation of {@code userId} to the retrieved consents (null defaults to
+     *                    {@link ConsentRelation#SUBJECT}).
+     * @param serviceId   Service ID to filter by (null for no filtering).
+     * @param state       Consent state to filter by (null for no filtering).
+     * @param purposeId   Purpose ID to filter by (null for no filtering).
+     * @param purposeVersionId Purpose version ID to filter by (null for no filtering).
+     * @param limit       Maximum number of results to return.
+     * @return List of receipts matching the filter.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    @Override
+    public List<Receipt> listReceipts(String userId, ConsentRelation relation, String serviceId, String state,
                                       String purposeId, String purposeVersionId,
                                       List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
@@ -1211,8 +1239,8 @@ public class ConsentManagerImpl implements ConsentManager {
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
         }
-        if (StringUtils.isNotBlank(subjectId) && !isUserNameCaseSensitive(subjectId)) {
-            subjectId = getLowerCaseUserName(subjectId);
+        if (StringUtils.isNotBlank(userId) && !isUserNameCaseSensitive(userId)) {
+            userId = getLowerCaseUserName(userId);
         }
         if (expressionNodes != null) {
             boolean hasAfter = false;
@@ -1229,7 +1257,7 @@ public class ConsentManagerImpl implements ConsentManager {
                         "after and before cursor filters cannot be used together");
             }
         }
-        List<Receipt> receipts = getReceiptsDAO(receiptDAOs).listReceipts(subjectId, serviceId, state, purposeId,
+        List<Receipt> receipts = getReceiptsDAO(receiptDAOs).listReceipts(userId, relation, serviceId, state, purposeId,
                 purposeVersionId, limit, getTenantIdFromCarbonContext(), expressionNodes);
         if (receipts == null) {
             return Collections.emptyList();

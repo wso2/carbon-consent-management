@@ -542,6 +542,14 @@ public class SQLConstants {
     public static final String LIST_RECEIPTS_SUBJECT_CONDITION =
             " AND r2.PII_PRINCIPAL_ID = ?";
 
+    public static final String LIST_RECEIPTS_AUTHORIZER_CONDITION =
+            " AND EXISTS (SELECT 1 FROM CM_CONSENT_AUTHORIZATION ca " +
+            "WHERE ca.CONSENT_RECEIPT_ID = r2.CONSENT_RECEIPT_ID AND ca.USER_ID = ?)";
+
+    public static final String LIST_RECEIPTS_ANY_USER_CONDITION =
+            " AND (r2.PII_PRINCIPAL_ID = ? OR EXISTS (SELECT 1 FROM CM_CONSENT_AUTHORIZATION ca " +
+            "WHERE ca.CONSENT_RECEIPT_ID = r2.CONSENT_RECEIPT_ID AND ca.USER_ID = ?))";
+
     public static final String LIST_RECEIPTS_SERVICE_CONDITION =
             " AND rsa2.SP_NAME = ?";
 
