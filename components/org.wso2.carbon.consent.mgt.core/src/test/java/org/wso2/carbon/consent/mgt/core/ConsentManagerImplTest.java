@@ -68,6 +68,7 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -110,6 +111,7 @@ public class ConsentManagerImplTest {
     private PrivilegedCarbonContext privilegedCarbonContext;
 
     private static List<PIICategory> piiCategories = new ArrayList<>();
+    private static final String POLICY_SERVICE = "Resident IDP";
     private static final String TEST_PURPOSE_NAME = "Test Purpose";
     private static final String TEST_PURPOSE_DESCRIPTION = "Test purpose description";
     private static final String TEST_PURPOSE_GROUP = "TEST_GROUP";
@@ -405,6 +407,169 @@ public class ConsentManagerImplTest {
         String consentId = createConsentWithAuthorizations("subject1", "approver1");
 
         consentManager.getConsentAuthorizations(consentId, "stranger");
+    }
+
+    @Test
+    public void testListReceiptsByCursor_allFiltersMatch_returnsReceipt() throws Exception {
+
+        setupUserStoreManagerMock(true);
+        Purpose purpose = createTestPurpose();
+        String versionId = purpose.getLatestVersion().getUuid();
+        String consentId = createServiceConsent("subject1", POLICY_SERVICE, ConsentConstants.ACTIVE_STATE, purpose,
+                versionId);
+
+        List<Receipt> receipts = consentManager.listReceipts("subject1", POLICY_SERVICE,
+                ConsentConstants.ACTIVE_STATE, purpose.getUuid(), versionId, null, null, 1);
+
+        Assert.assertEquals(receipts.size(), 1, "The receipt matching every filter should be returned");
+        Assert.assertEquals(receipts.get(0).getConsentReceiptId(), consentId,
+                "The returned receipt should be the one created for the subject");
+    }
+
+    @Test
+    public void testListReceiptsByCursor_withoutStateAndVersion_returnsReceipt() throws Exception {
+
+        setupUserStoreManagerMock(true);
+        Purpose purpose = createTestPurpose();
+        String consentId = createServiceConsent("subject1", POLICY_SERVICE, ConsentConstants.ACTIVE_STATE, purpose,
+                purpose.getLatestVersion().getUuid());
+
+        List<Receipt> receipts = consentManager.listReceipts("subject1", POLICY_SERVICE, null, purpose.getUuid(),
+                null, null, null, 1);
+
+        Assert.assertEquals(receipts.size(), 1, "Omitting state and version should still match the purpose");
+        Assert.assertEquals(receipts.get(0).getConsentReceiptId(), consentId,
+                "The returned receipt should be the one created for the subject");
+    }
+
+    @Test
+    public void testListReceiptsByCursor_otherSubject_returnsEmpty() throws Exception {
+
+        setupUserStoreManagerMock(true);
+        Purpose purpose = createTestPurpose();
+        String versionId = purpose.getLatestVersion().getUuid();
+        createServiceConsent("subject1", POLICY_SERVICE, ConsentConstants.ACTIVE_STATE, purpose, versionId);
+
+        List<Receipt> receipts = consentManager.listReceipts("stranger", POLICY_SERVICE,
+                ConsentConstants.ACTIVE_STATE, purpose.getUuid(), versionId, null, null, 1);
+
+        Assert.assertTrue(receipts.isEmpty(), "A receipt of another subject should not be returned");
+    }
+
+    @Test
+    public void testListReceiptsByCursor_otherService_returnsEmpty() throws Exception {
+
+        setupUserStoreManagerMock(true);
+        Purpose purpose = createTestPurpose();
+        String versionId = purpose.getLatestVersion().getUuid();
+        createServiceConsent("subject1", POLICY_SERVICE, ConsentConstants.ACTIVE_STATE, purpose, versionId);
+
+        List<Receipt> receipts = consentManager.listReceipts("subject1", "Other Service",
+                ConsentConstants.ACTIVE_STATE, purpose.getUuid(), versionId, null, null, 1);
+
+        Assert.assertTrue(receipts.isEmpty(), "A receipt of another service should not be returned");
+    }
+
+    @Test
+    public void testListReceiptsByCursor_otherState_returnsEmpty() throws Exception {
+
+        setupUserStoreManagerMock(true);
+        Purpose purpose = createTestPurpose();
+        String versionId = purpose.getLatestVersion().getUuid();
+        createServiceConsent("subject1", POLICY_SERVICE, ConsentConstants.ACTIVE_STATE, purpose, versionId);
+
+        List<Receipt> receipts = consentManager.listReceipts("subject1", POLICY_SERVICE,
+                ConsentConstants.REVOKE_STATE, purpose.getUuid(), versionId, null, null, 1);
+
+        Assert.assertTrue(receipts.isEmpty(), "An active receipt should not match a revoked state filter");
+    }
+
+    @Test
+    public void testListReceiptsByCursor_unknownPurpose_returnsEmpty() throws Exception {
+
+        setupUserStoreManagerMock(true);
+        Purpose purpose = createTestPurpose();
+        createServiceConsent("subject1", POLICY_SERVICE, ConsentConstants.ACTIVE_STATE, purpose,
+                purpose.getLatestVersion().getUuid());
+
+        List<Receipt> receipts = consentManager.listReceipts("subject1", POLICY_SERVICE,
+                ConsentConstants.ACTIVE_STATE, UUID.randomUUID().toString(), null, null, null, 1);
+
+        Assert.assertTrue(receipts.isEmpty(), "An unknown purpose should not match any receipt");
+    }
+
+    @Test
+    public void testListReceiptsByCursor_unknownPurposeVersion_returnsEmpty() throws Exception {
+
+        setupUserStoreManagerMock(true);
+        Purpose purpose = createTestPurpose();
+        createServiceConsent("subject1", POLICY_SERVICE, ConsentConstants.ACTIVE_STATE, purpose,
+                purpose.getLatestVersion().getUuid());
+
+        List<Receipt> receipts = consentManager.listReceipts("subject1", POLICY_SERVICE,
+                ConsentConstants.ACTIVE_STATE, purpose.getUuid(), UUID.randomUUID().toString(), null, null, 1);
+
+        Assert.assertTrue(receipts.isEmpty(), "An unknown purpose version should not match any receipt");
+    }
+
+    @Test
+    public void testListReceiptsByCursor_limitCapsResults() throws Exception {
+
+        setupUserStoreManagerMock(true);
+        Purpose purpose = createTestPurpose();
+        String versionId = purpose.getLatestVersion().getUuid();
+        // Two services keep both receipts active; the same service and purpose would revoke the first.
+        createServiceConsent("subject1", POLICY_SERVICE, ConsentConstants.ACTIVE_STATE, purpose, versionId);
+        createServiceConsent("subject1", "Second Service", ConsentConstants.ACTIVE_STATE, purpose, versionId);
+
+        // serviceId is cast so this resolves to the cursor overload, which a bare null would leave ambiguous.
+        List<Receipt> limitedToOne = consentManager.listReceipts("subject1", (String) null,
+                ConsentConstants.ACTIVE_STATE, purpose.getUuid(), versionId, null, null, 1);
+        List<Receipt> allOfThem = consentManager.listReceipts("subject1", (String) null,
+                ConsentConstants.ACTIVE_STATE, purpose.getUuid(), versionId, null, null, 10);
+
+        Assert.assertEquals(limitedToOne.size(), 1, "A limit of one should return a single receipt");
+        Assert.assertEquals(allOfThem.size(), 2, "A higher limit should return both matching receipts");
+    }
+
+    @Test(expectedExceptions = ConsentManagementClientException.class)
+    public void testListReceiptsByCursor_bothCursorsProvided_throws() throws Exception {
+
+        setupUserStoreManagerMock(true);
+        Purpose purpose = createTestPurpose();
+        createServiceConsent("subject1", POLICY_SERVICE, ConsentConstants.ACTIVE_STATE, purpose,
+                purpose.getLatestVersion().getUuid());
+        String cursor = java.util.Base64.getEncoder().encodeToString("1".getBytes(StandardCharsets.UTF_8));
+
+        consentManager.listReceipts("subject1", POLICY_SERVICE, null, null, null, cursor, cursor, 1);
+    }
+
+    private String createServiceConsent(String subjectId, String service, String state, Purpose purpose,
+                                        String purposeVersionId) throws Exception {
+
+        ReceiptPurposeInput purposeInput = new ReceiptPurposeInput();
+        purposeInput.setPrimaryPurpose(true);
+        purposeInput.setTermination("1 year");
+        purposeInput.setConsentType("EXPLICIT");
+        purposeInput.setThirdPartyDisclosure(false);
+        purposeInput.setPurposeId(purpose.getId());
+        purposeInput.setPurposeVersionId(purposeVersionId);
+        purposeInput.setPurposeCategoryId(Collections.emptyList());
+        purposeInput.setPiiCategory(Collections.emptyList());
+
+        ReceiptServiceInput serviceInput = new ReceiptServiceInput();
+        serviceInput.setPurposes(Collections.singletonList(purposeInput));
+        serviceInput.setTenantDomain(SUPER_TENANT_DOMAIN_NAME);
+        serviceInput.setTenantId(SUPER_TENANT_ID);
+        serviceInput.setService(service);
+        serviceInput.setSpDisplayName(service);
+        serviceInput.setSpDescription(service);
+
+        String consentId = UUID.randomUUID().toString();
+        ReceiptInput receiptInput = buildRawReceiptInput(consentId, subjectId, state, null);
+        receiptInput.setServices(Collections.singletonList(serviceInput));
+        new ReceiptDAOImpl().addReceiptWithAuthorizations(receiptInput, Collections.emptyList());
+        return consentId;
     }
 
     private void setupUserStoreManagerMock(boolean isUserNameCaseSensitive) throws Exception {
