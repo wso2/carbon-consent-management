@@ -29,6 +29,7 @@ import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
 import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
 import org.wso2.carbon.consent.mgt.core.model.Address;
@@ -1319,6 +1320,105 @@ public class ReceiptDAOImplTest {
 
             Assert.assertEquals(receiptDAO.getReceiptExpiryTime(consentId), expiry,
                     "Expiry must be left unchanged when neither expiryTime nor clearExpiry is set.");
+        }
+    }
+
+    @DataProvider(name = "timestampFilterProvider")
+    public Object[][] provideTimestampFilterData() {
+
+        return new Object[][]{
+                {"timestamp ge %d", -3_600_000L, 0L, 2},
+                {"timestamp ge %d", 3_600_000L, 0L, 0},
+                {"timestamp le %d", 3_600_000L, 0L, 2},
+                {"timestamp le %d", -3_600_000L, 0L, 0},
+                {"timestamp ge %d and timestamp le %d", -3_600_000L, 3_600_000L, 2},
+                {"timestamp ge %d and timestamp le %d", 3_600_000L, 7_200_000L, 0},
+        };
+    }
+
+    @Test(dataProvider = "timestampFilterProvider")
+    public void testListReceipts_timestampFilter(String filterTemplate, long firstOffset, long secondOffset,
+            int expectedCount) throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+            receiptDAO.addReceipt(receiptInputs.get(0));
+            receiptDAO.addReceipt(receiptInputs.get(1));
+
+            long now = System.currentTimeMillis();
+            String filter = String.format(filterTemplate, now + firstOffset, now + secondOffset);
+            List<ExpressionNode> nodes = FilterQueriesUtil.getExpressionNodes(filter, null, null);
+            List<Receipt> results = receiptDAO.listReceipts(null, ConsentRelation.SUBJECT, null, null, null, null,
+                    100, SUPER_TENANT_ID, nodes);
+
+            Assert.assertNotNull(results);
+            Assert.assertEquals(results.size(), expectedCount,
+                    "Unexpected receipt count for filter: " + filter);
+        }
+    }
+
+    @Test
+    public void testListReceipts_timestampAndPropertyFilter_bindsBothInNodeOrder() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+            receiptDAO.addReceipt(receiptInputs.get(0));
+            receiptDAO.addReceipt(receiptInputs.get(1));
+
+            long past = System.currentTimeMillis() - 3_600_000L;
+            List<ExpressionNode> nodes = FilterQueriesUtil.getExpressionNodes(
+                    "timestamp ge " + past + " and properties.K1 eq V1", null, null);
+            List<Receipt> results = receiptDAO.listReceipts(null, ConsentRelation.SUBJECT, null, null, null, null,
+                    100, SUPER_TENANT_ID, nodes);
+
+            Assert.assertEquals(results.size(), 1,
+                    "Combined timestamp and property filter should match only the receipt carrying K1=V1");
+            Assert.assertEquals(results.get(0).getPiiPrincipalId(), "subject1");
+
+            // Reversing the node order must bind identically.
+            List<ExpressionNode> reversedNodes = FilterQueriesUtil.getExpressionNodes(
+                    "properties.K1 eq V1 and timestamp ge " + past, null, null);
+            List<Receipt> reversedResults = receiptDAO.listReceipts(null, ConsentRelation.SUBJECT, null, null, null,
+                    null, 100, SUPER_TENANT_ID, reversedNodes);
+
+            Assert.assertEquals(reversedResults.size(), 1,
+                    "Filter order must not affect parameter binding");
+            Assert.assertEquals(reversedResults.get(0).getPiiPrincipalId(), "subject1");
+        }
+    }
+
+    @Test(expectedExceptions = ConsentManagementClientException.class)
+    public void testListReceipts_timestampFilter_nonNumericValue_throwsClientException() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+            receiptDAO.addReceipt(receiptInputs.get(0));
+
+            // A non-numeric timestamp must fail as a client error, not surface as a server error.
+            List<ExpressionNode> nodes = FilterQueriesUtil.getExpressionNodes("timestamp ge yesterday", null, null);
+            receiptDAO.listReceipts(null, ConsentRelation.SUBJECT, null, null, null, null,
+                    100, SUPER_TENANT_ID, nodes);
         }
     }
 

@@ -562,6 +562,11 @@ public class SQLConstants {
     public static final String LIST_RECEIPTS_PURPOSE_VERSION_CONDITION =
             " AND spa.PURPOSE_VERSION_ID = ?";
 
+    // Formatted with the SQL operator derived from the filter operation by FilterQueriesUtil, which
+    // never emits raw user input.
+    public static final String LIST_RECEIPTS_TIMESTAMP_CONDITION =
+            " AND r2.CONSENT_TIMESTAMP %s ?";
+
     public static final String LIST_RECEIPTS_ACTIVE_EXPIRY_CONDITION =
             " AND (r2.EXPIRY_TIME IS NULL OR r2.EXPIRY_TIME > ?)";
 

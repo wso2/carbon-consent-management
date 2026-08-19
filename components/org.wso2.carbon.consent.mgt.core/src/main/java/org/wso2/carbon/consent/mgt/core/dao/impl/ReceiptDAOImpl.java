@@ -47,6 +47,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
@@ -127,6 +128,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIP
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SERVICE_CONDITION;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_STATE_CONDITION;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SUBJECT_CONDITION;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_TIMESTAMP_CONDITION;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_HEAD;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_MSSQL;
@@ -1516,6 +1518,18 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         }
         final boolean finalHasCursor = hasCursor;
 
+        final List<Timestamp> timestampValues = new ArrayList<>();
+        for (ExpressionNode node : nodes) {
+            if (FilterConstants.FILTER_ATTR_TIMESTAMP.equals(node.getAttributeValue())) {
+                try {
+                    timestampValues.add(new Timestamp(Long.parseLong(node.getValue())));
+                } catch (NumberFormatException e) {
+                    throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_INVALID_FILTER_EXPRESSION,
+                            "'timestamp' must be milliseconds since epoch. Got: " + node.getValue());
+                }
+            }
+        }
+
         try {
             String query = buildCursorReceiptQuery(nodes, userId, relation, serviceId, state, purposeId,
                     purposeVersionId);
@@ -1574,9 +1588,13 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         if (purposeVersionId != null) {
                             preparedStatement.setString(paramIndex++, purposeVersionId);
                         }
+                        int timestampIndex = 0;
                         for (ExpressionNode node : nodes) {
                             String attr = node.getAttributeValue();
-                            if (attr != null && attr.startsWith("properties.")) {
+                            if (FilterConstants.FILTER_ATTR_TIMESTAMP.equals(attr)) {
+                                preparedStatement.setTimestamp(paramIndex++, timestampValues.get(timestampIndex++),
+                                        Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                            } else if (attr != null && attr.startsWith("properties.")) {
                                 preparedStatement.setString(paramIndex++, attr.substring("properties.".length()));
                                 preparedStatement.setString(paramIndex++,
                                         FilterQueriesUtil.toSqlValue(node.getOperation(), node.getValue()));
@@ -1643,6 +1661,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             } else if (FilterConstants.FILTER_ATTR_BEFORE.equals(attr)) {
                 cursorCondition = " AND r2.CURSOR_KEY < ?";
                 isBefore = true;
+            } else if (FilterConstants.FILTER_ATTR_TIMESTAMP.equals(attr)) {
+                propertyConditions.append(String.format(LIST_RECEIPTS_TIMESTAMP_CONDITION,
+                        FilterQueriesUtil.toSqlOperator(node.getOperation())));
             } else if (attr != null && attr.startsWith("properties.")) {
                 String sqlOp = FilterQueriesUtil.toSqlOperator(node.getOperation());
                 propertyConditions.append(" AND EXISTS (SELECT 1 FROM CM_CONSENT_RECEIPT_PROPERTY prop_f")
