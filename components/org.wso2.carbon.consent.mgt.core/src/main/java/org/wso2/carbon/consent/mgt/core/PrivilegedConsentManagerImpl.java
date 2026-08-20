@@ -883,6 +883,13 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
         return consentManager.getReceiptWithExtendedSchema(receiptId, piiPrincipalId);
     }
 
+    @Override
+    public Receipt getReceiptForInvolvedUserWithExtendedSchema(String receiptId, String userId)
+            throws ConsentManagementException {
+
+        return consentManager.getReceiptForInvolvedUserWithExtendedSchema(receiptId, userId);
+    }
+
     public List<ReceiptListResponse> searchReceipts(int limit, int offset, String piiPrincipalId, String spTenantDomain,
                                                     String service, String state) throws ConsentManagementException {
 

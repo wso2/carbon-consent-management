@@ -410,6 +410,90 @@ public class ConsentManagerImplTest {
     }
 
     @Test
+    public void testGetReceiptForInvolvedUser_subject_succeeds() throws Exception {
+
+        setupUserStoreManagerMock(false);
+        consentManager = new ConsentManagerImpl(configurationHolder);
+        String consentId = createConsentWithAuthorizations("subject1", "approver1");
+
+        Receipt receipt = consentManager.getReceiptForInvolvedUserWithExtendedSchema(consentId, "subject1");
+
+        Assert.assertEquals(receipt.getConsentReceiptId(), consentId);
+    }
+
+    @Test
+    public void testGetReceiptForInvolvedUser_delegatedAuthorizer_succeeds() throws Exception {
+
+        setupUserStoreManagerMock(false);
+        consentManager = new ConsentManagerImpl(configurationHolder);
+        String consentId = createConsentWithAuthorizations("subject1", "approver1");
+
+        Receipt receipt = consentManager.getReceiptForInvolvedUserWithExtendedSchema(consentId, "approver1");
+
+        Assert.assertEquals(receipt.getConsentReceiptId(), consentId);
+        Assert.assertEquals(receipt.getPiiPrincipalId(), "subject1");
+    }
+
+    @Test
+    public void testGetReceiptForInvolvedUser_subjectWithoutAuthorizations_succeeds() throws Exception {
+
+        setupUserStoreManagerMock(false);
+        consentManager = new ConsentManagerImpl(configurationHolder);
+        String consentId = createConsentWithoutAuthorizations("subject1");
+
+        Receipt receipt = consentManager.getReceiptForInvolvedUserWithExtendedSchema(consentId, "subject1");
+
+        Assert.assertEquals(receipt.getConsentReceiptId(), consentId);
+    }
+
+    @Test
+    public void testGetReceiptForInvolvedUser_subjectDifferentCase_caseInsensitiveUserstore_succeeds()
+            throws Exception {
+
+        setupUserStoreManagerMock(false);
+        consentManager = new ConsentManagerImpl(configurationHolder);
+        String consentId = createConsentWithAuthorizations("subject1", "approver1");
+
+        Receipt receipt = consentManager.getReceiptForInvolvedUserWithExtendedSchema(consentId, "SUBJECT1");
+
+        Assert.assertEquals(receipt.getConsentReceiptId(), consentId);
+    }
+
+    @Test
+    public void testGetReceiptForInvolvedUser_authorizerDifferentCase_caseInsensitiveUserstore_succeeds()
+            throws Exception {
+
+        setupUserStoreManagerMock(false);
+        consentManager = new ConsentManagerImpl(configurationHolder);
+        String consentId = createConsentWithAuthorizations("subject1", "approver1");
+
+        Receipt receipt = consentManager.getReceiptForInvolvedUserWithExtendedSchema(consentId, "APPROVER1");
+
+        Assert.assertEquals(receipt.getConsentReceiptId(), consentId);
+    }
+
+    @Test(expectedExceptions = ConsentManagementClientException.class)
+    public void testGetReceiptForInvolvedUser_authorizerDifferentCase_caseSensitiveUserstore_throws()
+            throws Exception {
+
+        setupUserStoreManagerMock(true);
+        consentManager = new ConsentManagerImpl(configurationHolder);
+        String consentId = createConsentWithAuthorizations("subject1", "approver1");
+
+        consentManager.getReceiptForInvolvedUserWithExtendedSchema(consentId, "APPROVER1");
+    }
+
+    @Test(expectedExceptions = ConsentManagementClientException.class)
+    public void testGetReceiptForInvolvedUser_unauthorizedUser_throws() throws Exception {
+
+        setupUserStoreManagerMock(false);
+        consentManager = new ConsentManagerImpl(configurationHolder);
+        String consentId = createConsentWithAuthorizations("subject1", "approver1");
+
+        consentManager.getReceiptForInvolvedUserWithExtendedSchema(consentId, "stranger");
+    }
+
+    @Test
     public void testListReceiptsByCursor_allFiltersMatch_returnsReceipt() throws Exception {
 
         setupUserStoreManagerMock(true);

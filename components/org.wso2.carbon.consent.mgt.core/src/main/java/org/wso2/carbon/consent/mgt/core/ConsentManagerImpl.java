@@ -822,6 +822,16 @@ public class ConsentManagerImpl implements ConsentManager {
         return receipt;
     }
 
+    @Override
+    public Receipt getReceiptForInvolvedUserWithExtendedSchema(String receiptId, String userId)
+            throws ConsentManagementException {
+
+        Receipt receipt = getReceiptWithExtendedSchema(receiptId);
+
+        validateUserInvolvement(receipt, getConsentAuthorizations(receiptId), userId);
+        return receipt;
+    }
+
     /**
      * This API is used to search receipts.
      *
@@ -1350,17 +1360,8 @@ public class ConsentManagerImpl implements ConsentManager {
         Receipt receipt = getReceiptWithExtendedSchema(consentId);
         List<ConsentAuthorization> authorizations = getConsentAuthorizations(consentId);
 
-        if (isSameUser(userId, receipt.getPiiPrincipalId())) {
-            return authorizations;
-        }
-        if (authorizations != null) {
-            for (ConsentAuthorization authorization : authorizations) {
-                if (isSameUser(userId, authorization.getUserId())) {
-                    return authorizations;
-                }
-            }
-        }
-        throw handleClientException(ERROR_CODE_USER_NOT_AUTHORIZED, userId);
+        validateUserInvolvement(receipt, authorizations, userId);
+        return authorizations;
     }
 
     @Override
@@ -1399,6 +1400,30 @@ public class ConsentManagerImpl implements ConsentManager {
             throw new ConsentManagementClientException(message, ERROR_CODE_RECEIPT_ID_INVALID.getCode());
         }
         return resolveConsentState(storedState, vReceiptDAO.getReceiptExpiryTime(consentId));
+    }
+
+    /**
+     * Validates that the given user is either the subject of the receipt or a listed authorizer on it.
+     *
+     * @param receipt        Consent receipt.
+     * @param authorizations Authorization records of the receipt.
+     * @param userId         ID of the user expected to be the subject or an authorizer on the receipt.
+     * @throws ConsentManagementException if the user is neither the subject nor a delegated authorizer.
+     */
+    private void validateUserInvolvement(Receipt receipt, List<ConsentAuthorization> authorizations, String userId)
+            throws ConsentManagementException {
+
+        if (isSameUser(userId, receipt.getPiiPrincipalId())) {
+            return;
+        }
+        if (authorizations != null) {
+            for (ConsentAuthorization authorization : authorizations) {
+                if (isSameUser(userId, authorization.getUserId())) {
+                    return;
+                }
+            }
+        }
+        throw handleClientException(ERROR_CODE_USER_NOT_AUTHORIZED, userId);
     }
 
     /**

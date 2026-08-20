@@ -673,4 +673,19 @@ public interface ConsentManager {
 
         return getReceiptWithExtendedSchema(receiptId);
     }
+
+    /**
+     * Retrieve a receipt using extended schema after validating that the given user is either the subject of the
+     * receipt or a listed authorizer on it. Falls back to
+     * {@link #getReceiptWithExtendedSchema(String, String)} (subject check only) for implementations that do not
+     * override.
+     *
+     * @param receiptId Consent receipt ID.
+     * @param userId    ID of the user expected to be the subject or an authorizer on the receipt.
+     */
+    default Receipt getReceiptForInvolvedUserWithExtendedSchema(String receiptId, String userId)
+            throws ConsentManagementException {
+
+        return getReceiptWithExtendedSchema(receiptId, userId);
+    }
 }
