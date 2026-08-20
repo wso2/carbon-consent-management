@@ -19,6 +19,7 @@ package org.wso2.carbon.consent.mgt.core;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
+import org.wso2.carbon.consent.mgt.core.model.ConsentPurpose;
 import org.wso2.carbon.consent.mgt.core.model.ConsentRelation;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
@@ -34,6 +35,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Consent manager service interface.
@@ -631,6 +633,48 @@ public interface ConsentManager {
             return Collections.emptyList();
         }
         return listReceipts(userId, serviceId, state, purposeId, purposeVersionId, expressionNodes, limit);
+    }
+
+    /**
+     * Retrieves the properties of several consents in one query, for populating list responses
+     * without a per-row lookup.
+     *
+     * @param receiptIds Consent receipt IDs to look up.
+     * @return Properties of each consent, keyed by receipt ID. Consents without properties are absent.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    default Map<String, Map<String, String>> listReceiptProperties(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        return Collections.emptyMap();
+    }
+
+    /**
+     * Retrieves a summary of the consented purposes of several consents in one query, for
+     * populating list responses without a per-row lookup.
+     *
+     * @param receiptIds Consent receipt IDs to look up.
+     * @return Purposes of each consent, keyed by receipt ID. Consents without purposes are absent.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    default Map<String, List<ConsentPurpose>> listConsentPurposes(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        return Collections.emptyMap();
+    }
+
+    /**
+     * Retrieves the authorization records of several consents in one query, for populating list
+     * responses without a per-row lookup.
+     *
+     * @param receiptIds Consent receipt IDs to look up.
+     * @return Authorizations of each consent, keyed by receipt ID. Consents without any are absent.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    default Map<String, List<ConsentAuthorization>> listConsentAuthorizations(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        return Collections.emptyMap();
     }
 
     /**

@@ -35,6 +35,7 @@ import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.Address;
 import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
 import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
+import org.wso2.carbon.consent.mgt.core.model.ConsentPurpose;
 import org.wso2.carbon.consent.mgt.core.model.ConsentRelation;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PiiController;
@@ -79,6 +80,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -1342,6 +1344,48 @@ public class ConsentManagerImpl implements ConsentManager {
             throws ConsentManagementException {
 
         return getReceiptsDAO(receiptDAOs).getConsentAuthorizations(consentId);
+    }
+
+    /**
+     * Retrieves the properties of several consents in one query.
+     *
+     * @param receiptIds Consent receipt IDs to look up.
+     * @return Properties of each consent, keyed by receipt ID.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    @Override
+    public Map<String, Map<String, String>> listReceiptProperties(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        return getReceiptsDAO(receiptDAOs).listReceiptProperties(receiptIds);
+    }
+
+    /**
+     * Retrieves the consented purposes of several consents in one query.
+     *
+     * @param receiptIds Consent receipt IDs to look up.
+     * @return Purposes of each consent, keyed by receipt ID.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    @Override
+    public Map<String, List<ConsentPurpose>> listConsentPurposes(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        return getReceiptsDAO(receiptDAOs).listConsentPurposes(receiptIds);
+    }
+
+    /**
+     * Retrieves the authorization records of several consents in one query.
+     *
+     * @param receiptIds Consent receipt IDs to look up.
+     * @return Authorizations of each consent, keyed by receipt ID.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    @Override
+    public Map<String, List<ConsentAuthorization>> listConsentAuthorizations(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        return getReceiptsDAO(receiptDAOs).listConsentAuthorizations(receiptIds);
     }
 
     /**

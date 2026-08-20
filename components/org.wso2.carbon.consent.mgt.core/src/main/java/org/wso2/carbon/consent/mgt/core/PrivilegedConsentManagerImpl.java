@@ -25,6 +25,7 @@ import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
 import org.wso2.carbon.consent.mgt.core.model.ConsentInterceptorTemplate;
 import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
 import org.wso2.carbon.consent.mgt.core.model.ConsentMessageContext;
+import org.wso2.carbon.consent.mgt.core.model.ConsentPurpose;
 import org.wso2.carbon.consent.mgt.core.model.ConsentRelation;
 import org.wso2.carbon.consent.mgt.core.model.OperationDelegate;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
@@ -1376,6 +1377,27 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
             throws ConsentManagementException {
 
         return consentManager.getConsentAuthorizations(consentId, userId);
+    }
+
+    @Override
+    public Map<String, Map<String, String>> listReceiptProperties(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        return consentManager.listReceiptProperties(receiptIds);
+    }
+
+    @Override
+    public Map<String, List<ConsentPurpose>> listConsentPurposes(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        return consentManager.listConsentPurposes(receiptIds);
+    }
+
+    @Override
+    public Map<String, List<ConsentAuthorization>> listConsentAuthorizations(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        return consentManager.listConsentAuthorizations(receiptIds);
     }
 
     @Override
