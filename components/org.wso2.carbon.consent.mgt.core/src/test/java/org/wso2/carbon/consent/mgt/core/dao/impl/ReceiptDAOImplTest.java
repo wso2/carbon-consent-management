@@ -1375,9 +1375,14 @@ public class ReceiptDAOImplTest {
             Connection spy = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spy);
 
+            ReceiptInput uniqueReceipt = cloneReceiptInput(receiptInputs.get(1));
+            Map<String, String> uniqueProps = new HashMap<>();
+            uniqueProps.put("K1", "UNIQUE");
+            uniqueReceipt.setProperties(uniqueProps);
+
             ReceiptDAO receiptDAO = new ReceiptDAOImpl();
             receiptDAO.addReceipt(receiptInputs.get(0));
-            receiptDAO.addReceipt(receiptInputs.get(1));
+            receiptDAO.addReceipt(uniqueReceipt);
 
             long past = System.currentTimeMillis() - 3_600_000L;
             List<ExpressionNode> nodes = FilterQueriesUtil.getExpressionNodes(
