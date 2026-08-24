@@ -19,6 +19,8 @@ package org.wso2.carbon.consent.mgt.core;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
+import org.wso2.carbon.consent.mgt.core.model.ConsentPurpose;
+import org.wso2.carbon.consent.mgt.core.model.ConsentRelation;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
@@ -33,6 +35,7 @@ import org.wso2.carbon.identity.core.model.ExpressionNode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Consent manager service interface.
@@ -593,12 +596,85 @@ public interface ConsentManager {
      * @param limit            Maximum results
      * @return List of receipts matching filter
      * @throws ConsentManagementException if operation fails
+     * @deprecated Use {@link #listReceipts(String, ConsentRelation, String, String, String, String, List, int)}
+     * instead.
      */
+    @Deprecated
     default List<Receipt> listReceipts(String subjectId, String serviceId, String state, String purposeId,
                                        String purposeVersionId, List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
 
         return Collections.emptyList();
+    }
+
+    /**
+     * Lists receipts/consents with explicit filter params (V2 API).
+     * Falls back to {@link #listReceipts(String, String, String, String, String, List, int)} for
+     * implementations that do not override, and only for {@link ConsentRelation#SUBJECT}.
+     *
+     * @param userId           Filter by user ID, matched according to {@code relation} (null for no filter)
+     * @param relation         Relation of {@code userId} to the retrieved consents (null defaults to
+     *                         {@link ConsentRelation#SUBJECT})
+     * @param serviceId        Filter by service ID (null for no filter)
+     * @param state            Filter by consent state (null for no filter)
+     * @param purposeId        Filter by purpose UUID string (null for no filter)
+     * @param purposeVersionId Filter by purpose version UUID string (null for no filter)
+     * @param expressionNodes  Filter expression tree from FilterTreeBuilder (null for no filtering).
+     * @param limit            Maximum results
+     * @return List of receipts matching filter
+     * @throws ConsentManagementException if operation fails
+     */
+    default List<Receipt> listReceipts(String userId, ConsentRelation relation, String serviceId, String state,
+                                       String purposeId, String purposeVersionId,
+                                       List<ExpressionNode> expressionNodes, int limit)
+            throws ConsentManagementException {
+
+        if (relation != null && relation != ConsentRelation.SUBJECT) {
+            return Collections.emptyList();
+        }
+        return listReceipts(userId, serviceId, state, purposeId, purposeVersionId, expressionNodes, limit);
+    }
+
+    /**
+     * Retrieves the properties of several consents in one query, for populating list responses
+     * without a per-row lookup.
+     *
+     * @param receiptIds Consent receipt IDs to look up.
+     * @return Properties of each consent, keyed by receipt ID. Consents without properties are absent.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    default Map<String, Map<String, String>> listReceiptProperties(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        return Collections.emptyMap();
+    }
+
+    /**
+     * Retrieves a summary of the consented purposes of several consents in one query, for
+     * populating list responses without a per-row lookup.
+     *
+     * @param receiptIds Consent receipt IDs to look up.
+     * @return Purposes of each consent, keyed by receipt ID. Consents without purposes are absent.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    default Map<String, List<ConsentPurpose>> listConsentPurposes(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        return Collections.emptyMap();
+    }
+
+    /**
+     * Retrieves the authorization records of several consents in one query, for populating list
+     * responses without a per-row lookup.
+     *
+     * @param receiptIds Consent receipt IDs to look up.
+     * @return Authorizations of each consent, keyed by receipt ID. Consents without any are absent.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    default Map<String, List<ConsentAuthorization>> listConsentAuthorizations(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        return Collections.emptyMap();
     }
 
     /**
@@ -640,5 +716,20 @@ public interface ConsentManager {
             throws ConsentManagementException {
 
         return getReceiptWithExtendedSchema(receiptId);
+    }
+
+    /**
+     * Retrieve a receipt using extended schema after validating that the given user is either the subject of the
+     * receipt or a listed authorizer on it. Falls back to
+     * {@link #getReceiptWithExtendedSchema(String, String)} (subject check only) for implementations that do not
+     * override.
+     *
+     * @param receiptId Consent receipt ID.
+     * @param userId    ID of the user expected to be the subject or an authorizer on the receipt.
+     */
+    default Receipt getReceiptForInvolvedUserWithExtendedSchema(String receiptId, String userId)
+            throws ConsentManagementException {
+
+        return getReceiptWithExtendedSchema(receiptId, userId);
     }
 }

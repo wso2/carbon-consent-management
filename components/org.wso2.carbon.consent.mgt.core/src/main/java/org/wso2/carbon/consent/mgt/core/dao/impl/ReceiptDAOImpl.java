@@ -25,6 +25,7 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
 import org.wso2.carbon.consent.mgt.core.model.ConsentPurpose;
+import org.wso2.carbon.consent.mgt.core.model.ConsentRelation;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.Receipt;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptContext;
@@ -45,9 +46,13 @@ import org.wso2.carbon.consent.mgt.core.util.FilterQueriesUtil;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -58,6 +63,7 @@ import java.util.function.Function;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.FilterConstants;
 
 import static java.time.ZoneOffset.UTC;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_STATE;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.EXPIRED_STATE;
@@ -117,13 +123,18 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECE
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_INFORMIX;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_MSSQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.SEARCH_RECEIPT_SQL_WITHOUT_SP_TENANT_ORACLE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_CONSENT_AUTHORIZATIONS_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_CONSENT_PURPOSES_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_ACTIVE_EXPIRY_CONDITION;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_ANY_USER_CONDITION;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_AUTHORIZER_CONDITION;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_EXPIRED_CONDITION;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_PURPOSE_CONDITION;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_PURPOSE_VERSION_CONDITION;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SERVICE_CONDITION;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_STATE_CONDITION;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SUBJECT_CONDITION;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_TIMESTAMP_CONDITION;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_HEAD;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_MSSQL;
@@ -131,6 +142,8 @@ import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIP
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_BEFORE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_MSSQL_BEFORE;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPTS_SQL_TAIL_ORACLE_DB2_BEFORE;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.LIST_RECEIPT_PROPERTIES_SQL;
+import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.RECEIPT_ID_LIST_PLACEHOLDER;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_CONSENT_AUTHORIZATION_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_RECEIPT_EXPIRY_SQL;
 import static org.wso2.carbon.consent.mgt.core.constant.SQLConstants.UPDATE_RECEIPT_STATE_SQL;
@@ -1251,6 +1264,109 @@ public class ReceiptDAOImpl implements ReceiptDAO {
     }
 
     @Override
+    public Map<String, Map<String, String>> listReceiptProperties(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        if (isEmpty(receiptIds)) {
+            return Collections.emptyMap();
+        }
+        Map<String, Map<String, String>> propertiesByReceipt = new HashMap<>();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            String query = String.format(LIST_RECEIPT_PROPERTIES_SQL, getReceiptPropertyValueColumn())
+                    .replace(RECEIPT_ID_LIST_PLACEHOLDER, buildReceiptIdPlaceholders(receiptIds));
+            jdbcTemplate.executeQuery(query,
+                    (resultSet, rowNumber) -> propertiesByReceipt
+                            .computeIfAbsent(resultSet.getString(1), receiptId -> new HashMap<>())
+                            .put(resultSet.getString(2), resultSet.getString(3)),
+                    preparedStatement -> bindReceiptIds(preparedStatement, receiptIds));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
+                    String.join(",", receiptIds), e);
+        }
+        return propertiesByReceipt;
+    }
+
+    @Override
+    public Map<String, List<ConsentPurpose>> listConsentPurposes(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        if (isEmpty(receiptIds)) {
+            return Collections.emptyMap();
+        }
+        Map<String, List<ConsentPurpose>> purposesByReceipt = new HashMap<>();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            String query = LIST_CONSENT_PURPOSES_SQL.replace(RECEIPT_ID_LIST_PLACEHOLDER,
+                    buildReceiptIdPlaceholders(receiptIds));
+            jdbcTemplate.executeQuery(query,
+                    (resultSet, rowNumber) -> {
+                        ConsentPurpose consentPurpose = new ConsentPurpose();
+                        consentPurpose.setPurpose(resultSet.getString(2));
+                        consentPurpose.setUuid(resultSet.getString(3));
+                        consentPurpose.setGroupType(resultSet.getString(4));
+                        String versionUuid = resultSet.getString(5);
+                        if (StringUtils.isNotBlank(versionUuid)) {
+                            consentPurpose.setPurposeVersionId(versionUuid);
+                        }
+                        consentPurpose.setVersion(resultSet.getString(6));
+                        return purposesByReceipt
+                                .computeIfAbsent(resultSet.getString(1), receiptId -> new ArrayList<>())
+                                .add(consentPurpose);
+                    },
+                    preparedStatement -> bindReceiptIds(preparedStatement, receiptIds));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_PURPOSE_INFO,
+                    String.join(",", receiptIds), e);
+        }
+        return purposesByReceipt;
+    }
+
+    @Override
+    public Map<String, List<ConsentAuthorization>> listConsentAuthorizations(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        if (isEmpty(receiptIds)) {
+            return Collections.emptyMap();
+        }
+        Map<String, List<ConsentAuthorization>> authorizationsByReceipt = new HashMap<>();
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            String query = LIST_CONSENT_AUTHORIZATIONS_SQL.replace(RECEIPT_ID_LIST_PLACEHOLDER,
+                    buildReceiptIdPlaceholders(receiptIds));
+            jdbcTemplate.executeQuery(query,
+                    (resultSet, rowNumber) -> {
+                        ConsentAuthorization auth = new ConsentAuthorization();
+                        auth.setConsentReceiptId(resultSet.getString(1));
+                        auth.setUserId(resultSet.getString(2));
+                        auth.setStatus(ConsentAuthorization.AuthorizationStatus.valueOf(resultSet.getString(3)));
+                        auth.setUpdatedTime(resultSet.getLong(4));
+                        auth.setType(resultSet.getString(5));
+                        return authorizationsByReceipt
+                                .computeIfAbsent(auth.getConsentReceiptId(), receiptId -> new ArrayList<>())
+                                .add(auth);
+                    },
+                    preparedStatement -> bindReceiptIds(preparedStatement, receiptIds));
+        } catch (DataAccessException e) {
+            throw ConsentUtils.handleServerException(ErrorMessages.ERROR_CODE_RETRIEVE_RECEIPT_INFO,
+                    String.join(",", receiptIds), e);
+        }
+        return authorizationsByReceipt;
+    }
+
+    private String buildReceiptIdPlaceholders(List<String> receiptIds) {
+
+        return String.join(",", Collections.nCopies(receiptIds.size(), "?"));
+    }
+
+    private void bindReceiptIds(PreparedStatement preparedStatement, List<String> receiptIds) throws SQLException {
+
+        for (int i = 0; i < receiptIds.size(); i++) {
+            preparedStatement.setString(i + 1, receiptIds.get(i));
+        }
+    }
+
+    @Override
     public ConsentAuthorization getConsentAuthorizationByUser(String consentReceiptId, String userId)
             throws ConsentManagementException {
 
@@ -1465,8 +1581,24 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         }
     }
 
+    /**
+     * @deprecated Use
+     * {@link #listReceipts(String, ConsentRelation, String, String, String, String, int, int, List)} instead.
+     */
+    @Deprecated
     @Override
     public List<Receipt> listReceipts(String subjectId, String serviceId, String state,
+                                      String purposeId, String purposeVersionId,
+                                      int limit, int tenantId,
+                                      List<ExpressionNode> expressionNodes)
+            throws ConsentManagementException {
+
+        return listReceipts(subjectId, ConsentRelation.SUBJECT, serviceId, state, purposeId, purposeVersionId,
+                limit, tenantId, expressionNodes);
+    }
+
+    @Override
+    public List<Receipt> listReceipts(String userId, ConsentRelation relation, String serviceId, String state,
                                       String purposeId, String purposeVersionId,
                                       int limit, int tenantId,
                                       List<ExpressionNode> expressionNodes)
@@ -1497,8 +1629,21 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         }
         final boolean finalHasCursor = hasCursor;
 
+        final List<Timestamp> timestampValues = new ArrayList<>();
+        for (ExpressionNode node : nodes) {
+            if (FilterConstants.FILTER_ATTR_TIMESTAMP.equals(node.getAttributeValue())) {
+                try {
+                    timestampValues.add(new Timestamp(Long.parseLong(node.getValue())));
+                } catch (NumberFormatException e) {
+                    throw ConsentUtils.handleClientException(ErrorMessages.ERROR_CODE_INVALID_FILTER_EXPRESSION,
+                            "'timestamp' must be milliseconds since epoch. Got: " + node.getValue());
+                }
+            }
+        }
+
         try {
-            String query = buildCursorReceiptQuery(nodes, subjectId, serviceId, state, purposeId, purposeVersionId);
+            String query = buildCursorReceiptQuery(nodes, userId, relation, serviceId, state, purposeId,
+                    purposeVersionId);
             receipts = jdbcTemplate.executeQuery(query,
                     (resultSet, rowNumber) -> {
                         Receipt receipt = new Receipt();
@@ -1528,8 +1673,13 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         int paramIndex = 1;
                         preparedStatement.setInt(paramIndex++, tenantId);
                         preparedStatement.setInt(paramIndex++, tenantId);
-                        if (subjectId != null) {
-                            preparedStatement.setString(paramIndex++, subjectId);
+                        // ANY matches the user as either subject or authorizer, so its condition
+                        // carries two placeholders for the same value.
+                        if (userId != null) {
+                            preparedStatement.setString(paramIndex++, userId);
+                            if (ConsentRelation.ANY == relation) {
+                                preparedStatement.setString(paramIndex++, userId);
+                            }
                         }
                         if (serviceId != null) {
                             preparedStatement.setString(paramIndex++, serviceId);
@@ -1549,9 +1699,13 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                         if (purposeVersionId != null) {
                             preparedStatement.setString(paramIndex++, purposeVersionId);
                         }
+                        int timestampIndex = 0;
                         for (ExpressionNode node : nodes) {
                             String attr = node.getAttributeValue();
-                            if (attr != null && attr.startsWith("properties.")) {
+                            if (FilterConstants.FILTER_ATTR_TIMESTAMP.equals(attr)) {
+                                preparedStatement.setTimestamp(paramIndex++, timestampValues.get(timestampIndex++),
+                                        Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                            } else if (attr != null && attr.startsWith("properties.")) {
                                 preparedStatement.setString(paramIndex++, attr.substring("properties.".length()));
                                 preparedStatement.setString(paramIndex++,
                                         FilterQueriesUtil.toSqlValue(node.getOperation(), node.getValue()));
@@ -1570,8 +1724,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         return receipts;
     }
 
-    private String buildCursorReceiptQuery(List<ExpressionNode> expressionNodes, String subjectId,
-                                           String serviceId, String state, String purposeId, String purposeVersionId)
+    private String buildCursorReceiptQuery(List<ExpressionNode> expressionNodes, String userId,
+                                           ConsentRelation relation, String serviceId, String state,
+                                           String purposeId, String purposeVersionId)
             throws DataAccessException {
 
         StringBuilder propertyConditions = new StringBuilder();
@@ -1580,8 +1735,14 @@ public class ReceiptDAOImpl implements ReceiptDAO {
         int propIndex = 0;
         String valueCol = getReceiptPropertyValueColumn();
 
-        if (subjectId != null) {
-            propertyConditions.append(LIST_RECEIPTS_SUBJECT_CONDITION);
+        if (userId != null) {
+            if (ConsentRelation.AUTHORIZER == relation) {
+                propertyConditions.append(LIST_RECEIPTS_AUTHORIZER_CONDITION);
+            } else if (ConsentRelation.ANY == relation) {
+                propertyConditions.append(LIST_RECEIPTS_ANY_USER_CONDITION);
+            } else {
+                propertyConditions.append(LIST_RECEIPTS_SUBJECT_CONDITION);
+            }
         }
         if (serviceId != null) {
             propertyConditions.append(LIST_RECEIPTS_SERVICE_CONDITION);
@@ -1611,6 +1772,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             } else if (FilterConstants.FILTER_ATTR_BEFORE.equals(attr)) {
                 cursorCondition = " AND r2.CURSOR_KEY < ?";
                 isBefore = true;
+            } else if (FilterConstants.FILTER_ATTR_TIMESTAMP.equals(attr)) {
+                propertyConditions.append(String.format(LIST_RECEIPTS_TIMESTAMP_CONDITION,
+                        FilterQueriesUtil.toSqlOperator(node.getOperation())));
             } else if (attr != null && attr.startsWith("properties.")) {
                 String sqlOp = FilterQueriesUtil.toSqlOperator(node.getOperation());
                 propertyConditions.append(" AND EXISTS (SELECT 1 FROM CM_CONSENT_RECEIPT_PROPERTY prop_f")

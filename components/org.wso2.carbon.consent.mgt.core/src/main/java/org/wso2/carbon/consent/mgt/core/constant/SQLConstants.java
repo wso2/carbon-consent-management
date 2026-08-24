@@ -542,6 +542,14 @@ public class SQLConstants {
     public static final String LIST_RECEIPTS_SUBJECT_CONDITION =
             " AND r2.PII_PRINCIPAL_ID = ?";
 
+    public static final String LIST_RECEIPTS_AUTHORIZER_CONDITION =
+            " AND EXISTS (SELECT 1 FROM CM_CONSENT_AUTHORIZATION ca " +
+            "WHERE ca.CONSENT_RECEIPT_ID = r2.CONSENT_RECEIPT_ID AND ca.USER_ID = ?)";
+
+    public static final String LIST_RECEIPTS_ANY_USER_CONDITION =
+            " AND (r2.PII_PRINCIPAL_ID = ? OR EXISTS (SELECT 1 FROM CM_CONSENT_AUTHORIZATION ca " +
+            "WHERE ca.CONSENT_RECEIPT_ID = r2.CONSENT_RECEIPT_ID AND ca.USER_ID = ?))";
+
     public static final String LIST_RECEIPTS_SERVICE_CONDITION =
             " AND rsa2.SP_NAME = ?";
 
@@ -553,6 +561,11 @@ public class SQLConstants {
 
     public static final String LIST_RECEIPTS_PURPOSE_VERSION_CONDITION =
             " AND spa.PURPOSE_VERSION_ID = ?";
+
+    // Formatted with the SQL operator derived from the filter operation by FilterQueriesUtil, which
+    // never emits raw user input.
+    public static final String LIST_RECEIPTS_TIMESTAMP_CONDITION =
+            " AND r2.CONSENT_TIMESTAMP %s ?";
 
     public static final String LIST_RECEIPTS_ACTIVE_EXPIRY_CONDITION =
             " AND (r2.EXPIRY_TIME IS NULL OR r2.EXPIRY_TIME > ?)";
@@ -593,4 +606,22 @@ public class SQLConstants {
             " ORDER BY sub_ck DESC FETCH FIRST ? ROWS ONLY" +
             "  ) inner_receipts" +
             ") ORDER BY r.CURSOR_KEY ASC";
+
+    public static final String RECEIPT_ID_LIST_PLACEHOLDER = "_RECEIPT_ID_LIST_";
+
+    public static final String LIST_RECEIPT_PROPERTIES_SQL =
+            "SELECT CONSENT_RECEIPT_ID,NAME,%s FROM CM_CONSENT_RECEIPT_PROPERTY " +
+            "WHERE CONSENT_RECEIPT_ID IN (" + RECEIPT_ID_LIST_PLACEHOLDER + ")";
+
+    public static final String LIST_CONSENT_AUTHORIZATIONS_SQL =
+            "SELECT CONSENT_RECEIPT_ID,USER_ID,STATUS,UPDATED_TIME,TYPE FROM CM_CONSENT_AUTHORIZATION " +
+            "WHERE CONSENT_RECEIPT_ID IN (" + RECEIPT_ID_LIST_PLACEHOLDER + ")";
+
+    public static final String LIST_CONSENT_PURPOSES_SQL = "SELECT RSA.CONSENT_RECEIPT_ID,P.NAME,P.UUID," +
+            "P.GROUP_TYPE,SP.PURPOSE_VERSION_ID,PV.VERSION " +
+            "FROM CM_RECEIPT_SP_ASSOC RSA " +
+            "INNER JOIN CM_SP_PURPOSE_ASSOC SP ON SP.RECEIPT_SP_ASSOC = RSA.ID " +
+            "INNER JOIN CM_PURPOSE P ON SP.PURPOSE_ID = P.ID " +
+            "LEFT JOIN CM_PURPOSE_VERSION PV ON PV.PURPOSE_ID = P.ID AND PV.UUID = SP.PURPOSE_VERSION_ID " +
+            "WHERE RSA.CONSENT_RECEIPT_ID IN (" + RECEIPT_ID_LIST_PLACEHOLDER + ")";
 }

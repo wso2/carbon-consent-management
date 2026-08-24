@@ -34,6 +34,8 @@ public class ConsentPurpose {
     private String thirdPartyName;
     private int serviceToPurposeId;
     private String purposeVersionId;
+    private String groupType;
+    private String version;
 
     public String getPurpose() {
 
@@ -166,5 +168,25 @@ public class ConsentPurpose {
     public void setPurposeVersionId(String purposeVersionId) {
 
         this.purposeVersionId = purposeVersionId;
+    }
+
+    public String getGroupType() {
+
+        return groupType;
+    }
+
+    public void setGroupType(String groupType) {
+
+        this.groupType = groupType;
+    }
+
+    public String getVersion() {
+
+        return version;
+    }
+
+    public void setVersion(String version) {
+
+        this.version = version;
     }
 }

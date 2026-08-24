@@ -29,9 +29,11 @@ import org.wso2.carbon.consent.mgt.core.dao.PIICategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeCategoryDAO;
 import org.wso2.carbon.consent.mgt.core.dao.PurposeDAO;
 import org.wso2.carbon.consent.mgt.core.dao.ReceiptDAO;
+import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementClientException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.consent.mgt.core.internal.ConsentManagerComponentDataHolder;
 import org.wso2.carbon.consent.mgt.core.model.Address;
+import org.wso2.carbon.consent.mgt.core.model.ConsentRelation;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PIICategoryValidity;
 import org.wso2.carbon.consent.mgt.core.model.PiiController;
@@ -528,6 +530,160 @@ public class ReceiptDAOImplTest {
             Assert.assertEquals(results.size(), expectedCount,
                     String.format("Expected %d receipts for subjectId=%s, serviceId=%s, state=%s, limit=%d, offset=%d",
                             expectedCount, subjectId, serviceId, state, limit, offset));
+        }
+    }
+
+    @Test
+    public void testListReceipts_relationAuthorizer_matchesAuthorizerNotSubject() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+            receiptDAO.addReceipt(receiptInputs.get(0));
+            receiptDAO.insertConsentAuthorization(new ConsentAuthorization(
+                    receiptInputs.get(0).getConsentReceiptId(), "delegate1",
+                    ConsentAuthorization.AuthorizationStatus.PENDING, System.currentTimeMillis(), "DELEGATE"));
+
+            Assert.assertEquals(receiptDAO.listReceipts("delegate1", ConsentRelation.AUTHORIZER, null, null, null,
+                    null, 10, SUPER_TENANT_ID, Collections.emptyList()).size(), 1,
+                    "AUTHORIZER should match the receipt the user is an authorizer of");
+            Assert.assertEquals(receiptDAO.listReceipts("delegate1", ConsentRelation.SUBJECT, null, null, null,
+                    null, 10, SUPER_TENANT_ID, Collections.emptyList()).size(), 0,
+                    "SUBJECT should not match a user who is only an authorizer");
+            Assert.assertEquals(receiptDAO.listReceipts("subject1", ConsentRelation.AUTHORIZER, null, null, null,
+                    null, 10, SUPER_TENANT_ID, Collections.emptyList()).size(), 0,
+                    "AUTHORIZER should not match a user who is only the subject");
+        }
+    }
+
+    @Test
+    public void testListReceipts_relationAny_subjectAndAuthorizerReturnedOnce() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+            receiptDAO.addReceipt(receiptInputs.get(0));
+            // subject1 is both the subject of this receipt and a listed authorizer on it.
+            receiptDAO.insertConsentAuthorization(new ConsentAuthorization(
+                    receiptInputs.get(0).getConsentReceiptId(), "subject1",
+                    ConsentAuthorization.AuthorizationStatus.PENDING, System.currentTimeMillis(), "DELEGATE"));
+
+            List<Receipt> results = receiptDAO.listReceipts("subject1", ConsentRelation.ANY, null, null, null,
+                    null, 10, SUPER_TENANT_ID, Collections.emptyList());
+
+            Assert.assertEquals(results.size(), 1,
+                    "ANY must return a receipt once when the user is both subject and authorizer");
+        }
+    }
+
+    @Test
+    public void testListReceipts_relationAny_returnsUnionOfSubjectAndAuthorizer() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+            receiptDAO.addReceipt(receiptInputs.get(0));
+            receiptDAO.addReceipt(receiptInputs.get(1));
+            // subject1 gave receipt 0 and authorizes receipt 1, which subject2 gave.
+            receiptDAO.insertConsentAuthorization(new ConsentAuthorization(
+                    receiptInputs.get(1).getConsentReceiptId(), "subject1",
+                    ConsentAuthorization.AuthorizationStatus.PENDING, System.currentTimeMillis(), "DELEGATE"));
+
+            Assert.assertEquals(receiptDAO.listReceipts("subject1", ConsentRelation.SUBJECT, null, null, null,
+                    null, 10, SUPER_TENANT_ID, Collections.emptyList()).size(), 1,
+                    "SUBJECT should return only the receipt subject1 gave");
+            Assert.assertEquals(receiptDAO.listReceipts("subject1", ConsentRelation.AUTHORIZER, null, null, null,
+                    null, 10, SUPER_TENANT_ID, Collections.emptyList()).size(), 1,
+                    "AUTHORIZER should return only the receipt subject1 authorizes");
+            Assert.assertEquals(receiptDAO.listReceipts("subject1", ConsentRelation.ANY, null, null, null,
+                    null, 10, SUPER_TENANT_ID, Collections.emptyList()).size(), 2,
+                    "ANY should return the union of both");
+        }
+    }
+
+    @Test
+    public void testListReceipts_relationAnyWithPaging_noRepeatedOrSkippedRows() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+            receiptDAO.addReceipt(receiptInputs.get(0));
+            Thread.sleep(10);
+            receiptDAO.addReceipt(receiptInputs.get(1));
+            receiptDAO.insertConsentAuthorization(new ConsentAuthorization(
+                    receiptInputs.get(1).getConsentReceiptId(), "subject1",
+                    ConsentAuthorization.AuthorizationStatus.PENDING, System.currentTimeMillis(), "DELEGATE"));
+
+            List<Receipt> firstPage = receiptDAO.listReceipts("subject1", ConsentRelation.ANY, null, null, null,
+                    null, 1, SUPER_TENANT_ID, Collections.emptyList());
+            Assert.assertEquals(firstPage.size(), 1, "First page should hold one receipt");
+
+            String after = java.util.Base64.getEncoder().encodeToString(
+                    firstPage.get(0).getCursor().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            List<Receipt> secondPage = receiptDAO.listReceipts("subject1", ConsentRelation.ANY, null, null, null,
+                    null, 1, SUPER_TENANT_ID, FilterQueriesUtil.getExpressionNodes(null, after, null));
+
+            Assert.assertEquals(secondPage.size(), 1, "Second page should hold the remaining receipt");
+            Assert.assertNotEquals(secondPage.get(0).getConsentReceiptId(), firstPage.get(0).getConsentReceiptId(),
+                    "Paging with a relation filter must not repeat a row across pages");
+        }
+    }
+
+    @Test
+    public void testListReceipts_deprecatedOverload_matchesSubjectRelation() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> dataHolderMockedStatic = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+            receiptDAO.addReceipt(receiptInputs.get(0));
+            receiptDAO.addReceipt(receiptInputs.get(1));
+            // subject1 authorizes the receipt subject2 gave; the deprecated overload must ignore that.
+            receiptDAO.insertConsentAuthorization(new ConsentAuthorization(
+                    receiptInputs.get(1).getConsentReceiptId(), "subject1",
+                    ConsentAuthorization.AuthorizationStatus.PENDING, System.currentTimeMillis(), "DELEGATE"));
+
+            List<Receipt> deprecated = receiptDAO.listReceipts("subject1", null, null, null, null, 10,
+                    SUPER_TENANT_ID, Collections.emptyList());
+            List<Receipt> explicitSubject = receiptDAO.listReceipts("subject1", ConsentRelation.SUBJECT, null, null,
+                    null, null, 10, SUPER_TENANT_ID, Collections.emptyList());
+
+            Assert.assertEquals(deprecated.size(), 1,
+                    "The deprecated overload must keep matching on subject only");
+            Assert.assertEquals(deprecated.size(), explicitSubject.size(),
+                    "The deprecated overload must agree with an explicit SUBJECT relation");
+            Assert.assertEquals(deprecated.get(0).getConsentReceiptId(),
+                    explicitSubject.get(0).getConsentReceiptId(),
+                    "The deprecated overload must return the same receipt as an explicit SUBJECT relation");
         }
     }
 
@@ -1164,6 +1320,110 @@ public class ReceiptDAOImplTest {
 
             Assert.assertEquals(receiptDAO.getReceiptExpiryTime(consentId), expiry,
                     "Expiry must be left unchanged when neither expiryTime nor clearExpiry is set.");
+        }
+    }
+
+    @DataProvider(name = "timestampFilterProvider")
+    public Object[][] provideTimestampFilterData() {
+
+        return new Object[][]{
+                {"timestamp ge %d", -3_600_000L, 0L, 2},
+                {"timestamp ge %d", 3_600_000L, 0L, 0},
+                {"timestamp le %d", 3_600_000L, 0L, 2},
+                {"timestamp le %d", -3_600_000L, 0L, 0},
+                {"timestamp ge %d and timestamp le %d", -3_600_000L, 3_600_000L, 2},
+                {"timestamp ge %d and timestamp le %d", 3_600_000L, 7_200_000L, 0},
+        };
+    }
+
+    @Test(dataProvider = "timestampFilterProvider")
+    public void testListReceipts_timestampFilter(String filterTemplate, long firstOffset, long secondOffset,
+            int expectedCount) throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+            receiptDAO.addReceipt(receiptInputs.get(0));
+            receiptDAO.addReceipt(receiptInputs.get(1));
+
+            long now = System.currentTimeMillis();
+            String filter = String.format(filterTemplate, now + firstOffset, now + secondOffset);
+            List<ExpressionNode> nodes = FilterQueriesUtil.getExpressionNodes(filter, null, null);
+            List<Receipt> results = receiptDAO.listReceipts(null, ConsentRelation.SUBJECT, null, null, null, null,
+                    100, SUPER_TENANT_ID, nodes);
+
+            Assert.assertNotNull(results);
+            Assert.assertEquals(results.size(), expectedCount,
+                    "Unexpected receipt count for filter: " + filter);
+        }
+    }
+
+    @Test
+    public void testListReceipts_timestampAndPropertyFilter_bindsBothInNodeOrder() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptInput uniqueReceipt = cloneReceiptInput(receiptInputs.get(1));
+            Map<String, String> uniqueProps = new HashMap<>();
+            uniqueProps.put("K1", "UNIQUE");
+            uniqueReceipt.setProperties(uniqueProps);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+            receiptDAO.addReceipt(receiptInputs.get(0));
+            receiptDAO.addReceipt(uniqueReceipt);
+
+            long past = System.currentTimeMillis() - 3_600_000L;
+            List<ExpressionNode> nodes = FilterQueriesUtil.getExpressionNodes(
+                    "timestamp ge " + past + " and properties.K1 eq V1", null, null);
+            List<Receipt> results = receiptDAO.listReceipts(null, ConsentRelation.SUBJECT, null, null, null, null,
+                    100, SUPER_TENANT_ID, nodes);
+
+            Assert.assertEquals(results.size(), 1,
+                    "Combined timestamp and property filter should match only the receipt carrying K1=V1");
+            Assert.assertEquals(results.get(0).getPiiPrincipalId(), "subject1");
+
+            // Reversing the node order must bind identically.
+            List<ExpressionNode> reversedNodes = FilterQueriesUtil.getExpressionNodes(
+                    "properties.K1 eq V1 and timestamp ge " + past, null, null);
+            List<Receipt> reversedResults = receiptDAO.listReceipts(null, ConsentRelation.SUBJECT, null, null, null,
+                    null, 100, SUPER_TENANT_ID, reversedNodes);
+
+            Assert.assertEquals(reversedResults.size(), 1,
+                    "Filter order must not affect parameter binding");
+            Assert.assertEquals(reversedResults.get(0).getPiiPrincipalId(), "subject1");
+        }
+    }
+
+    @Test(expectedExceptions = ConsentManagementClientException.class)
+    public void testListReceipts_timestampFilter_nonNumericValue_throwsClientException() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+
+        try (MockedStatic<ConsentManagerComponentDataHolder> mockedHolder = mockComponentDataHolder(dataSource);
+             Connection connection = getConnection()) {
+
+            Connection spy = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spy);
+
+            ReceiptDAO receiptDAO = new ReceiptDAOImpl();
+            receiptDAO.addReceipt(receiptInputs.get(0));
+
+            // A non-numeric timestamp must fail as a client error, not surface as a server error.
+            List<ExpressionNode> nodes = FilterQueriesUtil.getExpressionNodes("timestamp ge yesterday", null, null);
+            receiptDAO.listReceipts(null, ConsentRelation.SUBJECT, null, null, null, null,
+                    100, SUPER_TENANT_ID, nodes);
         }
     }
 

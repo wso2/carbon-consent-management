@@ -319,6 +319,7 @@ public class ConsentConstants {
         public static final String FILTER_ATTR_NAME = "name";
         public static final String FILTER_ATTR_AFTER = "after";
         public static final String FILTER_ATTR_BEFORE = "before";
+        public static final String FILTER_ATTR_TIMESTAMP = "timestamp";
 
         // Database column names (SQL level - UPPERCASE)
         public static final String DB_COL_ID = "ID";

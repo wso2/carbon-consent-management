@@ -35,6 +35,8 @@ import org.wso2.carbon.consent.mgt.core.model.AddReceiptResponse;
 import org.wso2.carbon.consent.mgt.core.model.Address;
 import org.wso2.carbon.consent.mgt.core.model.ConsentAuthorization;
 import org.wso2.carbon.consent.mgt.core.model.ConsentManagerConfigurationHolder;
+import org.wso2.carbon.consent.mgt.core.model.ConsentPurpose;
+import org.wso2.carbon.consent.mgt.core.model.ConsentRelation;
 import org.wso2.carbon.consent.mgt.core.model.PIICategory;
 import org.wso2.carbon.consent.mgt.core.model.PiiController;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
@@ -78,6 +80,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -821,6 +824,16 @@ public class ConsentManagerImpl implements ConsentManager {
         return receipt;
     }
 
+    @Override
+    public Receipt getReceiptForInvolvedUserWithExtendedSchema(String receiptId, String userId)
+            throws ConsentManagementException {
+
+        Receipt receipt = getReceiptWithExtendedSchema(receiptId);
+
+        validateUserInvolvement(receipt, getConsentAuthorizations(receiptId), userId);
+        return receipt;
+    }
+
     /**
      * This API is used to search receipts.
      *
@@ -1201,9 +1214,36 @@ public class ConsentManagerImpl implements ConsentManager {
      * @param limit       Maximum number of results to return.
      * @return List of receipts matching the filter.
      * @throws ConsentManagementException if retrieval fails.
+     * @deprecated Use {@link #listReceipts(String, ConsentRelation, String, String, String, String, List, int)}
+     * instead.
      */
+    @Deprecated
     @Override
     public List<Receipt> listReceipts(String subjectId, String serviceId, String state,
+                                      String purposeId, String purposeVersionId,
+                                      List<ExpressionNode> expressionNodes, int limit)
+            throws ConsentManagementException {
+
+        return listReceipts(subjectId, ConsentRelation.SUBJECT, serviceId, state, purposeId, purposeVersionId,
+                expressionNodes, limit);
+    }
+
+    /**
+     * Lists receipts (consents) with tree-based filtering and pagination.
+     *
+     * @param userId      User ID to filter by, matched according to {@code relation} (null for no filtering).
+     * @param relation    Relation of {@code userId} to the retrieved consents (null defaults to
+     *                    {@link ConsentRelation#SUBJECT}).
+     * @param serviceId   Service ID to filter by (null for no filtering).
+     * @param state       Consent state to filter by (null for no filtering).
+     * @param purposeId   Purpose ID to filter by (null for no filtering).
+     * @param purposeVersionId Purpose version ID to filter by (null for no filtering).
+     * @param limit       Maximum number of results to return.
+     * @return List of receipts matching the filter.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    @Override
+    public List<Receipt> listReceipts(String userId, ConsentRelation relation, String serviceId, String state,
                                       String purposeId, String purposeVersionId,
                                       List<ExpressionNode> expressionNodes, int limit)
             throws ConsentManagementException {
@@ -1211,8 +1251,8 @@ public class ConsentManagerImpl implements ConsentManager {
         if (limit == 0) {
             limit = getDefaultLimitFromConfig();
         }
-        if (StringUtils.isNotBlank(subjectId) && !isUserNameCaseSensitive(subjectId)) {
-            subjectId = getLowerCaseUserName(subjectId);
+        if (StringUtils.isNotBlank(userId) && !isUserNameCaseSensitive(userId)) {
+            userId = getLowerCaseUserName(userId);
         }
         if (expressionNodes != null) {
             boolean hasAfter = false;
@@ -1229,7 +1269,7 @@ public class ConsentManagerImpl implements ConsentManager {
                         "after and before cursor filters cannot be used together");
             }
         }
-        List<Receipt> receipts = getReceiptsDAO(receiptDAOs).listReceipts(subjectId, serviceId, state, purposeId,
+        List<Receipt> receipts = getReceiptsDAO(receiptDAOs).listReceipts(userId, relation, serviceId, state, purposeId,
                 purposeVersionId, limit, getTenantIdFromCarbonContext(), expressionNodes);
         if (receipts == null) {
             return Collections.emptyList();
@@ -1307,6 +1347,48 @@ public class ConsentManagerImpl implements ConsentManager {
     }
 
     /**
+     * Retrieves the properties of several consents in one query.
+     *
+     * @param receiptIds Consent receipt IDs to look up.
+     * @return Properties of each consent, keyed by receipt ID.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    @Override
+    public Map<String, Map<String, String>> listReceiptProperties(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        return getReceiptsDAO(receiptDAOs).listReceiptProperties(receiptIds);
+    }
+
+    /**
+     * Retrieves the consented purposes of several consents in one query.
+     *
+     * @param receiptIds Consent receipt IDs to look up.
+     * @return Purposes of each consent, keyed by receipt ID.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    @Override
+    public Map<String, List<ConsentPurpose>> listConsentPurposes(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        return getReceiptsDAO(receiptDAOs).listConsentPurposes(receiptIds);
+    }
+
+    /**
+     * Retrieves the authorization records of several consents in one query.
+     *
+     * @param receiptIds Consent receipt IDs to look up.
+     * @return Authorizations of each consent, keyed by receipt ID.
+     * @throws ConsentManagementException if retrieval fails.
+     */
+    @Override
+    public Map<String, List<ConsentAuthorization>> listConsentAuthorizations(List<String> receiptIds)
+            throws ConsentManagementException {
+
+        return getReceiptsDAO(receiptDAOs).listConsentAuthorizations(receiptIds);
+    }
+
+    /**
      * Retrieves all authorization records for a consent receipt, after validating that the given user is either
      * the subject of the receipt or a delegated authorizer on it.
      *
@@ -1322,17 +1404,8 @@ public class ConsentManagerImpl implements ConsentManager {
         Receipt receipt = getReceiptWithExtendedSchema(consentId);
         List<ConsentAuthorization> authorizations = getConsentAuthorizations(consentId);
 
-        if (isSameUser(userId, receipt.getPiiPrincipalId())) {
-            return authorizations;
-        }
-        if (authorizations != null) {
-            for (ConsentAuthorization authorization : authorizations) {
-                if (isSameUser(userId, authorization.getUserId())) {
-                    return authorizations;
-                }
-            }
-        }
-        throw handleClientException(ERROR_CODE_USER_NOT_AUTHORIZED, userId);
+        validateUserInvolvement(receipt, authorizations, userId);
+        return authorizations;
     }
 
     @Override
@@ -1371,6 +1444,30 @@ public class ConsentManagerImpl implements ConsentManager {
             throw new ConsentManagementClientException(message, ERROR_CODE_RECEIPT_ID_INVALID.getCode());
         }
         return resolveConsentState(storedState, vReceiptDAO.getReceiptExpiryTime(consentId));
+    }
+
+    /**
+     * Validates that the given user is either the subject of the receipt or a listed authorizer on it.
+     *
+     * @param receipt        Consent receipt.
+     * @param authorizations Authorization records of the receipt.
+     * @param userId         ID of the user expected to be the subject or an authorizer on the receipt.
+     * @throws ConsentManagementException if the user is neither the subject nor a delegated authorizer.
+     */
+    private void validateUserInvolvement(Receipt receipt, List<ConsentAuthorization> authorizations, String userId)
+            throws ConsentManagementException {
+
+        if (isSameUser(userId, receipt.getPiiPrincipalId())) {
+            return;
+        }
+        if (authorizations != null) {
+            for (ConsentAuthorization authorization : authorizations) {
+                if (isSameUser(userId, authorization.getUserId())) {
+                    return;
+                }
+            }
+        }
+        throw handleClientException(ERROR_CODE_USER_NOT_AUTHORIZED, userId);
     }
 
     /**
