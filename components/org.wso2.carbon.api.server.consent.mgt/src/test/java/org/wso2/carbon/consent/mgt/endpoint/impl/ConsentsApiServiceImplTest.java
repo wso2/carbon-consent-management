@@ -58,9 +58,9 @@ import org.wso2.carbon.consent.mgt.endpoint.exception.NotFoundException;
 import org.wso2.carbon.consent.mgt.endpoint.impl.util.TestUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.UserRealm;
-import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
@@ -72,6 +72,7 @@ import java.util.List;
 import javax.sql.DataSource;
 import javax.ws.rs.core.Response;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -95,6 +96,7 @@ public class ConsentsApiServiceImplTest {
     private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContextMock;
     private MockedStatic<KeyStoreManager> keyStoreManagerMock;
     private MockedStatic<ConsentManagerComponentDataHolder> componentDataHolderMock;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtilMock;
 
     @Mock
     KeyStoreManager keyStoreManager;
@@ -158,6 +160,7 @@ public class ConsentsApiServiceImplTest {
 
         ConsentManager consentManager = new InterceptingConsentManager(configurationHolder, Collections.emptyList());
         mockCarbonContext(consentManager);
+        mockIdentityTenantUtil();
         mockKeyStoreManager();
     }
 
@@ -172,6 +175,13 @@ public class ConsentsApiServiceImplTest {
         when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
         when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
         when(privilegedCarbonContext.getUsername()).thenReturn("admin");
+    }
+
+    private void mockIdentityTenantUtil() {
+
+        identityTenantUtilMock = mockStatic(IdentityTenantUtil.class);
+        identityTenantUtilMock.when(() -> IdentityTenantUtil.getTenantDomain(anyInt()))
+                .thenReturn(SUPER_TENANT_DOMAIN_NAME);
     }
 
     private void mockKeyStoreManager() throws Exception {
@@ -196,6 +206,9 @@ public class ConsentsApiServiceImplTest {
         }
         if (privilegedCarbonContextMock != null) {
             privilegedCarbonContextMock.close();
+        }
+        if (identityTenantUtilMock != null) {
+            identityTenantUtilMock.close();
         }
         if (keyStoreManagerMock != null) {
             keyStoreManagerMock.close();
