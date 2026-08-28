@@ -54,6 +54,7 @@ import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.consent.mgt.core.util.TestUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -66,8 +67,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.sql.DataSource;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -92,6 +95,7 @@ public class InterceptingConsentManagerTest {
     private MockedStatic<PrivilegedCarbonContext> privilegedCarbonContextMock;
     private MockedStatic<KeyStoreManager> keyStoreManagerMock;
     private MockedStatic<ConsentManagerComponentDataHolder> componentDataHolderMock;
+    private MockedStatic<IdentityTenantUtil> identityTenantUtilMock;
 
     @Mock
     KeyStoreManager keyStoreManager;
@@ -155,6 +159,7 @@ public class InterceptingConsentManagerTest {
         configurationHolder.setConfigParser(configParser);
 
         mockCarbonContext();
+        mockIdentityTenantUtil();
         mockKeyStoreManager();
 
         consentManager = new InterceptingConsentManager(configurationHolder, Collections.emptyList());
@@ -174,6 +179,7 @@ public class InterceptingConsentManagerTest {
 
     private void mockCarbonContext() {
 
+        closePrivilegedCarbonContextMock();
         privilegedCarbonContextMock = mockStatic(PrivilegedCarbonContext.class);
         PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
@@ -181,6 +187,14 @@ public class InterceptingConsentManagerTest {
         when(privilegedCarbonContext.getTenantDomain()).thenReturn(SUPER_TENANT_DOMAIN_NAME);
         when(privilegedCarbonContext.getTenantId()).thenReturn(SUPER_TENANT_ID);
         when(privilegedCarbonContext.getUsername()).thenReturn("admin");
+    }
+
+    private void mockIdentityTenantUtil() {
+
+        closeIdentityTenantUtilMock();
+        identityTenantUtilMock = mockStatic(IdentityTenantUtil.class);
+        identityTenantUtilMock.when(() -> IdentityTenantUtil.getTenantDomain(anyInt()))
+                .thenReturn(SUPER_TENANT_DOMAIN_NAME);
     }
 
     @AfterMethod
@@ -191,9 +205,8 @@ public class InterceptingConsentManagerTest {
         if (componentDataHolderMock != null) {
             componentDataHolderMock.close();
         }
-        if (privilegedCarbonContextMock != null) {
-            privilegedCarbonContextMock.close();
-        }
+        closePrivilegedCarbonContextMock();
+        closeIdentityTenantUtilMock();
         if (keyStoreManagerMock != null) {
             keyStoreManagerMock.close();
         }
@@ -201,6 +214,7 @@ public class InterceptingConsentManagerTest {
 
     @DataProvider(name = "listDataProvider")
     public static Object[][] listData() {
+
         return new Object[][]{
                 // limit, offset, resultCount
                 {0, 0, 2},
@@ -212,6 +226,7 @@ public class InterceptingConsentManagerTest {
 
     @DataProvider(name = "listWithDefaultDataProvider")
     public static Object[][] listWithDefaultData() {
+
         return new Object[][]{
                 // limit, offset, resultCount
                 {0, 0, 3},
@@ -223,6 +238,7 @@ public class InterceptingConsentManagerTest {
 
     @DataProvider(name = "deleteDataProvider")
     public static Object[][] deleteData() {
+
         return new Object[][]{
                 // deleteId
                 {-1},
@@ -232,6 +248,7 @@ public class InterceptingConsentManagerTest {
 
     @DataProvider(name = "receiptListDataProvider")
     public static Object[][] receiptListData() {
+
         return new Object[][]{
                 // limit, offset, principalId, tenantDomain, service, state, resultCount
                 {10, 0, "subject1", "carbon.super", "foo-company", "ACTIVE", 1},
@@ -546,20 +563,178 @@ public class InterceptingConsentManagerTest {
 
         Purpose purpose = addPurpose("P1");
         Assert.assertTrue(consentManager.isPurposeExists(purpose.getName(), purpose.getGroup(), purpose.getGroupType()),
-                          "Purpose 'P1' should exist.");
+                "Purpose 'P1' should exist.");
     }
 
     @Test
     public void testIsInvalidPurposeExists() throws Exception {
 
         Assert.assertTrue(!consentManager.isPurposeExists("Invalid", "Invalid group", "Invalid group type"),
-                          "Purpose should not exist.");
+                "Purpose should not exist.");
     }
 
     @Test(expectedExceptions = ConsentManagementClientException.class)
     public void testIsNullPurposeExists() throws Exception {
 
         consentManager.isPurposeExists(null, null, null);
+    }
+
+    @Test(expectedExceptions = ConsentManagementClientException.class)
+    public void testGetPurposeCategoryCrossTenant() throws Exception {
+
+        // Add a purpose category in super tenant.
+        PurposeCategory purposeCategory = addPurposeCategory("PC1");
+        int purposeCategoryId = purposeCategory.getId();
+
+        // Mock carbon context to simulate a different tenant and update IdentityTenantUtil.
+        mockCarbonContextForDifferentTenant("tenant1.com", 1);
+        mockIdentityTenantUtilForDifferentTenant();
+
+        try {
+            consentManager.getPurposeCategory(purposeCategoryId);
+            Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
+        } finally {
+            mockCarbonContext();
+            mockIdentityTenantUtil();
+        }
+    }
+
+    @Test(expectedExceptions = ConsentManagementClientException.class)
+    public void testDeletePurposeCategoryCrossTenant() throws Exception {
+
+        // Add a purpose category in super tenant.
+        PurposeCategory purposeCategory = addPurposeCategory("PC1");
+        int purposeCategoryId = purposeCategory.getId();
+
+        // Mock carbon context to simulate different tenant and update IdentityTenantUtil.
+        mockCarbonContextForDifferentTenant("tenant1.com", 1);
+        mockIdentityTenantUtilForDifferentTenant();
+
+        try {
+            consentManager.deletePurposeCategory(purposeCategoryId);
+            Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
+        } finally {
+            mockCarbonContext();
+            mockIdentityTenantUtil();
+        }
+    }
+
+    @Test(expectedExceptions = ConsentManagementClientException.class)
+    public void testGetPIICategoryCrossTenant() throws Exception {
+
+        // Add a PII category in super tenant.
+        PIICategory piiCategory = addPIICategory("PII1");
+        int piiCategoryId = piiCategory.getId();
+
+        // Mock carbon context to simulate different tenant and update IdentityTenantUtil.
+        mockCarbonContextForDifferentTenant("tenant1.com", 1);
+        mockIdentityTenantUtilForDifferentTenant();
+
+        try {
+            consentManager.getPIICategory(piiCategoryId);
+            Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
+        } finally {
+            mockCarbonContext();
+            mockIdentityTenantUtil();
+        }
+    }
+
+    @Test(expectedExceptions = ConsentManagementClientException.class)
+    public void testDeletePIICategoryCrossTenant() throws Exception {
+
+        // Add a PII category in super tenant.
+        PIICategory piiCategory = addPIICategory("PII1");
+        int piiCategoryId = piiCategory.getId();
+
+        // Mock carbon context to simulate different tenant and update IdentityTenantUtil.
+        mockCarbonContextForDifferentTenant("tenant1.com", 1);
+        mockIdentityTenantUtilForDifferentTenant();
+
+        try {
+            consentManager.deletePIICategory(piiCategoryId);
+            Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
+        } finally {
+            mockCarbonContext();
+            mockIdentityTenantUtil();
+        }
+    }
+
+    @Test(expectedExceptions = ConsentManagementClientException.class)
+    public void testGetPurposeCrossTenant() throws Exception {
+
+        // Add a purpose in super tenant.
+        Purpose purpose = addPurpose("P1");
+        int purposeId = purpose.getId();
+
+        // Mock carbon context to simulate different tenant and update IdentityTenantUtil.
+        mockCarbonContextForDifferentTenant("tenant1.com", 1);
+        mockIdentityTenantUtilForDifferentTenant();
+
+        try {
+            consentManager.getPurpose(purposeId);
+            Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
+        } finally {
+            mockCarbonContext();
+            mockIdentityTenantUtil();
+        }
+    }
+
+    @Test(expectedExceptions = ConsentManagementClientException.class)
+    public void testDeletePurposeCrossTenant() throws Exception {
+
+        // Add a purpose in super tenant.
+        Purpose purpose = addPurpose("P1");
+        int purposeId = purpose.getId();
+
+        // Mock carbon context to simulate different tenant and update IdentityTenantUtil.
+        mockCarbonContextForDifferentTenant("tenant1.com", 1);
+        mockIdentityTenantUtilForDifferentTenant();
+
+        try {
+            consentManager.deletePurpose(purposeId);
+            Assert.fail("Expected: " + ConsentManagementClientException.class.getName());
+        } finally {
+            mockCarbonContext();
+            mockIdentityTenantUtil();
+        }
+    }
+
+    private void mockCarbonContextForDifferentTenant(String tenantDomain, int tenantId) {
+
+        closePrivilegedCarbonContextMock();
+        privilegedCarbonContextMock = mockStatic(PrivilegedCarbonContext.class);
+        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
+
+        privilegedCarbonContextMock.when(PrivilegedCarbonContext::getThreadLocalCarbonContext)
+                .thenReturn(privilegedCarbonContext);
+        when(privilegedCarbonContext.getTenantDomain()).thenReturn(tenantDomain);
+        when(privilegedCarbonContext.getTenantId()).thenReturn(tenantId);
+        when(privilegedCarbonContext.getUsername()).thenReturn("admin");
+    }
+
+    private void mockIdentityTenantUtilForDifferentTenant() {
+
+        closeIdentityTenantUtilMock();
+        identityTenantUtilMock = mockStatic(IdentityTenantUtil.class);
+        identityTenantUtilMock.when(() -> IdentityTenantUtil.getTenantDomain(SUPER_TENANT_ID))
+                .thenReturn(SUPER_TENANT_DOMAIN_NAME);
+        identityTenantUtilMock.when(() -> IdentityTenantUtil.getTenantDomain(1)).thenReturn("tenant1.com");
+    }
+
+    private void closePrivilegedCarbonContextMock() {
+
+        if (privilegedCarbonContextMock != null) {
+            privilegedCarbonContextMock.close();
+            privilegedCarbonContextMock = null;
+        }
+    }
+
+    private void closeIdentityTenantUtilMock() {
+
+        if (identityTenantUtilMock != null) {
+            identityTenantUtilMock.close();
+            identityTenantUtilMock = null;
+        }
     }
 
     private Purpose addPurpose(String name) throws ConsentManagementException {
