@@ -7,6 +7,7 @@ import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementRuntimeException;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementServerException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -211,5 +212,20 @@ public class ConsentUtils {
      */
     public static int getTenantIdFromCarbonContext() {
         return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
+    }
+
+    /**
+     * Check whether the existing active consents of the same subject, application and purpose should be revoked when
+     * a new consent is added. Defaults to true when the configuration is not defined.
+     *
+     * @return true if the existing active consents should be revoked upon a new consent creation.
+     */
+    public static boolean isRevokeActiveConsentsOnCreateEnabled() {
+
+        String config = IdentityUtil.getProperty(ConsentConstants.REVOKE_ACTIVE_CONSENTS_ON_CREATE);
+        if (StringUtils.isBlank(config)) {
+            return true;
+        }
+        return Boolean.parseBoolean(config);
     }
 }

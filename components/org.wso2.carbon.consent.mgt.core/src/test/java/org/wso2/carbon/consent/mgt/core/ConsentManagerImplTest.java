@@ -58,6 +58,7 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptUpdateInput;
 import org.wso2.carbon.consent.mgt.core.util.ConsentConfigParser;
 import org.wso2.carbon.consent.mgt.core.util.TestUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
@@ -626,6 +627,42 @@ public class ConsentManagerImplTest {
         String cursor = java.util.Base64.getEncoder().encodeToString("1".getBytes(StandardCharsets.UTF_8));
 
         consentManager.listReceipts("subject1", POLICY_SERVICE, null, null, null, cursor, cursor, 1);
+    }
+
+    @Test
+    public void testAddConsent_revokesActiveConsentsByDefault() throws Exception {
+
+        setupUserStoreManagerMock(true);
+        Purpose purpose = createTestPurpose();
+        String versionId = purpose.getLatestVersion().getUuid();
+
+        String firstConsentId = createServiceConsent("subject1", POLICY_SERVICE, ConsentConstants.ACTIVE_STATE,
+                purpose, versionId);
+        createServiceConsent("subject1", POLICY_SERVICE, ConsentConstants.ACTIVE_STATE, purpose, versionId);
+
+        Assert.assertEquals(consentManager.getReceipt(firstConsentId).getState(), ConsentConstants.REVOKE_STATE,
+                "The existing active consent should be revoked when the revocation on create config is not defined.");
+    }
+
+    @Test
+    public void testAddConsent_retainsActiveConsentsWhenRevocationDisabled() throws Exception {
+
+        setupUserStoreManagerMock(true);
+        Purpose purpose = createTestPurpose();
+        String versionId = purpose.getLatestVersion().getUuid();
+
+        String firstConsentId;
+        try (MockedStatic<IdentityUtil> mockedIdentityUtil = mockStatic(IdentityUtil.class)) {
+            mockedIdentityUtil.when(() -> IdentityUtil.getProperty(
+                    ConsentConstants.REVOKE_ACTIVE_CONSENTS_ON_CREATE)).thenReturn("false");
+
+            firstConsentId = createServiceConsent("subject1", POLICY_SERVICE, ConsentConstants.ACTIVE_STATE,
+                    purpose, versionId);
+            createServiceConsent("subject1", POLICY_SERVICE, ConsentConstants.ACTIVE_STATE, purpose, versionId);
+        }
+
+        Assert.assertEquals(consentManager.getReceipt(firstConsentId).getState(), ConsentConstants.ACTIVE_STATE,
+                "The existing active consent should remain active when the revocation on create config is disabled.");
     }
 
     private String createServiceConsent(String subjectId, String service, String state, Purpose purpose,
