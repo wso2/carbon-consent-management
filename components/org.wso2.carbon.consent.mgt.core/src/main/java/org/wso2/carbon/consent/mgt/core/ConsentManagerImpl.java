@@ -1294,12 +1294,22 @@ public class ConsentManagerImpl implements ConsentManager {
     public void authorizeConsent(String consentId, String userId, String authStatus)
             throws ConsentManagementException {
 
-        validateAuthorizationStatus(authStatus);
+        if (!APPROVED_STATE.equals(authStatus) && !REJECTED_STATE.equals(authStatus) &&
+                !REVOKE_STATE.equals(authStatus)) {
+            throw handleClientException(ERROR_CODE_INVALID_AUTHORIZATION_STATUS, authStatus);
+        }
 
         ReceiptDAO receiptDAO = getReceiptsDAO(receiptDAOs);
         long now = System.currentTimeMillis();
 
-        String currentState = validateAndGetReceiptState(receiptDAO, consentId);
+        String currentState = receiptDAO.getReceiptState(consentId);
+        if (currentState == null) {
+            throw handleClientException(ERROR_CODE_RECEIPT_ID_INVALID, consentId);
+        }
+        // If the consent is expired, block authorization.
+        if (EXPIRED_STATE.equals(resolveConsentState(currentState, receiptDAO.getReceiptExpiryTime(consentId)))) {
+            throw handleClientException(ERROR_CODE_CONSENT_INVALID_STATE_FOR_AUTHORIZE, consentId);
+        }
 
 
         List<ConsentAuthorization> authorizations = receiptDAO.getConsentAuthorizations(consentId);
@@ -1323,62 +1333,29 @@ public class ConsentManagerImpl implements ConsentManager {
     }
 
     /**
-     * Applies an authorization status to every authorization record of a consent.
+     * Revokes a consent along with every one of its authorization records.
      *
-     * @param consentId  Consent receipt ID.
-     * @param authStatus Authorization status (APPROVED, REJECTED or REVOKED).
+     * @param consentId Consent receipt ID.
      * @throws ConsentManagementException if update fails.
      */
     @Override
-    public void authorizeConsentForAllAuthorizers(String consentId, String authStatus)
-            throws ConsentManagementException {
-
-        validateAuthorizationStatus(authStatus);
+    public void forceRevokeConsent(String consentId) throws ConsentManagementException {
 
         ReceiptDAO receiptDAO = getReceiptsDAO(receiptDAOs);
-        String currentState = validateAndGetReceiptState(receiptDAO, consentId);
-
         List<ConsentAuthorization> authorizations = receiptDAO.getConsentAuthorizations(consentId);
         if (authorizations.isEmpty()) {
-            // No individual authorization records. Map authStatus directly to receipt state.
-            String newState = APPROVED_STATE.equals(authStatus) ? ACTIVE_STATE : authStatus;
-            if (!newState.equals(currentState)) {
-                receiptDAO.updateReceiptState(consentId, newState);
-            }
+            // No individual authorization records. Revoke the receipt directly.
+            receiptDAO.updateReceiptState(consentId, REVOKE_STATE);
             return;
         }
 
-        ConsentAuthorization.AuthorizationStatus status =
-                ConsentAuthorization.AuthorizationStatus.valueOf(authStatus);
         for (ConsentAuthorization authorization : authorizations) {
-            authorization.setStatus(status);
+            authorization.setStatus(ConsentAuthorization.AuthorizationStatus.REVOKED);
         }
         ReceiptUpdateInput updateInput = new ReceiptUpdateInput();
         updateInput.setConsentReceiptId(consentId);
         updateInput.setAuthorizations(authorizations);
         receiptDAO.updateConsent(updateInput, this::calculateConsentStatus);
-    }
-
-    private void validateAuthorizationStatus(String authStatus) throws ConsentManagementException {
-
-        if (!APPROVED_STATE.equals(authStatus) && !REJECTED_STATE.equals(authStatus) &&
-                !REVOKE_STATE.equals(authStatus)) {
-            throw handleClientException(ERROR_CODE_INVALID_AUTHORIZATION_STATUS, authStatus);
-        }
-    }
-
-    private String validateAndGetReceiptState(ReceiptDAO receiptDAO, String consentId)
-            throws ConsentManagementException {
-
-        String currentState = receiptDAO.getReceiptState(consentId);
-        if (currentState == null) {
-            throw handleClientException(ERROR_CODE_RECEIPT_ID_INVALID, consentId);
-        }
-        // If the consent is expired, block authorization.
-        if (EXPIRED_STATE.equals(resolveConsentState(currentState, receiptDAO.getReceiptExpiryTime(consentId)))) {
-            throw handleClientException(ERROR_CODE_CONSENT_INVALID_STATE_FOR_AUTHORIZE, consentId);
-        }
-        return currentState;
     }
 
     /**

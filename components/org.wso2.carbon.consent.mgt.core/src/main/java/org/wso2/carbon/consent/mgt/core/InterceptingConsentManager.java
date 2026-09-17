@@ -105,16 +105,14 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
     }
 
     /**
-     * Authorize all authorization records of a consent after validating the tenant domain of the receipt.
+     * Revoke a consent and all of its authorization records after validating the tenant domain of the receipt.
      *
-     * @param consentId  Consent receipt ID.
-     * @param authStatus Authorization status.
+     * @param consentId Consent receipt ID.
      * @throws ConsentManagementException Consent Management Exception if the tenant domain of the receipt is
      * different from the accessing tenant domain.
      */
     @Override
-    public void authorizeConsentForAllAuthorizers(String consentId, String authStatus)
-            throws ConsentManagementException {
+    public void forceRevokeConsent(String consentId) throws ConsentManagementException {
 
         Receipt receipt = super.getReceipt(consentId);
 
@@ -124,7 +122,7 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
             throw new ConsentManagementClientException(message, ERROR_CODE_RECEIPT_ID_INVALID.getCode());
         }
 
-        super.authorizeConsentForAllAuthorizers(consentId, authStatus);
+        super.forceRevokeConsent(consentId);
     }
 
     /**

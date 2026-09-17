@@ -1321,16 +1321,15 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     }
 
     @Override
-    public void authorizeConsentForAllAuthorizers(String consentId, String authStatus)
-            throws ConsentManagementException {
+    public void forceRevokeConsent(String consentId) throws ConsentManagementException {
 
         String piiPrincipalId = consentManager.getReceiptWithExtendedSchema(consentId).getPiiPrincipalId();
-        authorizeConsentWithHooks(consentId, piiPrincipalId, authStatus, Flow.InitiatingPersona.ADMIN,
+        authorizeConsentWithHooks(consentId, piiPrincipalId, REVOKE_STATE, Flow.InitiatingPersona.ADMIN,
                 new OperationDelegate<Void>() {
                     @Override
                     public Void execute() throws ConsentManagementException {
 
-                        consentManager.authorizeConsentForAllAuthorizers(consentId, authStatus);
+                        consentManager.forceRevokeConsent(consentId);
                         return null;
                     }
                 });
