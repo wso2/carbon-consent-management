@@ -1333,6 +1333,32 @@ public class ConsentManagerImpl implements ConsentManager {
     }
 
     /**
+     * Revokes a consent along with every one of its authorization records.
+     *
+     * @param consentId Consent receipt ID.
+     * @throws ConsentManagementException if update fails.
+     */
+    @Override
+    public void forceRevokeConsent(String consentId) throws ConsentManagementException {
+
+        ReceiptDAO receiptDAO = getReceiptsDAO(receiptDAOs);
+        List<ConsentAuthorization> authorizations = receiptDAO.getConsentAuthorizations(consentId);
+        if (authorizations.isEmpty()) {
+            // No individual authorization records. Revoke the receipt directly.
+            receiptDAO.updateReceiptState(consentId, REVOKE_STATE);
+            return;
+        }
+
+        for (ConsentAuthorization authorization : authorizations) {
+            authorization.setStatus(ConsentAuthorization.AuthorizationStatus.REVOKED);
+        }
+        ReceiptUpdateInput updateInput = new ReceiptUpdateInput();
+        updateInput.setConsentReceiptId(consentId);
+        updateInput.setAuthorizations(authorizations);
+        receiptDAO.updateConsent(updateInput, this::calculateConsentStatus);
+    }
+
+    /**
      * Retrieves all authorization records for a consent receipt.
      *
      * @param consentId Consent receipt ID.

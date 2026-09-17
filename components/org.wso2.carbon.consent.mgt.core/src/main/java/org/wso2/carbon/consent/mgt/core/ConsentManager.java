@@ -486,6 +486,15 @@ public interface ConsentManager {
     }
 
     /**
+     * Revokes a consent along with every one of its authorization records (V2 API).
+     *
+     * @param consentId Consent receipt ID.
+     * @throws ConsentManagementException if operation fails.
+     */
+    default void forceRevokeConsent(String consentId) throws ConsentManagementException {
+    }
+
+    /**
      * Get all authorization records for a consent (V2 API).
      */
     default List<ConsentAuthorization> getConsentAuthorizations(String consentId)

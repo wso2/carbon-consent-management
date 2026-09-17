@@ -1308,15 +1308,39 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
     public void authorizeConsent(String consentId, String userId, String authStatus)
             throws ConsentManagementException {
 
-        Flow.Name flowName;
-        Flow.InitiatingPersona persona;
-        if (REVOKE_STATE.equals(authStatus)) {
-            flowName = Flow.Name.CONSENT_REVOKE;
-            persona = getFlowInitiatingPersona(Flow.InitiatingPersona.USER);
-        } else {
-            flowName = Flow.Name.CONSENT_GRANT;
-            persona = Flow.InitiatingPersona.USER;
-        }
+        Flow.InitiatingPersona persona = REVOKE_STATE.equals(authStatus)
+                ? getFlowInitiatingPersona(Flow.InitiatingPersona.USER) : Flow.InitiatingPersona.USER;
+        authorizeConsentWithHooks(consentId, userId, authStatus, persona, new OperationDelegate<Void>() {
+            @Override
+            public Void execute() throws ConsentManagementException {
+
+                consentManager.authorizeConsent(consentId, userId, authStatus);
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public void forceRevokeConsent(String consentId) throws ConsentManagementException {
+
+        String piiPrincipalId = consentManager.getReceiptWithExtendedSchema(consentId).getPiiPrincipalId();
+        authorizeConsentWithHooks(consentId, piiPrincipalId, REVOKE_STATE, Flow.InitiatingPersona.ADMIN,
+                new OperationDelegate<Void>() {
+                    @Override
+                    public Void execute() throws ConsentManagementException {
+
+                        consentManager.forceRevokeConsent(consentId);
+                        return null;
+                    }
+                });
+    }
+
+    private void authorizeConsentWithHooks(String consentId, String userId, String authStatus,
+                                           Flow.InitiatingPersona persona, OperationDelegate<Void> operation)
+            throws ConsentManagementException {
+
+        Flow.Name flowName = REVOKE_STATE.equals(authStatus)
+                ? Flow.Name.CONSENT_REVOKE : Flow.Name.CONSENT_GRANT;
         enterFlow(flowName, persona);
         try {
             String tenantDomain = ConsentUtils.getTenantDomainFromCarbonContext();
@@ -1339,14 +1363,7 @@ public class PrivilegedConsentManagerImpl implements PrivilegedConsentManager {
                         properties.put("USER_ID", userId);
                         properties.put("AUTH_STATUS", authStatus);
                     })
-                    .executeWith(new OperationDelegate<Void>() {
-                        @Override
-                        public Void execute() throws ConsentManagementException {
-
-                            consentManager.authorizeConsent(consentId, userId, authStatus);
-                            return null;
-                        }
-                    })
+                    .executeWith(operation)
                     .intercept(POST_AUTHORIZE_CONSENT, properties -> {
                         properties.put(RECEIPT_ID, consentId);
                         properties.put("USER_ID", userId);

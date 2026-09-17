@@ -105,6 +105,27 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
     }
 
     /**
+     * Revoke a consent and all of its authorization records after validating the tenant domain of the receipt.
+     *
+     * @param consentId Consent receipt ID.
+     * @throws ConsentManagementException Consent Management Exception if the tenant domain of the receipt is
+     * different from the accessing tenant domain.
+     */
+    @Override
+    public void forceRevokeConsent(String consentId) throws ConsentManagementException {
+
+        Receipt receipt = super.getReceipt(consentId);
+
+        if (isCrossTenantOperation(ConsentUtils.getTenantDomainFromCarbonContext(), receipt.getTenantDomain())) {
+            String message = String.format(ERROR_CODE_RECEIPT_ID_INVALID.getMessage(), consentId) + " in tenant: " +
+                    ConsentUtils.getTenantDomainFromCarbonContext();
+            throw new ConsentManagementClientException(message, ERROR_CODE_RECEIPT_ID_INVALID.getCode());
+        }
+
+        super.forceRevokeConsent(consentId);
+    }
+
+    /**
      * Delete PII Category after validating the tenant domain of the PII Category.
      *
      * @param piiCategoryId PII Category ID.
