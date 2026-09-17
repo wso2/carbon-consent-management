@@ -1185,7 +1185,6 @@ public class ReceiptDAOImpl implements ReceiptDAO {
             throws ConsentManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        boolean revokeActiveConsents = ConsentUtils.isRevokeActiveConsentsOnCreateEnabled();
         try {
             jdbcTemplate.withTransaction(template -> {
                 addReceiptInfo(receiptInput);
@@ -1194,7 +1193,7 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     int receiptToSPAssocId = addReceiptSPAssociation(receiptInput.getConsentReceiptId(), receiptServiceInput);
                     receiptServiceInput.getPurposes().forEach(rethrowConsumer(receiptPurposeInput -> {
                         // Revoke existing ACTIVE/PENDING consents for the same subject, service, and purpose.
-                        if (revokeActiveConsents) {
+                        if (ConsentUtils.isRevokeActiveConsentsOnCreateEnabled()) {
                             revokeActiveReceipts(receiptInput, receiptServiceInput, receiptPurposeInput, template);
                         }
                         int spToPurposeAssocId = addSpToPurposeAssociation(receiptToSPAssocId, receiptPurposeInput);
