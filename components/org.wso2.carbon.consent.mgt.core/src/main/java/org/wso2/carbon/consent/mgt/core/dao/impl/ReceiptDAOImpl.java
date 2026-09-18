@@ -1193,7 +1193,9 @@ public class ReceiptDAOImpl implements ReceiptDAO {
                     int receiptToSPAssocId = addReceiptSPAssociation(receiptInput.getConsentReceiptId(), receiptServiceInput);
                     receiptServiceInput.getPurposes().forEach(rethrowConsumer(receiptPurposeInput -> {
                         // Revoke existing ACTIVE/PENDING consents for the same subject, service, and purpose.
-                        revokeActiveReceipts(receiptInput, receiptServiceInput, receiptPurposeInput, template);
+                        if (ConsentUtils.isRevokeActiveConsentsOnCreateEnabled()) {
+                            revokeActiveReceipts(receiptInput, receiptServiceInput, receiptPurposeInput, template);
+                        }
                         int spToPurposeAssocId = addSpToPurposeAssociation(receiptToSPAssocId, receiptPurposeInput);
 
                         receiptPurposeInput.getPurposeCategoryId().forEach(rethrowConsumer(id ->

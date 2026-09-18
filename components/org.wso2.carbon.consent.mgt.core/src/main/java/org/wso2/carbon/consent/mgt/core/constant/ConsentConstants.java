@@ -31,6 +31,8 @@ public class ConsentConstants {
             + "an internal error. Please contact administrator.";
     public static final String STATUS_BAD_REQUEST_MESSAGE_DEFAULT = "Bad Request";
     public static final String PURPOSE_SEARCH_LIMIT_PATH = "SearchLimits.Purpose";
+    public static final String REVOKE_ACTIVE_CONSENTS_ON_CREATE =
+            "Consent.RevokeActiveConsentsOnCreate";
     public static final String CONSENT_RESOURCE_PATH = "consents";
     public static final String PURPOSE_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "purposes";
     public static final String RECEIPT_RESOURCE_PATH = CONSENT_RESOURCE_PATH + "/" + "receipts";
