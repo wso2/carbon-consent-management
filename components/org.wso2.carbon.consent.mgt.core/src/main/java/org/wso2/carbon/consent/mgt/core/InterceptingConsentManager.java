@@ -114,7 +114,7 @@ public class InterceptingConsentManager extends PrivilegedConsentManagerImpl {
     @Override
     public void forceRevokeConsent(String consentId) throws ConsentManagementException {
 
-        Receipt receipt = super.getReceipt(consentId);
+        Receipt receipt = super.getReceiptWithExtendedSchema(consentId);
 
         if (isCrossTenantOperation(ConsentUtils.getTenantDomainFromCarbonContext(), receipt.getTenantDomain())) {
             String message = String.format(ERROR_CODE_RECEIPT_ID_INVALID.getMessage(), consentId) + " in tenant: " +

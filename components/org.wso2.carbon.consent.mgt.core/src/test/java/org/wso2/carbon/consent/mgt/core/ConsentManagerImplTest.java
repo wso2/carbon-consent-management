@@ -1033,6 +1033,64 @@ public class ConsentManagerImplTest {
     }
 
     @Test
+    public void testForceRevokeConsent_emptyAuthorizations_setsRevoked() throws Exception {
+
+        String consentId = createConsentWithoutAuthorizations("subject1");
+
+        consentManager.forceRevokeConsent(consentId);
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.REVOKE_STATE);
+    }
+
+    @Test
+    public void testForceRevokeConsent_withAuthorizations_allPending_revokesAll() throws Exception {
+
+        String consentId = createConsentWithAuthorizations("subject1", "approver1", "approver2");
+
+        consentManager.forceRevokeConsent(consentId);
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.REVOKE_STATE);
+        assertAllAuthorizationsRevoked(consentId);
+    }
+
+    @Test
+    public void testForceRevokeConsent_withAuthorizations_partialApproval_revokesAll() throws Exception {
+
+        String consentId = createConsentWithAuthorizations("subject1", "approver1", "approver2");
+        consentManager.authorizeConsent(consentId, "approver1", "APPROVED");
+
+        consentManager.forceRevokeConsent(consentId);
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.REVOKE_STATE);
+        assertAllAuthorizationsRevoked(consentId);
+    }
+
+    @Test
+    public void testForceRevokeConsent_alreadyRevoked_succeeds() throws Exception {
+
+        String consentId = createConsentWithAuthorizations("subject1", "approver1", "approver2");
+        consentManager.forceRevokeConsent(consentId);
+
+        consentManager.forceRevokeConsent(consentId);
+
+        Receipt receipt = consentManager.getReceipt(consentId);
+        Assert.assertEquals(receipt.getState(), ConsentConstants.REVOKE_STATE);
+        assertAllAuthorizationsRevoked(consentId);
+    }
+
+    private void assertAllAuthorizationsRevoked(String consentId) throws Exception {
+
+        List<ConsentAuthorization> authorizations = consentManager.getConsentAuthorizations(consentId);
+        Assert.assertFalse(authorizations.isEmpty());
+        for (ConsentAuthorization authorization : authorizations) {
+            Assert.assertEquals(authorization.getStatus(), ConsentAuthorization.AuthorizationStatus.REVOKED);
+        }
+    }
+
+    @Test
     public void testCalculateConsentStatus_listenerOverridesComputedStatus() throws Exception {
 
         // A registered handler applies a "first approval wins" policy: the default rule would leave a partially
